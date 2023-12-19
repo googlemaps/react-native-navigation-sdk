@@ -1,0 +1,387 @@
+// Copyright 2023 Google LLC
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+//     http://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		8C4EB8612A0DDD480075867A /* UIColor+Util.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C4EB8602A0DDD480075867A /* UIColor+Util.m */; };
+		8C4EB8652A11C8260075867A /* CustomEventDispatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C4EB8642A11C8260075867A /* CustomEventDispatcher.m */; };
+		8C607AEE29ED398A00D732DD /* RCTNavViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C607AED29ED398A00D732DD /* RCTNavViewManager.m */; };
+		8C6EA54829EFB655009EB8F1 /* NavViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C6EA54729EFB655009EB8F1 /* NavViewController.m */; };
+		8CDAA6CA29F56AF100EBB586 /* RCTNavSdkIos.m in Sources */ = {isa = PBXBuildFile; fileRef = 8CDAA6C929F56AF100EBB586 /* RCTNavSdkIos.m */; };
+		E966425148CF8CA81D657DAE /* Pods_android_navsdk_reactnative.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C2748F50A265613476F1259C /* Pods_android_navsdk_reactnative.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8C5A5C1929ED1FB800D2125B /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		8C3B1BAE29F015410081BCB4 /* GoogleMapsBase.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = GoogleMapsBase.xcframework; path = Pods/GoogleMaps/Base/Frameworks/GoogleMapsBase.xcframework; sourceTree = "<group>"; };
+		8C3B1BAF29F015480081BCB4 /* GoogleMapsCore.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = GoogleMapsCore.xcframework; path = Pods/GoogleMaps/Maps/Frameworks/GoogleMapsCore.xcframework; sourceTree = "<group>"; };
+		8C3B1BB029F015480081BCB4 /* GoogleMaps.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = GoogleMaps.xcframework; path = Pods/GoogleMaps/Maps/Frameworks/GoogleMaps.xcframework; sourceTree = "<group>"; };
+		8C3B1BB129F0154E0081BCB4 /* GoogleNavigation.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = GoogleNavigation.xcframework; path = Pods/GoogleNavigation/Frameworks/GoogleNavigation.xcframework; sourceTree = SOURCE_ROOT; };
+		8C4EB85F2A0DDD480075867A /* UIColor+Util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIColor+Util.h"; sourceTree = "<group>"; };
+		8C4EB8602A0DDD480075867A /* UIColor+Util.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIColor+Util.m"; sourceTree = "<group>"; };
+		8C4EB8622A0F7A090075867A /* INavigationCallback.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = INavigationCallback.h; sourceTree = "<group>"; };
+		8C4EB8632A11C8260075867A /* CustomEventDispatcher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CustomEventDispatcher.h; sourceTree = "<group>"; };
+		8C4EB8642A11C8260075867A /* CustomEventDispatcher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CustomEventDispatcher.m; sourceTree = "<group>"; };
+		8C5A5C1B29ED1FB800D2125B /* libandroid-navsdk-reactnative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libandroid-navsdk-reactnative.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8C607AEC29ED398A00D732DD /* RCTNavViewManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTNavViewManager.h; sourceTree = "<group>"; };
+		8C607AED29ED398A00D732DD /* RCTNavViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTNavViewManager.m; sourceTree = "<group>"; };
+		8C6EA54629EFB655009EB8F1 /* NavViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavViewController.h; sourceTree = "<group>"; };
+		8C6EA54729EFB655009EB8F1 /* NavViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NavViewController.m; sourceTree = "<group>"; };
+		8CDAA6C829F56AF100EBB586 /* RCTNavSdkIos.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTNavSdkIos.h; sourceTree = "<group>"; };
+		8CDAA6C929F56AF100EBB586 /* RCTNavSdkIos.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTNavSdkIos.m; sourceTree = "<group>"; };
+		A16A5233DC111C1E64FF33AB /* Pods-android-navsdk-reactnative.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-android-navsdk-reactnative.debug.xcconfig"; path = "Target Support Files/Pods-android-navsdk-reactnative/Pods-android-navsdk-reactnative.debug.xcconfig"; sourceTree = "<group>"; };
+		BA71459F0DE1F16F621FBB02 /* Pods-android-navsdk-reactnative.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-android-navsdk-reactnative.release.xcconfig"; path = "Target Support Files/Pods-android-navsdk-reactnative/Pods-android-navsdk-reactnative.release.xcconfig"; sourceTree = "<group>"; };
+		C2748F50A265613476F1259C /* Pods_android_navsdk_reactnative.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_android_navsdk_reactnative.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8C5A5C1829ED1FB800D2125B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E966425148CF8CA81D657DAE /* Pods_android_navsdk_reactnative.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4FC2FA18B0120BCC182ED997 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8C3B1BAE29F015410081BCB4 /* GoogleMapsBase.xcframework */,
+				8C3B1BB129F0154E0081BCB4 /* GoogleNavigation.xcframework */,
+				8C3B1BB029F015480081BCB4 /* GoogleMaps.xcframework */,
+				8C3B1BAF29F015480081BCB4 /* GoogleMapsCore.xcframework */,
+				C2748F50A265613476F1259C /* Pods_android_navsdk_reactnative.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		8C5A5C1229ED1FB800D2125B = {
+			isa = PBXGroup;
+			children = (
+				8C5A5C1D29ED1FB800D2125B /* android-navsdk-reactnative */,
+				8C5A5C1C29ED1FB800D2125B /* Products */,
+				C23D1719FAB7E24F313404B4 /* Pods */,
+				4FC2FA18B0120BCC182ED997 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		8C5A5C1C29ED1FB800D2125B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8C5A5C1B29ED1FB800D2125B /* libandroid-navsdk-reactnative.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8C5A5C1D29ED1FB800D2125B /* android-navsdk-reactnative */ = {
+			isa = PBXGroup;
+			children = (
+				8C607AEC29ED398A00D732DD /* RCTNavViewManager.h */,
+				8C607AED29ED398A00D732DD /* RCTNavViewManager.m */,
+				8C6EA54629EFB655009EB8F1 /* NavViewController.h */,
+				8C6EA54729EFB655009EB8F1 /* NavViewController.m */,
+				8CDAA6C829F56AF100EBB586 /* RCTNavSdkIos.h */,
+				8CDAA6C929F56AF100EBB586 /* RCTNavSdkIos.m */,
+				8C4EB85F2A0DDD480075867A /* UIColor+Util.h */,
+				8C4EB8602A0DDD480075867A /* UIColor+Util.m */,
+				8C4EB8622A0F7A090075867A /* INavigationCallback.h */,
+				8C4EB8632A11C8260075867A /* CustomEventDispatcher.h */,
+				8C4EB8642A11C8260075867A /* CustomEventDispatcher.m */,
+			);
+			path = "android-navsdk-reactnative";
+			sourceTree = "<group>";
+		};
+		C23D1719FAB7E24F313404B4 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				A16A5233DC111C1E64FF33AB /* Pods-android-navsdk-reactnative.debug.xcconfig */,
+				BA71459F0DE1F16F621FBB02 /* Pods-android-navsdk-reactnative.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8C5A5C1A29ED1FB800D2125B /* android-navsdk-reactnative */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8C5A5C2429ED1FB800D2125B /* Build configuration list for PBXNativeTarget "android-navsdk-reactnative" */;
+			buildPhases = (
+				D91E73CB749B1A8B014B444E /* [CP] Check Pods Manifest.lock */,
+				8C5A5C1729ED1FB800D2125B /* Sources */,
+				8C5A5C1829ED1FB800D2125B /* Frameworks */,
+				8C5A5C1929ED1FB800D2125B /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "android-navsdk-reactnative";
+			productName = "android-navsdk-reactnative";
+			productReference = 8C5A5C1B29ED1FB800D2125B /* libandroid-navsdk-reactnative.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8C5A5C1329ED1FB800D2125B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1420;
+				TargetAttributes = {
+					8C5A5C1A29ED1FB800D2125B = {
+						CreatedOnToolsVersion = 14.2;
+					};
+				};
+			};
+			buildConfigurationList = 8C5A5C1629ED1FB800D2125B /* Build configuration list for PBXProject "android-navsdk-reactnative" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 8C5A5C1229ED1FB800D2125B;
+			productRefGroup = 8C5A5C1C29ED1FB800D2125B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8C5A5C1A29ED1FB800D2125B /* android-navsdk-reactnative */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		D91E73CB749B1A8B014B444E /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-android-navsdk-reactnative-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8C5A5C1729ED1FB800D2125B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8C6EA54829EFB655009EB8F1 /* NavViewController.m in Sources */,
+				8C607AEE29ED398A00D732DD /* RCTNavViewManager.m in Sources */,
+				8C4EB8652A11C8260075867A /* CustomEventDispatcher.m in Sources */,
+				8CDAA6CA29F56AF100EBB586 /* RCTNavSdkIos.m in Sources */,
+				8C4EB8612A0DDD480075867A /* UIColor+Util.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		8C5A5C2229ED1FB800D2125B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		8C5A5C2329ED1FB800D2125B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		8C5A5C2529ED1FB800D2125B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A16A5233DC111C1E64FF33AB /* Pods-android-navsdk-reactnative.debug.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8C5A5C2629ED1FB800D2125B /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = BA71459F0DE1F16F621FBB02 /* Pods-android-navsdk-reactnative.release.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		8C5A5C1629ED1FB800D2125B /* Build configuration list for PBXProject "android-navsdk-reactnative" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8C5A5C2229ED1FB800D2125B /* Debug */,
+				8C5A5C2329ED1FB800D2125B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8C5A5C2429ED1FB800D2125B /* Build configuration list for PBXNativeTarget "android-navsdk-reactnative" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8C5A5C2529ED1FB800D2125B /* Debug */,
+				8C5A5C2629ED1FB800D2125B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 8C5A5C1329ED1FB800D2125B /* Project object */;
+}

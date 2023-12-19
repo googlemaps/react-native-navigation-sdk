@@ -1,0 +1,20 @@
+# OSX
+#
+.DS_Store
+
+/node_modules
+/pods
+/example
+/.idea
+node_modules
+pods
+example
+.idea
+.DS_Store
+ios/.DS_Store
+android/.gradle
+*.xcbkptlist
+*.plist
+ios/react-native-navigation-sdk.xcodeproj/project.xcworkspace/xcuserdata/yoyesablot.xcuserdatad/UserInterfaceState.xcuserstate
+!SampleApp/ios/SampleApp/Info.plist
+android/build
