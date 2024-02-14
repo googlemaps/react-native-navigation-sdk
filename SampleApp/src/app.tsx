@@ -83,7 +83,7 @@ const App: React.FC = (): ReactElement => {
   const checkPermissions = async () => {
     const result = await request(
       Platform.OS == 'android'
-        ? PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION
+        ? PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION
         : PERMISSIONS.IOS.LOCATION_ALWAYS,
     );
 
