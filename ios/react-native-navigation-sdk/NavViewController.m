@@ -201,24 +201,28 @@ NSDictionary *_tosParams = nil;
   destinations = [[NSMutableArray alloc] init];
 
   for (NSDictionary *wp in waypoints) {
-    NSString *placeId = @"";
     GMSNavigationMutableWaypoint *w;
 
-    placeId = wp[@"placeId"];
+    NSString *placeId = wp[@"placeId"];
 
-    if ([placeId isEqual:@""] && wp[@"position"] != nil) {
+    if (placeId && ![placeId isEqual:@""]) {
+      w = [[GMSNavigationMutableWaypoint alloc] initWithPlaceID:placeId title:wp[@"title"]];     
+    } else if (wp[@"position"]) {
       w = [[GMSNavigationMutableWaypoint alloc]
-              initWithLocation:[ObjectTranslationUtil getLocationCoordinateFrom:wp[@"position"]]
-                         title:wp[@"title"]
-          preferSameSideOfRoad:wp[@"preferSameSideOfRoad"]];
-      w.vehicleStopover = wp[@"vehicleStopover"];
+        initWithLocation:[ObjectTranslationUtil getLocationCoordinateFrom:wp[@"position"]]
+                    title:wp[@"title"]];   
+    } else {
+      // The validation will be done on the client, so just ignore this waypoint here.
+      continue;
     }
 
-    if (![placeId isEqual:@""]) {
-      w = [[GMSNavigationMutableWaypoint alloc] initWithPlaceID:placeId title:wp[@"title"]];
-      w.vehicleStopover = wp[@"vehicleStopover"];
-      w.preferSameSideOfRoad = wp[@"preferSameSideOfRoad"];
+    if (wp[@"preferSameSideOfRoad"] != nil) {
+      w.preferSameSideOfRoad = [wp[@"preferSameSideOfRoad"] boolValue];
     }
+
+    if (wp[@"vehicleStopover"] != nil) {
+      w.vehicleStopover = [wp[@"vehicleStopover"] boolValue]; 
+    }    
 
     if (wp[@"preferredHeading"] != nil) {
       w.preferredHeading = [wp[@"preferredHeading"] intValue];
