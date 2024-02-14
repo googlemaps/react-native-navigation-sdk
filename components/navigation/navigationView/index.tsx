@@ -294,6 +294,14 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     }
   };
 
+  logDebugInfo = (message: string) => {
+    if (
+      this.props.navigationViewCallbacks != null &&
+      this.props.navigationViewCallbacks.logDebugInfo != null) {
+      this.props.navigationViewCallbacks.logDebugInfo(message);
+    }
+  };
+
   /**
    * Callback invoked when tapping on marker's info window.
    * @platform Android only
@@ -345,6 +353,7 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     NavModuleEvt.addListener('onPolylineClick', this.onPolylineClick);
     NavModuleEvt.addListener('onPolygonClick', this.onPolygonClick);
     NavModuleEvt.addListener('onCircleClick', this.onCircleClick);
+    NavModuleEvt.addListener('logDebugInfo', this.logDebugInfo);
   };
 
   /**
