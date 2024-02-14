@@ -250,14 +250,6 @@ RCT_EXPORT_METHOD(removeGroundOverlay:(nonnull NSNumber *)reactTag params:(NSStr
   });
 }
 
-RCT_EXPORT_METHOD(setDestination: (nonnull NSNumber *)reactTag 
-                  waypoints: (nonnull NSArray *)waypoints
-                  routingOptions: (NSDictionary *)routingOptions) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-      [viewController setDestinations:waypoints withRoutingOptions: routingOptions];
-  });
-}
-
 RCT_EXPORT_METHOD(setDestinations: (nonnull NSNumber *)reactTag 
                   waypoints: (nonnull NSArray *)waypoints
                   routingOptions: (NSDictionary *)routingOptions) {
