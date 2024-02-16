@@ -51,6 +51,7 @@ RCT_EXPORT_MODULE(CustomEventDispatcher);
     @"onPolylineClick",
     @"onPolygonClick",
     @"onCircleClick",
+    @"logDebugInfo",
   ];
 }
 
