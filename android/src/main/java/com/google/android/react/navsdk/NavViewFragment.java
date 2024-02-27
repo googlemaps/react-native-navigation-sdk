@@ -12,7 +12,6 @@
  * limitations under the License.
  */
 
-// TODO Remove mWaypoints
 package com.google.android.react.navsdk;
 
 import com.facebook.react.bridge.UiThreadUtil;
