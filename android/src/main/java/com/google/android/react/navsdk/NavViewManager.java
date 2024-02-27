@@ -121,12 +121,10 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
   ReactApplicationContext reactContext;
 
   private NavViewManager(ReactApplicationContext reactContext) {
-    Log.d(TAG, "init");
     this.reactContext = reactContext;
   }
 
   public static synchronized NavViewManager getInstance(ReactApplicationContext reactContext) {
-    Log.d("ARTPIT", "EPA");
     if (instance == null) {
       instance = new NavViewManager(reactContext);
     }
@@ -136,14 +134,12 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
   @NonNull
   @Override
   public String getName() {
-    Log.d("ARTPIT", "EPA");
     return REACT_CLASS;
   }
 
   /** Return a FrameLayout which will later hold the Fragment */
   @Override
   public FrameLayout createViewInstance(ThemedReactContext reactContext) {
-    Log.d("ARTPIT", "EPA");
     return new FrameLayout(reactContext);
   }
 
@@ -238,10 +234,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     super.receiveCommand(root, commandId, args);
     int reactNativeViewId = root.getId();
     int commandIdInt = Integer.parseInt(commandId);
-    Log.d(TAG, "receiveCommand: commandId? " + commandId);
-    Log.d(TAG, "receiveCommand: args? " + args);
 
-    Log.d("ARTPIT", "Command " + commandIdInt);
     switch (Command.find(commandIdInt)) {
       case CREATE_FRAGMENT:
         propHeight = args.getInt(0);
@@ -368,7 +361,6 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
         navViewFragment.setMapToolbarEnabled(args.getBoolean(0));
         break;
       case CLEAR_MAP_VIEW:
-        Log.d("ARTPIT", "Command");
         navViewFragment.clearMapView();
         break;
       case RESET_MIN_MAX_ZOOM_LEVEL:
