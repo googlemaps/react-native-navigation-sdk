@@ -33,13 +33,13 @@ export const getNavigationViewController = (
   return {
     setDestination: (waypoint: Waypoint, routingOptions?: RoutingOptions) => {
       let args: object[] = [];
-      args.push(waypoint);
+      args.push([waypoint]);
 
       if (routingOptions != null) {
         args.push(routingOptions);
       }
 
-      sendCommand(viewId, commands.setDestination, args);
+      sendCommand(viewId, commands.setDestinations, args);
     },
     setDestinations: (
       waypoints: Waypoint[],

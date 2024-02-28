@@ -201,6 +201,13 @@ export interface NavigationViewCallbacks {
    * @param errorCode - indicates the reason why navigation failed to initialize.
    */
   onNavigationInitError?(errorCode: NavigationInitErrorCode): void;
+
+  /**
+   * Allows developers to listen for relevant debug logs.
+   * 
+   * @param message relevant log message
+   */
+  logDebugInfo?(message: string): void;
 }
 
 /**
