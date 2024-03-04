@@ -206,11 +206,11 @@ NSDictionary *_tosParams = nil;
     NSString *placeId = wp[@"placeId"];
 
     if (placeId && ![placeId isEqual:@""]) {
-      w = [[GMSNavigationMutableWaypoint alloc] initWithPlaceID:placeId title:wp[@"title"]];     
+      w = [[GMSNavigationMutableWaypoint alloc] initWithPlaceID:placeId title:wp[@"title"]];
     } else if (wp[@"position"]) {
       w = [[GMSNavigationMutableWaypoint alloc]
         initWithLocation:[ObjectTranslationUtil getLocationCoordinateFrom:wp[@"position"]]
-                    title:wp[@"title"]];   
+                    title:wp[@"title"]];
     } else {
       // The validation will be done on the client, so just ignore this waypoint here.
       continue;
@@ -221,8 +221,8 @@ NSDictionary *_tosParams = nil;
     }
 
     if (wp[@"vehicleStopover"] != nil) {
-      w.vehicleStopover = [wp[@"vehicleStopover"] boolValue]; 
-    }    
+      w.vehicleStopover = [wp[@"vehicleStopover"] boolValue];
+    }
 
     if (wp[@"preferredHeading"] != nil) {
       w.preferredHeading = [wp[@"preferredHeading"] intValue];
