@@ -16,7 +16,9 @@ import groovy.json.JsonSlurper
 
 
 def getApiKey(){
-   return "AIzaSyAt_5eEMSOZva-YH1CUa_TOwX4pOHCsJOo"
+    def Properties props = new Properties()
+    props.load(new FileInputStream(new File('local.properties')))
+    return props['MAPS_API_KEY']
 }
 
 buildscript {
