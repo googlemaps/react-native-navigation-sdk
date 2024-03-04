@@ -206,11 +206,11 @@ NSDictionary *_tosParams = nil;
     NSString *placeId = wp[@"placeId"];
 
     if (placeId && ![placeId isEqual:@""]) {
-      w = [[GMSNavigationMutableWaypoint alloc] initWithPlaceID:placeId title:wp[@"title"]];     
+      w = [[GMSNavigationMutableWaypoint alloc] initWithPlaceID:placeId title:wp[@"title"]];
     } else if (wp[@"position"]) {
       w = [[GMSNavigationMutableWaypoint alloc]
         initWithLocation:[ObjectTranslationUtil getLocationCoordinateFrom:wp[@"position"]]
-                    title:wp[@"title"]];   
+                    title:wp[@"title"]];
     } else {
       // The validation will be done on the client, so just ignore this waypoint here.
       continue;
@@ -221,8 +221,8 @@ NSDictionary *_tosParams = nil;
     }
 
     if (wp[@"vehicleStopover"] != nil) {
-      w.vehicleStopover = [wp[@"vehicleStopover"] boolValue]; 
-    }    
+      w.vehicleStopover = [wp[@"vehicleStopover"] boolValue];
+    }
 
     if (wp[@"preferredHeading"] != nil) {
       w.preferredHeading = [wp[@"preferredHeading"] intValue];
@@ -251,6 +251,7 @@ NSDictionary *_tosParams = nil;
 - (void)startGuidance {
   if (destinations != NULL) {
     _mapView.navigator.guidanceActive = YES;
+    [_mapView.navigator setVoiceGuidance:GMSNavigationVoiceGuidanceAlertsAndGuidance];
     [callbacks onStartGuidance];
     _mapView.navigator.sendsBackgroundNotifications = YES;
   }
@@ -258,6 +259,7 @@ NSDictionary *_tosParams = nil;
 
 - (void)stopGuidance {
   _mapView.navigator.guidanceActive = false;
+  [_mapView.navigator setVoiceGuidance:GMSNavigationVoiceGuidanceSilent];
 }
 
 - (void)runSimulation:(nonnull NSNumber *)speedMultiplier {
