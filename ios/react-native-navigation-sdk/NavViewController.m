@@ -247,6 +247,7 @@ NSDictionary *_tosParams = nil;
 - (void)startGuidance {
   if (destinations != NULL) {
     _mapView.navigator.guidanceActive = YES;
+    [_mapView.navigator setVoiceGuidance:GMSNavigationVoiceGuidanceAlertsAndGuidance];
     [callbacks onStartGuidance];
     _mapView.navigator.sendsBackgroundNotifications = YES;
   }
@@ -254,6 +255,7 @@ NSDictionary *_tosParams = nil;
 
 - (void)stopGuidance {
   _mapView.navigator.guidanceActive = false;
+  [_mapView.navigator setVoiceGuidance:GMSNavigationVoiceGuidanceSilent];
 }
 
 - (void)runSimulation:(nonnull NSNumber *)speedMultiplier {
