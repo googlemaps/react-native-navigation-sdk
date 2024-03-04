@@ -96,7 +96,7 @@ const App: React.FC = (): ReactElement => {
       setArePermissionsApproved(true);
     } else {
       Snackbar.show({
-        text: 'Permissions are needed to proceed with the app. Please re-open and accept.',
+        text: 'Location/Media permissions are needed to proceed with the app. Please re-open and accept.',
         duration: Snackbar.LENGTH_SHORT,
       });
     }
