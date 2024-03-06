@@ -376,14 +376,14 @@ export default class NavigationView extends React.Component<NavigationViewProps>
         ? [
             PixelRatio.getPixelSizeForLayoutSize(this.props.height),
             PixelRatio.getPixelSizeForLayoutSize(this.props.width),
-            this.props.androidStylingOptions,
-            this.props.termsAndConditionsDialogOptions,
+            this.props.androidStylingOptions || {},
+            this.props.termsAndConditionsDialogOptions || {},
           ]
         : [
             this.props.height,
             this.props.width,
-            this.props.iOSStylingOptions,
-            this.props.termsAndConditionsDialogOptions,
+            this.props.iOSStylingOptions || {},
+            this.props.termsAndConditionsDialogOptions || {},
           ];
 
     setTimeout(() => {
