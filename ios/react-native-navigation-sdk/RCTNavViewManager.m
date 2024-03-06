@@ -146,6 +146,12 @@ RCT_EXPORT_METHOD(setSpeedLimitIconEnabled : (nonnull NSNumber *)reactTag isEnab
   });
 }
 
+RCT_EXPORT_METHOD(setBackgroundLocationUpdatesEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [viewController setBackgroundLocationUpdatesEnabled:isEnabled];
+  });
+}
+
 RCT_EXPORT_METHOD(startGuidance : (nonnull NSNumber *)reactTag) {
   dispatch_async(dispatch_get_main_queue(), ^{
     [viewController startGuidance];

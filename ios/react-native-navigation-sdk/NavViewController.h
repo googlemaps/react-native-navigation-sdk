@@ -83,6 +83,7 @@ typedef void (^OnArrayResult)(NSArray *result);
 - (void)setZoomGesturesEnabled:(BOOL)isEnabled;
 - (void)setBuildingsEnabled:(BOOL)isEnabled;
 - (void)setTrafficIncidentCardsEnabled:(BOOL)isEnabled;
+- (void)setBackgroundLocationUpdatesEnabled:(BOOL)isEnabled;
 - (void)resetMinMaxZoomLevel;
 - (void)animateCamera:(GMSCameraUpdate *)update;
 - (void)setMapStyle:(GMSMapStyle *)mapStyle;
