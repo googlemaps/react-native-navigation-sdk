@@ -657,6 +657,10 @@ NSDictionary *_tosParams = nil;
   _mapView.settings.showsIncidentCards = isEnabled;
 }
 
+- (void)setBackgroundLocationUpdatesEnabled:(BOOL)isEnabled {
+  _mapView.roadSnappedLocationProvider.allowsBackgroundLocationUpdates = isEnabled;
+}
+
 - (void)resetMinMaxZoomLevel {
   [_mapView setMinZoom:kGMSMinZoomLevel maxZoom:kGMSMaxZoomLevel];
 }

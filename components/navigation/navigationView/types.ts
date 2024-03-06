@@ -453,6 +453,14 @@ export interface NavigationViewController {
   setFollowingPerspective(perspective: CameraPerspective): void;
 
   /**
+   * Enables location updates when the application is on the background. 
+   * Only available in iOS, it's a NO-OP for Android.
+   * 
+   * @param isEnabled - Determines whether the updates should be enabled or disabled.
+   */
+  setBackgroundLocationUpdatesEnabled(isEnabled: boolean): void;
+
+  /**
    * Simulator to be used in navigation.
    */
   readonly simulator: Simulator;

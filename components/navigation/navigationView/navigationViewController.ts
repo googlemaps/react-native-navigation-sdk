@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NativeModules} from 'react-native';
+import {NativeModules, Platform} from 'react-native';
 import {LatLng} from '../../shared/types';
 import {commands, sendCommand} from '../../shared/viewManager';
 import {AudioGuidance, RouteSegment, TimeAndDistance, Waypoint} from '../types';
@@ -110,6 +110,14 @@ export const getNavigationViewController = (
 
     setAudioGuidanceType: (index: AudioGuidance) => {
       sendCommand(viewId, commands.setAudioGuidanceType, [index]);
+    },
+
+    setBackgroundLocationUpdatesEnabled: (isEnabled: boolean) => {
+      if (Platform.OS == "ios") {
+        sendCommand(viewId, commands.setBackgroundLocationUpdatesEnabled,
+          [isEnabled]
+        );
+      }
     },
 
     areTermsAccepted: async (): Promise<boolean> => {

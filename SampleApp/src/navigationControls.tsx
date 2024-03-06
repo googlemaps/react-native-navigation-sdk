@@ -55,6 +55,9 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   const [speedometerEnabled, setSpeedometerEnabled] = useState(false);
   const [trafficIncidentsCardEnabled, setTrafficIncidentsCardEnabled] =
     useState(false);
+  const [backgroundLocationUpdatesEnabled, setBackgroundLocationUpdatesEnabled] =
+    useState(false);
+
   const [latitude, onLatChanged] = useState('');
   const [longitude, onLngChanged] = useState('');
 
@@ -176,6 +179,12 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     console.log('toggleTrafficIncidentsCardEnabled:', isOn);
     setTrafficIncidentsCardEnabled(isOn);
     navigationViewController.setTrafficIncidentCardsEnabled(isOn);
+  };
+
+  const toggleBackgroundLocationUpdatesEnabled = (isOn: boolean) => {
+    console.log('toggleBackgroundLocationUpdatesEnabled:', isOn);
+    setBackgroundLocationUpdatesEnabled(isOn);
+    navigationViewController.setBackgroundLocationUpdatesEnabled(isOn);
   };
 
   const showRouteOverview = () => {
@@ -339,6 +348,15 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           value={navigationUiEnabled}
           onValueChange={() => {
             toggleNavigationUiEnabled(!navigationUiEnabled);
+          }}
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Background location updates</Text>
+        <Switch
+          value={backgroundLocationUpdatesEnabled}
+          onValueChange={() => {
+            toggleBackgroundLocationUpdatesEnabled(!backgroundLocationUpdatesEnabled);
           }}
         />
       </View>
