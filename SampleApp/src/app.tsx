@@ -15,9 +15,9 @@
  */
 
 import React, {ReactElement, useEffect, useState} from 'react';
-import {Button, Dimensions, Platform, View} from 'react-native';
+import {Button, Dimensions, Platform, View} from "react-native";
 
-import {PERMISSIONS, RESULTS, request} from 'react-native-permissions';
+import {PERMISSIONS, RESULTS, requestMultiple} from "react-native-permissions";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -81,17 +81,22 @@ const App: React.FC = (): ReactElement => {
   }, []);
 
   const checkPermissions = async () => {
-    const result = await request(
-      Platform.OS == 'android'
-        ? PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION
-        : PERMISSIONS.IOS.LOCATION_ALWAYS,
-    );
+    const toRequestPermissions = Platform.OS == 'android' ?[
+        PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+        PERMISSIONS.ANDROID.READ_MEDIA_IMAGES,
+    ] : [
+      PERMISSIONS.IOS.LOCATION_ALWAYS,
+      PERMISSIONS.IOS.PHOTO_LIBRARY
+    ];
+
+    const permissionStatuses = await requestMultiple(toRequestPermissions);
+    const result = permissionStatuses[toRequestPermissions[0]];
 
     if (result == RESULTS.GRANTED) {
       setArePermissionsApproved(true);
     } else {
       Snackbar.show({
-        text: 'Permissions are needed to proceed with the app. Please re-open and accept.',
+        text: 'Location permissions are needed to proceed with the app. Please re-open and accept.',
         duration: Snackbar.LENGTH_SHORT,
       });
     }
