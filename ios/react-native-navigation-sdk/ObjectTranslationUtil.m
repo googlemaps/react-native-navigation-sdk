@@ -85,7 +85,7 @@
   }
 
   if (marker.userData != nil) {
-    dictionary[@"id"] = marker.userData;
+    dictionary[@"id"] = marker.userData[0];
   }
 
   return dictionary;

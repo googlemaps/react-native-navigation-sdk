@@ -65,8 +65,17 @@ NSDictionary *_tosParams = nil;
 }
 
 - (BOOL)mapView:(GMSMapView *)mapView didTapMarker:(GMSMarker *)marker {
-  [callbacks onMarkerClick:marker];
-  return FALSE;
+  /*
+   Returning FALSE here will inform the mapView to perform its default behaviour causing the mapView to jitter when tapping between multiple markers. To prevent this, set any active marker to nil, move to the tapped marker and show the info window.
+   */
+  mapView.selectedMarker = nil;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    GMSCameraPosition *camera = [GMSCameraPosition cameraWithTarget:marker.position zoom:mapView.camera.zoom bearing:mapView.camera.bearing viewingAngle:mapView.camera.viewingAngle];
+    [mapView animateToCameraPosition:camera];
+    [mapView setSelectedMarker:marker];
+    [callbacks onMarkerClick:marker];
+  });
+  return YES; // Return YES to prevent default behavior
 }
 
 - (void)mapView:(GMSMapView *)mapView didTapOverlay:(GMSOverlay *)overlay {
@@ -251,6 +260,7 @@ NSDictionary *_tosParams = nil;
 - (void)startGuidance {
   if (destinations != NULL) {
     _mapView.navigator.guidanceActive = YES;
+    [_mapView.navigator setVoiceGuidance:GMSNavigationVoiceGuidanceAlertsAndGuidance];
     [callbacks onStartGuidance];
     _mapView.navigator.sendsBackgroundNotifications = YES;
   }
@@ -258,6 +268,7 @@ NSDictionary *_tosParams = nil;
 
 - (void)stopGuidance {
   _mapView.navigator.guidanceActive = false;
+  [_mapView.navigator setVoiceGuidance:GMSNavigationVoiceGuidanceSilent];
 }
 
 - (void)runSimulation:(nonnull NSNumber *)speedMultiplier {
@@ -884,48 +895,58 @@ NSDictionary *_tosParams = nil;
 }
 
 - (void)removeMarker:(NSString *)markerId {
-  for (GMSMarker *marker in _markerList) {
-    if ([self compare:marker.userData to:markerId]) {
-      marker.map = nil;
-      [_markerList removeObject:marker];
+    NSMutableArray *toDelete = [[NSMutableArray alloc] init];
+    for (GMSMarker *marker in _markerList) {
+      if ([self compare:marker.userData to:markerId]) {
+          marker.map = nil;
+          [toDelete addObject:marker];
+      }
     }
-  }
+    [_markerList removeObjectsInArray:toDelete];
 }
 
 - (void)removePolyline:(NSString *)polylineId {
-  for (GMSPolyline *polyline in _polylineList) {
-    if ([self compare:polyline.userData to:polylineId]) {
-      polyline.map = nil;
-      [_polylineList removeObject:polyline];
+    NSMutableArray *toDelete = [[NSMutableArray alloc] init];
+    for (GMSPolyline *polyline in _polylineList) {
+        if ([self compare:polyline.userData to:polylineId]) {
+            polyline.map = nil;
+            [toDelete addObject:polyline];
+        }
     }
-  }
+    [_polylineList removeObjectsInArray:toDelete];
 }
 
 - (void)removePolygon:(NSString *)polygonId {
-  for (GMSPolygon *polygon in _polygonList) {
-    if ([self compare:polygon.userData to:polygonId]) {
-      polygon.map = nil;
-      [_polygonList removeObject:polygon];
+    NSMutableArray *toDelete = [[NSMutableArray alloc] init];
+    for (GMSPolygon *polygon in _polygonList) {
+        if ([self compare:polygon.userData to:polygonId]) {
+            polygon.map = nil;
+            [toDelete addObject:polygon];
+        }
     }
-  }
+    [_polygonList removeObjectsInArray:toDelete];
 }
 
 - (void)removeCircle:(NSString *)circleId {
-  for (GMSCircle *circle in _circleList) {
-    if ([self compare:circle.userData to:circleId]) {
-      circle.map = nil;
-      [_circleList removeObject:circle];
+    NSMutableArray *toDelete = [[NSMutableArray alloc] init];
+    for (GMSCircle *circle in _circleList) {
+        if ([self compare:circle.userData to:circleId]) {
+            circle.map = nil;
+            [toDelete addObject:circle];
+        }
     }
-  }
+    [_circleList removeObjectsInArray:toDelete];
 }
 
 - (void)removeGroundOverlay:(NSString *)overlayId {
-  for (GMSGroundOverlay *overlay in _groundOverlayList) {
-    if ([self compare:overlay.userData to:overlayId]) {
-      overlay.map = nil;
-      [_groundOverlayList removeObject:overlay];
+    NSMutableArray *toDelete = [[NSMutableArray alloc] init];
+    for (GMSGroundOverlay *overlay in _groundOverlayList) {
+        if ([self compare:overlay.userData to:overlayId]) {
+            overlay.map = nil;
+            [toDelete addObject:overlay];
+        }
     }
-  }
+    [_groundOverlayList removeObjectsInArray:toDelete];
 }
 
 - (void)getNavSDKVersion:(OnStringResult)completionBlock {
