@@ -65,8 +65,17 @@ NSDictionary *_tosParams = nil;
 }
 
 - (BOOL)mapView:(GMSMapView *)mapView didTapMarker:(GMSMarker *)marker {
-  [callbacks onMarkerClick:marker];
-  return FALSE;
+  /*
+   Returning FALSE here will inform the mapView to perform its default behaviour causing the mapView to jitter when tapping between multiple markers. To prevent this, set any active marker to nil, move to the tapped marker and show the info window.
+   */
+  mapView.selectedMarker = nil;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    GMSCameraPosition *camera = [GMSCameraPosition cameraWithTarget:marker.position zoom:mapView.camera.zoom bearing:mapView.camera.bearing viewingAngle:mapView.camera.viewingAngle];
+    [mapView animateToCameraPosition:camera];
+    [mapView setSelectedMarker:marker];
+    [callbacks onMarkerClick:marker];
+  });
+  return YES; // Return YES to prevent default behavior
 }
 
 - (void)mapView:(GMSMapView *)mapView didTapOverlay:(GMSOverlay *)overlay {
