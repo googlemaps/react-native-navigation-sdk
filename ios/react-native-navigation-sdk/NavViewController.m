@@ -884,48 +884,58 @@ NSDictionary *_tosParams = nil;
 }
 
 - (void)removeMarker:(NSString *)markerId {
-  for (GMSMarker *marker in _markerList) {
-    if ([self compare:marker.userData to:markerId]) {
-      marker.map = nil;
-      [_markerList removeObject:marker];
+    NSMutableArray *toDelete = [[NSMutableArray alloc] init];
+    for (GMSMarker *marker in _markerList) {
+      if ([self compare:marker.userData to:markerId]) {
+          marker.map = nil;
+          [toDelete addObject:marker];
+      }
     }
-  }
+    [_markerList removeObjectsInArray:toDelete];
 }
 
 - (void)removePolyline:(NSString *)polylineId {
-  for (GMSPolyline *polyline in _polylineList) {
-    if ([self compare:polyline.userData to:polylineId]) {
-      polyline.map = nil;
-      [_polylineList removeObject:polyline];
+    NSMutableArray *toDelete = [[NSMutableArray alloc] init];
+    for (GMSPolyline *polyline in _polylineList) {
+        if ([self compare:polyline.userData to:polylineId]) {
+            polyline.map = nil;
+            [toDelete addObject:polyline];
+        }
     }
-  }
+    [_polylineList removeObjectsInArray:toDelete];
 }
 
 - (void)removePolygon:(NSString *)polygonId {
-  for (GMSPolygon *polygon in _polygonList) {
-    if ([self compare:polygon.userData to:polygonId]) {
-      polygon.map = nil;
-      [_polygonList removeObject:polygon];
+    NSMutableArray *toDelete = [[NSMutableArray alloc] init];
+    for (GMSPolygon *polygon in _polygonList) {
+        if ([self compare:polygon.userData to:polygonId]) {
+            polygon.map = nil;
+            [toDelete addObject:polygon];
+        }
     }
-  }
+    [_polygonList removeObjectsInArray:toDelete];
 }
 
 - (void)removeCircle:(NSString *)circleId {
-  for (GMSCircle *circle in _circleList) {
-    if ([self compare:circle.userData to:circleId]) {
-      circle.map = nil;
-      [_circleList removeObject:circle];
+    NSMutableArray *toDelete = [[NSMutableArray alloc] init];
+    for (GMSCircle *circle in _circleList) {
+        if ([self compare:circle.userData to:circleId]) {
+            circle.map = nil;
+            [toDelete addObject:circle];
+        }
     }
-  }
+    [_circleList removeObjectsInArray:toDelete];
 }
 
 - (void)removeGroundOverlay:(NSString *)overlayId {
-  for (GMSGroundOverlay *overlay in _groundOverlayList) {
-    if ([self compare:overlay.userData to:overlayId]) {
-      overlay.map = nil;
-      [_groundOverlayList removeObject:overlay];
+    NSMutableArray *toDelete = [[NSMutableArray alloc] init];
+    for (GMSGroundOverlay *overlay in _groundOverlayList) {
+        if ([self compare:overlay.userData to:overlayId]) {
+            overlay.map = nil;
+            [toDelete addObject:overlay];
+        }
     }
-  }
+    [_groundOverlayList removeObjectsInArray:toDelete];
 }
 
 - (void)getNavSDKVersion:(OnStringResult)completionBlock {

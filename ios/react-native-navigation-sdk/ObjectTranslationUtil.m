@@ -84,8 +84,8 @@
     dictionary[@"title"] = marker.title;
   }
 
-  if (marker.userData != nil) {
-    dictionary[@"id"] = marker.userData;
+  if (marker.userData.count != 0) {
+    dictionary[@"id"] = marker.userData[0];
   }
 
   return dictionary;
@@ -102,7 +102,7 @@
     dictionary[@"color"] = polyline.strokeColor;
   }
 
-  if (polyline.userData != nil) {
+  if (polyline.userData.count != 0) {
     dictionary[@"id"] = polyline.userData[0];
   }
 
@@ -137,7 +137,7 @@
   dictionary[@"strokeWidth"] = @(polygon.strokeWidth);
   dictionary[@"zIndex"] = @(polygon.zIndex);
 
-  if (polygon.userData != nil) {
+  if (polygon.userData.count != 0) {
     dictionary[@"id"] = polygon.userData[0];
   }
 
@@ -170,7 +170,7 @@
     dictionary[@"fillColor"] = circle.fillColor;
   }
 
-  if (circle.userData != nil) {
+  if (circle.userData.count != 0) {
     dictionary[@"id"] = circle.userData[0];
   }
 
@@ -191,7 +191,7 @@
   dictionary[@"transparency"] = @(overlay.opacity);
   dictionary[@"zIndex"] = @(overlay.zIndex);
 
-  if (overlay.userData != nil) {
+  if (overlay.userData.count != 0) {
     dictionary[@"id"] = overlay.userData[0];
   }
 
