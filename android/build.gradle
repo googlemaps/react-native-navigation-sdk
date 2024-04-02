@@ -73,5 +73,7 @@ repositories {
 dependencies {
     implementation 'com.facebook.react:react-native:+'
     implementation 'com.android.support:multidex:1.0.3'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation "com.google.android.libraries.navigation:navigation:5.2.3"
+    api 'com.google.guava:guava:31.0.1-android'
 }
