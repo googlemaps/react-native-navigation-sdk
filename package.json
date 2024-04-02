@@ -1,18 +1,18 @@
 {
   "name": "react-native-navigation-sdk",
-  "version": "0.1.5-beta",
+  "version": "0.2.0-beta",
   "author": "Google",
   "description": "A react-native library for Google's Navigation SDK",
   "private": false,
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "https://FILL_ONCE_AVAILABLE"
+    "url": "https://github.com/googlemaps/react-native-navigation-sdk"
   },
   "bugs": {
-    "url": "https://FILL_ONCE_AVAILABLE"
+    "url": "https://github.com/googlemaps/react-native-navigation-sdk/issues"
   },
-  "homepage": "https://FILL_ONCE_AVAILABLE",
+  "homepage": "https://github.com/googlemaps/react-native-navigation-sdk",
   "keywords": [
     "react-native",
     "android",
