@@ -14,12 +14,6 @@
 plugins {
     id "com.google.cloud.artifactregistry.gradle-plugin" version "2.1.5"
 }
-
-repositories {
-    maven {
-        url "artifactregistry://us-west2-maven.pkg.dev/gmp-artifacts/transportation"
-    }
-}
 apply plugin: "com.android.application"
 apply plugin: "com.facebook.react"
 
