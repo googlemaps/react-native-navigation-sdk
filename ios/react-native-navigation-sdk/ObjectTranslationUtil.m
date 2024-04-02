@@ -84,7 +84,7 @@
     dictionary[@"title"] = marker.title;
   }
 
-  if (marker.userData.count != 0) {
+  if ([ObjectTranslationUtil isIdOnUserData: marker.userData]) {
     dictionary[@"id"] = marker.userData[0];
   }
 
@@ -102,7 +102,7 @@
     dictionary[@"color"] = polyline.strokeColor;
   }
 
-  if (polyline.userData.count != 0) {
+if ([ObjectTranslationUtil isIdOnUserData: polyline.userData]) {
     dictionary[@"id"] = polyline.userData[0];
   }
 
@@ -137,7 +137,7 @@
   dictionary[@"strokeWidth"] = @(polygon.strokeWidth);
   dictionary[@"zIndex"] = @(polygon.zIndex);
 
-  if (polygon.userData.count != 0) {
+  if ([ObjectTranslationUtil isIdOnUserData: polygon.userData]) {
     dictionary[@"id"] = polygon.userData[0];
   }
 
@@ -170,7 +170,7 @@
     dictionary[@"fillColor"] = circle.fillColor;
   }
 
-  if (circle.userData.count != 0) {
+  if ([ObjectTranslationUtil isIdOnUserData: circle.userData]) {
     dictionary[@"id"] = circle.userData[0];
   }
 
@@ -191,7 +191,7 @@
   dictionary[@"transparency"] = @(overlay.opacity);
   dictionary[@"zIndex"] = @(overlay.zIndex);
 
-  if (overlay.userData.count != 0) {
+  if ([ObjectTranslationUtil isIdOnUserData: overlay.userData]) {
     dictionary[@"id"] = overlay.userData[0];
   }
 
@@ -214,6 +214,22 @@
   double longitude = [[latLngMap objectForKey:@"lng"] doubleValue];
 
   return CLLocationCoordinate2DMake(latitude, longitude);
+}
+
++ (BOOL)isIdOnUserData:(nullable id)userData {
+  if (userData == nil) {
+    return NO;
+  }
+
+  if (![userData isKindOfClass:[NSArray class]]) {
+    return NO;
+  }
+
+  if (userData[0] == nil || ![userData[0] isKindOfClass:[NSString class]]) {
+    return NO;
+  }
+
+  return YES;
 }
 
 @end

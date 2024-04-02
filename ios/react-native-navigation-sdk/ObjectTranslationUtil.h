@@ -32,4 +32,5 @@
 + (NSDictionary *)transformGroundOverlayToDictionary:(GMSGroundOverlay *)groundOverlay;
 + (GMSPath *)transformToPath:(NSArray *)latLngs;
 + (CLLocationCoordinate2D)getLocationCoordinateFrom:(NSDictionary *)latLngMap;
++ (BOOL)isIdOnUserData:(nullable id)userData;
 @end
