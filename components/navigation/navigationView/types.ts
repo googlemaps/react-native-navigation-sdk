@@ -461,6 +461,13 @@ export interface NavigationViewController {
   setBackgroundLocationUpdatesEnabled(isEnabled: boolean): void;
 
   /**
+   * Enables/disables the "Recenter" button on the map.
+   * 
+   * @param isEnabled - Determines whether the button should be enabled or not.
+   */
+  setRecenterButtonEnabled(isEnabled: boolean): void;
+
+  /**
    * Simulator to be used in navigation.
    */
   readonly simulator: Simulator;

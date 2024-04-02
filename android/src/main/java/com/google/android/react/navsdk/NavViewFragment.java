@@ -278,6 +278,14 @@ public class NavViewFragment extends Fragment {
     mNavigator.setAudioGuidance(EnumTranslationUtil.getAudioGuidanceFromJsValue(jsValue));
   }
 
+  public void setRecenterButtonEnabled(boolean isEnabled) {
+    if (mNavFragment == null) {
+      return;
+    }
+
+    mNavFragment.setRecenterButtonEnabled(isEnabled);
+  }
+
   public void setMapType(int jsValue) {
     if (mGoogleMap == null) {
       return;

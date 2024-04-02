@@ -152,6 +152,12 @@ RCT_EXPORT_METHOD(setBackgroundLocationUpdatesEnabled : (nonnull NSNumber *)reac
   });
 }
 
+RCT_EXPORT_METHOD(setRecenterButtonEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [viewController setRecenterButtonEnabled:isEnabled];
+  });
+}
+
 RCT_EXPORT_METHOD(startGuidance : (nonnull NSNumber *)reactTag) {
   dispatch_async(dispatch_get_main_queue(), ^{
     [viewController startGuidance];
