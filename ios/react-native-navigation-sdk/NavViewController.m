@@ -661,6 +661,10 @@ NSDictionary *_tosParams = nil;
   _mapView.roadSnappedLocationProvider.allowsBackgroundLocationUpdates = isEnabled;
 }
 
+- (void)setRecenterButtonEnabled:(BOOL)isEnabled {
+  _mapView.settings.recenterButtonEnabled = isEnabled;
+}
+
 - (void)resetMinMaxZoomLevel {
   [_mapView setMinZoom:kGMSMinZoomLevel maxZoom:kGMSMaxZoomLevel];
 }

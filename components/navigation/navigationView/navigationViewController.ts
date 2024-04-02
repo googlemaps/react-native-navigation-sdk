@@ -120,6 +120,10 @@ export const getNavigationViewController = (
       }
     },
 
+    setRecenterButtonEnabled(isEnabled: boolean) {
+      sendCommand(viewId, commands.setRecenterButtonEnabled, [isEnabled]);
+    },
+
     areTermsAccepted: async (): Promise<boolean> => {
       return await NavViewModule.areTermsAccepted();
     },

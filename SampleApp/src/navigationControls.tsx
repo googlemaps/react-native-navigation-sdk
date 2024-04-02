@@ -55,6 +55,8 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   const [speedometerEnabled, setSpeedometerEnabled] = useState(false);
   const [trafficIncidentsCardEnabled, setTrafficIncidentsCardEnabled] =
     useState(false);
+  const [recenterButtonEnabled, setRecenterButtonEnabled] =
+    useState(true);
   const [backgroundLocationUpdatesEnabled, setBackgroundLocationUpdatesEnabled] =
     useState(false);
 
@@ -185,6 +187,12 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     console.log('toggleBackgroundLocationUpdatesEnabled:', isOn);
     setBackgroundLocationUpdatesEnabled(isOn);
     navigationViewController.setBackgroundLocationUpdatesEnabled(isOn);
+  };
+
+  const toggleRecenterButtonEnabled = (isOn: boolean) => {
+    console.log('toggleRecenterButtonEnabled:', isOn);
+    setRecenterButtonEnabled(isOn);
+    navigationViewController.setRecenterButtonEnabled(isOn);
   };
 
   const showRouteOverview = () => {
@@ -357,6 +365,15 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           value={backgroundLocationUpdatesEnabled}
           onValueChange={() => {
             toggleBackgroundLocationUpdatesEnabled(!backgroundLocationUpdatesEnabled);
+          }}
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Recenter button</Text>
+        <Switch
+          value={recenterButtonEnabled}
+          onValueChange={() => {
+            toggleRecenterButtonEnabled(!recenterButtonEnabled);
           }}
         />
       </View>

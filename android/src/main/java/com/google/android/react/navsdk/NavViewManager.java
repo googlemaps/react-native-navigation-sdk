@@ -65,7 +65,7 @@ import static com.google.android.react.navsdk.Command.SET_AUDIO_GUIDANCE_TYPE;
 import static com.google.android.react.navsdk.Command.SET_ABNORMAL_TERMINATION_REPORTING_ENABLED;
 import static com.google.android.react.navsdk.Command.SET_TRAFFIC_INCIDENT_CARDS_ENABLED;
 import static com.google.android.react.navsdk.Command.SHOW_ROUTE_OVERVIEW;
-
+import static com.google.android.react.navsdk.Command.SET_RECENTER_BUTTON_ENABLED;
 import static com.google.android.react.navsdk.Command.START_UPDATING_LOCATION;
 import static com.google.android.react.navsdk.Command.STOP_UPDATING_LOCATION;
 
@@ -202,6 +202,9 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     map.put(
         SET_TRAFFIC_INCIDENT_CARDS_ENABLED.toString(),
         SET_TRAFFIC_INCIDENT_CARDS_ENABLED.getValue());
+    map.put(
+        SET_RECENTER_BUTTON_ENABLED.toString(),
+        SET_RECENTER_BUTTON_ENABLED.getValue());
     map.put(SHOW_ROUTE_OVERVIEW.toString(), SHOW_ROUTE_OVERVIEW.getValue());
     map.put(REMOVE_MARKER.toString(), REMOVE_MARKER.getValue());
     map.put(REMOVE_POLYLINE.toString(), REMOVE_POLYLINE.getValue());
@@ -380,6 +383,9 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
         break;
       case SET_TRAFFIC_INCIDENT_CARDS_ENABLED:
         navViewFragment.setTrafficIncidentCards(args.getBoolean(0));
+        break;
+      case SET_RECENTER_BUTTON_ENABLED:
+        navViewFragment.setRecenterButtonEnabled(args.getBoolean(0));
         break;
       case SHOW_ROUTE_OVERVIEW:
         navViewFragment.showRouteOverview();

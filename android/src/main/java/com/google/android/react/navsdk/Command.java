@@ -68,7 +68,8 @@ public enum Command {
   PAUSE_LOCATION_SIMULATION(85, "pauseLocationSimulation"),
   RESUME_LOCATION_SIMULATION(86, "resumeLocationSimulation"),
   START_UPDATING_LOCATION(87, "startUpdatingLocation"),
-  STOP_UPDATING_LOCATION(88, "stopUpdatingLocation");
+  STOP_UPDATING_LOCATION(88, "stopUpdatingLocation"),
+  SET_RECENTER_BUTTON_ENABLED(89, "setRecenterButtonEnabled");
 
   private final int value;
   private final String name;
