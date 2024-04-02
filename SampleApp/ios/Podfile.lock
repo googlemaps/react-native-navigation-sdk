@@ -70,13 +70,13 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (6.2.1)
   - glog (0.3.5)
-  - GoogleMaps (7.4.0):
-    - GoogleMaps/Maps (= 7.4.0)
-  - GoogleMaps/Base (7.4.0)
-  - GoogleMaps/Maps (7.4.0):
+  - GoogleMaps (8.4.0):
+    - GoogleMaps/Maps (= 8.4.0)
+  - GoogleMaps/Base (8.4.0)
+  - GoogleMaps/Maps (8.4.0):
     - GoogleMaps/Base
-  - GoogleNavigation (4.4.0):
-    - GoogleMaps (= 7.4.0)
+  - GoogleNavigation (5.4.0):
+    - GoogleMaps (= 8.4.0)
   - hermes-engine (0.72.6):
     - hermes-engine/Pre-built (= 0.72.6)
   - hermes-engine/Pre-built (0.72.6)
@@ -382,8 +382,8 @@ PODS:
   - React-jsinspector (0.72.6)
   - React-logger (0.72.6):
     - glog
-  - react-native-navigation-sdk (0.1.4-beta):
-    - GoogleNavigation (= 4.4.0)
+  - react-native-navigation-sdk (0.1.5-beta):
+    - GoogleNavigation (= 5.4.0)
     - React-Core
   - React-NativeModulesApple (0.72.6):
     - hermes-engine
@@ -699,8 +699,8 @@ SPEC CHECKSUMS:
   FlipperKit: 2efad7007d6745a3f95e4034d547be637f89d3f6
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
-  GoogleMaps: 032f676450ba0779bd8ce16840690915f84e57ac
-  GoogleNavigation: c07206bab1e1d483003a4d95ae58ecfa8d29fd21
+  GoogleMaps: 8939898920281c649150e0af74aa291c60f2e77d
+  GoogleNavigation: eeee08d27fab143ebc178d96ce88b9b9f4e83029
   hermes-engine: 8057e75cfc1437b178ac86c8654b24e7fead7f60
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
@@ -719,7 +719,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 3bf18ff7cb03cd8dfdce08fbbc0d15058c1d71ae
   React-jsinspector: 194e32c6aab382d88713ad3dd0025c5f5c4ee072
   React-logger: cebf22b6cf43434e471dc561e5911b40ac01d289
-  react-native-navigation-sdk: 6b584b850424c800a06d51f055b24b30c6fde91b
+  react-native-navigation-sdk: a68e122d1301f130b42260924df0589cdd312e34
   React-NativeModulesApple: 02e35e9a51e10c6422f04f5e4076a7c02243fff2
   React-perflogger: e3596db7e753f51766bceadc061936ef1472edc3
   React-RCTActionSheet: 17ab132c748b4471012abbcdcf5befe860660485
