@@ -22,7 +22,27 @@ The library is currenty in experimental state with a limited set of features ava
 
 1. This repository is currently private. In order to install the library, you must authenticate with SSH first. See [Connecting to GitHub with SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) for instructions on how to provide SSH keys.
 
-1. To install the library run the following command from your project root: 
+2. Login to gcloud CLI
+
+   - Log into Google Cloud on your command line:
+
+     `$ gcloud auth login`
+
+     You will be prompted to sign into your Google account and grant access to the Google Cloud SDK. Accept and continue. The account you use must have the "Service Account Token Creator" role on this project.
+
+   - Enable your Google account to be used as Application Default Credentials. This should only be done in a testing scenario, not production!
+
+     `$ gcloud auth application-default login`
+
+   - Set the project ID in your environment, replacing PROJECT_ID with your project ID:
+
+     `$ gcloud config set project PROJECT_ID`
+
+   - Verify that the PROJECT_ID was properly set:
+
+     `$ gcloud config get-value project`
+
+1) To install the library run the following command from your project root:
 
 `npm install --save https://github.com/googlemaps/react-native-navigation-sdk#{version_tag}`
 
