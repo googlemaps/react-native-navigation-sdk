@@ -4,7 +4,7 @@
 
 This repository contains a React Native library that provides a [Google Maps Navigation](https://developers.google.com/maps/documentation/navigation) component.
 
-The library is currenty in experimental state with a limited set of features available. [Turn-by-turn](https://developers.google.com/maps/documentation/navigation/android-sdk/tbt-feed), [Ground overlays](https://developers.google.com/maps/documentation/android-sdk/groundoverlay), and [Street view](https://developers.google.com/maps/documentation/android-sdk/streetview) are some of the main features that are not included but will come in the GA release.
+The library is currenty with a limited set of features available. [Turn-by-turn](https://developers.google.com/maps/documentation/navigation/android-sdk/tbt-feed), [Ground overlays](https://developers.google.com/maps/documentation/android-sdk/groundoverlay), and [Street view](https://developers.google.com/maps/documentation/android-sdk/streetview) are some of the main features that are not included but will come in the GA release.
 
 ## Requirements
 
@@ -19,8 +19,6 @@ The library is currenty in experimental state with a limited set of features ava
 * [Attributions and licensing text](https://developers.google.com/maps/documentation/navigation/android-sdk/set-up-project#include_the_required_attributions_in_your_app) added to your app
 
 ## Installation
-
-1. This repository is currently private. In order to install the library, you must authenticate with SSH first. See [Connecting to GitHub with SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) for instructions on how to provide SSH keys.
 
 1. To install the library run the following command from your project root: 
 
