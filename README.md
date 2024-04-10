@@ -2,7 +2,7 @@
 
 ## Description
 
-This repository contains a React Native library that provides a [Google Maps Navigation](https://developers.google.com/maps/documentation/navigation) component.
+This repository contains a React Native library that provides a [Google Maps Navigation](https://developers.google.com/maps/documentation/navigation) component for building native Android and iOS apps using React.
 
 The library is currenty in experimental state with a limited set of features available. [Turn-by-turn](https://developers.google.com/maps/documentation/navigation/android-sdk/tbt-feed), [Ground overlays](https://developers.google.com/maps/documentation/android-sdk/groundoverlay), and [Street view](https://developers.google.com/maps/documentation/android-sdk/streetview) are some of the main features that are not included but will come in the GA release.
 
@@ -20,29 +20,17 @@ The library is currenty in experimental state with a limited set of features ava
 
 ## Installation
 
-1. This repository is currently private. In order to install the library, you must authenticate with SSH first. See [Connecting to GitHub with SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) for instructions on how to provide SSH keys.
+This package is listed on NPM as [@googlemaps/react-native-navigation-sdk](https://www.npmjs.com/package/@googlemaps/react-native-navigation-sdk). Install it with:
 
-1. To install the library run the following command from your project root: 
+```shell
+npm i @googlemaps/react-native-navigation-sdk
+```
 
-`npm install --save https://github.com/googlemaps/react-native-navigation-sdk#{version_tag}`
+In your TSX or JSX file, import the components you need:
 
-1. Follow the instructions below to add your API key to the appropiate files in your application project.
-
-* Enable Google Maps SDK and Google Maps Navigation SDK for each platform.
-  * Go to [Google Developers Console](https://console.cloud.google.com/).
-  * Select the project where you want to enable Google Maps Navigation.
-  * Navigate to the "Google Maps Platform" through the main menu.
-  * Under the Google Maps Platform menu, go to "[APIs & Services](https://console.cloud.google.com/google/maps-apis/api-list)".
-  * For Android, enable "Maps SDK for Android" by selecting "ENABLE".
-  * For iOS, enable "Maps SDK for iOS" by selecting "ENABLE".
-
-* Generate an API key at <https://console.cloud.google.com/google/maps-apis/credentials>.
-
-> [!IMPORTANT]
-> [Apply API restrictions](https://developers.google.com/maps/api-security-best-practices#api-restriction) to the API key to limit usage to "Navigation SDK, "Maps SDK for Android", and "Maps SDK for iOS" for enhanced security and cost management. This helps guard against unauthorized use of your API key.
-
-For more details, see [Google Navigation SDK Documentation](https://developers.google.com/maps/documentation/navigation).
-
+```tsx
+import { NavigationView } from '@googlemaps/react-native-navigation-sdk';
+```
 
 ### Android
 
@@ -69,7 +57,6 @@ See example configuration for secrets plugin at example applications [build.grad
 1. Make sure to run `pod install` from your application `ios` module.
 
 1. To set up, store your API key in the application plist file ([example](./SampleApp/ios/SampleApp/Info.plist), the key is defined under the API_KEY value). Then you need to update your [AppDelegate](./SampleApp/ios/SampleApp/AppDelegate.mm) file so the key can be read.
-
 
 ## Usage
 
@@ -124,8 +111,8 @@ import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 // Request permission for accessing the device's location.
 const requestPermissions = async () => {
     const result = await request(
-        Platform.OS =="android" ? 
-            PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION : 
+        Platform.OS =="android" ?
+            PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION :
             PERMISSIONS.IOS.LOCATION_ALWAYS,
     );
 
@@ -146,15 +133,16 @@ See the [Contributing guide](./CONTRIBUTING.md).
 
 ## Terms of Service
 
-This package uses Google Maps Platform services, and any use of Google Maps Platform is subject to the [Terms of Service](https://cloud.google.com/maps-platform/terms).
+This library uses Google Maps Platform services. Use of Google Maps Platform services through this library is subject to the [Google Maps Platform Terms of Service](https://cloud.google.com/maps-platform/terms).
 
-For clarity, this package, and each underlying component, is not a Google Maps Platform Core Service.
+This library is not a Google Maps Platform Core Service. Therefore, the Google Maps Platform Terms of Service (e.g. Technical Support Services, Service Level Agreements, and Deprecation Policy) do not apply to the code in this library.
+
 
 ## Support
 
 This package is offered via an open source license. It is not governed by the Google Maps Platform Support [Technical Support Services Guidelines](https://cloud.google.com/maps-platform/terms/tssg), the [SLA](https://cloud.google.com/maps-platform/terms/sla), or the [Deprecation Policy](https://cloud.google.com/maps-platform/terms) (however, any Google Maps Platform services used by the library remain subject to the Google Maps Platform Terms of Service).
 
-This package adheres to [semantic versioning](https://semver.org/) to indicate when backwards-incompatible changes are introduced. Accordingly, while the library is in version 0.x, backwards-incompatible changes may be introduced at any time. 
+This package adheres to [semantic versioning](https://semver.org/) to indicate when backwards-incompatible changes are introduced. Accordingly, while the library is in version 0.x, backwards-incompatible changes may be introduced at any time.
 
 If you find a bug, or have a feature request, please [file an issue](https://github.com/googlemaps/react-native-navigation-sdk/issues) on GitHub. If you would like to get answers to technical questions from other Google Maps Platform developers, ask through one of our [developer community channels](https://developers.google.com/maps/developer-community). If you'd like to contribute, please check the [Contributing guide](https://github.com/googlemaps/react-native-navigation-sdk/blob/main/CONTRIBUTING.md).
 
