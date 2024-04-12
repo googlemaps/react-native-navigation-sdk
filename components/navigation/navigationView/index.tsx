@@ -356,6 +356,31 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     NavModuleEvt.addListener('logDebugInfo', this.logDebugInfo);
   };
 
+  private unRegisterNavModuleListener = () => {
+    const NavModuleEvt = new NativeEventEmitter(
+      NativeModules.CustomEventDispatcher,
+    );
+
+    NavModuleEvt.removeAllListeners('onRouteChanged');
+    NavModuleEvt.removeAllListeners('onRemainingTimeOrDistanceChanged');
+    NavModuleEvt.removeAllListeners('onTrafficUpdated');
+    NavModuleEvt.removeAllListeners('onArrival');
+    NavModuleEvt.removeAllListeners('onNavigationReady');
+    NavModuleEvt.removeAllListeners('onStartGuidance');
+    NavModuleEvt.removeAllListeners('onRecenterButtonClick');
+    NavModuleEvt.removeAllListeners('onRouteStatusResult');
+    NavModuleEvt.removeAllListeners('onMapReady');
+    NavModuleEvt.removeAllListeners('onReroutingRequestedByOffRoute');
+    NavModuleEvt.removeAllListeners('onLocationChanged');
+    NavModuleEvt.removeAllListeners('onNavigationInitError');
+    NavModuleEvt.removeAllListeners('onMarkerInfoWindowTapped');
+    NavModuleEvt.removeAllListeners('onMarkerClick');
+    NavModuleEvt.removeAllListeners('onPolylineClick');
+    NavModuleEvt.removeAllListeners('onPolygonClick');
+    NavModuleEvt.removeAllListeners('onCircleClick');
+    NavModuleEvt.removeAllListeners('logDebugInfo');
+  }
+
   /**
    * Destroy the fragment if user presses the back button.
    */
@@ -368,6 +393,7 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     this.viewId = findNodeHandle(this.mapViewRef) || 0;
 
     if (Platform.OS == 'ios') {
+      this.unRegisterNavModuleListener();
       this.registerNavModuleListener();
     }
 
