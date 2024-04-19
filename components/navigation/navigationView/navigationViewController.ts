@@ -100,6 +100,10 @@ export const getNavigationViewController = (
       sendCommand(viewId, commands.setTrafficIncidentCardsEnabled, [isOn]);
     },
 
+    setFooterEnabled: (isOn: boolean) => {
+      sendCommand(viewId, commands.setFooterEnabled, [isOn]);
+    },
+
     showRouteOverview: () => {
       sendCommand(viewId, commands.showRouteOverview, []);
     },
