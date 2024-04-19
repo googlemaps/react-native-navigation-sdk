@@ -657,6 +657,10 @@ NSDictionary *_tosParams = nil;
   _mapView.settings.showsIncidentCards = isEnabled;
 }
 
+- (void)setFooterEnabled:(BOOL)isEnabled {
+  _mapView.settings.isNavigationFooterEnabled = isEnabled;
+}
+
 - (void)setBackgroundLocationUpdatesEnabled:(BOOL)isEnabled {
   _mapView.roadSnappedLocationProvider.allowsBackgroundLocationUpdates = isEnabled;
 }

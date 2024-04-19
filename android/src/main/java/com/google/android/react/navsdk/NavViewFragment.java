@@ -1025,6 +1025,12 @@ public class NavViewFragment extends Fragment {
     }
   }
 
+  public void setFooterEnabled(boolean isOn) {
+    if (mGoogleMap != null) {
+      mNavFragment.setFooterEnabled(isOn);
+    }
+  }
+
   public void showRouteOverview() {
     mNavFragment.showRouteOverview();
   }
