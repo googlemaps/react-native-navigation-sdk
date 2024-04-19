@@ -658,7 +658,7 @@ NSDictionary *_tosParams = nil;
 }
 
 - (void)setFooterEnabled:(BOOL)isEnabled {
-  _mapView.settings.isNavigationFooterEnabled = isEnabled;
+  [_mapView.settings setNavigationFooterEnabled: isEnabled];
 }
 
 - (void)setBackgroundLocationUpdatesEnabled:(BOOL)isEnabled {
