@@ -35,6 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)onNavigationInitError:(NSNumber *)errorCode;
 - (void)onStartGuidance;
 - (void)onMapReady;
+- (void)onMapClick:(NSDictionary *)latLngMap;
 - (void)onRecenterButtonClick;
 - (void)onRouteStatusResult:(GMSRouteStatus)routeStatus;
 - (void)onReroutingRequestedByOffRoute;

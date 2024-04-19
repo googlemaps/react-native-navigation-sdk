@@ -288,6 +288,10 @@ RCT_EXPORT_METHOD(showRouteOverview: (nonnull NSNumber *)reactTag) {
     [self sendCommandToReactNative:@"onMapReady"];
 }
 
+- (void)onMapClick:(NSDictionary *)latLngMap {
+    [self sendCommandToReactNative:@"onMapClick" args:latLngMap];
+}
+
 - (void)onNavigationReady {
     [viewController setStylingOptions:_stylingOptions];
         
