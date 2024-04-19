@@ -563,6 +563,12 @@ RCT_EXPORT_METHOD(setTrafficIncidentCardsEnabled : (nonnull NSNumber *)reactTag 
   });
 }
 
+RCT_EXPORT_METHOD(setFooterEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [viewController setFooterEnabled:isEnabled];
+  });
+}
+
 RCT_EXPORT_METHOD(resetMinMaxZoomLevel) {
   dispatch_async(dispatch_get_main_queue(), ^{
     [viewController resetMinMaxZoomLevel];

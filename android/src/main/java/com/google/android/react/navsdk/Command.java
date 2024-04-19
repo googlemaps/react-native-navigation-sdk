@@ -59,6 +59,7 @@ public enum Command {
   SET_ABNORMAL_TERMINATION_REPORTING_ENABLED(68, "setAbnormalTerminatingReportingEnabled"),
   SHOW_ROUTE_OVERVIEW(69, "showRouteOverview"),
   SET_TRAFFIC_INCIDENT_CARDS_ENABLED(70, "setTrafficIncidentCardsEnabled"),
+  SET_FOOTER_ENABLED(71, "setFooterEnabled"),
   REMOVE_MARKER(73, "removeMarker"),
   REMOVE_POLYLINE(75, "removePolyline"),
   REMOVE_POLYGON(77, "removePolygon"),

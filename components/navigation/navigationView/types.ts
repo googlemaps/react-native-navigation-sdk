@@ -383,6 +383,14 @@ export interface NavigationViewController {
   setTrafficIncidentCardsEnabled(enabled: boolean): void;
 
   /**
+   * Show or hide navigation footer on the map.
+   *
+   * @param isOn - Indicates whether to display (true) or hide (false)
+   * navigation footer on the map.
+   */
+  setFooterEnabled(enabled: boolean): void;
+
+  /**
    * Enable or disable the speedometer display on the map.
    *
    * @param isOn - Indicates whether to enable (true) or disable (false) the
