@@ -156,6 +156,12 @@ export interface MapViewCallbacks {
    * Callback invoked when tapping on a marker's info window.
    */
   onMarkerInfoWindowTapped?(args: Marker): void;
+
+  /**
+   * Callback invoked when there is a click on the map view.
+   * @param latLng position where the click occurred.
+   */
+  onMapClick?(latLng: LatLng): void;
 }
 
 export interface MapViewController {

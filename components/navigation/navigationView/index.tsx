@@ -30,7 +30,7 @@ import {
   Polygon,
   Polyline,
 } from '../../maps/types';
-import {Location} from '../../shared/types';
+import {LatLng, Location} from '../../shared/types';
 import {NavViewManager, commands, sendCommand} from '../../shared/viewManager';
 import {NavigationInitErrorCode} from '../types';
 import NavHelper from './navHelper';
@@ -74,6 +74,13 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     ) {
       this.props.mapViewCallbacks.onMapReady();
     }
+  };
+
+  onMapClick = (latLng: LatLng) => {
+    if (this.props.mapViewCallbacks != null &&
+      this.props.mapViewCallbacks.onMapClick) {
+        this.props.mapViewCallbacks.onMapClick(latLng);
+      }
   };
 
   /**

@@ -41,7 +41,7 @@ import {
   NavigationInitErrorCode,
   RouteStatus,
 } from 'react-native-navigation-sdk/components/navigation/types';
-import {Location} from 'react-native-navigation-sdk/components/shared/types';
+import {LatLng, Location} from 'react-native-navigation-sdk/components/shared/types';
 import Snackbar from 'react-native-snackbar';
 import MapsControls from './mapsControls';
 import NavigationControls from './navigationControls';
@@ -305,6 +305,9 @@ const App: React.FC = (): ReactElement => {
     },
     onMarkerInfoWindowTapped: (marker: Marker) => {
       console.log('onMarkerInfoWindowTapped: ', marker);
+    },
+    onMapClick: (latLng: LatLng) => {
+      console.log("onMapClick: ", latLng);
     },
   };
 

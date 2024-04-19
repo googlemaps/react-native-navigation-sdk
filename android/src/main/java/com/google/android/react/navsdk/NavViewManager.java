@@ -584,6 +584,15 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
   }
 
   @Override
+  public void onMapClick(LatLng latLng) {
+      CatalystInstance catalystInstance = reactContext.getCatalystInstance();
+
+      WritableNativeArray params = new WritableNativeArray();
+      params.pushMap(ObjectTranslationUtil.getMapFromLatLng(latLng));
+      catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onMapClick", params);
+  }
+
+  @Override
   public void onRecenterButtonClick() {
     sendCommandToReactNative("onRecenterButtonClick", null);
   }
