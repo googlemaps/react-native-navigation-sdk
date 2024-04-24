@@ -32,6 +32,18 @@ buildscript {
     }
 }
 
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    configurations {
+        implementation {
+            exclude group: 'com.google.android.gms', module: 'play-services-maps'
+        }
+    }
+}
+
 plugins {
     id "com.google.cloud.artifactregistry.gradle-plugin" version "2.1.5"
 }
@@ -63,11 +75,6 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-}
-
-repositories {
-    google()
-    mavenCentral()
 }
 
 dependencies {
