@@ -11,11 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-plugins {
-    id "com.google.cloud.artifactregistry.gradle-plugin" version "2.1.5"
-}
+
 apply plugin: "com.android.application"
 apply plugin: "com.facebook.react"
+apply plugin: 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -134,6 +133,22 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+}
+
+secrets {
+    // This example application employs the Gradle plugin
+    // com.google.android.libraries.mapsplatform.secrets-gradle-plugin
+    // to securely manage the Google Maps API key.
+    // For more information on the plugin, visit:
+    // https://developers.google.com/maps/documentation/android-sdk/secrets-gradle-plugin
+    propertiesFileName = "local.properties"
+
+    // For CI/CD, you can have a file with default keys that can be 
+    // safely checked in to your source code version control.
+    // defaultPropertiesFileName = 'local.defaults.properties'
+
+    // Ignore all keys matching the regexp "sdk.*"
+    ignoreList.add("sdk.*")    
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
