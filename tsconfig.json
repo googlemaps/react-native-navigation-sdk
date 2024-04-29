@@ -18,8 +18,8 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
-    "allowUnreachableCode": false,
-    "noImplicitAny": false,
+    "allowUnreachableCode": true,
+    "noImplicitAny": true,
     "moduleSuffixes": [".android", ".ios", ""]
   },
   "include": [
