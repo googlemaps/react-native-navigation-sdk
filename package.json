@@ -1,6 +1,6 @@
 {
   "name": "react-native-navigation-sdk",
-  "version": "0.3.0-beta",
+  "version": "0.3.1-beta",
   "author": "Google",
   "description": "A react-native library for Google's Navigation SDK",
   "private": false,

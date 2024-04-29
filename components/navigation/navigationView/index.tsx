@@ -41,7 +41,7 @@ import {ArrivalEvent, NavigationViewProps} from './types';
 export default class NavigationView extends React.Component<NavigationViewProps> {
   private viewId: number = -1;
   private mapViewRef?: any;
-  private nativeEventsToCallbackMap;
+  private nativeEventsToCallbackMap: { [key: string] : (event: any) => void };
 
   constructor(_props: NavigationViewProps) {
     super(_props);
@@ -361,7 +361,10 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     );
 
     for (const eventName of Object.keys(this.nativeEventsToCallbackMap)) {
-      eventEmitter.addListener(eventName, this.nativeEventsToCallbackMap[eventName]);
+      const listener = this.nativeEventsToCallbackMap[eventName];
+      if (listener != undefined) {
+        eventEmitter.addListener(eventName, listener);
+      }
     }
   };
 
