@@ -45,7 +45,7 @@ This project follows
 
 ## 3. Test your changes
 
-- Make sure to test your changes before sending them for review. To do so, you can utilize the [Sample app](./SampleApp/). Once your changes are ready, you can copy the library code into the app using the ["Copy to Sample app" script](./scripts/copyToSampleApp.sh).
+- Make sure to test your changes before sending them for review. To do so, update and run the [Sample app](./example/) at `./example`.
 
 ### Code reviews
 
