@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-version: 2
-updates:
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
+
+addlicense -f header_template.txt $@ \
+        --ignore "**/Pods/**" \
+        --ignore "**/node_modules/**" \
+        --ignore "**/android/**/build/**" \
+        --ignore "**/android/.gradle/**" \
+        --ignore "**/ios/build/**" \
+        --ignore "lib/**" \
+        --ignore "coverage/**" \
+        --ignore ".yarn/**" \
+        .

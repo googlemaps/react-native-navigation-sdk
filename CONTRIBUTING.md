@@ -28,6 +28,7 @@ This project follows
 - Linux, Mac OS X, or Windows.
 - [git](https://git-scm.com) (used for source version control).
 - An IDE such as [Android Studio](https://developer.android.com/studio) or [Visual Studio Code](https://code.visualstudio.com/).
+- [addlicense](https://github.com/google/addlicense)
 
 ## 2. Forking & cloning the repository
 
