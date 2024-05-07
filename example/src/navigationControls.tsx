@@ -266,6 +266,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
 
   return (
     <ScrollView
+      // eslint-disable-next-line react-native/no-inline-styles
       style={{
         backgroundColor: 'white',
         height: '80%',
@@ -431,9 +432,9 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           data={perspectiveOptions}
           onSelect={(_selectedItem, index) => {
             let perspective: CameraPerspective;
-            if (index == 0) {
+            if (index === 0) {
               perspective = CameraPerspective.TILTED;
-            } else if (index == 1) {
+            } else if (index === 1) {
               perspective = CameraPerspective.TOP_DOWN_NORTH_UP;
             } else {
               perspective = CameraPerspective.TOP_DOWN_HEADING_UP;

@@ -53,7 +53,7 @@ const MapsControls: React.FC<MapControlsProps> = ({
 
   useEffect(() => {
     mapViewController.setZoomLevel(zoom);
-  }, [zoom]);
+  }, [mapViewController, zoom]);
 
   const setMyLocationButtonEnabled = (isOn: boolean) => {
     console.log('setMyLocationButtonEnabled', isOn);
@@ -203,6 +203,7 @@ const MapsControls: React.FC<MapControlsProps> = ({
 
   return (
     <ScrollView
+      // eslint-disable-next-line react-native/no-inline-styles
       style={{
         backgroundColor: 'white',
         height: '80%',

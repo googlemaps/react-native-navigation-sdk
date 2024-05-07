@@ -43,7 +43,9 @@ import { getRouteStatusFromStringValue } from './shared';
 import type { NavigationViewProps, ArrivalEvent } from './types';
 
 /**
- * FIXME
+ * Represents a navigation view that handles map and navigation interactions within a React Native application.
+ *
+ * @extends React.Component
  */
 export default class NavigationView extends React.Component<NavigationViewProps> {
   private viewId: number = -1;
@@ -51,7 +53,8 @@ export default class NavigationView extends React.Component<NavigationViewProps>
   private nativeEventsToCallbackMap: { [key: string]: (event: any) => void };
 
   /**
-   * FIXME
+   * Constructs an instance of NavigationView.
+   * @param {NavigationViewProps} _props - Properties passed to the component.
    */
   constructor(_props: NavigationViewProps) {
     super(_props);
@@ -108,6 +111,10 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     }
   };
 
+  /**
+   * Event handler for map click events.
+   * @param {LatLng} latLng - The latitude and longitude of the click event.
+   */
   onMapClick = (latLng: LatLng) => {
     if (
       this.props.mapViewCallbacks != null &&
@@ -119,9 +126,6 @@ export default class NavigationView extends React.Component<NavigationViewProps>
 
   /**
    * A callback function that gets invoked when navigation information is ready.
-   *
-   * @param args - The argument which contains navigation information,
-   * potentially including routes, waypoints, and other relevant data.
    */
   onNavigationReady = () => {
     if (
@@ -135,7 +139,7 @@ export default class NavigationView extends React.Component<NavigationViewProps>
   /**
    * A callback function that gets invoked when navigation init error is encountered.
    *
-   * @param args - Enum argument that describes the error during SDK initialization
+   * @param {NavigationInitErrorCode} errorCode - Enum argument that describes the error during SDK initialization
    */
   onNavigationInitError = (errorCode: NavigationInitErrorCode) => {
     if (
@@ -148,16 +152,15 @@ export default class NavigationView extends React.Component<NavigationViewProps>
 
   /**
    * Callback function invoked when the destination is reached.
-   * @param args - The arguments received upon arrival. The type
-   *               and structure of `args` should be documented
-   *               based on the actual usage and data expected.
+   *
+   * @param {ArrivalEvent} event - An object containing the arrival event data.
    */
-  onArrival = (args: ArrivalEvent) => {
+  onArrival = (event: ArrivalEvent) => {
     if (
       this.props.navigationViewCallbacks != null &&
       this.props.navigationViewCallbacks.onArrival
     ) {
-      this.props.navigationViewCallbacks.onArrival(args);
+      this.props.navigationViewCallbacks.onArrival(event);
     }
   };
 
@@ -176,17 +179,15 @@ export default class NavigationView extends React.Component<NavigationViewProps>
   /**
    * Callback function invoked when receiving a route status result.
    *
-   * @param args - The arguments received related to the route status.
-   *               The exact structure and type of `args` should be
-   *               documented based on actual usage and expected data.
+   * @param {string} routeStatus - String presentation of the route status.
    */
-  onRouteStatusResult = (args: string) => {
+  onRouteStatusResult = (routeStatus: string) => {
     if (
       this.props.navigationViewCallbacks != null &&
       this.props.navigationViewCallbacks.onRouteStatusResult
     ) {
       this.props.navigationViewCallbacks.onRouteStatusResult(
-        getRouteStatusFromStringValue(args)
+        getRouteStatusFromStringValue(routeStatus)
       );
     }
   };
@@ -255,9 +256,7 @@ export default class NavigationView extends React.Component<NavigationViewProps>
   /**
    * Callback function invoked when the location is changed.
    *
-   * @param args - The arguments received upon location change. The
-   *               type and structure of `args` should be documented
-   *               based on the actual usage and data expected.
+   * @param {Location} location - The location received upon location change.
    */
   onLocationChanged = (location: Location) => {
     if (
@@ -272,7 +271,7 @@ export default class NavigationView extends React.Component<NavigationViewProps>
    * Handles changes to raw location data and triggers a callback with the
    * changed data.
    *
-   * @param location - An object containing the raw location data that has changed.
+   * @param {Location} location - An object containing the raw location data that has changed.
    */
   onRawLocationChanged = (location: Location) => {
     if (
@@ -289,6 +288,8 @@ export default class NavigationView extends React.Component<NavigationViewProps>
 
   /**
    * Callback invoked when clicking a marker on the map.
+   *
+   * @param {Marker} marker - The marker object that was clicked.
    */
   onMarkerClick = (marker: Marker) => {
     if (
@@ -301,6 +302,8 @@ export default class NavigationView extends React.Component<NavigationViewProps>
 
   /**
    * Callback invoked when clicking a polyline on the map.
+   *
+   * @param {Polyline} polyline - The polyline object that was clicked.
    */
   onPolylineClick = (polyline: Polyline) => {
     if (
@@ -313,6 +316,8 @@ export default class NavigationView extends React.Component<NavigationViewProps>
 
   /**
    * Callback invoked when clicking a polygon on the map.
+   *
+   * @param {Polygon} polygon - The polygon object that was clicked.
    */
   onPolygonClick = (polygon: Polygon) => {
     if (
@@ -325,6 +330,8 @@ export default class NavigationView extends React.Component<NavigationViewProps>
 
   /**
    * Callback invoked when clicking a circle on the map.
+   *
+   * @param {Circle} circle - The polygon object that was clicked.
    */
   onCircleClick = (circle: Circle) => {
     if (
@@ -335,6 +342,11 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     }
   };
 
+  /**
+   * Callback invoked on debug messages.
+   *
+   * @param {string} message - The debug message.
+   */
   logDebugInfo = (message: string) => {
     if (
       this.props.navigationViewCallbacks != null &&
@@ -347,6 +359,8 @@ export default class NavigationView extends React.Component<NavigationViewProps>
   /**
    * Callback invoked when tapping on marker's info window.
    * @platform Android only
+   *
+   * @param {Marker} marker - The marker object that info window was tapped.
    */
   onMarkerInfoWindowTapped = (marker: Marker) => {
     if (
@@ -374,7 +388,7 @@ export default class NavigationView extends React.Component<NavigationViewProps>
 
     for (const eventName of Object.keys(this.nativeEventsToCallbackMap)) {
       const listener = this.nativeEventsToCallbackMap[eventName];
-      if (listener != undefined) {
+      if (listener !== undefined) {
         eventEmitter.addListener(eventName, listener);
       }
     }
@@ -387,17 +401,20 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     sendCommand(this.viewId, commands.deleteFragment);
   };
 
+  /**
+   * Called immediately after a component is mounted.
+   */
   override componentDidMount() {
     NavHelper.initCallback(this);
     this.viewId = findNodeHandle(this.mapViewRef) || 0;
 
-    if (Platform.OS == 'ios') {
+    if (Platform.OS === 'ios') {
       this.unregisterNavModuleListeners();
       this.registerNavModuleListener();
     }
 
     const args =
-      Platform.OS == 'android'
+      Platform.OS === 'android'
         ? [
             PixelRatio.getPixelSizeForLayoutSize(this.props.height),
             PixelRatio.getPixelSizeForLayoutSize(this.props.width),
@@ -421,15 +438,27 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     this.props.onMapViewControllerCreated(getMapViewController(this.viewId));
   }
 
+  /**
+   * Called immediately before a component is destroyed.
+   */
   override componentWillUnmount() {
     this.unregisterNavModuleListeners();
     this.deleteFragment();
   }
 
+  /**
+   * @param {any} ref - The reference to the NavViewManager component.
+   */
   onRefAssign = (ref: any) => {
     this.mapViewRef = ref;
   };
 
+  /**
+   * Renders the component.
+   *
+   * @return {Element}
+   *    Returns the NavViewManager HostComponent.
+   */
   override render() {
     return <NavViewManager ref={this.onRefAssign} />;
   }

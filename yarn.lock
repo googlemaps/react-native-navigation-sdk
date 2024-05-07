@@ -9184,7 +9184,7 @@ __metadata:
     babel-plugin-module-resolver: ^5.0.0
     react: 18.2.0
     react-native: 0.74.1
-    react-native-permissions: ^3.10.1
+    react-native-permissions: ^4.1.5
     react-native-select-dropdown: ^3.4.0
     react-native-snackbar: ^2.6.2
   languageName: unknown
@@ -9220,17 +9220,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"react-native-permissions@npm:^3.10.1":
-  version: 3.10.1
-  resolution: "react-native-permissions@npm:3.10.1"
+"react-native-permissions@npm:^4.1.5":
+  version: 4.1.5
+  resolution: "react-native-permissions@npm:4.1.5"
   peerDependencies:
-    react: ">=16.13.1"
-    react-native: ">=0.63.3"
-    react-native-windows: ">=0.62.0"
+    react: ">=18.1.0"
+    react-native: ">=0.70.0"
+    react-native-windows: ">=0.70.0"
   peerDependenciesMeta:
     react-native-windows:
       optional: true
-  checksum: 86ea43e34f41a77d85c1af2c4a4ff241dd7cb08a3f62a2ba6c8b8bbb8b03cdf4452609cd388ff7b3785086ad3ce95d45c5e6feca1af3ea2a544aafcfec28d0e1
+  checksum: dc4b366a0f561a47f032c027eb703a2be45e801788b915ed583e38f617eea23656eb63a77b17fb3a663fe3199b2ec25788f799e751421634e35a64f5258feed9
   languageName: node
   linkType: hard
 

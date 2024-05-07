@@ -122,7 +122,7 @@ export const getNavigationViewController = (
     },
 
     setBackgroundLocationUpdatesEnabled: (isEnabled: boolean) => {
-      if (Platform.OS == 'ios') {
+      if (Platform.OS === 'ios') {
         sendCommand(viewId, commands.setBackgroundLocationUpdatesEnabled, [
           [isEnabled],
         ]);

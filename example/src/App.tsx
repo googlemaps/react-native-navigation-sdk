@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 /**
  * Copyright 2023 Google LLC
  *
@@ -82,7 +83,7 @@ const App: React.FC = (): ReactElement => {
 
   const checkPermissions = async () => {
     const toRequestPermissions =
-      Platform.OS == 'android'
+      Platform.OS === 'android'
         ? [
             PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
             PERMISSIONS.ANDROID.READ_MEDIA_IMAGES,
@@ -93,7 +94,7 @@ const App: React.FC = (): ReactElement => {
 
     const result = permissionStatuses[toRequestPermissions[0]!];
 
-    if (result == RESULTS.GRANTED) {
+    if (result === RESULTS.GRANTED) {
       setArePermissionsApproved(true);
     } else {
       Snackbar.show({
@@ -354,7 +355,6 @@ const App: React.FC = (): ReactElement => {
           />
         ) : null}
       </View>
-
       <View style={styles.controlButton}>
         <Button title="Navigation" onPress={onShowNavControlsClick} />
         <View style={{ margin: 10 }} />

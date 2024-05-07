@@ -50,7 +50,7 @@
     "example": "yarn workspace react-native-navigation-sdk-sample start",
     "test": "jest",
     "test:types": "tsc",
-    "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "jsdoc": "jsdoc -c jsdoc.json",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build"
@@ -107,10 +107,12 @@
     "root": true,
     "extends": [
       "@react-native",
-      "prettier",
-      "google"
+      "google",
+      "prettier"
     ],
     "rules": {
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": 2,
       "prettier/prettier": [
         "error",
         {

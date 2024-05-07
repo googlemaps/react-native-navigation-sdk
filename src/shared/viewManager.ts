@@ -17,23 +17,23 @@
 import { Platform, UIManager, requireNativeComponent } from 'react-native';
 
 export const viewManagerName =
-  Platform.OS == 'android' ? 'NavViewManager' : 'RCTNavView';
+  Platform.OS === 'android' ? 'NavViewManager' : 'RCTNavView';
 
 export const sendCommand = (
   viewId: number,
   command: number | undefined,
   args?: any[]
 ) => {
-  if (command == undefined) {
+  if (command === undefined) {
     throw new Error(
-      'Command not found, please make sure you\'re using the referencing the right method'
+      "Command not found, please make sure you're using the referencing the right method"
     );
   }
 
   try {
     UIManager.dispatchViewManagerCommand(
       viewId,
-      Platform.OS == 'android' ? command.toString() : command,
+      Platform.OS === 'android' ? command.toString() : command,
       args
     );
   } catch (exception) {

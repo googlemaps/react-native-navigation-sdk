@@ -28,6 +28,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import type {
   MapViewCallbacks,
   MapViewController,
@@ -152,20 +153,17 @@ export interface NavigationViewCallbacks {
 
   /**
    * Callback function invoked when the destination is reached.
-   * @param args - The arguments received upon arrival. The type
-   *               and structure of `args` should be documented
-   *               based on the actual usage and data expected.
+   *
+   * @param {ArrivalEvent} event - An object containing the arrival event data.
    */
-  onArrival?(args: ArrivalEvent): void;
+  onArrival?(event: ArrivalEvent): void;
 
   /**
    * Callback function invoked when the location is changed.
    *
-   * @param args - The arguments received upon location change. The
-   *               type and structure of `args` should be documented
-   *               based on the actual usage and data expected.
+   * @param {Location} location - An object containing the location.
    */
-  onLocationChanged?(args: Location): void;
+  onLocationChanged?(location: Location): void;
 
   /**
    * A callback function that gets invoked when navigation information is ready.

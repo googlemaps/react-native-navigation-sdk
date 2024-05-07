@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {RouteStatus} from '../types';
+import { RouteStatus } from '../types';
 
 export const getRouteStatusFromStringValue = (value: string) => {
   switch (value) {
