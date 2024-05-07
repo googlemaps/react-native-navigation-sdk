@@ -30,6 +30,7 @@ import {
   type RoutingOptions,
   TravelMode,
   type Waypoint,
+  type CameraPosition,
 } from 'react-native-navigation-sdk';
 import SelectDropdown from 'react-native-select-dropdown';
 
@@ -37,11 +38,13 @@ import styles from './styles';
 
 export interface NavigationControlsProps {
   readonly navigationViewController: NavigationViewController;
+  readonly getCameraPosition: undefined | (() => Promise<CameraPosition>);
   readonly visible: boolean;
 }
 
 const NavigationControls: React.FC<NavigationControlsProps> = ({
   navigationViewController,
+  getCameraPosition,
   visible,
 }) => {
   const perspectiveOptions = ['Tilted', 'North up', 'Heading up'];
@@ -84,6 +87,17 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     };
 
     navigationViewController.setDestination(waypoint, routingOptions);
+  };
+
+  const initWaypointToCameraLocation = async () => {
+    if (getCameraPosition) {
+      const cameraPosition = await getCameraPosition();
+      if (cameraPosition) {
+        onLatChanged(cameraPosition.target.lat.toString());
+        onLngChanged(cameraPosition.target.lng.toString());
+      }
+      await initWaypoint();
+    }
   };
 
   // multi destination:
@@ -292,6 +306,10 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       <Button title="Single Destination" onPress={initWaypoint} />
       <Button title="Multiple Destination" onPress={initWaypoints} />
       <Button
+        title="Set destination from Camera Location"
+        onPress={initWaypointToCameraLocation}
+      />
+      <Button
         title="Continue to next destination"
         onPress={continueToNextDestination}
       />
@@ -403,12 +421,28 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           onSelect={(_selectedItem, index) => {
             setNightMode(index);
           }}
-          buttonTextAfterSelection={(selectedItem, _index) => {
-            return selectedItem;
+          renderButton={(selectedItem, _isOpened) => {
+            return (
+              <View style={styles.dropdownButtonStyle}>
+                <Text style={styles.dropdownButtonTxtStyle}>
+                  {selectedItem || 'Select'}
+                </Text>
+              </View>
+            );
           }}
-          rowTextForSelection={(item, _index) => {
-            return item;
+          renderItem={(item, _index, isSelected) => {
+            return (
+              <View
+                style={{
+                  ...styles.dropdownItemStyle,
+                  ...(isSelected && { backgroundColor: '#D2D9DF' }),
+                }}
+              >
+                <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+              </View>
+            );
           }}
+          dropdownStyle={styles.dropdownMenuStyle}
         />
       </View>
       <View style={styles.rowContainer}>
@@ -418,12 +452,28 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           onSelect={(_selectedItem, index) => {
             setAudioGuidanceType(index);
           }}
-          buttonTextAfterSelection={(selectedItem, _index) => {
-            return selectedItem;
+          renderButton={(selectedItem, _isOpened) => {
+            return (
+              <View style={styles.dropdownButtonStyle}>
+                <Text style={styles.dropdownButtonTxtStyle}>
+                  {selectedItem || 'Select'}
+                </Text>
+              </View>
+            );
           }}
-          rowTextForSelection={(item, _index) => {
-            return item;
+          renderItem={(item, _index, isSelected) => {
+            return (
+              <View
+                style={{
+                  ...styles.dropdownItemStyle,
+                  ...(isSelected && { backgroundColor: '#D2D9DF' }),
+                }}
+              >
+                <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+              </View>
+            );
           }}
+          dropdownStyle={styles.dropdownMenuStyle}
         />
       </View>
       <View style={styles.rowContainer}>
@@ -441,12 +491,28 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
             }
             setFollowingPerspective(perspective);
           }}
-          buttonTextAfterSelection={(selectedItem, _index) => {
-            return selectedItem;
+          renderButton={(selectedItem, _isOpened) => {
+            return (
+              <View style={styles.dropdownButtonStyle}>
+                <Text style={styles.dropdownButtonTxtStyle}>
+                  {selectedItem || 'Select'}
+                </Text>
+              </View>
+            );
           }}
-          rowTextForSelection={(item, _index) => {
-            return item;
+          renderItem={(item, _index, isSelected) => {
+            return (
+              <View
+                style={{
+                  ...styles.dropdownItemStyle,
+                  ...(isSelected && { backgroundColor: '#D2D9DF' }),
+                }}
+              >
+                <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+              </View>
+            );
           }}
+          dropdownStyle={styles.dropdownMenuStyle}
         />
       </View>
     </ScrollView>

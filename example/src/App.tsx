@@ -60,8 +60,6 @@ const App: React.FC = (): ReactElement => {
     useState<NavigationViewController | null>(null);
 
   useEffect(() => {
-    console.log('useEffect im in will mount');
-
     const checkSnackbarStatus = async () => {
       try {
         const value = await AsyncStorage.getItem('snackbarShown');
@@ -261,8 +259,6 @@ const App: React.FC = (): ReactElement => {
     setShouldShowMapControls(!shouldShowMapControls);
   };
 
-  console.log('arePermissionsApproved:', arePermissionsApproved);
-
   const navViewWidth = Dimensions.get('window').width;
   const navViewHeight =
     Dimensions.get('window').height -
@@ -342,6 +338,7 @@ const App: React.FC = (): ReactElement => {
         {navigationViewController != null ? (
           <NavigationControls
             navigationViewController={navigationViewController}
+            getCameraPosition={mapViewController?.getCameraPosition}
             visible={shouldShowNavControls}
           />
         ) : null}

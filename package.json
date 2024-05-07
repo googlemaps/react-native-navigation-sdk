@@ -47,9 +47,9 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "example": "yarn workspace react-native-navigation-sdk-sample start",
-    "test": "jest",
-    "test:types": "tsc",
+    "example": "yarn workspace react-native-navigation-sdk-sample",
+    "test": "jest --passWithNoTests",
+    "test:types": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "jsdoc": "jsdoc -c jsdoc.json",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
@@ -128,6 +128,7 @@
   },
   "eslintIgnore": [
     "node_modules/",
+    "coverage/",
     "lib/"
   ],
   "prettier": {

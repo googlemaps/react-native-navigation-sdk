@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "start": "react-native start",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
-    "start": "react-native start",
     "test": "jest",
     "build:android": "cd android && ./gradlew assembleDebug --no-daemon --console=plain -PreactNativeArchitectures=arm64-v8a",
     "build:ios": "cd ios && xcodebuild -workspace NavigationSdkExample.xcworkspace -scheme NavigationSdkExample -configuration Debug -sdk iphonesimulator CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ GCC_OPTIMIZATION_LEVEL=0 GCC_PRECOMPILE_PREFIX_HEADER=YES ASSETCATALOG_COMPILER_OPTIMIZATION=time DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO"
@@ -16,7 +16,7 @@
     "react": "18.2.0",
     "react-native": "0.74.1",
     "react-native-permissions": "^4.1.5",
-    "react-native-select-dropdown": "^3.4.0",
+    "react-native-select-dropdown": "^4.0.1",
     "react-native-snackbar": "^2.6.2"
   },
   "devDependencies": {

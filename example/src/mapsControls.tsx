@@ -267,12 +267,28 @@ const MapsControls: React.FC<MapControlsProps> = ({
           onSelect={(_selectedItem, index) => {
             setMapType(getDropdownIndexToMapType(index));
           }}
-          buttonTextAfterSelection={(selectedItem, _index) => {
-            return selectedItem;
+          renderButton={(selectedItem, _isOpened) => {
+            return (
+              <View style={styles.dropdownButtonStyle}>
+                <Text style={styles.dropdownButtonTxtStyle}>
+                  {selectedItem || 'Select'}
+                </Text>
+              </View>
+            );
           }}
-          rowTextForSelection={(item, _index) => {
-            return item;
+          renderItem={(item, _index, isSelected) => {
+            return (
+              <View
+                style={{
+                  ...styles.dropdownItemStyle,
+                  ...(isSelected && { backgroundColor: '#D2D9DF' }),
+                }}
+              >
+                <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+              </View>
+            );
           }}
+          dropdownStyle={styles.dropdownMenuStyle}
         />
       </View>
     </ScrollView>

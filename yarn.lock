@@ -9185,7 +9185,7 @@ __metadata:
     react: 18.2.0
     react-native: 0.74.1
     react-native-permissions: ^4.1.5
-    react-native-select-dropdown: ^3.4.0
+    react-native-select-dropdown: ^4.0.1
     react-native-snackbar: ^2.6.2
   languageName: unknown
   linkType: soft
@@ -9234,10 +9234,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-select-dropdown@npm:^3.4.0":
-  version: 3.4.0
-  resolution: "react-native-select-dropdown@npm:3.4.0"
-  checksum: c9f5c9b790e3f826326809d8fcc1daadcd5ce78a143756c04e5166908d039cd5fa29d6807a787bbb35fa54586dd434da788b7d608d3deb68a23aedcacec2153c
+"react-native-select-dropdown@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "react-native-select-dropdown@npm:4.0.1"
+  checksum: 0f841ec81921e4f79959c883a1c83570e60b9fe28bbf075892aec75edf9bfd5506a7d71221fce388bf664a9d863785fc10a87dac3a27a9cdac248da909611ddd
   languageName: node
   linkType: hard
 
