@@ -35,7 +35,7 @@ jobs:
         run: yarn lint
 
       - name: Typecheck files
-        run: yarn typecheck
+        run: yarn test:types
 
   test:
     runs-on: ubuntu-latest
@@ -113,7 +113,7 @@ jobs:
 
       - name: Build example for Android
         env:
-          JAVA_OPTS: "-XX:MaxHeapSize=6g"
+          JAVA_OPTS: '-XX:MaxHeapSize=6g'
         run: |
           yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}"
 
