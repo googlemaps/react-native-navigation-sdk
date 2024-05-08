@@ -135,27 +135,27 @@ export interface MapViewCallbacks {
   /**
    * Callback invoked when clicking a marker on the map.
    */
-  onMarkerClick?(args: Marker): void;
+  onMarkerClick?(marker: Marker): void;
 
   /**
    * Callback invoked when clicking a polyline on the map.
    */
-  onPolylineClick?(args: Polyline): void;
+  onPolylineClick?(polyline: Polyline): void;
 
   /**
    * Callback invoked when clicking a polygon on the map.
    */
-  onPolygonClick?(args: Polygon): void;
+  onPolygonClick?(polygon: Polygon): void;
 
   /**
    * Callback invoked when clicking a circle on the map.
    */
-  onCircleClick?(args: Circle): void;
+  onCircleClick?(circle: Circle): void;
 
   /**
    * Callback invoked when tapping on a marker's info window.
    */
-  onMarkerInfoWindowTapped?(args: Marker): void;
+  onMarkerInfoWindowTapped?(marker: Marker): void;
 
   /**
    * Callback invoked when there is a click on the map view.

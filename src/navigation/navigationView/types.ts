@@ -154,9 +154,9 @@ export interface NavigationViewCallbacks {
   /**
    * Callback function invoked when the destination is reached.
    *
-   * @param {ArrivalEvent} event - An object containing the arrival event data.
+   * @param {ArrivalEvent} arrivalEvent - An object containing the arrival event data.
    */
-  onArrival?(event: ArrivalEvent): void;
+  onArrival?(arrivalEvent: ArrivalEvent): void;
 
   /**
    * Callback function invoked when the location is changed.
@@ -174,19 +174,17 @@ export interface NavigationViewCallbacks {
   /**
    * Callback function invoked when receiving a route status result.
    *
-   * @param args - The arguments received related to the route status.
-   *               The exact structure and type of `args` should be
-   *               documented based on actual usage and expected data.
+   * @param routeStatus - The arguments received related to the route status.
    */
-  onRouteStatusResult?(args: RouteStatus): void;
+  onRouteStatusResult?(routeStatus: RouteStatus): void;
 
   /**
    * Handles changes to raw location data and triggers a callback with the
    * changed data.
    *
-   * @param args - An object containing the raw location data that has changed.
+   * @param location - An object containing the raw location data that has changed.
    */
-  onRawLocationChanged?(args: Location): void;
+  onRawLocationChanged?(location: Location): void;
 
   /**
    * Callback function invoked when the route is changed.

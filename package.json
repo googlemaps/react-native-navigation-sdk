@@ -51,7 +51,6 @@
     "test": "jest --passWithNoTests",
     "test:types": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
-    "jsdoc": "jsdoc -c jsdoc.json",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build"
   },
