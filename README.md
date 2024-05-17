@@ -28,7 +28,7 @@ The library is currenty in experimental state with a limited set of features ava
 
 1. Follow the instructions below to add your API key to the appropiate files in your application project.
 
-* Enable Google Maps SDK and Google Maps Navigation SDK for each platform.
+  * Enable Google Maps SDK and Google Maps Navigation SDK for each platform.
   * Go to [Google Developers Console](https://console.cloud.google.com/).
   * Select the project where you want to enable Google Maps Navigation.
   * Navigate to the "Google Maps Platform" through the main menu.
