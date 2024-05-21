@@ -14,12 +14,6 @@
 
 import groovy.json.JsonSlurper
 
-def getApiKey(){
-    def Properties props = new Properties()
-    props.load(new FileInputStream(new File('local.properties')))
-    return props['MAPS_API_KEY']
-}
-
 buildscript {
     repositories {
         google()
@@ -32,9 +26,6 @@ buildscript {
     }
 }
 
-plugins {
-    id "com.google.cloud.artifactregistry.gradle-plugin" version "2.1.5"
-}
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
@@ -53,7 +44,6 @@ android {
         versionCode 1
         // get version name from package.json version
         versionName "1.0"
-        manifestPlaceholders = [ MAPS_API_KEY:getApiKey()]
     }
 
     lintOptions {

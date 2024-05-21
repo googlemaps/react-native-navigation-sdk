@@ -64,6 +64,7 @@ import static com.google.android.react.navsdk.Command.SET_ZOOM_GESTURES_ENABLED;
 import static com.google.android.react.navsdk.Command.SET_AUDIO_GUIDANCE_TYPE;
 import static com.google.android.react.navsdk.Command.SET_ABNORMAL_TERMINATION_REPORTING_ENABLED;
 import static com.google.android.react.navsdk.Command.SET_TRAFFIC_INCIDENT_CARDS_ENABLED;
+import static com.google.android.react.navsdk.Command.SET_FOOTER_ENABLED;
 import static com.google.android.react.navsdk.Command.SHOW_ROUTE_OVERVIEW;
 import static com.google.android.react.navsdk.Command.SET_RECENTER_BUTTON_ENABLED;
 import static com.google.android.react.navsdk.Command.START_UPDATING_LOCATION;
@@ -215,6 +216,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     map.put(RESUME_LOCATION_SIMULATION.toString(), RESUME_LOCATION_SIMULATION.getValue());
     map.put(START_UPDATING_LOCATION.toString(), START_UPDATING_LOCATION.getValue());
     map.put(STOP_UPDATING_LOCATION.toString(), STOP_UPDATING_LOCATION.getValue());
+    map.put(SET_FOOTER_ENABLED.toString(), SET_FOOTER_ENABLED.getValue());
     return map;
   }
 
@@ -383,6 +385,9 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
         break;
       case SET_TRAFFIC_INCIDENT_CARDS_ENABLED:
         navViewFragment.setTrafficIncidentCards(args.getBoolean(0));
+        break;
+      case SET_FOOTER_ENABLED:
+        navViewFragment.setFooterEnabled(args.getBoolean(0));
         break;
       case SET_RECENTER_BUTTON_ENABLED:
         navViewFragment.setRecenterButtonEnabled(args.getBoolean(0));
@@ -576,6 +581,15 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
   @Override
   public void onMapReady() {
     sendCommandToReactNative("onMapReady", null);
+  }
+
+  @Override
+  public void onMapClick(LatLng latLng) {
+      CatalystInstance catalystInstance = reactContext.getCatalystInstance();
+
+      WritableNativeArray params = new WritableNativeArray();
+      params.pushMap(ObjectTranslationUtil.getMapFromLatLng(latLng));
+      catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onMapClick", params);
   }
 
   @Override

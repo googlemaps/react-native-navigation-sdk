@@ -288,6 +288,10 @@ RCT_EXPORT_METHOD(showRouteOverview: (nonnull NSNumber *)reactTag) {
     [self sendCommandToReactNative:@"onMapReady"];
 }
 
+- (void)onMapClick:(NSDictionary *)latLngMap {
+    [self sendCommandToReactNative:@"onMapClick" args:latLngMap];
+}
+
 - (void)onNavigationReady {
     [viewController setStylingOptions:_stylingOptions];
         
@@ -560,6 +564,12 @@ RCT_EXPORT_METHOD(setAbnormalTerminatingReportingEnabled : (nonnull NSNumber *)r
 RCT_EXPORT_METHOD(setTrafficIncidentCardsEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     [viewController setTrafficIncidentCardsEnabled:isEnabled];
+  });
+}
+
+RCT_EXPORT_METHOD(setFooterEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [viewController setFooterEnabled:isEnabled];
   });
 }
 
