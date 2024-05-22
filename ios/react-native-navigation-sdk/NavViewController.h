@@ -32,8 +32,8 @@ NS_ASSUME_NONNULL_BEGIN
 typedef void (^RouteStatusCallback)(GMSRouteStatus routeStatus);
 typedef void (^OnStringResult)(NSString *result);
 typedef void (^OnBooleanResult)(BOOL result);
-typedef void (^OnDictionaryResult)(NSDictionary *result);
-typedef void (^OnArrayResult)(NSArray *result);
+typedef void (^OnDictionaryResult)(NSDictionary * _Nullable result);
+typedef void (^OnArrayResult)(NSArray * _Nullable result);
 - (instancetype)initWithSize:(double)height width:(double)width;
 - (void)setTosParams: (NSDictionary*) options;
 - (void)setStylingOptions:(nonnull NSDictionary *)stylingOptions;

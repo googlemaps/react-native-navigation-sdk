@@ -51,24 +51,24 @@ export const getMapViewController = (viewId: number): MapViewController => {
     },
 
     addCircle: async (circleOptions: CircleOptions): Promise<Circle> => {
-      return await NavViewModule.addCircle(circleOptions);
+      return await NavViewModule.addCircle(viewId, circleOptions);
     },
 
     addMarker: async (markerOptions: MarkerOptions): Promise<Marker> => {
-      return await NavViewModule.addMarker(markerOptions);
+      return await NavViewModule.addMarker(viewId, markerOptions);
     },
 
     addPolyline: async (
       polylineOptions: PolylineOptions
     ): Promise<Polyline> => {
-      return await NavViewModule.addPolyline({
+      return await NavViewModule.addPolyline(viewId, {
         ...polylineOptions,
         points: polylineOptions.points || [],
       });
     },
 
     addPolygon: async (polygonOptions: PolygonOptions): Promise<Polygon> => {
-      return await NavViewModule.addPolygon({
+      return await NavViewModule.addPolygon(viewId, {
         ...polygonOptions,
         holes: polygonOptions.holes || [],
         points: polygonOptions.points || [],
@@ -146,19 +146,19 @@ export const getMapViewController = (viewId: number): MapViewController => {
     },
 
     getCameraPosition: async (): Promise<CameraPosition> => {
-      return await NavViewModule.getCameraPosition();
+      return await NavViewModule.getCameraPosition(viewId);
     },
 
     getMyLocation: async (): Promise<Location> => {
-      return await NavViewModule.getMyLocation();
+      return await NavViewModule.getMyLocation(viewId);
     },
 
     getUiSettings: async (): Promise<UISettings> => {
-      return await NavViewModule.getUiSettings();
+      return await NavViewModule.getUiSettings(viewId);
     },
 
     isMyLocationEnabled: async (): Promise<boolean> => {
-      return await NavViewModule.isMyLocationEnabled();
+      return await NavViewModule.isMyLocationEnabled(viewId);
     },
 
     moveCamera: (cameraPosition: CameraPosition) => {

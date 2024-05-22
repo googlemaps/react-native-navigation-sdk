@@ -391,6 +391,10 @@ RCT_EXPORT_METHOD(showRouteOverview: (nonnull NSNumber *)reactTag) {
     ];
 }
 
+- (void)onTurnByTurn:(nonnull GMSNavigationNavInfo *)navInfo {
+    [self onTurnByTurn:navInfo distanceToNextDestinationMeters:0 timeToNextDestinationSeconds:0];
+}
+
 - (void)onTurnByTurn:(GMSNavigationNavInfo *)navInfo
     distanceToNextDestinationMeters:(double)distanceToNextDestinationMeters
        timeToNextDestinationSeconds:(double)timeToNextDestinationSeconds {

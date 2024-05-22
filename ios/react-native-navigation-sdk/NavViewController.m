@@ -64,7 +64,7 @@ NSDictionary *_tosParams = nil;
   [callbacks onMarkerInfoWindowTapped:marker];
 }
 
-- (void) mapView:(GMSMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate{
+- (void)mapView:(GMSMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate{
     [callbacks onMapClick: [ObjectTranslationUtil transformCoordinateToDictionary: coordinate]];
 }
 

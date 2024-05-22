@@ -19,11 +19,10 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column',
   },
-  sub_container: {
+  map_container: {
     flex: 1,
-    flexDirection: 'column',
+    color: 'transparent',
   },
   button: {
     backgroundColor: '#2196f3',
@@ -108,6 +107,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#151E26',
     textAlign: 'center',
+  },
+  controlView: {
+    margin: 5,
   },
 });
 

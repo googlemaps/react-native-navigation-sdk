@@ -117,14 +117,13 @@ const MapsControls: React.FC<MapControlsProps> = ({
 
     const marker: Marker = await mapViewController.addMarker({
       position: cameraPosition.target,
-      title: 'Marker test',
       visible: true,
-      // snippet: markerOptions.snippet,
-      // alpha: markerOptions.alpha,
-      // rotation: markerOptions.rotation,
-      // isFlat: markerOptions.flat,
-      // isDraggable: markerOptions.draggable,
-      // isVisible: markerOptions.visible,
+      title: 'Marker test',
+      snippet: 'Marker test',
+      alpha: 0.8,
+      rotation: 20,
+      flat: false,
+      draggable: true,
     });
 
     console.log(marker);
@@ -147,10 +146,8 @@ const MapsControls: React.FC<MapControlsProps> = ({
   };
 
   const addPolyline = async () => {
-    console.log('addpolyline');
     const cameraPosition = await mapViewController.getCameraPosition();
 
-    console.log('cameraPosition:', cameraPosition);
     const latLngs = [];
 
     for (let idx = 0; idx < 100; idx++) {
@@ -174,11 +171,15 @@ const MapsControls: React.FC<MapControlsProps> = ({
   };
 
   const addPolygon = async () => {
+    const cameraPosition = await mapViewController.getCameraPosition();
+    const cameraLat = cameraPosition.target.lat;
+    const cameraLng = cameraPosition.target.lng;
+    const delta = 0.05;
     const bermudaTriangle = [
-      { lat: 25.774, lng: -80.19 },
-      { lat: 18.466, lng: -66.118 },
-      { lat: 32.321, lng: -64.757 },
-      { lat: 25.774, lng: -80.19 },
+      { lat: cameraLat - delta, lng: cameraLng - delta },
+      { lat: cameraLat - delta, lng: cameraLng + delta },
+      { lat: cameraLat + delta, lng: cameraLng + delta },
+      { lat: cameraLat - delta, lng: cameraLng - delta },
     ];
 
     const polygon: Polygon = await mapViewController.addPolygon({
