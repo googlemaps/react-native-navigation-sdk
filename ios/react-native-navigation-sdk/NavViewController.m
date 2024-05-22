@@ -22,20 +22,22 @@
 @import GoogleNavigation;
 @import UserNotifications;
 
-@implementation NavViewController
-GMSMapView *_mapView;
-id<INavigationCallback> callbacks;
-NSMutableArray<GMSNavigationMutableWaypoint *> *destinations = NULL;
-GMSMutableCameraPosition *_camera;
-bool enableUpdateInfo = false;
-double height;
-double width;
-NSMutableArray<GMSMarker *> *_markerList = NULL;
-NSMutableArray<GMSPolyline *> *_polylineList = NULL;
-NSMutableArray<GMSPolygon *> *_polygonList = NULL;
-NSMutableArray<GMSCircle *> *_circleList = NULL;
-NSMutableArray<GMSGroundOverlay *> *_groundOverlayList = NULL;
-NSDictionary *_tosParams = nil;
+@implementation NavViewController {
+    GMSMapView *_mapView;
+    NSMutableArray<GMSNavigationMutableWaypoint *> *destinations;
+    GMSMutableCameraPosition *_camera;
+    NSMutableArray<GMSMarker *> *_markerList;
+    NSMutableArray<GMSPolyline *> *_polylineList;
+    NSMutableArray<GMSPolygon *> *_polygonList;
+    NSMutableArray<GMSCircle *> *_circleList;
+    NSMutableArray<GMSGroundOverlay *> *_groundOverlayList;
+    NSDictionary *_tosParams;
+}
+
+@synthesize callbacks = _callbacks;
+@synthesize enableUpdateInfo = _enableUpdateInfo;
+@synthesize height = _height;
+@synthesize width = _width;
 
 - (void)loadView {
   [super loadView];
@@ -48,7 +50,7 @@ NSDictionary *_tosParams = nil;
 
   dispatch_async(dispatch_get_main_queue(), ^{
     _mapView = [[GMSMapView alloc] initWithFrame:CGRectZero];
-    [callbacks onMapReady];
+    [self.callbacks onMapReady];
 
     [self showTermsAndConditionsDialog];
     self.view = _mapView;
@@ -57,36 +59,36 @@ NSDictionary *_tosParams = nil;
 }
 
 - (void)mapViewDidTapRecenterButton:(GMSMapView *)mapView {
-  [callbacks onRecenterButtonClick];
+  [self.callbacks onRecenterButtonClick];
 }
 
 - (void)mapView:(GMSMapView *)mapView didTapInfoWindowOfMarker:(GMSMarker *)marker {
-  [callbacks onMarkerInfoWindowTapped:marker];
+  [self.callbacks onMarkerInfoWindowTapped:marker];
 }
 
 - (void)mapView:(GMSMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate{
-    [callbacks onMapClick: [ObjectTranslationUtil transformCoordinateToDictionary: coordinate]];
+    [self.callbacks onMapClick: [ObjectTranslationUtil transformCoordinateToDictionary: coordinate]];
 }
 
 
 - (BOOL)mapView:(GMSMapView *)mapView didTapMarker:(GMSMarker *)marker {
-  [callbacks onMarkerClick:marker];
+  [self.callbacks onMarkerClick:marker];
   return FALSE;
 }
 
 - (void)mapView:(GMSMapView *)mapView didTapOverlay:(GMSOverlay *)overlay {
   if ([overlay isKindOfClass:[GMSPolyline class]]) {
     GMSPolyline *polyline = (GMSPolyline *)overlay;
-    [callbacks onPolylineClick:polyline];
+    [self.callbacks onPolylineClick:polyline];
   } else if ([overlay isKindOfClass:[GMSPolygon class]]) {
     GMSPolygon *polygon = (GMSPolygon *)overlay;
-    [callbacks onPolygonClick:polygon];
+    [self.callbacks onPolygonClick:polygon];
   } else if ([overlay isKindOfClass:[GMSCircle class]]) {
     GMSCircle *circle = (GMSCircle *)overlay;
-    [callbacks onCircleClick:circle];
+    [self.callbacks onCircleClick:circle];
   } else if ([overlay isKindOfClass:[GMSGroundOverlay class]]) {
     GMSGroundOverlay *groundOverlay = (GMSGroundOverlay *)overlay;
-    [callbacks onGroundOverlayClick:groundOverlay];
+    [self.callbacks onGroundOverlayClick:groundOverlay];
   }
 }
 
@@ -107,7 +109,7 @@ NSDictionary *_tosParams = nil;
   _mapView.cameraMode = GMSNavigationCameraModeFollowing;
   [_mapView setFollowingPerspective:GMSNavigationCameraPerspectiveTilted];
 
-  [callbacks onNavigationReady];
+  [self.callbacks onNavigationReady];
 }
 
 - (void) doShowTermsAndConditionsDialog {
@@ -121,7 +123,7 @@ NSDictionary *_tosParams = nil;
                                              if (termsAccepted) {
                                                [self initializeNavigation];
                                              } else {
-                                               [callbacks onNavigationInitError:@2];
+                                               [self.callbacks onNavigationInitError:@2];
                                              }
                                            }];
 }
@@ -242,13 +244,13 @@ NSDictionary *_tosParams = nil;
         setDestinations:destinations
          routingOptions:[self getRoutingOptions:routingOptionsMap]
                callback:^(GMSRouteStatus routeStatus) {
-                 [callbacks onRouteStatusResult:routeStatus];
+                 [self.callbacks onRouteStatusResult:routeStatus];
                }];
   } else {
     [_mapView.navigator
         setDestinations:destinations
                callback:^(GMSRouteStatus routeStatus) {
-                 [callbacks onRouteStatusResult:routeStatus];
+                 [self.callbacks onRouteStatusResult:routeStatus];
                }];
   }
 }
@@ -256,7 +258,7 @@ NSDictionary *_tosParams = nil;
 - (void)startGuidance {
   if (destinations != NULL) {
     _mapView.navigator.guidanceActive = YES;
-    [callbacks onStartGuidance];
+    [self.callbacks onStartGuidance];
     _mapView.navigator.sendsBackgroundNotifications = YES;
   }
 }
@@ -556,7 +558,7 @@ NSDictionary *_tosParams = nil;
 // Listener for continuous location updates.
 - (void)locationProvider:(GMSRoadSnappedLocationProvider *)locationProvider
        didUpdateLocation:(CLLocation *)location {
-  [callbacks onLocationChanged:[ObjectTranslationUtil transformCLLocationToDictionary:location]];
+  [self.callbacks onLocationChanged:[ObjectTranslationUtil transformCLLocationToDictionary:location]];
 }
 
 // Listener to handle arrival events.
@@ -566,28 +568,28 @@ NSDictionary *_tosParams = nil;
   eventMap[@"waypoint"] = [ObjectTranslationUtil transformNavigationWaypointToDictionary:waypoint];
   eventMap[@"isFinalDestination"] = @(navigator.routeLegs != nil && navigator.routeLegs.count == 1);
 
-  [callbacks onArrival:eventMap];
+  [self.callbacks onArrival:eventMap];
 }
 
 // Listener for route change events.
 - (void)navigatorDidChangeRoute:(GMSNavigator *)navigator {
-  [callbacks onRouteChanged];
+  [self.callbacks onRouteChanged];
 }
 
 // Listener for time to next destination.
 - (void)navigator:(GMSNavigator *)navigator didUpdateRemainingTime:(NSTimeInterval)time {
-  [callbacks onRemainingTimeOrDistanceChanged];
+  [self.callbacks onRemainingTimeOrDistanceChanged];
 }
 
 // Listener for distance to next destination.
 - (void)navigator:(GMSNavigator *)navigator
     didUpdateRemainingDistance:(CLLocationDistance)distance {
-  [callbacks onRemainingTimeOrDistanceChanged];
+  [self.callbacks onRemainingTimeOrDistanceChanged];
 }
 
 - (void)navigator:(GMSNavigator *)navigator didUpdateNavInfo:(GMSNavigationNavInfo *)navInfo {
   if (self.enableUpdateInfo == TRUE && navInfo.navState == GMSNavigationNavStateEnroute) {
-    [callbacks onTurnByTurn:navInfo
+    [self.callbacks onTurnByTurn:navInfo
         distanceToNextDestinationMeters:_mapView.navigator.distanceToNextDestination
            timeToNextDestinationSeconds:_mapView.navigator.timeToNextDestination];
   }
@@ -618,7 +620,7 @@ NSDictionary *_tosParams = nil;
 }
 
 - (void)setNavigationCallbacks:(nonnull id<INavigationCallback>)fn {
-  callbacks = fn;
+  self.callbacks = fn;
 }
 
 // Maps SDK

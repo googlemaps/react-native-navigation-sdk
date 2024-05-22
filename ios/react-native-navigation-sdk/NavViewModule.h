@@ -16,12 +16,11 @@
 
 #import <React/RCTBridgeModule.h>
 #import "NavViewController.h"
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface NavViewModule : NSObject <RCTBridgeModule>
-@property NavViewController *viewController;
-
-
+@property (nonatomic, strong) NSMutableDictionary<NSNumber *, NavViewController *> *viewControllers;
 
 @end
 
