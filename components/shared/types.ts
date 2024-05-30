@@ -34,11 +34,28 @@ export interface Location {
   lng: number;
   /** Number in meters that represents the altitude of the location. */
   altitude: number;
+  /**
+   * The bearing at the time of this location in degrees.
+   * Bearing is the horizontal direction of travel of this device and is
+   * unrelated to the device orientation.
+   * If the bearing is not available, the value is -1.
+   * The valid bearing is guaranteed to be in the range [0, 360).
+   */
+  bearing: number;
+  /** The speed at the time of this location in meters per second */
   speed: number;
-  /** Number in meters that represents the horizontal accuracy of the location. */
+  /**
+   * Number in meters that represents the horizontal accuracy
+   * of the location.
+   */
   accuracy: number;
-  /** Number in meters that represents the vertical accuracy of the location. */
+  /** Number in meters that represents the vertical accuracy of the location.
+   * If the vertical accuracy is not available, the value is -1.
+   */
   verticalAccuracy: number;
-  /** Time when the location was sourced represented as ellapse milliseconds since Unix Epoch. */
+  /**
+   * Time when the location was sourced represented as
+   * ellapse milliseconds since Unix Epoch.
+   */
   time: number;
 }
