@@ -74,6 +74,7 @@ export default class NavigationView extends React.Component<NavigationViewProps>
       'onRecenterButtonClick': this.onRecenterButtonClick,
       'onRouteStatusResult': this.onRouteStatusResult,
       'onMapReady': this.onMapReady,
+      'onMapClick': this.onMapClick,
       'onReroutingRequestedByOffRoute': this.onReroutingRequestedByOffRoute,
       'onLocationChanged': this.onLocationChanged,
       'onNavigationInitError': this.onNavigationInitError,
