@@ -30,7 +30,7 @@ import {
   Polygon,
   Polyline,
 } from '../../maps/types';
-import {Location} from '../../shared/types';
+import {LatLng, Location} from '../../shared/types';
 import {NavViewManager, commands, sendCommand} from '../../shared/viewManager';
 import {NavigationInitErrorCode} from '../types';
 import NavHelper from './navHelper';
@@ -41,6 +41,7 @@ import {ArrivalEvent, NavigationViewProps} from './types';
 export default class NavigationView extends React.Component<NavigationViewProps> {
   private viewId: number = -1;
   private mapViewRef?: any;
+  private nativeEventsToCallbackMap: { [key: string] : (event: any) => void };
 
   constructor(_props: NavigationViewProps) {
     super(_props);
@@ -62,6 +63,29 @@ export default class NavigationView extends React.Component<NavigationViewProps>
         orientation: isPortrait() ? 'portrait' : 'landscape',
       });
     });
+
+    this.nativeEventsToCallbackMap = {
+      'onRouteChanged': this.onRouteChanged,
+      'onRemainingTimeOrDistanceChanged': this.onRemainingTimeOrDistanceChanged,
+      'onTrafficUpdated': this.onTrafficUpdated,
+      'onArrival': this.onArrival,
+      'onNavigationReady': this.onNavigationReady,
+      'onStartGuidance': this.onStartGuidance,
+      'onRecenterButtonClick': this.onRecenterButtonClick,
+      'onRouteStatusResult': this.onRouteStatusResult,
+      'onMapReady': this.onMapReady,
+      'onMapClick': this.onMapClick,
+      'onReroutingRequestedByOffRoute': this.onReroutingRequestedByOffRoute,
+      'onLocationChanged': this.onLocationChanged,
+      'onNavigationInitError': this.onNavigationInitError,
+      'onMarkerInfoWindowTapped': this.onMarkerInfoWindowTapped,
+      'onMarkerClick': this.onMarkerClick,
+      'onPolylineClick': this.onPolylineClick,
+      'onPolygonClick': this.onPolygonClick,
+      'onCircleClick': this.onCircleClick,
+      'logDebugInfo': this.logDebugInfo
+    };
+
   }
 
   /**
@@ -74,6 +98,13 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     ) {
       this.props.mapViewCallbacks.onMapReady();
     }
+  };
+
+  onMapClick = (latLng: LatLng) => {
+    if (this.props.mapViewCallbacks != null &&
+      this.props.mapViewCallbacks.onMapClick) {
+        this.props.mapViewCallbacks.onMapClick(latLng);
+      }
   };
 
   /**
@@ -315,45 +346,27 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     }
   };
 
-  private registerNavModuleListener = () => {
-    const NavModuleEvt = new NativeEventEmitter(
+  private unregisterNavModuleListeners = () => {
+    const eventEmitter = new NativeEventEmitter(
       NativeModules.CustomEventDispatcher,
     );
 
-    NavModuleEvt.addListener('onRouteChanged', this.onRouteChanged);
-    NavModuleEvt.addListener(
-      'onRemainingTimeOrDistanceChanged',
-      this.onRemainingTimeOrDistanceChanged,
-    );
-    NavModuleEvt.addListener('onTrafficUpdated', this.onTrafficUpdated);
-    NavModuleEvt.addListener('onArrival', this.onArrival);
-    NavModuleEvt.addListener('onNavigationReady', this.onNavigationReady);
-    NavModuleEvt.addListener('onStartGuidance', this.onStartGuidance);
-    NavModuleEvt.addListener(
-      'onRecenterButtonClick',
-      this.onRecenterButtonClick,
-    );
-    NavModuleEvt.addListener('onRouteStatusResult', this.onRouteStatusResult);
-    NavModuleEvt.addListener('onMapReady', this.onMapReady);
-    NavModuleEvt.addListener(
-      'onReroutingRequestedByOffRoute',
-      this.onReroutingRequestedByOffRoute,
-    );
-    NavModuleEvt.addListener('onLocationChanged', this.onLocationChanged);
-    NavModuleEvt.addListener(
-      'onNavigationInitError',
-      this.onNavigationInitError,
+    for (const eventName of Object.keys(this.nativeEventsToCallbackMap)) {
+      eventEmitter.removeAllListeners(eventName);
+    }
+  }
+
+  private registerNavModuleListener = () => {
+    const eventEmitter = new NativeEventEmitter(
+      NativeModules.CustomEventDispatcher,
     );
 
-    NavModuleEvt.addListener(
-      'onMarkerInfoWindowTapped',
-      this.onMarkerInfoWindowTapped,
-    );
-    NavModuleEvt.addListener('onMarkerClick', this.onMarkerClick);
-    NavModuleEvt.addListener('onPolylineClick', this.onPolylineClick);
-    NavModuleEvt.addListener('onPolygonClick', this.onPolygonClick);
-    NavModuleEvt.addListener('onCircleClick', this.onCircleClick);
-    NavModuleEvt.addListener('logDebugInfo', this.logDebugInfo);
+    for (const eventName of Object.keys(this.nativeEventsToCallbackMap)) {
+      const listener = this.nativeEventsToCallbackMap[eventName];
+      if (listener != undefined) {
+        eventEmitter.addListener(eventName, listener);
+      }
+    }
   };
 
   /**
@@ -368,6 +381,7 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     this.viewId = findNodeHandle(this.mapViewRef) || 0;
 
     if (Platform.OS == 'ios') {
+      this.unregisterNavModuleListeners();
       this.registerNavModuleListener();
     }
 
@@ -397,6 +411,7 @@ export default class NavigationView extends React.Component<NavigationViewProps>
   }
 
   override componentWillUnmount() {
+    this.unregisterNavModuleListeners();
     this.deleteFragment();
   }
 

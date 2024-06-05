@@ -47,19 +47,25 @@ android {
 }
 ```
 
-1. To securely store your API key, it is recommended to use the [Google Maps Secrets Gradle Plugin](https://developers.google.com/maps/documentation/android-sdk/secrets-gradle-plugin). This plugin helps manage API keys without exposing them in your app's source code.
+To securely store your API key, it is recommended to use the [Google Maps Secrets Gradle Plugin](https://developers.google.com/maps/documentation/android-sdk/secrets-gradle-plugin). This plugin helps manage API keys without exposing them in your app's source code.
 
 See example configuration for secrets plugin at example applications [build.gradle](./SampleApp/android/app/build.gradle) file.
 
 ### iOS
 
-1. Set the iOS version in your application PodFile.
+To set up, specify your API key in the application delegate `ios/Runner/AppDelegate.m`:
 
-   `platform: ios, '14.0'`
+```objective-c
+@implementation AppDelegate
 
-1. Make sure to run `pod install` from your application `ios` module.
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  [GMSServices provideAPIKey:@"API_KEY"];
+  [GMSServices setMetalRendererEnabled:YES];
+  return [super application:application didFinishLaunchingWithOptions:launchOptions];
+}
 
-1. To set up, store your API key in the application plist file ([example](./SampleApp/ios/SampleApp/Info.plist), the key is defined under the API_KEY value). Then you need to update your [AppDelegate](./SampleApp/ios/SampleApp/AppDelegate.mm) file so the key can be read.
+```
 
 ## Usage
 

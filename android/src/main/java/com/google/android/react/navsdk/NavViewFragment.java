@@ -11,46 +11,41 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.android.react.navsdk;
 
-import com.facebook.react.bridge.UiThreadUtil;
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
-
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.UiThreadUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.Polygon;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.NavInfo;
 import com.google.android.libraries.navigation.ArrivalEvent;
@@ -61,21 +56,13 @@ import com.google.android.libraries.navigation.NavigationView;
 import com.google.android.libraries.navigation.Navigator;
 import com.google.android.libraries.navigation.RoadSnappedLocationProvider;
 import com.google.android.libraries.navigation.RoadSnappedLocationProvider.LocationListener;
-import com.google.android.libraries.navigation.RouteSegment;
-import com.google.android.libraries.navigation.RoutingOptions;
 import com.google.android.libraries.navigation.SimulationOptions;
 import com.google.android.libraries.navigation.SpeedAlertOptions;
 import com.google.android.libraries.navigation.SpeedAlertSeverity;
 import com.google.android.libraries.navigation.StylingOptions;
 import com.google.android.libraries.navigation.SupportNavigationFragment;
 import com.google.android.libraries.navigation.TermsAndConditionsCheckOption;
-import com.google.android.libraries.navigation.TimeAndDistance;
 import com.google.android.libraries.navigation.Waypoint;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -83,10 +70,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.Executors;
 
 /**
@@ -739,6 +724,14 @@ public class NavViewFragment extends Fragment {
                     navigationCallback.onMarkerInfoWindowTapped(marker);
                   }
                 });
+
+            mGoogleMap.setOnMapClickListener(
+                new GoogleMap.OnMapClickListener() {
+                  @Override
+                  public void onMapClick(LatLng latLng) {
+                    navigationCallback.onMapClick(latLng);
+                  }
+                });
           }
         });
 
@@ -1023,6 +1016,17 @@ public class NavViewFragment extends Fragment {
     if (mGoogleMap != null) {
       mNavFragment.setTrafficIncidentCardsEnabled(isOn);
     }
+  }
+
+  public void setFooterEnabled(boolean isOn) {
+    if (mNavFragment == null) {
+      return;
+    }
+
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          mNavFragment.setEtaCardEnabled(isOn);
+        });
   }
 
   public void showRouteOverview() {

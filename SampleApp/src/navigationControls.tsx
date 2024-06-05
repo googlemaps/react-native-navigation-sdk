@@ -59,6 +59,8 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     useState(true);
   const [backgroundLocationUpdatesEnabled, setBackgroundLocationUpdatesEnabled] =
     useState(false);
+  const [etaCardEnabled, setEtaCardEnabled] =
+    useState(true);
 
   const [latitude, onLatChanged] = useState('');
   const [longitude, onLngChanged] = useState('');
@@ -193,6 +195,12 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     console.log('toggleRecenterButtonEnabled:', isOn);
     setRecenterButtonEnabled(isOn);
     navigationViewController.setRecenterButtonEnabled(isOn);
+  };
+
+  const toggleEtaCardEnabled = (isOn: boolean) => {
+    console.log('toggleEtaCardEnabled:', isOn);
+    setEtaCardEnabled(isOn);
+    navigationViewController.setFooterEnabled(isOn);
   };
 
   const showRouteOverview = () => {
@@ -374,6 +382,15 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           value={recenterButtonEnabled}
           onValueChange={() => {
             toggleRecenterButtonEnabled(!recenterButtonEnabled);
+          }}
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Footer enabled</Text>
+        <Switch
+          value={etaCardEnabled}
+          onValueChange={() => {
+            toggleEtaCardEnabled(!etaCardEnabled);
           }}
         />
       </View>

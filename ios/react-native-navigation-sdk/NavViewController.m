@@ -64,6 +64,11 @@ NSDictionary *_tosParams = nil;
   [callbacks onMarkerInfoWindowTapped:marker];
 }
 
+- (void) mapView:(GMSMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate{
+    [callbacks onMapClick: [ObjectTranslationUtil transformCoordinateToDictionary: coordinate]];
+}
+
+
 - (BOOL)mapView:(GMSMapView *)mapView didTapMarker:(GMSMarker *)marker {
   [callbacks onMarkerClick:marker];
   return FALSE;
@@ -655,6 +660,10 @@ NSDictionary *_tosParams = nil;
 
 - (void)setTrafficIncidentCardsEnabled:(BOOL)isEnabled {
   _mapView.settings.showsIncidentCards = isEnabled;
+}
+
+- (void)setFooterEnabled:(BOOL)isEnabled {
+  [_mapView.settings setNavigationFooterEnabled: isEnabled];
 }
 
 - (void)setBackgroundLocationUpdatesEnabled:(BOOL)isEnabled {
