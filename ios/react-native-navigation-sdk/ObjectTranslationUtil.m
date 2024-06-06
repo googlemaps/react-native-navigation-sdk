@@ -46,19 +46,19 @@
 }
 
 + (NSDictionary *)transformCLLocationToDictionary:(CLLocation *)location {
-    NSTimeInterval seconds = [location.timestamp timeIntervalSince1970];
-    double time = seconds * 1000;
-    
-    return @{
-        @"lat" : @(location.coordinate.latitude),
-        @"lng" : @(location.coordinate.latitude),
-        @"time" : @(time),
-        @"accuracy" : @(location.horizontalAccuracy),
-        @"altitude" : @(location.altitude),
-        @"bearing" : @(location.course),
-        @"speed" : @(location.speed),
-        @"verticalAccuracy" : @(location.verticalAccuracy),
-    };
+  NSTimeInterval seconds = [location.timestamp timeIntervalSince1970];
+  double time = seconds * 1000;
+
+  return @{
+    @"lat" : @(location.coordinate.latitude),
+    @"lng" : @(location.coordinate.longitude),
+    @"time" : @(time),
+    @"accuracy" : @(location.horizontalAccuracy),
+    @"altitude" : @(location.altitude),
+    @"bearing" : @(location.course),
+    @"speed" : @(location.speed),
+    @"verticalAccuracy" : @(location.verticalAccuracy),
+  };
 }
 
 + (NSDictionary *)transformRouteSegmentToDictionary:(GMSRouteLeg *)routeLeg {
