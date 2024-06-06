@@ -51,7 +51,7 @@
 
   return @{
     @"lat" : @(location.coordinate.latitude),
-    @"lng" : @(location.coordinate.latitude),
+    @"lng" : @(location.coordinate.longitude),
     @"time" : @(time),
     @"accuracy" : @(location.horizontalAccuracy),
     @"altitude" : @(location.altitude),
