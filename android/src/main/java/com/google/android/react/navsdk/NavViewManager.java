@@ -480,7 +480,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
   }
 
   private void sendCommandToReactNative(String functionName, Object args) {
-    if (navViewFragment.requireActivity() != null && reactContext != null) {
+    if (hasValidFragment()) {
       CatalystInstance catalystInstance = reactContext.getCatalystInstance();
       WritableNativeArray params = new WritableNativeArray();
       if (args != null) {
@@ -492,7 +492,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
 
   @Override
   public void onArrival(ArrivalEvent event) {
-    if (navViewFragment.requireActivity() != null && reactContext != null) {
+    if (hasValidFragment()) {
       CatalystInstance catalystInstance = reactContext.getCatalystInstance();
 
       WritableMap map = Arguments.createMap();
@@ -608,7 +608,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
 
   @Override
   public void onTurnByTurn(NavInfo navInfo) {
-    if (navViewFragment.requireActivity() != null && reactContext != null) {
+    if (hasValidFragment()) {
       CatalystInstance catalystInstance = reactContext.getCatalystInstance();
 
       WritableMap map = Arguments.createMap();
@@ -713,5 +713,18 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
 
   NavViewFragment getNavViewFragment() {
     return navViewFragment;
+  }
+
+  /**
+   * Helper method to check if the fragment is added and the reactContext is not null.
+   * requireActivity throws an exception if the fragment is not added or the activity is null, 
+   * in this case exception is caught and false is returned.
+   */
+  private boolean hasValidFragment() {
+    try {
+      return navViewFragment.isAdded() && navViewFragment.requireActivity() != null && reactContext != null;
+    } catch (Exception e) {
+      return false;
+    }
   }
 }
