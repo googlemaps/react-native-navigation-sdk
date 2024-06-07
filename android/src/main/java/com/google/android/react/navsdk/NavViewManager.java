@@ -365,7 +365,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
   }
 
   private void sendCommandToReactNative(String functionName, Object args) {
-    if (getAnyFragment().requireActivity() != null && reactContext != null) {
+    if (hasValidFragment()) {
       CatalystInstance catalystInstance = reactContext.getCatalystInstance();
       WritableNativeArray params = new WritableNativeArray();
       if (args != null) {
@@ -461,5 +461,18 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     params.pushMap(ObjectTranslationUtil.getMapFromMarker(marker));
 
     catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, "onMarkerInfoWindowTapped", params);
+  }
+
+  /**
+   * Helper method to check if the fragment is added and the reactContext is not null.
+   * requireActivity throws an exception if the fragment is not added or the activity is null,
+   * in this case exception is caught and false is returned.
+   */
+  private boolean hasValidFragment() {
+    try {
+      return getAnyFragment().isAdded() && getAnyFragment().requireActivity() != null && reactContext != null;
+    } catch (Exception e) {
+      return false;
+    }
   }
 }
