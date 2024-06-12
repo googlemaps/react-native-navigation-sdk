@@ -1,48 +1,39 @@
-# Google Maps Navigation (Preview)
+# Google Navigation for React Native (Beta)
 
 ## Description
 
-This repository contains a React Native library that provides a [Google Maps Navigation](https://developers.google.com/maps/documentation/navigation) component.
+This repository contains a React Native plugin that provides a [Google Navigation](https://developers.google.com/maps/documentation/navigation) widget to React Native apps targeting Android and iOS.
 
-The library is currenty in experimental state with a limited set of features available. [Turn-by-turn](https://developers.google.com/maps/documentation/navigation/android-sdk/tbt-feed), [Ground overlays](https://developers.google.com/maps/documentation/android-sdk/groundoverlay), and [Street view](https://developers.google.com/maps/documentation/android-sdk/streetview) are some of the main features that are not included but will come in the GA release.
+> [!NOTE]
+> This package is in Beta until it reaches version 1.0. According to [semantic versioning](https://semver.org/#spec-item-4), breaking changes may be introduced before 1.0.
 
 ## Requirements
 
-|             | Android | iOS       |
-| ----------- | ------- | --------- |
-| **Support** | SDK 23+ | iOS 14.0+ |
+|                                 | Android | iOS       |
+| ------------------------------- | ------- | --------- |
+| **Minimum mobile OS supported** | SDK 23+ | iOS 14.0+ |
 
 * A React Native project
-* A Google Cloud project with the [Navigation SDK enabled](https://developers.google.com/maps/documentation/navigation/android-sdk/set-up-project) and the [Maps SDK for iOS enabled](https://developers.google.com/maps/documentation/navigation/ios-sdk/config)
-* An API key from the project above
+- A Google Cloud project with a Mobility solution enabled, such as On-Demand Rides and Deliveries or Last Mile Fleet Solution. This requires you to Contact Sales as described in the [Mobility services documentation](https://developers.google.com/maps/documentation/transportation-logistics/mobility).
+- In that Google Cloud project,  these four products also need to be enabled depending on the target(s) of your React Native app:
+  - [Maps SDK for Android](https://developers.google.com/maps/documentation/android-sdk/cloud-setup#enabling-apis)
+  - [Navigation SDK for Android](https://developers.google.com/maps/documentation/navigation/android-sdk/set-up-project)
+  - [Maps SDK for iOS](https://developers.google.com/maps/documentation/ios-sdk/cloud-setup#enabling-apis)
+  - [Navigation SDK for iOS](https://developers.google.com/maps/documentation/navigation/ios-sdk/config)
+* An [API key](https://console.cloud.google.com/google/maps-apis/credentials) from the project above
 * If targeting Android, [Google Play Services](https://developers.google.com/android/guides/overview) installed and enabled
 * [Attributions and licensing text](https://developers.google.com/maps/documentation/navigation/android-sdk/set-up-project#include_the_required_attributions_in_your_app) added to your app
 
-## Installation
+> [!IMPORTANT]
+> [Apply API restrictions](https://developers.google.com/maps/api-security-best-practices#api-restriction) to the API key to limit usage to "Navigation SDK, "Maps SDK for Android", and "Maps SDK for iOS" for enhanced security and cost management. This helps guard against unauthorized use of your API key.
 
-1. This repository is currently private. In order to install the library, you must authenticate with SSH first. See [Connecting to GitHub with SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) for instructions on how to provide SSH keys.
+## Installation
 
 1. To install the library run the following command from your project root: 
 
 `npm install --save https://github.com/googlemaps/react-native-navigation-sdk#{version_tag}`
 
-1. Follow the instructions below to add your API key to the appropiate files in your application project.
-
-* Enable Google Maps SDK and Google Maps Navigation SDK for each platform.
-  * Go to [Google Developers Console](https://console.cloud.google.com/).
-  * Select the project where you want to enable Google Maps Navigation.
-  * Navigate to the "Google Maps Platform" through the main menu.
-  * Under the Google Maps Platform menu, go to "[APIs & Services](https://console.cloud.google.com/google/maps-apis/api-list)".
-  * For Android, enable "Maps SDK for Android" by selecting "ENABLE".
-  * For iOS, enable "Maps SDK for iOS" by selecting "ENABLE".
-
-* Generate an API key at <https://console.cloud.google.com/google/maps-apis/credentials>.
-
-> [!IMPORTANT]
-> [Apply API restrictions](https://developers.google.com/maps/api-security-best-practices#api-restriction) to the API key to limit usage to "Navigation SDK, "Maps SDK for Android", and "Maps SDK for iOS" for enhanced security and cost management. This helps guard against unauthorized use of your API key.
-
 For more details, see [Google Navigation SDK Documentation](https://developers.google.com/maps/documentation/navigation).
-
 
 ### Android
 
@@ -74,12 +65,6 @@ To set up, specify your API key in the application delegate `ios/Runner/AppDeleg
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
-```
-
-[!NOTE]Above code snipped also enables Metal rendering for Google Maps SDK. If you are not using Metal rendering, you can remove the following line:
-  
-```objective-c
-[GMSServices setMetalRendererEnabled:YES];
 ```
 
 ## Usage
@@ -157,15 +142,15 @@ See the [Contributing guide](./CONTRIBUTING.md).
 
 ## Terms of Service
 
-This package uses Google Maps Platform services, and any use of Google Maps Platform is subject to the [Terms of Service](https://cloud.google.com/maps-platform/terms).
+This library uses Google Maps Platform services. Use of Google Maps Platform services through this library is subject to the [Google Maps Platform Terms of Service](https://cloud.google.com/maps-platform/terms).
 
-For clarity, this package, and each underlying component, is not a Google Maps Platform Core Service.
+This library is not a Google Maps Platform Core Service. Therefore, the Google Maps Platform Terms of Service (e.g. Technical Support Services, Service Level Agreements, and Deprecation Policy) do not apply to the code in this library.
 
 ## Support
 
 This package is offered via an open source license. It is not governed by the Google Maps Platform Support [Technical Support Services Guidelines](https://cloud.google.com/maps-platform/terms/tssg), the [SLA](https://cloud.google.com/maps-platform/terms/sla), or the [Deprecation Policy](https://cloud.google.com/maps-platform/terms) (however, any Google Maps Platform services used by the library remain subject to the Google Maps Platform Terms of Service).
 
-This package adheres to [semantic versioning](https://semver.org/) to indicate when backwards-incompatible changes are introduced. Accordingly, while the library is in version 0.x, backwards-incompatible changes may be introduced at any time. 
+This package adheres to [semantic versioning](https://semver.org/) to indicate when backwards-incompatible changes are introduced. Accordingly, while the library is in version 0.x, backwards-incompatible changes may be introduced at any time.
 
 If you find a bug, or have a feature request, please [file an issue](https://github.com/googlemaps/react-native-navigation-sdk/issues) on GitHub. If you would like to get answers to technical questions from other Google Maps Platform developers, ask through one of our [developer community channels](https://developers.google.com/maps/developer-community). If you'd like to contribute, please check the [Contributing guide](https://github.com/googlemaps/react-native-navigation-sdk/blob/main/CONTRIBUTING.md).
 
