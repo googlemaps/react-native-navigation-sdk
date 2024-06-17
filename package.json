@@ -35,7 +35,7 @@
     "@types/react": "^18.2.20",
     "@types/react-native": "^0.72.2",
     "@types/react-test-renderer": "^18.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.0",
     "eslint": "^8.47.0",
     "eslint-config-airbnb-typescript": "^17.1.0",
     "eslint-config-google": "^0.14.0",
