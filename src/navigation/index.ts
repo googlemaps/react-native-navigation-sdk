@@ -14,5 +14,6 @@
  * limitations under the License.
  */
 
+export * from './navigation';
 export * from './navigationView';
 export * from './types';

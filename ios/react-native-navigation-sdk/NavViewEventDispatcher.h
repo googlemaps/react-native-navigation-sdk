@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 
-export * from './androidNavViewHelper';
-export * from './navigationViewController';
-export * from '../shared';
-export * from './stylingOptions';
-export * from './types';
-export { default as NavigationView } from './navigationView';
+#ifndef NavViewEventDispatcher_h
+#define NavViewEventDispatcher_h
+
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
+
+NS_ASSUME_NONNULL_BEGIN
+
+@interface NavViewEventDispatcher : RCTEventEmitter <RCTBridgeModule>
+
+- (void)sendEventName:(NSString *)eventName body:(id)body;
+- (bool)hasListeners;
+
+@end
+
+NS_ASSUME_NONNULL_END
+
+#endif /* NavViewEventDispatcher_h */

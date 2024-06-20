@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-import React from 'react';
-import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
+#ifndef NavEventDispatcher_h
+#define NavEventDispatcher_h
 
-const NavHelper = {
-  initCallback: function (target: React.Component) {
-    BatchedBridge.registerCallableModule('JavaScriptVisibleToJava', target);
-  },
-};
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 
-export default NavHelper;
+NS_ASSUME_NONNULL_BEGIN
+
+@interface NavEventDispatcher : RCTEventEmitter <RCTBridgeModule>
+
+- (void)sendEventName:(NSString *)eventName body:(id)body;
+- (bool)hasListeners;
+
+@end
+
+NS_ASSUME_NONNULL_END
+
+#endif /* NavEventDispatcher_h */

@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 
-export * from './androidNavViewHelper';
-export * from './navigationViewController';
-export * from '../shared';
-export * from './stylingOptions';
-export * from './types';
-export { default as NavigationView } from './navigationView';
+#ifndef NavModule_h
+#define NavModule_h
+
+#import <React/RCTBridgeModule.h>
+#import "INavigationCallback.h"
+@import GoogleNavigation;
+
+NS_ASSUME_NONNULL_BEGIN
+
+@interface NavModule : NSObject <RCTBridgeModule, GMSNavigatorListener, GMSRoadSnappedLocationProviderListener, INavigationCallback>
+
+@property BOOL enableUpdateInfo;
+
+@end
+
+NS_ASSUME_NONNULL_END
+
+#endif /* NavModule_h */

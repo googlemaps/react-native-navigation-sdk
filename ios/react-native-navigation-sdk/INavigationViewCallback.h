@@ -14,17 +14,28 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
-#import <React/RCTViewManager.h>
-#import "INavigationViewCallback.h"
-#import "RCTEventDispatcher.h"
+#ifndef INavigationViewCallback_h
+#define INavigationViewCallback_h
+
+@import GoogleNavigation;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RCTNavViewManager : RCTViewManager <INavigationViewCallback>
+@protocol INavigationViewCallback
 
-- (instancetype)init;
+@required
 
+- (void)onMapReady;
+- (void)onMapClick:(NSDictionary *)latLngMap;
+- (void)onRecenterButtonClick;
+- (void)onMarkerInfoWindowTapped:(GMSMarker *)marker;
+- (void)onMarkerClick:(GMSMarker *)marker;
+- (void)onPolylineClick:(GMSPolyline *)polyline;
+- (void)onPolygonClick:(GMSPolygon *)polygon;
+- (void)onCircleClick:(GMSCircle *)circle;
+- (void)onGroundOverlayClick:(GMSGroundOverlay *)groundOverlay;
 @end
 
 NS_ASSUME_NONNULL_END
+
+#endif /* INavigationViewCallback_h */

@@ -21,181 +21,89 @@
 RCT_EXPORT_MODULE(NavViewModule);
 
 + (id)allocWithZone:(NSZone *)zone {
-  static NavViewModule *sharedInstance = nil;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    sharedInstance = [super allocWithZone:zone];
-  });
-  return sharedInstance;
+    static NavViewModule *sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedInstance = [super allocWithZone:zone];
+    });
+    return sharedInstance;
 }
 
 - (NavViewController *)getViewControllerForTag:(NSNumber *)reactTag {
-  NavViewController *viewController = self.viewControllers[reactTag];
-  return viewController;
+    NavViewController *viewController = self.viewControllers[reactTag];
+    return viewController;
 }
 
 - (NavViewController *)getAnyViewController {
-  NavViewController *viewController = nil;
-  if (self.viewControllers.count > 0) {
-    viewController = self.viewControllers.allValues.firstObject;
-  }
-  return viewController;
-}
-
-RCT_EXPORT_METHOD(getCurrentTimeAndDistance
-                  : (RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getAnyViewController];
-    if (viewController) {
-      [viewController getCurrentTimeAndDistance:^(NSDictionary *result) {
-        resolve(result);
-      }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
+    NavViewController *viewController = nil;
+    if (self.viewControllers.count > 0) {
+        viewController = self.viewControllers.allValues.firstObject;
     }
-  });
-}
-
-RCT_EXPORT_METHOD(getCurrentRouteSegment:
-                  (RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getAnyViewController];
-    if (viewController) {
-      [viewController getCurrentRouteSegment:^(NSDictionary *result) {
-        resolve(result);
-      }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
-}
-
-RCT_EXPORT_METHOD(getRouteSegments:
-                  (RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getAnyViewController];
-    if (viewController) {
-      [viewController getRouteSegments:^(NSArray *result) {
-        resolve(result);
-      }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
-}
-
-RCT_EXPORT_METHOD(getTraveledPath:
-                  (RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getAnyViewController];
-    if (viewController) {
-      [viewController getTraveledPath:^(NSArray *result) {
-        resolve(result);
-      }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
+    return viewController;
 }
 
 RCT_EXPORT_METHOD(getCameraPosition
                   : (nonnull NSNumber *)reactTag
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    if (viewController) {
-      [viewController getCameraPosition:^(NSDictionary *result) {
-        resolve(result);
-      }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NavViewController *viewController = [self getViewControllerForTag:reactTag];
+        if (viewController) {
+            [viewController getCameraPosition:^(NSDictionary *result) {
+                resolve(result);
+            }];
+        } else {
+            reject(@"no_view_controller", @"No viewController found", nil);
+        }
+    });
 }
 
 RCT_EXPORT_METHOD(getMyLocation
                   : (nonnull NSNumber *)reactTag
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    if (viewController) {
-      [viewController getMyLocation:^(NSDictionary *result) {
-        resolve(result);
-      }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NavViewController *viewController = [self getViewControllerForTag:reactTag];
+        if (viewController) {
+            [viewController getMyLocation:^(NSDictionary *result) {
+                resolve(result);
+            }];
+        } else {
+            reject(@"no_view_controller", @"No viewController found", nil);
+        }
+    });
 }
 
 RCT_EXPORT_METHOD(getUiSettings
                   : (nonnull NSNumber *)reactTag
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    if (viewController) {
-      [viewController getUiSettings:^(NSDictionary *result) {
-        resolve(result);
-      }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NavViewController *viewController = [self getViewControllerForTag:reactTag];
+        if (viewController) {
+            [viewController getUiSettings:^(NSDictionary *result) {
+                resolve(result);
+            }];
+        } else {
+            reject(@"no_view_controller", @"No viewController found", nil);
+        }
+    });
 }
 
 RCT_EXPORT_METHOD(isMyLocationEnabled
                   : (nonnull NSNumber *)reactTag
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    if (viewController) {
-      [viewController isMyLocationEnabled:^(BOOL result) {
-        resolve(result ? @"true" : @"false");
-      }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
-}
-
-RCT_EXPORT_METHOD(areTermsAccepted
-                  : (nonnull NSNumber *)reactTag
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    if (viewController) {
-      [viewController areTermsAccepted:^(BOOL result) {
-        resolve(result ? @"true" : @"false");
-      }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
-}
-
-RCT_EXPORT_METHOD(getNavSDKVersion
-                  : (nonnull NSNumber *)reactTag
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    if (viewController) {
-      [viewController getNavSDKVersion:^(NSString *result) {
-        resolve(result);
-      }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NavViewController *viewController = [self getViewControllerForTag:reactTag];
+        if (viewController) {
+            [viewController isMyLocationEnabled:^(BOOL result) {
+                resolve(result ? @"true" : @"false");
+            }];
+        } else {
+            reject(@"no_view_controller", @"No viewController found", nil);
+        }
+    });
 }
 
 RCT_EXPORT_METHOD(addMarker
@@ -203,17 +111,17 @@ RCT_EXPORT_METHOD(addMarker
                   markerOptions:(NSDictionary *)markerOptions
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    if (viewController) {
-      [viewController addMarker:markerOptions
-                         result:^(NSDictionary *result) {
-                           resolve(result);
-                         }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NavViewController *viewController = [self getViewControllerForTag:reactTag];
+        if (viewController) {
+            [viewController addMarker:markerOptions
+                               result:^(NSDictionary *result) {
+                resolve(result);
+            }];
+        } else {
+            reject(@"no_view_controller", @"No viewController found", nil);
+        }
+    });
 }
 
 RCT_EXPORT_METHOD(addPolyline
@@ -221,17 +129,17 @@ RCT_EXPORT_METHOD(addPolyline
                   polylineOptions:(NSDictionary *)polylineOptions
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    if (viewController) {
-      [viewController addPolyline:polylineOptions
-                           result:^(NSDictionary *result) {
-                             resolve(result);
-                           }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NavViewController *viewController = [self getViewControllerForTag:reactTag];
+        if (viewController) {
+            [viewController addPolyline:polylineOptions
+                                 result:^(NSDictionary *result) {
+                resolve(result);
+            }];
+        } else {
+            reject(@"no_view_controller", @"No viewController found", nil);
+        }
+    });
 }
 
 RCT_EXPORT_METHOD(addPolygon
@@ -239,17 +147,17 @@ RCT_EXPORT_METHOD(addPolygon
                   polygonOptions:(NSDictionary *)polygonOptions
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    if (viewController) {
-      [viewController addPolygon:polygonOptions
-                          result:^(NSDictionary *result) {
-                            resolve(result);
-                          }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NavViewController *viewController = [self getViewControllerForTag:reactTag];
+        if (viewController) {
+            [viewController addPolygon:polygonOptions
+                                result:^(NSDictionary *result) {
+                resolve(result);
+            }];
+        } else {
+            reject(@"no_view_controller", @"No viewController found", nil);
+        }
+    });
 }
 
 RCT_EXPORT_METHOD(addCircle
@@ -257,17 +165,17 @@ RCT_EXPORT_METHOD(addCircle
                   circleOptions:(NSDictionary *)circleOptions
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    if (viewController) {
-      [viewController addCircle:circleOptions
-                         result:^(NSDictionary *result) {
-                           resolve(result);
-                         }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NavViewController *viewController = [self getViewControllerForTag:reactTag];
+        if (viewController) {
+            [viewController addCircle:circleOptions
+                               result:^(NSDictionary *result) {
+                resolve(result);
+            }];
+        } else {
+            reject(@"no_view_controller", @"No viewController found", nil);
+        }
+    });
 }
 
 RCT_EXPORT_METHOD(addGroundOverlay
@@ -275,17 +183,17 @@ RCT_EXPORT_METHOD(addGroundOverlay
                   overlayOptions:(NSDictionary *)overlayOptions
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    if (viewController) {
-      [viewController addGroundOverlay:overlayOptions
-                                result:^(NSDictionary *result) {
-                                  resolve(result);
-                                }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NavViewController *viewController = [self getViewControllerForTag:reactTag];
+        if (viewController) {
+            [viewController addGroundOverlay:overlayOptions
+                                      result:^(NSDictionary *result) {
+                resolve(result);
+            }];
+        } else {
+            reject(@"no_view_controller", @"No viewController found", nil);
+        }
+    });
 }
 
 @end

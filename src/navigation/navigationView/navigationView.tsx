@@ -31,16 +31,13 @@ import {
 } from '../../maps';
 import {
   type LatLng,
-  type Location,
   sendCommand,
   commands,
   NavViewManager,
 } from '../../shared';
-import type { NavigationInitErrorCode } from '../types';
-import NavHelper from './navHelper';
+import AndroidNavViewHelper from './androidNavViewHelper';
 import { getNavigationViewController } from './navigationViewController';
-import { getRouteStatusFromStringValue } from './shared';
-import type { NavigationViewProps, ArrivalEvent } from './types';
+import type { NavigationViewProps } from './types';
 
 /**
  * Represents a navigation view that handles map and navigation interactions within a React Native application.
@@ -78,24 +75,13 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     });
 
     this.nativeEventsToCallbackMap = {
-      onRouteChanged: this.onRouteChanged,
-      onRemainingTimeOrDistanceChanged: this.onRemainingTimeOrDistanceChanged,
-      onTrafficUpdated: this.onTrafficUpdated,
-      onArrival: this.onArrival,
-      onNavigationReady: this.onNavigationReady,
-      onStartGuidance: this.onStartGuidance,
       onRecenterButtonClick: this.onRecenterButtonClick,
-      onRouteStatusResult: this.onRouteStatusResult,
       onMapReady: this.onMapReady,
-      onReroutingRequestedByOffRoute: this.onReroutingRequestedByOffRoute,
-      onLocationChanged: this.onLocationChanged,
-      onNavigationInitError: this.onNavigationInitError,
       onMarkerInfoWindowTapped: this.onMarkerInfoWindowTapped,
       onMarkerClick: this.onMarkerClick,
       onPolylineClick: this.onPolylineClick,
       onPolygonClick: this.onPolygonClick,
       onCircleClick: this.onCircleClick,
-      logDebugInfo: this.logDebugInfo,
     };
   }
 
@@ -125,74 +111,6 @@ export default class NavigationView extends React.Component<NavigationViewProps>
   };
 
   /**
-   * A callback function that gets invoked when navigation information is ready.
-   */
-  onNavigationReady = () => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.onNavigationReady
-    ) {
-      this.props.navigationViewCallbacks.onNavigationReady();
-    }
-  };
-
-  /**
-   * A callback function that gets invoked when navigation init error is encountered.
-   *
-   * @param {NavigationInitErrorCode} errorCode - Enum argument that describes the error during SDK initialization
-   */
-  onNavigationInitError = (errorCode: NavigationInitErrorCode) => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.onNavigationInitError
-    ) {
-      this.props.navigationViewCallbacks.onNavigationInitError(errorCode);
-    }
-  };
-
-  /**
-   * Callback function invoked when the destination is reached.
-   *
-   * @param {ArrivalEvent} event - An object containing the arrival event data.
-   */
-  onArrival = (event: ArrivalEvent) => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.onArrival
-    ) {
-      this.props.navigationViewCallbacks.onArrival(event);
-    }
-  };
-
-  /**
-   * Callback function invoked when the route is changed.
-   */
-  onRouteChanged = () => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.onRouteChanged
-    ) {
-      this.props.navigationViewCallbacks.onRouteChanged();
-    }
-  };
-
-  /**
-   * Callback function invoked when receiving a route status result.
-   *
-   * @param {string} routeStatus - String presentation of the route status.
-   */
-  onRouteStatusResult = (routeStatus: string) => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.onRouteStatusResult
-    ) {
-      this.props.navigationViewCallbacks.onRouteStatusResult(
-        getRouteStatusFromStringValue(routeStatus)
-      );
-    }
-  };
-
-  /**
    * Callback function invoked when the re-center button is clicked.
    */
   onRecenterButtonClick = () => {
@@ -201,84 +119,6 @@ export default class NavigationView extends React.Component<NavigationViewProps>
       this.props.navigationViewCallbacks.onRecenterButtonClick
     ) {
       this.props.navigationViewCallbacks.onRecenterButtonClick();
-    }
-  };
-
-  /**
-   * Callback function invoked when rerouting is requested due to an
-   * off-route event.
-   */
-  onReroutingRequestedByOffRoute = () => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.onReroutingRequestedByOffRoute
-    ) {
-      this.props.navigationViewCallbacks.onReroutingRequestedByOffRoute();
-    }
-  };
-
-  /**
-   * Callback function invoked when traffic data is updated.
-   */
-  onTrafficUpdated = () => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.onTrafficUpdated
-    ) {
-      this.props.navigationViewCallbacks.onTrafficUpdated();
-    }
-  };
-
-  /**
-   * Callback function invoked when guidance is started.
-   */
-  onStartGuidance = () => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.onStartGuidance
-    ) {
-      this.props.navigationViewCallbacks.onStartGuidance();
-    }
-  };
-
-  /**
-   * Callback function when the remaining time or distance changes.
-   */
-  onRemainingTimeOrDistanceChanged = () => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.onRemainingTimeOrDistanceChanged
-    ) {
-      this.props.navigationViewCallbacks.onRemainingTimeOrDistanceChanged();
-    }
-  };
-
-  /**
-   * Callback function invoked when the location is changed.
-   *
-   * @param {Location} location - The location received upon location change.
-   */
-  onLocationChanged = (location: Location) => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.onLocationChanged
-    ) {
-      this.props.navigationViewCallbacks.onLocationChanged(location);
-    }
-  };
-
-  /**
-   * Handles changes to raw location data and triggers a callback with the
-   * changed data.
-   *
-   * @param {Location} location - An object containing the raw location data that has changed.
-   */
-  onRawLocationChanged = (location: Location) => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.onRawLocationChanged
-    ) {
-      this.props.navigationViewCallbacks.onRawLocationChanged(location);
     }
   };
 
@@ -343,20 +183,6 @@ export default class NavigationView extends React.Component<NavigationViewProps>
   };
 
   /**
-   * Callback invoked on debug messages.
-   *
-   * @param {string} message - The debug message.
-   */
-  logDebugInfo = (message: string) => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.logDebugInfo != null
-    ) {
-      this.props.navigationViewCallbacks.logDebugInfo(message);
-    }
-  };
-
-  /**
    * Callback invoked when tapping on marker's info window.
    * @platform Android only
    *
@@ -373,7 +199,7 @@ export default class NavigationView extends React.Component<NavigationViewProps>
 
   private unregisterNavModuleListeners = () => {
     const eventEmitter = new NativeEventEmitter(
-      NativeModules.CustomEventDispatcher
+      NativeModules.NavViewEventDispatcher
     );
 
     for (const eventName of Object.keys(this.nativeEventsToCallbackMap)) {
@@ -383,7 +209,7 @@ export default class NavigationView extends React.Component<NavigationViewProps>
 
   private registerNavModuleListener = () => {
     const eventEmitter = new NativeEventEmitter(
-      NativeModules.CustomEventDispatcher
+      NativeModules.NavViewEventDispatcher
     );
 
     for (const eventName of Object.keys(this.nativeEventsToCallbackMap)) {
@@ -405,10 +231,11 @@ export default class NavigationView extends React.Component<NavigationViewProps>
    * Called immediately after a component is mounted.
    */
   override componentDidMount() {
-    NavHelper.initCallback(this);
     this.viewId = findNodeHandle(this.mapViewRef) || 0;
 
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === 'android') {
+      AndroidNavViewHelper.initCallback(this);
+    } else if (Platform.OS === 'ios') {
       this.unregisterNavModuleListeners();
       this.registerNavModuleListener();
     }
@@ -419,13 +246,11 @@ export default class NavigationView extends React.Component<NavigationViewProps>
             PixelRatio.getPixelSizeForLayoutSize(this.props.height),
             PixelRatio.getPixelSizeForLayoutSize(this.props.width),
             this.props.androidStylingOptions || {},
-            this.props.termsAndConditionsDialogOptions || {},
           ]
         : [
             this.props.height,
             this.props.width,
             this.props.iOSStylingOptions || {},
-            this.props.termsAndConditionsDialogOptions || {},
           ];
 
     setTimeout(() => {

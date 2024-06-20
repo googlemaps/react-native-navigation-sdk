@@ -53,7 +53,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class NavViewManager extends ViewGroupManager<FrameLayout> implements INavigationCallback {
+public class NavViewManager extends ViewGroupManager<FrameLayout> implements INavigationViewCallback {
 
   public static final String REACT_CLASS = "NavViewManager";
 
@@ -94,8 +94,6 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
   public Map<String, Integer> getCommandsMap() {
     Map<String, Integer> map = new HashMap<>();
     map.put(CREATE_FRAGMENT.toString(), CREATE_FRAGMENT.getValue());
-    map.put(
-        SET_TURN_BY_TURN_LOGGING_ENABLED.toString(), SET_TURN_BY_TURN_LOGGING_ENABLED.getValue());
     map.put(MOVE_CAMERA.toString(), MOVE_CAMERA.getValue());
     map.put(SET_TRIP_PROGRESS_BAR_ENABLED.toString(), SET_TRIP_PROGRESS_BAR_ENABLED.getValue());
     map.put(SET_NAVIGATION_UI_ENABLED.toString(), SET_NAVIGATION_UI_ENABLED.getValue());
@@ -104,22 +102,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     map.put(DELETE_FRAGMENT.toString(), DELETE_FRAGMENT.getValue());
     map.put(SET_SPEEDOMETER_ENABLED.toString(), SET_SPEEDOMETER_ENABLED.getValue());
     map.put(SET_SPEED_LIMIT_ICON_ENABLED.toString(), SET_SPEED_LIMIT_ICON_ENABLED.getValue());
-    map.put(SET_DESTINATIONS.toString(), SET_DESTINATIONS.getValue());
-    map.put(START_GUIDANCE.toString(), START_GUIDANCE.getValue());
-    map.put(STOP_GUIDANCE.toString(), STOP_GUIDANCE.getValue());
-    map.put(SIMULATE_LOCATION.toString(), SIMULATE_LOCATION.getValue());
-    map.put(
-        SIMULATE_LOCATIONS_ALONG_EXISTING_ROUTE.toString(),
-        SIMULATE_LOCATIONS_ALONG_EXISTING_ROUTE.getValue());
-    map.put(STOP_LOCATION_SIMULATION.toString(), STOP_LOCATION_SIMULATION.getValue());
     map.put(SET_ZOOM_LEVEL.toString(), SET_ZOOM_LEVEL.getValue());
-    map.put(SET_DESTINATION.toString(), SET_DESTINATION.getValue());
-    map.put(CLEAR_DESTINATIONS.toString(), CLEAR_DESTINATIONS.getValue());
-    map.put(CONTINUE_TO_NEXT_DESTINATION.toString(), CONTINUE_TO_NEXT_DESTINATION.getValue());
-    map.put(
-        SHOW_TERMS_AND_CONDITIONS_DIALOG.toString(), SHOW_TERMS_AND_CONDITIONS_DIALOG.getValue());
-    map.put(RESET_TERMS_ACCEPTED.toString(), RESET_TERMS_ACCEPTED.getValue());
-    map.put(SET_SPEED_ALERT_OPTIONS.toString(), SET_SPEED_ALERT_OPTIONS.getValue());
     map.put(SET_INDOOR_ENABLED.toString(), SET_INDOOR_ENABLED.getValue());
     map.put(SET_TRAFFIC_ENABLED.toString(), SET_TRAFFIC_ENABLED.getValue());
     map.put(SET_COMPASS_ENABLED.toString(), SET_COMPASS_ENABLED.getValue());
@@ -140,10 +123,6 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     map.put(RESET_MIN_MAX_ZOOM_LEVEL.toString(), RESET_MIN_MAX_ZOOM_LEVEL.getValue());
     map.put(SET_MAP_STYLE.toString(), SET_MAP_STYLE.getValue());
     map.put(ANIMATE_CAMERA.toString(), ANIMATE_CAMERA.getValue());
-    map.put(SET_AUDIO_GUIDANCE_TYPE.toString(), SET_AUDIO_GUIDANCE_TYPE.getValue());
-    map.put(
-        SET_ABNORMAL_TERMINATION_REPORTING_ENABLED.toString(),
-        SET_ABNORMAL_TERMINATION_REPORTING_ENABLED.getValue());
     map.put(
         SET_TRAFFIC_INCIDENT_CARDS_ENABLED.toString(),
         SET_TRAFFIC_INCIDENT_CARDS_ENABLED.getValue());
@@ -156,10 +135,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     map.put(REMOVE_POLYGON.toString(), REMOVE_POLYGON.getValue());
     map.put(REMOVE_CIRCLE.toString(), REMOVE_CIRCLE.getValue());
     map.put(REMOVE_GROUND_OVERLAY.toString(), REMOVE_GROUND_OVERLAY.getValue());
-    map.put(PAUSE_LOCATION_SIMULATION.toString(), PAUSE_LOCATION_SIMULATION.getValue());
-    map.put(RESUME_LOCATION_SIMULATION.toString(), RESUME_LOCATION_SIMULATION.getValue());
-    map.put(START_UPDATING_LOCATION.toString(), START_UPDATING_LOCATION.getValue());
-    map.put(STOP_UPDATING_LOCATION.toString(), STOP_UPDATING_LOCATION.getValue());
+    map.put(SET_HEADER_ENABLED.toString(), SET_HEADER_ENABLED.getValue());
     map.put(SET_FOOTER_ENABLED.toString(), SET_FOOTER_ENABLED.getValue());
     return map;
   }
@@ -198,6 +174,14 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     return fragmentMap.values().iterator().next().get();
   }
 
+  public void applyStylingOptions() {
+    for (WeakReference<NavViewFragment> weakReference : fragmentMap.values()) {
+      if (weakReference.get() != null) {
+        weakReference.get().applyStylingOptions();
+      }
+    }
+  }
+
   @Override
   public void receiveCommand(
       @NonNull FrameLayout root, String commandId, @Nullable ReadableArray args) {
@@ -209,8 +193,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
         propHeight = args.getInt(0);
         propWidth = args.getInt(1);
         Map<String, Object> stylingOptions = args.getMap(2).toHashMap();
-        Map<String, Object> tocParams = args.getMap(3).toHashMap();
-        createFragment(root, stylingOptions, tocParams);
+        createFragment(root, stylingOptions);
         break;
       case DELETE_FRAGMENT:
         try {
@@ -222,9 +205,6 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
             .remove(Objects.requireNonNull(fragmentMap.remove(viewId)).get())
             .commitNowAllowingStateLoss();
         } catch (Exception ignored) {}
-        break;
-      case SET_TURN_BY_TURN_LOGGING_ENABLED:
-        getFragmentForRoot(root).setTurnbyTurnLoggingEnabled(args.getBoolean(0));
         break;
       case MOVE_CAMERA:
         getFragmentForRoot(root).moveCamera(args.getMap(0).toHashMap());
@@ -247,48 +227,9 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
       case SET_SPEED_LIMIT_ICON_ENABLED:
         getFragmentForRoot(root).setSpeedLimitIconEnabled(args.getBoolean(0));
         break;
-      case SET_DESTINATIONS:
-        Map routingOptionsMulti = args.getMap(1).toHashMap();
-        getFragmentForRoot(root).setDestinations(args.getArray(0), routingOptionsMulti);
-        break;
-      case SET_DESTINATION:
-        Map routingOptionsSingle = args.getMap(1).toHashMap();
-        getFragmentForRoot(root).setDestination((Map) args.getMap(0).toHashMap(), routingOptionsSingle);
-        break;
-      case START_GUIDANCE:
-        getFragmentForRoot(root).startGuidance();
-        break;
-      case STOP_GUIDANCE:
-        getFragmentForRoot(root).stopGuidance();
-        break;
-      case SIMULATE_LOCATIONS_ALONG_EXISTING_ROUTE:
-        getFragmentForRoot(root).runSimulation(args.getInt(0));
-        break;
-
-      case STOP_LOCATION_SIMULATION:
-        getFragmentForRoot(root).stopLocationSimulation();
-        break;
       case SET_ZOOM_LEVEL:
         int level = args.getInt(0);
         getFragmentForRoot(root).setZoomLevel(level);
-        break;
-      case CLEAR_DESTINATIONS:
-        getFragmentForRoot(root).clearDestinations();
-        break;
-      case CONTINUE_TO_NEXT_DESTINATION:
-        getFragmentForRoot(root).continueToNextDestination();
-        break;
-      case SIMULATE_LOCATION:
-        getFragmentForRoot(root).simulateLocation(args.getMap(0).toHashMap());
-        break;
-      case SET_SPEED_ALERT_OPTIONS:
-        ReadableMap optionsMap = args.getMap(0);
-
-        if (optionsMap != null) {
-          getFragmentForRoot(root).setSpeedAlertOptions(optionsMap.toHashMap());
-        } else {
-          getFragmentForRoot(root).setSpeedAlertOptions(null);
-        }
         break;
       case SET_INDOOR_ENABLED:
         getFragmentForRoot(root).setIndoorEnabled(args.getBoolean(0));
@@ -344,17 +285,14 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
       case ANIMATE_CAMERA:
         getFragmentForRoot(root).animateCamera(args.getMap(0).toHashMap());
         break;
-      case SET_AUDIO_GUIDANCE_TYPE:
-        getFragmentForRoot(root).setAudioGuidanceType(args.getInt(0));
-        break;
-      case SET_ABNORMAL_TERMINATION_REPORTING_ENABLED:
-        getFragmentForRoot(root).setAbnormalTerminatingReportingEnabled(args.getBoolean(0));
-        break;
       case SET_TRAFFIC_INCIDENT_CARDS_ENABLED:
         getFragmentForRoot(root).setTrafficIncidentCards(args.getBoolean(0));
         break;
       case SET_FOOTER_ENABLED:
         getFragmentForRoot(root).setFooterEnabled(args.getBoolean(0));
+        break;
+      case SET_HEADER_ENABLED:
+        getFragmentForRoot(root).setHeaderEnabled(args.getBoolean(0));
         break;
       case SET_RECENTER_BUTTON_ENABLED:
         getFragmentForRoot(root).setRecenterButtonEnabled(args.getBoolean(0));
@@ -377,24 +315,12 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
       case REMOVE_GROUND_OVERLAY:
         getFragmentForRoot(root).removeGroundOverlay(args.getString(0));
         break;
-      case PAUSE_LOCATION_SIMULATION:
-        getFragmentForRoot(root).pauseLocationSimulation();
-        break;
-      case RESUME_LOCATION_SIMULATION:
-        getFragmentForRoot(root).resumeLocationSimulation();
-        break;
-      case START_UPDATING_LOCATION:
-        getFragmentForRoot(root).startUpdatingLocation();
-        break;
-      case STOP_UPDATING_LOCATION:
-        getFragmentForRoot(root).stopUpdatingLocation();
-        break;
     }
   }
 
   /** Replace your React Native view with a custom fragment */
   public void createFragment(
-      FrameLayout root, Map stylingOptions, Map tocParams) {
+      FrameLayout root, Map stylingOptions) {
     setupLayout(root);
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
@@ -402,8 +328,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     NavViewFragment fragment = new NavViewFragment();
     fragmentMap.put(viewId, new WeakReference<>(fragment));
 
-    fragment.setNavigationCallback(this);
-    fragment.setTocParams(tocParams);
+    fragment.setNavigationViewCallback(this);
 
     if (stylingOptions != null) {
       fragment.setStylingOptions(stylingOptions);
@@ -446,28 +371,8 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
       if (args != null) {
         params.pushString("" + args);
       }
-      catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, functionName, params);
+      catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, functionName, params);
     }
-  }
-
-  @Override
-  public void onArrival(ArrivalEvent event) {
-    if (getAnyFragment().requireActivity() != null && reactContext != null) {
-      CatalystInstance catalystInstance = reactContext.getCatalystInstance();
-
-      WritableMap map = Arguments.createMap();
-      map.putMap("waypoint", ObjectTranslationUtil.getMapFromWaypoint(event.getWaypoint()));
-      map.putBoolean("isFinalDestination", event.isFinalDestination());
-
-      WritableNativeArray params = new WritableNativeArray();
-      params.pushMap(map);
-
-      catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onArrival", params);
-    }
-  }
-
-  public Navigator getNavigator() {
-    return getAnyFragment().getNavigator();
   }
 
   public GoogleMap getGoogleMap(int viewId) {
@@ -476,70 +381,6 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     } catch (Exception e) {
       return null;
     }
-  }
-
-  public boolean areTermsAccepted() {
-    return getAnyFragment().areTermsAccepted();
-  }
-
-  @Override
-  public void onRouteChanged() {
-    sendCommandToReactNative("onRouteChanged", null);
-  }
-
-  @Override
-  public void onReroutingRequestedByOffRoute() {
-    sendCommandToReactNative("onReroutingRequestedByOffRoute", null);
-  }
-
-  @Override
-  public void onTrafficUpdated() {
-    sendCommandToReactNative("onTrafficUpdated", null);
-  }
-
-  @Override
-  public void logDebugInfo(String log) {
-    sendCommandToReactNative("logDebugInfo", log);
-  }
-
-  @Override
-  public void onNavigationReady() {
-    getAnyFragment().applyStylingOptions();
-
-    CatalystInstance catalystInstance = reactContext.getCatalystInstance();
-    WritableNativeArray params = new WritableNativeArray();
-
-    catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onNavigationReady", params);
-  }
-
-  @Override
-  public void onNavigationInitError(int errorCode) {
-    sendCommandToReactNative("onNavigationInitError", errorCode);
-  }
-
-  @Override
-  public void onRemainingTimeOrDistanceChanged() {
-    sendCommandToReactNative("onRemainingTimeOrDistanceChanged", null);
-  }
-
-  @Override
-  public void onLocationChanged(final Location location) {
-    CatalystInstance catalystInstance = reactContext.getCatalystInstance();
-
-    WritableNativeArray params = new WritableNativeArray();
-    params.pushMap(ObjectTranslationUtil.getMapFromLocation(location));
-
-    catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onLocationChanged", params);
-  }
-
-  @Override
-  public void onRawLocationUpdate(final Location location) {
-    CatalystInstance catalystInstance = reactContext.getCatalystInstance();
-
-    WritableNativeArray params = new WritableNativeArray();
-    params.pushMap(ObjectTranslationUtil.getMapFromLocation(location));
-
-    catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onRawLocationChanged", params);
   }
 
   @Override
@@ -553,66 +394,12 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
 
       WritableNativeArray params = new WritableNativeArray();
       params.pushMap(ObjectTranslationUtil.getMapFromLatLng(latLng));
-      catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onMapClick", params);
+      catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, "onMapClick", params);
   }
 
   @Override
   public void onRecenterButtonClick() {
     sendCommandToReactNative("onRecenterButtonClick", null);
-  }
-
-  @Override
-  public void onRouteStatusResult(Navigator.RouteStatus code) {
-    sendCommandToReactNative("onRouteStatusResult", code.toString());
-  }
-
-  public String getNavSDKVersion() {
-    return getAnyFragment().getNavSDKVersion();
-  }
-
-  @Override
-  public void onTurnByTurn(NavInfo navInfo) {
-    if (getAnyFragment().requireActivity() != null && reactContext != null) {
-      CatalystInstance catalystInstance = reactContext.getCatalystInstance();
-
-      WritableMap map = Arguments.createMap();
-
-      map.putInt("navState", navInfo.getNavState());
-      map.putBoolean("routeChanged", navInfo.getRouteChanged());
-      if (navInfo.getDistanceToCurrentStepMeters() != null)
-        map.putInt("distanceToCurrentStepMeters", navInfo.getDistanceToCurrentStepMeters());
-      if (navInfo.getDistanceToFinalDestinationMeters() != null)
-        map.putInt(
-            "distanceToFinalDestinationMeters", navInfo.getDistanceToFinalDestinationMeters());
-      if (navInfo.getDistanceToNextDestinationMeters() != null)
-        map.putInt("distanceToNextDestinationMeters", navInfo.getDistanceToNextDestinationMeters());
-      if (navInfo.getTimeToCurrentStepSeconds() != null)
-        map.putInt("timeToCurrentStepSeconds", navInfo.getTimeToCurrentStepSeconds());
-      if (navInfo.getTimeToFinalDestinationSeconds() != null)
-        map.putInt("timeToFinalDestinationSeconds", navInfo.getTimeToFinalDestinationSeconds());
-      if (navInfo.getTimeToNextDestinationSeconds() != null)
-        map.putInt("timeToNextDestinationSeconds", navInfo.getTimeToNextDestinationSeconds());
-      if (navInfo.getCurrentStep() != null)
-        map.putMap(
-            "currentStep", ObjectTranslationUtil.getMapFromStepInfo(navInfo.getCurrentStep()));
-
-      WritableArray remainingSteps = Arguments.createArray();
-      if (navInfo.getRemainingSteps() != null) {
-        for (StepInfo info : navInfo.getRemainingSteps()) {
-          remainingSteps.pushMap(ObjectTranslationUtil.getMapFromStepInfo(info));
-        }
-      }
-      map.putArray("getRemainingSteps", remainingSteps);
-
-      WritableNativeArray params = new WritableNativeArray();
-      params.pushMap(map);
-      catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onTurnByTurn", params);
-    }
-  }
-
-  @Override
-  public void onStartGuidance() {
-    sendCommandToReactNative("onStartGuidance", null);
   }
 
   @Override
@@ -622,7 +409,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     WritableNativeArray params = new WritableNativeArray();
     params.pushMap(ObjectTranslationUtil.getMapFromMarker(marker));
 
-    catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onMarkerClick", params);
+    catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, "onMarkerClick", params);
   }
 
   @Override
@@ -632,7 +419,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     WritableNativeArray params = new WritableNativeArray();
     params.pushMap(ObjectTranslationUtil.getMapFromPolyline(polyline));
 
-    catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onPolylineClick", params);
+    catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, "onPolylineClick", params);
   }
 
   @Override
@@ -642,7 +429,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     WritableNativeArray params = new WritableNativeArray();
     params.pushMap(ObjectTranslationUtil.getMapFromPolygon(polygon));
 
-    catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onPolygonClick", params);
+    catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, "onPolygonClick", params);
   }
 
   @Override
@@ -652,7 +439,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     WritableNativeArray params = new WritableNativeArray();
     params.pushMap(ObjectTranslationUtil.getMapFromCircle(circle));
 
-    catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onCircleClick", params);
+    catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, "onCircleClick", params);
   }
 
   @Override
@@ -662,7 +449,7 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     WritableNativeArray params = new WritableNativeArray();
     params.pushMap(ObjectTranslationUtil.getMapFromGroundOverlay(overlay));
 
-    catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onGroundOverlayClick", params);
+    catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, "onGroundOverlayClick", params);
   }
 
   @Override
@@ -672,6 +459,6 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
     WritableNativeArray params = new WritableNativeArray();
     params.pushMap(ObjectTranslationUtil.getMapFromMarker(marker));
 
-    catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, "onMarkerInfoWindowTapped", params);
+    catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, "onMarkerInfoWindowTapped", params);
   }
 }

@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-#import <React/RCTBridgeModule.h>
-#import <React/RCTEventEmitter.h>
+import React from 'react';
+import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge';
 
-NS_ASSUME_NONNULL_BEGIN
+const AndroidNavViewHelper = {
+  initCallback: function (target: React.Component) {
+    BatchedBridge.registerCallableModule('NavViewJavascriptBridge', target);
+  },
+};
 
-@interface CustomEventDispatcher : RCTEventEmitter <RCTBridgeModule>
-
-- (void)sendEventName:(NSString *)eventName body:(id)body;
-- (bool)hasListeners;
-
-@end
-
-NS_ASSUME_NONNULL_END
+export default AndroidNavViewHelper;

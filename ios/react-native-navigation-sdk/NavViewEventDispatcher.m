@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-#import "CustomEventDispatcher.h"
+#import "NavViewEventDispatcher.h"
 
-@implementation CustomEventDispatcher {
+@implementation NavViewEventDispatcher {
   bool hasListeners;
 }
 
-RCT_EXPORT_MODULE(CustomEventDispatcher);
+RCT_EXPORT_MODULE(NavViewEventDispatcher);
 
 + (id)allocWithZone:(NSZone *)zone {
-  static CustomEventDispatcher *sharedInstance = nil;
+  static NavViewEventDispatcher *sharedInstance = nil;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     sharedInstance = [super allocWithZone:zone];
@@ -33,26 +33,15 @@ RCT_EXPORT_MODULE(CustomEventDispatcher);
 
 - (NSArray<NSString *> *)supportedEvents {
   return @[
-    @"onRemainingTimeOrDistanceChanged",
-    @"onRouteChanged",
-    @"onTrafficUpdated",
-    @"onArrival",
-    @"onTurnByTurn",
-    @"onNavigationReady",
-    @"onNavigationInitError",
-    @"onStartGuidance",
     @"onMapReady",
     @"onRecenterButtonClick",
-    @"onRouteStatusResult",
-    @"onReroutingRequestedByOffRoute",
-    @"onLocationChanged",
     @"onMarkerInfoWindowTapped",
     @"onMarkerClick",
     @"onPolylineClick",
     @"onPolygonClick",
     @"onCircleClick",
-    @"logDebugInfo",
     @"onMapClick",
+    @"logDebugInfo",
   ];
 }
 
@@ -76,7 +65,8 @@ RCT_EXPORT_MODULE(CustomEventDispatcher);
   if (hasListeners) {
     [self sendEventWithName:eventName body:body];
   } else {
-    NSLog(@"CustomEventsEmitter sendEventName called without listeners: %@", eventName);
+    NSLog(@"NavViewEventDispatcher sendEventName called without listeners: %@",
+          eventName);
   }
 }
 

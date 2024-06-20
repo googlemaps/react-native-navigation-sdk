@@ -16,14 +16,7 @@
 
 import React, { useEffect, useState } from 'react';
 
-import {
-  Button,
-  ScrollView,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Button, Switch, Text, TextInput, View } from 'react-native';
 
 import SelectDropdown from 'react-native-select-dropdown';
 import styles from './styles';
@@ -38,13 +31,9 @@ import {
 
 export interface MapControlsProps {
   readonly mapViewController: MapViewController;
-  readonly visible: boolean;
 }
 
-const MapsControls: React.FC<MapControlsProps> = ({
-  mapViewController,
-  visible,
-}) => {
+const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
   const mapTypeOptions = ['None', 'Normal', 'Satellite', 'Terrain', 'Hybrid'];
   const [zoom, setZoom] = useState(15);
   const [enableLocationMarker, setEnableLocationMarker] = useState(true);
@@ -156,7 +145,6 @@ const MapsControls: React.FC<MapControlsProps> = ({
         lng: cameraPosition.target.lng + idx / 10000,
       });
     }
-    console.log();
 
     console.log(latLngs.length);
     const polyline: Polyline = await mapViewController.addPolyline({
@@ -198,18 +186,8 @@ const MapsControls: React.FC<MapControlsProps> = ({
     mapViewController.clearMapView();
   };
 
-  if (!visible) {
-    return null;
-  }
-
   return (
-    <ScrollView
-      // eslint-disable-next-line react-native/no-inline-styles
-      style={{
-        backgroundColor: 'white',
-        height: '80%',
-      }}
-    >
+    <View>
       <TextInput
         style={styles.input}
         onChangeText={onLatChanged}
@@ -292,7 +270,7 @@ const MapsControls: React.FC<MapControlsProps> = ({
           dropdownStyle={styles.dropdownMenuStyle}
         />
       </View>
-    </ScrollView>
+    </View>
   );
 };
 

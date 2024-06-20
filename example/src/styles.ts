@@ -108,9 +108,6 @@ const styles = StyleSheet.create({
     color: '#151E26',
     textAlign: 'center',
   },
-  controlView: {
-    margin: 5,
-  },
 });
 
 export default styles;

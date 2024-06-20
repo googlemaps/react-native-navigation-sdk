@@ -13,72 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NativeModules, Platform } from 'react-native';
-import type { LatLng } from '../../shared/types';
 import { commands, sendCommand } from '../../shared/viewManager';
-import type {
-  AudioGuidance,
-  RouteSegment,
-  TimeAndDistance,
-  Waypoint,
-} from '../types';
-import type {
-  CameraPerspective,
-  LocationSimulationOptions,
-  NavigationViewController,
-  RoutingOptions,
-  SpeedAlertOptions,
-} from './types';
-
-const { NavViewModule } = NativeModules;
+import type { CameraPerspective, NavigationViewController } from './types';
 
 export const getNavigationViewController = (
   viewId: number
 ): NavigationViewController => {
   return {
-    setDestination: (waypoint: Waypoint, routingOptions?: RoutingOptions) => {
-      const args: object[] = [];
-      args.push([waypoint]);
-
-      if (routingOptions != null) {
-        args.push(routingOptions);
-      }
-
-      sendCommand(viewId, commands.setDestinations, args);
-    },
-    setDestinations: (
-      waypoints: Waypoint[],
-      routingOptions?: RoutingOptions
-    ) => {
-      const args: object[] = [];
-
-      args.push(waypoints);
-
-      if (routingOptions != null) {
-        args.push(routingOptions);
-      }
-
-      sendCommand(viewId, commands.setDestinations, args);
-    },
-    continueToNextDestination: () => {
-      sendCommand(viewId, commands.continueToNextDestination, []);
-    },
-    clearDestinations: () => {
-      sendCommand(viewId, commands.clearDestinations, []);
-    },
-
-    startGuidance: () => {
-      sendCommand(viewId, commands.startGuidance);
-    },
-
-    stopGuidance: () => {
-      sendCommand(viewId, commands.stopGuidance, []);
-    },
-
-    setSpeedAlertOptions: (alertOptions: SpeedAlertOptions | null) => {
-      sendCommand(viewId, commands.setSpeedAlertOptions, [alertOptions]);
-    },
-
     setNavigationUIEnabled: (isOn: boolean) => {
       sendCommand(viewId, commands.setNavigationUIEnabled, [isOn]);
     },
@@ -95,14 +36,12 @@ export const getNavigationViewController = (
       sendCommand(viewId, commands.setSpeedLimitIconEnabled, [isOn]);
     },
 
-    setAbnormalTerminatingReportingEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setAbnormalTerminatingReportingEnabled, [
-        isOn,
-      ]);
-    },
-
     setTrafficIncidentCardsEnabled: (isOn: boolean) => {
       sendCommand(viewId, commands.setTrafficIncidentCardsEnabled, [isOn]);
+    },
+
+    setHeaderEnabled: (isOn: boolean) => {
+      sendCommand(viewId, commands.setHeaderEnabled, [isOn]);
     },
 
     setFooterEnabled: (isOn: boolean) => {
@@ -117,85 +56,12 @@ export const getNavigationViewController = (
       sendCommand(viewId, commands.setNightMode, [index]);
     },
 
-    setAudioGuidanceType: (index: AudioGuidance) => {
-      sendCommand(viewId, commands.setAudioGuidanceType, [index]);
-    },
-
-    setBackgroundLocationUpdatesEnabled: (isEnabled: boolean) => {
-      if (Platform.OS === 'ios') {
-        sendCommand(viewId, commands.setBackgroundLocationUpdatesEnabled, [
-          [isEnabled],
-        ]);
-      }
-    },
-
     setRecenterButtonEnabled(isEnabled: boolean) {
       sendCommand(viewId, commands.setRecenterButtonEnabled, [isEnabled]);
     },
 
-    areTermsAccepted: async (): Promise<boolean> => {
-      return await NavViewModule.areTermsAccepted();
-    },
-
-    getCurrentRouteSegment: async (): Promise<RouteSegment> => {
-      return await NavViewModule.getCurrentRouteSegment();
-    },
-
-    getRouteSegments: async (): Promise<RouteSegment[]> => {
-      return await NavViewModule.getRouteSegments();
-    },
-
-    getCurrentTimeAndDistance: async (): Promise<TimeAndDistance> => {
-      return await NavViewModule.getCurrentTimeAndDistance();
-    },
-
-    getTraveledPath: async (): Promise<LatLng[]> => {
-      return await NavViewModule.getTraveledPath();
-    },
-
-    getNavSDKVersion: async (): Promise<string> => {
-      return await NavViewModule.getNavSDKVersion();
-    },
-
-    /**
-     * Disables location updates by the library. This should be
-     * called once no longer needed to save battery.
-     */
-    stopUpdatingLocation: () => {
-      sendCommand(viewId, commands.stopUpdatingLocation);
-    },
-
-    /**
-     * Allows the library to start tracking location and providing updates.
-     */
-    startUpdatingLocation: () => {
-      sendCommand(viewId, commands.startUpdatingLocation);
-    },
-
     setFollowingPerspective: (perspective: CameraPerspective) => {
       sendCommand(viewId, commands.setFollowingPerspective, [perspective]);
-    },
-
-    simulator: {
-      simulateLocation: (location: LatLng) => {
-        sendCommand(viewId, commands.simulateLocation, [{ location }]);
-      },
-      resumeLocationSimulation: () => {
-        sendCommand(viewId, commands.resumeLocationSimulation, []);
-      },
-      pauseLocationSimulation: () => {
-        sendCommand(viewId, commands.pauseLocationSimulation, []);
-      },
-      simulateLocationsAlongExistingRoute: ({
-        speedMultiplier,
-      }: LocationSimulationOptions) => {
-        sendCommand(viewId, commands.simulateLocationsAlongExistingRoute, [
-          speedMultiplier,
-        ]);
-      },
-      stopLocationSimulation: () => {
-        sendCommand(viewId, commands.stopLocationSimulation, []);
-      },
     },
   };
 };

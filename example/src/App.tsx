@@ -22,8 +22,12 @@ import {
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Button, StyleSheet } from 'react-native';
-import NavigationScreen from './navigation';
-import MultipleMapsScreen from './multipleMaps';
+import NavigationScreen from './NavigationScreen';
+import MultipleMapsScreen from './MultipleMapsScreen';
+import {
+  NavigationProvider,
+  type TermsAndConditionsDialogOptions,
+} from 'react-native-navigation-sdk';
 
 export type ScreenNames = ['Home', 'Navigation', 'Multiple maps'];
 
@@ -47,6 +51,12 @@ const HomeScreen = () => {
   );
 };
 
+const termsAndConditionsDialogOptions: TermsAndConditionsDialogOptions = {
+  title: 'RN NavSDK Sample',
+  companyName: 'Sample Company',
+  showOnlyDisclaimer: true,
+};
+
 const Stack = createStackNavigator();
 
 /**
@@ -55,13 +65,17 @@ const Stack = createStackNavigator();
  */
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Navigation" component={NavigationScreen} />
-        <Stack.Screen name="Multiple maps" component={MultipleMapsScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <NavigationProvider
+      termsAndConditionsDialogOptions={termsAndConditionsDialogOptions}
+    >
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Home">
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Navigation" component={NavigationScreen} />
+          <Stack.Screen name="Multiple maps" component={MultipleMapsScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </NavigationProvider>
   );
 }
 

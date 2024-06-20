@@ -18,7 +18,7 @@ import React, { useState } from 'react';
 import {
   Alert,
   Button,
-  ScrollView,
+  Platform,
   Switch,
   Text,
   TextInput,
@@ -31,21 +31,22 @@ import {
   TravelMode,
   type Waypoint,
   type CameraPosition,
+  type NavigationController,
 } from 'react-native-navigation-sdk';
 import SelectDropdown from 'react-native-select-dropdown';
 
 import styles from './styles';
 
 export interface NavigationControlsProps {
+  readonly navigationController: NavigationController;
   readonly navigationViewController: NavigationViewController;
   readonly getCameraPosition: undefined | (() => Promise<CameraPosition>);
-  readonly visible: boolean;
 }
 
 const NavigationControls: React.FC<NavigationControlsProps> = ({
+  navigationController,
   navigationViewController,
   getCameraPosition,
-  visible,
 }) => {
   const perspectiveOptions = ['Tilted', 'North up', 'Heading up'];
   const nightModeOptions = ['Auto', 'Force Day', 'Force Night'];
@@ -61,10 +62,15 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     backgroundLocationUpdatesEnabled,
     setBackgroundLocationUpdatesEnabled,
   ] = useState(false);
-  const [etaCardEnabled, setEtaCardEnabled] = useState(true);
+  const [footerEnabled, setFooterEnabled] = useState(true);
+  const [headerEnabled, setHeaderEnabled] = useState(true);
 
   const [latitude, onLatChanged] = useState('');
   const [longitude, onLngChanged] = useState('');
+
+  const disposeNavigation = async () => {
+    navigationController.cleanup();
+  };
 
   // single destination:
   const initWaypoint = async () => {
@@ -86,7 +92,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       avoidTolls: false,
     };
 
-    navigationViewController.setDestination(waypoint, routingOptions);
+    navigationController.setDestination(waypoint, routingOptions);
   };
 
   const initWaypointToCameraLocation = async () => {
@@ -118,7 +124,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       avoidTolls: false,
     };
 
-    navigationViewController.setDestinations(map, routingOptions);
+    navigationController.setDestinations(map, routingOptions);
   };
 
   const setFollowingPerspective = (index: CameraPerspective) => {
@@ -126,33 +132,33 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   };
 
   const continueToNextDestination = () => {
-    navigationViewController.continueToNextDestination();
+    navigationController.continueToNextDestination();
   };
 
   const startGuidance = () => {
-    navigationViewController.startGuidance();
+    navigationController.startGuidance();
   };
 
   const stopGuidance = () => {
-    navigationViewController.stopGuidance();
+    navigationController.stopGuidance();
   };
 
   const clearDestinations = () => {
-    navigationViewController.clearDestinations();
+    navigationController.clearDestinations();
   };
 
   const startSimulation = () => {
-    navigationViewController.simulator.simulateLocationsAlongExistingRoute({
+    navigationController.simulator.simulateLocationsAlongExistingRoute({
       speedMultiplier: 5,
     });
   };
 
   const stopSimulation = () => {
-    navigationViewController.simulator.stopLocationSimulation();
+    navigationController.simulator.stopLocationSimulation();
   };
 
   const pauseSimulation = () => {
-    navigationViewController.simulator.pauseLocationSimulation();
+    navigationController.simulator.pauseLocationSimulation();
   };
 
   const simulateLocation = () => {
@@ -161,7 +167,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       return;
     }
 
-    navigationViewController.simulator.simulateLocation({
+    navigationController.simulator.simulateLocation({
       lat: Number(latitude),
       lng: Number(longitude),
     });
@@ -200,7 +206,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   const toggleBackgroundLocationUpdatesEnabled = (isOn: boolean) => {
     console.log('toggleBackgroundLocationUpdatesEnabled:', isOn);
     setBackgroundLocationUpdatesEnabled(isOn);
-    navigationViewController.setBackgroundLocationUpdatesEnabled(isOn);
+    navigationController.setBackgroundLocationUpdatesEnabled(isOn);
   };
 
   const toggleRecenterButtonEnabled = (isOn: boolean) => {
@@ -209,9 +215,15 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     navigationViewController.setRecenterButtonEnabled(isOn);
   };
 
-  const toggleEtaCardEnabled = (isOn: boolean) => {
-    console.log('toggleEtaCardEnabled:', isOn);
-    setEtaCardEnabled(isOn);
+  const toggleHeaderEnabled = (isOn: boolean) => {
+    console.log('toggleHeaderEnabled:', isOn);
+    setHeaderEnabled(isOn);
+    navigationViewController.setHeaderEnabled(isOn);
+  };
+
+  const toggleFooterEnabled = (isOn: boolean) => {
+    console.log('toggleFooterEnabled:', isOn);
+    setFooterEnabled(isOn);
     navigationViewController.setFooterEnabled(isOn);
   };
 
@@ -227,65 +239,55 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
 
   const setAudioGuidanceType = (index: number) => {
     console.log('setAudioGuidanceType: ', index);
-    navigationViewController.setAudioGuidanceType(index);
+    navigationController.setAudioGuidanceType(index);
   };
 
   const getCurrentRouteSegment = async () => {
-    const result = await navigationViewController.getCurrentRouteSegment();
+    const result = await navigationController.getCurrentRouteSegment();
     console.log(result);
   };
 
   const getRouteSegments = async () => {
-    const result = await navigationViewController.getRouteSegments();
+    const result = await navigationController.getRouteSegments();
     console.log(result);
   };
 
   const getTraveledPath = async () => {
-    const result = await navigationViewController.getTraveledPath();
+    const result = await navigationController.getTraveledPath();
     console.log(result);
   };
 
   const getCurrentTimeAndDistanceClicked = async () => {
-    const result = await navigationViewController.getCurrentTimeAndDistance();
+    const result = await navigationController.getCurrentTimeAndDistance();
     console.log(result);
   };
 
   const startUpdatingLocation = () => {
-    navigationViewController.startUpdatingLocation();
+    navigationController.startUpdatingLocation();
   };
 
   const stopUpdatingLocation = () => {
-    navigationViewController.stopUpdatingLocation();
+    navigationController.stopUpdatingLocation();
   };
 
   const getNavSDKVersion = async () => {
-    console.log(await navigationViewController.getNavSDKVersion());
+    console.log(await navigationController.getNavSDKVersion());
   };
 
   const getAreTermsAccepted = async () => {
-    console.log(await navigationViewController.areTermsAccepted());
+    console.log(await navigationController.areTermsAccepted());
   };
 
   const setSpeedAlertOptions = () => {
-    navigationViewController.setSpeedAlertOptions({
+    navigationController.setSpeedAlertOptions({
       minorSpeedAlertPercentThreshold: 1,
       majorSpeedAlertPercentThreshold: 50,
       severityUpgradeDurationSeconds: 5,
     });
   };
 
-  if (!visible) {
-    return null;
-  }
-
   return (
-    <ScrollView
-      // eslint-disable-next-line react-native/no-inline-styles
-      style={{
-        backgroundColor: 'white',
-        height: '80%',
-      }}
-    >
+    <View>
       <TextInput
         style={styles.input}
         onChangeText={onLatChanged}
@@ -302,7 +304,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         placeholderTextColor="#000"
         keyboardType="numeric"
       />
-
+      <Button title="Dispose navigation" onPress={disposeNavigation} />
       <Button title="Single Destination" onPress={initWaypoint} />
       <Button title="Multiple Destination" onPress={initWaypoints} />
       <Button
@@ -336,7 +338,6 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       />
       <Button title="Get route segments" onPress={getRouteSegments} />
       <Button title="Get traveled path" onPress={getTraveledPath} />
-
       <View style={styles.rowContainer}>
         <Text>Trip progress</Text>
         <Switch
@@ -346,7 +347,6 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
         />
       </View>
-
       <View style={styles.rowContainer}>
         <Text>Speed limit icon</Text>
         <Switch
@@ -365,7 +365,6 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
         />
       </View>
-
       <View style={styles.rowContainer}>
         <Text>Traffic incidents card</Text>
         <Switch
@@ -375,7 +374,6 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
         />
       </View>
-
       <View style={styles.rowContainer}>
         <Text>Navigation UI</Text>
         <Switch
@@ -385,17 +383,19 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
-        <Text>Background location updates</Text>
-        <Switch
-          value={backgroundLocationUpdatesEnabled}
-          onValueChange={() => {
-            toggleBackgroundLocationUpdatesEnabled(
-              !backgroundLocationUpdatesEnabled
-            );
-          }}
-        />
-      </View>
+      {Platform.OS === 'ios' ? (
+        <View style={styles.rowContainer}>
+          <Text>Background location updates</Text>
+          <Switch
+            value={backgroundLocationUpdatesEnabled}
+            onValueChange={() => {
+              toggleBackgroundLocationUpdatesEnabled(
+                !backgroundLocationUpdatesEnabled
+              );
+            }}
+          />
+        </View>
+      ) : null}
       <View style={styles.rowContainer}>
         <Text>Recenter button</Text>
         <Switch
@@ -406,11 +406,20 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         />
       </View>
       <View style={styles.rowContainer}>
+        <Text>Header enabled</Text>
+        <Switch
+          value={headerEnabled}
+          onValueChange={() => {
+            toggleHeaderEnabled(!headerEnabled);
+          }}
+        />
+      </View>
+      <View style={styles.rowContainer}>
         <Text>Footer enabled</Text>
         <Switch
-          value={etaCardEnabled}
+          value={footerEnabled}
           onValueChange={() => {
-            toggleEtaCardEnabled(!etaCardEnabled);
+            toggleFooterEnabled(!footerEnabled);
           }}
         />
       </View>
@@ -515,7 +524,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           dropdownStyle={styles.dropdownMenuStyle}
         />
       </View>
-    </ScrollView>
+    </View>
   );
 };
 

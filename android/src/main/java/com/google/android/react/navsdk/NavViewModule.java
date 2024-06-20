@@ -38,10 +38,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.android.libraries.navigation.Navigator;
-import com.google.android.libraries.navigation.RouteSegment;
-import com.google.android.libraries.navigation.TimeAndDistance;
-import com.google.android.libraries.navigation.NavigationRoadStretchRenderingData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -75,92 +71,6 @@ public class NavViewModule extends ReactContextBaseJavaModule {
   public Map<String, Object> getConstants() {
     final Map<String, Object> constants = new HashMap<>();
     return constants;
-  }
-
-  @ReactMethod
-  public void show(String message, int duration) {
-    Log.d(TAG, "show: " + message + " duration: " + duration);
-  }
-
-  @ReactMethod
-  public void getCurrentTimeAndDistance(final Promise promise) {
-    if (mNavViewManager.getNavigator() == null) {
-      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
-      return;
-    }
-
-    TimeAndDistance timeAndDistance = mNavViewManager.getNavigator().getCurrentTimeAndDistance();
-
-    if (timeAndDistance == null) {
-      promise.resolve(null);
-      return;
-    }
-
-    WritableMap map = Arguments.createMap();
-    map.putInt("delaySeverity", timeAndDistance.getDelaySeverity());
-    map.putInt("meters", timeAndDistance.getMeters());
-    map.putInt("seconds", timeAndDistance.getSeconds());
-    promise.resolve(map);
-  }
-
-  @ReactMethod
-  public void areTermsAccepted(final Promise promise) {
-    promise.resolve(mNavViewManager.areTermsAccepted());
-  }
-
-  @ReactMethod
-  public void getCurrentRouteSegment(final Promise promise) {
-    if (mNavViewManager.getNavigator() == null) {
-      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
-      return;
-    }
-
-    RouteSegment routeSegment = mNavViewManager.getNavigator().getCurrentRouteSegment();
-
-    if (routeSegment == null) {
-      promise.resolve(null);
-      return;
-    }
-
-    promise.resolve(ObjectTranslationUtil.getMapFromRouteSegment(routeSegment));
-  }
-
-  @ReactMethod
-  public void getRouteSegments(final Promise promise) {
-    if (mNavViewManager.getNavigator() == null) {
-      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
-      return;
-    }
-
-    List<RouteSegment> routeSegmentList = mNavViewManager.getNavigator().getRouteSegments();
-    WritableArray arr = Arguments.createArray();
-
-    for (RouteSegment segment : routeSegmentList) {
-      arr.pushMap(ObjectTranslationUtil.getMapFromRouteSegment(segment));
-    }
-
-    promise.resolve(arr);
-  }
-
-  @ReactMethod
-  public void getTraveledPath(final Promise promise) {
-    if (mNavViewManager.getNavigator() == null) {
-      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
-      return;
-    }
-
-    WritableArray arr = Arguments.createArray();
-
-    for (LatLng latLng : mNavViewManager.getNavigator().getTraveledRoute()) {
-      arr.pushMap(ObjectTranslationUtil.getMapFromLatLng(latLng));
-    }
-
-    promise.resolve(arr);
-  }
-
-  @ReactMethod
-  public void getNavSDKVersion(final Promise promise) {
-    promise.resolve(mNavViewManager.getNavSDKVersion());
   }
 
   @ReactMethod
@@ -340,7 +250,7 @@ public class NavViewModule extends ReactContextBaseJavaModule {
         params.pushString("" + args);
       }
 
-      catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, functionName, params);
+      catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, functionName, params);
     }
   }
 

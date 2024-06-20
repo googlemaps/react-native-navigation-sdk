@@ -1,0 +1,743 @@
+/**
+ * Copyright 2023 Google LLC
+ *
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
+ *
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.google.android.react.navsdk;
+
+import android.location.Location;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Observer;
+
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.CatalystInstance;
+import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.UiThreadUtil;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeArray;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.libraries.navigation.Navigator;
+import com.google.android.libraries.navigation.RouteSegment;
+import com.google.android.libraries.navigation.TimeAndDistance;
+import com.google.android.libraries.navigation.ArrivalEvent;
+import com.google.android.libraries.mapsplatform.turnbyturn.model.NavInfo;
+import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
+import com.google.android.libraries.navigation.Waypoint;
+import com.google.android.libraries.navigation.ListenableResultFuture;
+import com.google.android.libraries.navigation.NavigationApi;
+import com.google.android.libraries.navigation.NavigationApi.OnTermsResponseListener;
+import com.google.android.libraries.navigation.RoadSnappedLocationProvider;
+import com.google.android.libraries.navigation.RoadSnappedLocationProvider.LocationListener;
+import com.google.android.libraries.navigation.SimulationOptions;
+import com.google.android.libraries.navigation.SpeedAlertOptions;
+import com.google.android.libraries.navigation.SpeedAlertSeverity;
+import com.google.android.libraries.navigation.TermsAndConditionsCheckOption;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+
+/**
+ * This exposes a series of methods that can be called diretly from the React Native code. They have
+ * been implemented using promises as it's not recommended for them to be synchronous.
+ */
+public class NavModule extends ReactContextBaseJavaModule implements INavigationCallback {
+  private static final String TAG = "NavModule";
+  private static NavModule instance;
+
+  ReactApplicationContext reactContext;
+  private Navigator mNavigator;
+  private ArrayList<Waypoint> mWaypoints = new ArrayList<>();
+  private ListenableResultFuture<Navigator.RouteStatus> pendingRoute;
+  private RoadSnappedLocationProvider mRoadSnappedLocationProvider;
+  private NavViewManager mNavViewManager;
+
+  private HashMap<String, Object> tocParamsMap;
+
+  public NavModule(ReactApplicationContext reactContext, NavViewManager navViewManager) {
+    super(reactContext);
+    this.reactContext = reactContext;
+    mNavViewManager = navViewManager;
+    instance = this;
+  }
+
+  public static synchronized NavModule getInstance() {
+    if (instance == null) {
+      throw new IllegalStateException("NavModule instance is null");
+    }
+    return instance;
+  }
+
+  public Navigator getNavigator() {
+    return mNavigator;
+  }
+
+  @Override
+  public String getName() {
+    return "NavModule";
+  }
+
+  @Override
+  public Map<String, Object> getConstants() {
+    final Map<String, Object> constants = new HashMap<>();
+    return constants;
+  }
+
+  private Navigator.ArrivalListener mArrivalListener =
+      new Navigator.ArrivalListener() {
+        @Override
+        public void onArrival(ArrivalEvent arrivalEvent) {
+          if (reactContext != null) {
+            CatalystInstance catalystInstance = reactContext.getCatalystInstance();
+
+            WritableMap map = Arguments.createMap();
+            map.putMap("waypoint", ObjectTranslationUtil.getMapFromWaypoint(arrivalEvent.getWaypoint()));
+            map.putBoolean("isFinalDestination", arrivalEvent.isFinalDestination());
+
+            WritableNativeArray params = new WritableNativeArray();
+            params.pushMap(map);
+
+            catalystInstance.callFunction(Constants.NAV_JAVASCRIPT_FLAG, "onArrival", params);
+          }
+        }
+      };
+
+  private LocationListener mLocationListener =
+      new LocationListener() {
+        @Override
+        public void onLocationChanged(final Location location) {
+          CatalystInstance catalystInstance = reactContext.getCatalystInstance();
+
+          WritableNativeArray params = new WritableNativeArray();
+          params.pushMap(ObjectTranslationUtil.getMapFromLocation(location));
+
+          catalystInstance.callFunction(Constants.NAV_JAVASCRIPT_FLAG, "onLocationChanged", params);
+        }
+
+        @Override
+        public void onRawLocationUpdate(final Location location) {
+          CatalystInstance catalystInstance = reactContext.getCatalystInstance();
+
+          WritableNativeArray params = new WritableNativeArray();
+          params.pushMap(ObjectTranslationUtil.getMapFromLocation(location));
+
+          catalystInstance.callFunction(Constants.NAV_JAVASCRIPT_FLAG, "onRawLocationChanged", params);
+        }
+      };
+
+  private Navigator.RouteChangedListener mRouteChangedListener =
+      new Navigator.RouteChangedListener() {
+        @Override
+        public void onRouteChanged() {
+          sendCommandToReactNative("onRouteChanged", null);
+        }
+      };
+
+  private Navigator.TrafficUpdatedListener mTrafficUpdatedListener =
+      new Navigator.TrafficUpdatedListener() {
+        @Override
+        public void onTrafficUpdated() {
+    sendCommandToReactNative("onTrafficUpdated", null);
+        }
+      };
+
+  private Navigator.ReroutingListener mReroutingListener =
+      new Navigator.ReroutingListener() {
+        @Override
+        public void onReroutingRequestedByOffRoute() {
+    sendCommandToReactNative("onReroutingRequestedByOffRoute", null);
+        }
+      };
+
+  private Navigator.RemainingTimeOrDistanceChangedListener mRemainingTimeOrDistanceChangedListener =
+      new Navigator.RemainingTimeOrDistanceChangedListener() {
+        @Override
+        public void onRemainingTimeOrDistanceChanged() {
+    sendCommandToReactNative("onRemainingTimeOrDistanceChanged", null);
+        }
+      };
+
+  @ReactMethod
+  private void cleanup() {
+    mRoadSnappedLocationProvider.removeLocationListener(mLocationListener);
+    mNavigator.unregisterServiceForNavUpdates();
+    mNavigator.removeArrivalListener(mArrivalListener);
+    mNavigator.removeReroutingListener(mReroutingListener);
+    mNavigator.removeRouteChangedListener(mRouteChangedListener);
+    mNavigator.removeTrafficUpdatedListener(mTrafficUpdatedListener);
+    mNavigator.removeRemainingTimeOrDistanceChangedListener(
+      mRemainingTimeOrDistanceChangedListener);
+    mWaypoints.clear();
+
+    UiThreadUtil.runOnUiThread(() -> {
+      mNavigator.cleanup();
+    });
+  }
+
+  @ReactMethod
+  public void initializeNavigator(@Nullable ReadableMap tocParams) {
+    this.tocParamsMap = tocParams.toHashMap();
+    if (getTermsAccepted()) {
+      initializeNavigationApi();
+    } else {
+      this.showTermsAndConditionsDialog();
+    }
+
+    // Observe live data for nav info updates.
+    Observer<NavInfo> navInfoObserver = this::showNavInfo;
+
+    UiThreadUtil.runOnUiThread(
+      () -> {
+        NavInfoReceivingService.getNavInfoLiveData()
+            .observe((LifecycleOwner) getCurrentActivity(), navInfoObserver);
+      });
+  }
+
+
+  private void onNavigationReady() {
+    mNavViewManager.applyStylingOptions();
+
+    CatalystInstance catalystInstance = reactContext.getCatalystInstance();
+    WritableNativeArray params = new WritableNativeArray();
+
+    catalystInstance.callFunction(Constants.NAV_JAVASCRIPT_FLAG, "onNavigationReady", params);
+  }
+
+  private void onNavigationInitError(int errorCode) {
+    sendCommandToReactNative("onNavigationInitError", String.valueOf(errorCode));
+  }
+
+  /** Starts the Navigation API, saving a reference to the ready Navigator instance. */
+  private void initializeNavigationApi() {
+    NavigationApi.getNavigator(
+      getCurrentActivity().getApplication(),
+        new NavigationApi.NavigatorListener() {
+          @Override
+          public void onNavigatorReady(Navigator navigator) {
+            // Keep a reference to the Navigator (used to configure and start nav)
+            mNavigator = navigator;
+            mRoadSnappedLocationProvider =
+                NavigationApi.getRoadSnappedLocationProvider(getCurrentActivity().getApplication());
+            onNavigationReady();
+          }
+
+          @Override
+          public void onError(@NavigationApi.ErrorCode int errorCode) {
+            String errMsg;
+            switch (errorCode) {
+              case NavigationApi.ErrorCode.NOT_AUTHORIZED:
+                errMsg =
+                    "Error loading Navigation API: Your API key is invalid or not authorized to use"
+                        + " Navigation.";
+                logDebugInfo(errMsg);
+                break;
+              case NavigationApi.ErrorCode.TERMS_NOT_ACCEPTED:
+                errMsg =
+                    "Error loading Navigation API: User did not accept the Navigation Terms of"
+                        + " Use.";
+                logDebugInfo(errMsg);
+                break;
+              case NavigationApi.ErrorCode.NETWORK_ERROR:
+                errMsg = "Error loading Navigation API: Network error";
+                logDebugInfo(errMsg);
+                break;
+              default:
+                errMsg = "Error loading Navigation API: Location permission is not granted";
+                logDebugInfo(errMsg);
+            }
+
+            onNavigationInitError(errorCode);
+          }
+        });
+  }
+
+  /**
+   * Enable turn by turn logging using background service
+   *
+   * @param isEnabled
+   */
+  @ReactMethod
+  public void setTurnbyTurnLoggingEnabled(boolean isEnabled) {
+    if (isEnabled) {
+      NavForwardingManager.startNavForwarding(mNavigator, getCurrentActivity(), this);
+    } else {
+      NavForwardingManager.stopNavForwarding(mNavigator, getCurrentActivity(), this);
+    }
+  }
+
+  /**
+   * Registers a number of example event listeners that show an on screen message when certain
+   * navigation events occur (e.g. the driver's route changes or the destination is reached).
+   */
+  private void registerNavigationListeners() {
+    mNavigator.addArrivalListener(mArrivalListener);
+    mNavigator.addRouteChangedListener(mRouteChangedListener);
+    mNavigator.addTrafficUpdatedListener(mTrafficUpdatedListener);
+    mNavigator.addReroutingListener(mReroutingListener);
+    mNavigator.addRemainingTimeOrDistanceChangedListener(
+        0, 0, mRemainingTimeOrDistanceChangedListener);
+  }
+
+  private void removeNavigationListeners() {
+    mNavigator.removeArrivalListener(mArrivalListener);
+    mNavigator.removeRouteChangedListener(mRouteChangedListener);
+    mNavigator.removeTrafficUpdatedListener(mTrafficUpdatedListener);
+    mNavigator.removeReroutingListener(mReroutingListener);
+    mNavigator.removeRemainingTimeOrDistanceChangedListener(
+        mRemainingTimeOrDistanceChangedListener);
+  }
+
+
+  private void createWaypoint(Map map) {
+    String placeId = CollectionUtil.getString("placeId", map);
+    String title = CollectionUtil.getString("title", map);
+
+    Double lat = null;
+    Double lng = null;
+
+    if (map.containsKey("position")) {
+      Map latlng = (Map) map.get("position");
+      if (latlng.get("lat") != null) lat = Double.parseDouble(latlng.get("lat").toString());
+      if (latlng.get("lng") != null) lng = Double.parseDouble(latlng.get("lng").toString());
+    }
+
+    boolean vehicleStopover = CollectionUtil.getBool("vehicleStopover", map, false);
+    boolean preferSameSideOfRoad = CollectionUtil.getBool("preferSameSideOfRoad", map, false);
+
+    try {
+      Waypoint.Builder waypointBuilder =
+          Waypoint.builder()
+              .setTitle(title)
+              .setVehicleStopover(vehicleStopover)
+              .setPreferSameSideOfRoad(preferSameSideOfRoad);
+
+      if (map.containsKey("preferredHeading")) {
+        int preferredHeading = (int) map.get("preferredHeading");
+        waypointBuilder.setPreferredHeading(preferredHeading);
+      }
+
+      if (placeId == null || placeId.isEmpty() && lat != null && lng != null) {
+        mWaypoints.add(waypointBuilder.setLatLng(lat, lng).build());
+      } else {
+        mWaypoints.add(waypointBuilder.setPlaceIdString(placeId).build());
+      }
+    } catch (Waypoint.UnsupportedPlaceIdException e) {
+      logDebugInfo("Error starting navigation: Place ID is not supported: " + placeId);
+    } catch (Waypoint.InvalidSegmentHeadingException e) {
+      logDebugInfo("Error starting navigation: Preferred heading has to be between 0 and 360");
+    }
+  }
+
+  @ReactMethod
+  public void setDestination(ReadableMap waypoint, @Nullable ReadableMap routingOptions) {
+    pendingRoute = null; // reset pendingRoute.
+    mWaypoints.clear(); // reset waypoints
+    createWaypoint(waypoint.toHashMap());
+
+    if (routingOptions != null) {
+      pendingRoute =
+          mNavigator.setDestination(
+              mWaypoints.get(0), ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap()));
+    } else {
+      pendingRoute = mNavigator.setDestination(mWaypoints.get(0));
+    }
+
+    setOnResultListener(
+        new IRouteStatusResult() {
+          @Override
+          public void onResult(Navigator.RouteStatus code) {
+    sendCommandToReactNative("onRouteStatusResult", code.toString());
+          }
+        });
+  }
+
+  @ReactMethod
+  public void setDestinations(ReadableArray waypoints, @Nullable ReadableMap routingOptions) {
+    if (mNavigator == null) {
+      // TODO: HANDLE THIS
+      return;
+    }
+
+    pendingRoute = null; // reset pendingRoute.
+    mWaypoints.clear(); // reset waypoints
+
+    // Set up a waypoint for each place that we want to go to.
+    for (int i = 0; i < waypoints.size(); i++) {
+      Map map = waypoints.getMap(i).toHashMap();
+      createWaypoint(map);
+    }
+
+    if (routingOptions != null) {
+      pendingRoute =
+          mNavigator.setDestinations(
+              mWaypoints, ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap()));
+    } else {
+      pendingRoute = mNavigator.setDestinations(mWaypoints);
+    }
+
+    setOnResultListener(
+        new IRouteStatusResult() {
+          @Override
+          public void onResult(Navigator.RouteStatus code) {
+            sendCommandToReactNative("onRouteStatusResult", code.toString());
+          }
+        });
+  }
+
+  @ReactMethod
+  public void clearDestinations() {
+    if (mNavigator != null) {
+      mWaypoints.clear(); // reset waypoints
+      mNavigator.clearDestinations();
+    }
+  }
+
+  @ReactMethod
+  public void continueToNextDestination() {
+    if (mNavigator != null) {
+      mNavigator.continueToNextDestination();
+    }
+  }
+
+  private void setOnResultListener(IRouteStatusResult listener) {
+    // Set an action to perform when a route is determined to the destination
+    if (pendingRoute != null)
+      pendingRoute.setOnResultListener(
+          new ListenableResultFuture.OnResultListener<Navigator.RouteStatus>() {
+            @Override
+            public void onResult(Navigator.RouteStatus code) {
+              listener.onResult(code);
+              switch (code) {
+                case OK:
+                  removeNavigationListeners();
+                  registerNavigationListeners();
+                  break;
+                default:
+                  break;
+              }
+            }
+          });
+  }
+
+  @ReactMethod
+  public void startGuidance() {
+    if (mWaypoints.isEmpty()) {
+      return;
+    }
+
+    mNavigator.startGuidance();
+    sendCommandToReactNative("onStartGuidance", null);
+  }
+
+  @ReactMethod
+  public void stopGuidance() {
+    mNavigator.stopGuidance();
+  }
+
+  @ReactMethod
+  public void simulateLocationsAlongExistingRoute(float speedMultiplier) {
+    if (mWaypoints.isEmpty()) {
+      return;
+    }
+
+    mNavigator
+        .getSimulator()
+        .simulateLocationsAlongExistingRoute(
+            new SimulationOptions().speedMultiplier(speedMultiplier));
+  }
+
+  @ReactMethod
+  public void stopLocationSimulation() {
+    mNavigator.getSimulator().unsetUserLocation();
+  }
+
+  @ReactMethod
+  public void pauseLocationSimulation() {
+    mNavigator.getSimulator().pause();
+  }
+
+  @ReactMethod
+  public void resumeLocationSimulation() {
+    mNavigator.getSimulator().resume();
+  }
+
+  @ReactMethod
+  public void setAbnormalTerminatingReportingEnabled(boolean isOn) {
+    NavigationApi.setAbnormalTerminationReportingEnabled(isOn);
+  }
+
+  @ReactMethod
+  public void setSpeedAlertOptions(@Nullable ReadableMap options) {
+    if (options == null) {
+      mNavigator.setSpeedAlertOptions(null);
+      return;
+    }
+
+    HashMap<String, Object> optionsMap = options.toHashMap();
+
+    float minorThresholdPercentage =
+        (float) CollectionUtil.getDouble("minorSpeedAlertPercentThreshold", optionsMap, -1);
+    float majorThresholdPercentage =
+        (float) CollectionUtil.getDouble("majorSpeedAlertPercentThreshold", optionsMap, -1);
+    float severityUpgradeDurationSeconds =
+        (float) CollectionUtil.getDouble("severityUpgradeDurationSeconds", optionsMap, -1);
+
+    // The JS layer will validate the values before calling.
+    SpeedAlertOptions alertOptions =
+        new SpeedAlertOptions.Builder()
+            .setSpeedAlertThresholdPercentage(SpeedAlertSeverity.MINOR, minorThresholdPercentage)
+            .setSpeedAlertThresholdPercentage(SpeedAlertSeverity.MAJOR, majorThresholdPercentage)
+            .setSeverityUpgradeDurationSeconds(severityUpgradeDurationSeconds)
+            .build();
+
+    UiThreadUtil.runOnUiThread(() -> {
+      mNavigator.setSpeedAlertOptions(alertOptions);
+    });
+  }
+
+  @ReactMethod
+  public void setAudioGuidanceType(int jsValue) {
+    if (mNavigator == null) {
+      return;
+    }
+
+    UiThreadUtil.runOnUiThread(() -> {
+        mNavigator.setAudioGuidance(EnumTranslationUtil.getAudioGuidanceFromJsValue(jsValue));
+    });
+  }
+
+  @ReactMethod
+  public void getCurrentTimeAndDistance(final Promise promise) {
+    if (mNavigator == null) {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
+      return;
+    }
+
+    TimeAndDistance timeAndDistance = mNavigator.getCurrentTimeAndDistance();
+
+    if (timeAndDistance == null) {
+      promise.resolve(null);
+      return;
+    }
+
+    WritableMap map = Arguments.createMap();
+    map.putInt("delaySeverity", timeAndDistance.getDelaySeverity());
+    map.putInt("meters", timeAndDistance.getMeters());
+    map.putInt("seconds", timeAndDistance.getSeconds());
+    promise.resolve(map);
+  }
+
+  @ReactMethod
+  public void getCurrentRouteSegment(final Promise promise) {
+    if (mNavigator == null) {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
+      return;
+    }
+
+    RouteSegment routeSegment = mNavigator.getCurrentRouteSegment();
+
+    if (routeSegment == null) {
+      promise.resolve(null);
+      return;
+    }
+
+    promise.resolve(ObjectTranslationUtil.getMapFromRouteSegment(routeSegment));
+  }
+
+  @ReactMethod
+  public void getRouteSegments(final Promise promise) {
+    if (mNavigator == null) {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
+      return;
+    }
+
+    List<RouteSegment> routeSegmentList = mNavigator.getRouteSegments();
+    WritableArray arr = Arguments.createArray();
+
+    for (RouteSegment segment : routeSegmentList) {
+      arr.pushMap(ObjectTranslationUtil.getMapFromRouteSegment(segment));
+    }
+
+    promise.resolve(arr);
+  }
+
+  @ReactMethod
+  public void getTraveledPath(final Promise promise) {
+    if (mNavigator == null) {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
+      return;
+    }
+
+    WritableArray arr = Arguments.createArray();
+
+    for (LatLng latLng : mNavigator.getTraveledRoute()) {
+      arr.pushMap(ObjectTranslationUtil.getMapFromLatLng(latLng));
+    }
+
+    promise.resolve(arr);
+  }
+
+
+  private void sendCommandToReactNative(String functionName, String args) {
+    ReactContext reactContext = getReactApplicationContext();
+
+    if (reactContext != null) {
+      CatalystInstance catalystInstance = reactContext.getCatalystInstance();
+      WritableNativeArray params = new WritableNativeArray();
+
+      if (args != null) {
+        params.pushString("" + args);
+      }
+
+      catalystInstance.callFunction(Constants.NAV_JAVASCRIPT_FLAG, functionName, params);
+    }
+  }
+
+  public void simulateLocation(Map map) {
+    if (mNavigator != null) {
+      Double lat = null;
+      Double lng = null;
+      if (map.containsKey("location")) {
+        Map latlng = (Map) map.get("location");
+        if (latlng.get("lat") != null) lat = Double.parseDouble(latlng.get("lat").toString());
+        if (latlng.get("lng") != null) lng = Double.parseDouble(latlng.get("lng").toString());
+      }
+      mNavigator.getSimulator().setUserLocation(new LatLng(lat, lng));
+    }
+  }
+
+  @ReactMethod
+  private void showTermsAndConditionsDialog() {
+    if (this.tocParamsMap == null) {
+      return;
+    }
+
+    String companyName = CollectionUtil.getString("companyName", this.tocParamsMap);
+    String title = CollectionUtil.getString("title", this.tocParamsMap);
+    boolean showOnlyDisclaimer =
+        CollectionUtil.getBool("showOnlyDisclaimer", this.tocParamsMap, false);
+
+    TermsAndConditionsCheckOption tosOption =
+        showOnlyDisclaimer
+            ? TermsAndConditionsCheckOption.SKIPPED
+            : TermsAndConditionsCheckOption.ENABLED;
+
+    NavigationApi.showTermsAndConditionsDialog(
+        getCurrentActivity(),
+        companyName,
+        title,
+        null,
+        new OnTermsResponseListener() {
+          @Override
+          public void onTermsResponse(boolean areTermsAccepted) {
+            if (areTermsAccepted) {
+              initializeNavigationApi();
+            } else {
+              onNavigationInitError(NavigationApi.ErrorCode.TERMS_NOT_ACCEPTED);
+            }
+          }
+        },
+        tosOption);
+  }
+
+  @ReactMethod
+  public void areTermsAccepted(final Promise promise) {
+      promise.resolve(getTermsAccepted());
+  }
+
+  public Boolean getTermsAccepted() {
+    return NavigationApi.areTermsAccepted(getCurrentActivity().getApplication());
+  }
+
+
+  @ReactMethod
+  public void getNavSDKVersion(final Promise promise) {
+    promise.resolve(NavigationApi.getNavSDKVersion());
+  }
+
+  @ReactMethod
+  public void resetTermsAccepted() {
+    NavigationApi.resetTermsAccepted(getCurrentActivity().getApplication());
+  }
+
+  @ReactMethod
+  public void startUpdatingLocation() {
+    mRoadSnappedLocationProvider.addLocationListener(mLocationListener);
+  }
+
+  @ReactMethod
+  public void stopUpdatingLocation() {
+    mRoadSnappedLocationProvider.removeLocationListener(mLocationListener);
+  }
+
+  private void showNavInfo(NavInfo navInfo) {
+    if (navInfo == null || reactContext == null) {
+      return;
+    }
+      CatalystInstance catalystInstance = reactContext.getCatalystInstance();
+
+      WritableMap map = Arguments.createMap();
+
+      map.putInt("navState", navInfo.getNavState());
+      map.putBoolean("routeChanged", navInfo.getRouteChanged());
+      if (navInfo.getDistanceToCurrentStepMeters() != null)
+        map.putInt("distanceToCurrentStepMeters", navInfo.getDistanceToCurrentStepMeters());
+      if (navInfo.getDistanceToFinalDestinationMeters() != null)
+        map.putInt(
+            "distanceToFinalDestinationMeters", navInfo.getDistanceToFinalDestinationMeters());
+      if (navInfo.getDistanceToNextDestinationMeters() != null)
+        map.putInt("distanceToNextDestinationMeters", navInfo.getDistanceToNextDestinationMeters());
+      if (navInfo.getTimeToCurrentStepSeconds() != null)
+        map.putInt("timeToCurrentStepSeconds", navInfo.getTimeToCurrentStepSeconds());
+      if (navInfo.getTimeToFinalDestinationSeconds() != null)
+        map.putInt("timeToFinalDestinationSeconds", navInfo.getTimeToFinalDestinationSeconds());
+      if (navInfo.getTimeToNextDestinationSeconds() != null)
+        map.putInt("timeToNextDestinationSeconds", navInfo.getTimeToNextDestinationSeconds());
+      if (navInfo.getCurrentStep() != null)
+        map.putMap(
+            "currentStep", ObjectTranslationUtil.getMapFromStepInfo(navInfo.getCurrentStep()));
+
+      WritableArray remainingSteps = Arguments.createArray();
+      if (navInfo.getRemainingSteps() != null) {
+        for (StepInfo info : navInfo.getRemainingSteps()) {
+          remainingSteps.pushMap(ObjectTranslationUtil.getMapFromStepInfo(info));
+        }
+      }
+      map.putArray("getRemainingSteps", remainingSteps);
+
+      WritableNativeArray params = new WritableNativeArray();
+      params.pushMap(map);
+      catalystInstance.callFunction(Constants.NAV_JAVASCRIPT_FLAG, "onTurnByTurn", params);
+  }
+
+  @Override
+  public void logDebugInfo(String info) {
+    sendCommandToReactNative("logDebugInfo", info);
+  }
+
+  @Override
+  public boolean canOverrideExistingModule() {
+    return true;
+  }
+
+  private interface IRouteStatusResult {
+    void onResult(Navigator.RouteStatus code);
+  }
+}
