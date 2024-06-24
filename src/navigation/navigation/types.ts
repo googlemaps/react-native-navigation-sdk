@@ -194,6 +194,13 @@ export interface NavigationCallbacks {
   onNavigationInitError?(errorCode: NavigationInitErrorCode): void;
 
   /**
+   * Callback function invoked when a turn-by-turn event occurs.
+   *
+   * @param turnByTurnEvent - An object containing the turn-by-turn event data.
+   */
+  onTurnByTurn?(turnByTurnEvents: TurnByTurnEvent[]): void;
+
+  /**
    * Allows developers to listen for relevant debug logs.
    *
    * @param message relevant log message
@@ -399,3 +406,8 @@ export interface NavigationController {
    */
   readonly simulator: Simulator;
 }
+
+/**
+ * Defines the turn-by-turn event data.
+ */
+export interface TurnByTurnEvent {}

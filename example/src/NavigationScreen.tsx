@@ -35,6 +35,7 @@ import {
   RouteStatus,
   type ArrivalEvent,
   type Location,
+  type TurnByTurnEvent,
 } from 'react-native-navigation-sdk';
 import usePermissions from './checkPermissions';
 import MapsControls from './mapsControls';
@@ -138,6 +139,10 @@ const NavigationScreen = () => {
     console.log('onRawLocationChanged: ', location);
   }, []);
 
+  const onTurnByTurn = useCallback((turnByTurn: any) => {
+    console.log('onTurnByTurn: ', turnByTurn);
+  }, []);
+
   const onRemainingTimeOrDistanceChanged = useCallback(async () => {
     if (navigationController) {
       const currentTimeAndDistance =
@@ -196,6 +201,7 @@ const NavigationScreen = () => {
       onRouteStatusResult,
       onStartGuidance,
       onRemainingTimeOrDistanceChanged,
+      onTurnByTurn,
     }),
     [
       onRouteChanged,
@@ -208,6 +214,7 @@ const NavigationScreen = () => {
       onRouteStatusResult,
       onStartGuidance,
       onRemainingTimeOrDistanceChanged,
+      onTurnByTurn,
     ]
   );
 
@@ -220,7 +227,7 @@ const NavigationScreen = () => {
   }, [navigationCallbacks, addListeners, removeListeners]);
 
   const onMapReady = useCallback(async () => {
-    console.log('Map is ready initializing navigator');
+    console.log('Map is ready, initializing navigator...');
     try {
       await navigationController.init();
     } catch (error) {
@@ -255,7 +262,6 @@ const NavigationScreen = () => {
   };
 
   const mapViewCallbacks: MapViewCallbacks = useMemo(() => {
-    console.log('Update Map View Callbacks');
     return {
       onMapReady,
       onMarkerClick: (marker: Marker) => {

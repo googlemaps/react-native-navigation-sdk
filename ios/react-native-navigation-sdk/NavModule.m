@@ -37,6 +37,7 @@ RCT_EXPORT_MODULE(NavModule);
 + (id)allocWithZone:(NSZone *)zone {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+        _eventDispatcher = [NavEventDispatcher allocWithZone:zone];
         sharedInstance = [super allocWithZone:zone];
     });
     return sharedInstance;
@@ -161,21 +162,21 @@ RCT_EXPORT_METHOD(cleanup : (RCTPromiseResolveBlock)resolve rejecter:(RCTPromise
             reject(@"session_not_initialized", @"Navigation session not initialized", nil);
             return;
         }
-
+        
         if (self->_session.locationSimulator != nil) {
             [self->_session.locationSimulator stopSimulation];
         }
-
+        
         if (self->_session.navigator != nil) {
             [self->_session.navigator clearDestinations];
             self->_session.navigator.guidanceActive = NO;
             self->_session.navigator.sendsBackgroundNotifications = NO;
         }
-
+        
         if (self->_session.roadSnappedLocationProvider != nil) {
             [self->_session.roadSnappedLocationProvider removeListener:self];
         }
-
+        
         self->_session.started = NO;
         self->_session = nil;
         resolve(@(YES));
@@ -183,7 +184,9 @@ RCT_EXPORT_METHOD(cleanup : (RCTPromiseResolveBlock)resolve rejecter:(RCTPromise
 }
 
 RCT_EXPORT_METHOD(setTurnByTurnLoggingEnabled : (BOOL)isEnabled) {
-    self.enableUpdateInfo = isEnabled;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.enableUpdateInfo = isEnabled;
+    });
 }
 
 RCT_EXPORT_METHOD(getCurrentTimeAndDistance: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
@@ -805,10 +808,8 @@ timeToNextDestinationSeconds:(double)timeToNextDestinationSeconds {
     
     NSMutableArray *params = [NSMutableArray array];
     [params addObject:obj];
-    [_eventDispatcher sendEventName:@"onTurnByTurn"
-                               body:@{
-        @"args" : params,
-    }];
+    
+    [self sendCommandToReactNative:@"onTurnByTurn" args:params];
 }
 
 - (NSDictionary *)getStepInfo:(GMSNavigationStepInfo *)stepInfo {

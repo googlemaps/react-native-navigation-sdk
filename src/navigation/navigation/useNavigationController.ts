@@ -48,13 +48,13 @@ const useNavigationController = (
   removeAllListeners: () => void;
 } => {
   const listenersRef = useRef<ListenerMap>({});
-  const eventEmitter: NativeEventEmitter | null = null;
+  const eventEmitterRef = useRef<NativeEventEmitter | null>(null);
 
   const getEventEmitter = () => {
-    if (!eventEmitter) {
-      return new NativeEventEmitter(NavEventDispatcher);
+    if (!eventEmitterRef.current) {
+      eventEmitterRef.current = new NativeEventEmitter(NavEventDispatcher);
     }
-    return eventEmitter;
+    return eventEmitterRef.current;
   };
 
   // Conversion function to handle different types of data transformation based on the event
@@ -66,6 +66,8 @@ const useNavigationController = (
   };
 
   const updateListeners = useCallback(() => {
+    // Wrap the listeners in a single object to pass to the native module for event handling.
+    // Multiplexes the events to all registered listeners.
     const wrappedListeners = Object.keys(listenersRef.current).reduce(
       (acc, eventName) => {
         const eventKey = eventName as keyof NavigationCallbacks;
@@ -93,6 +95,7 @@ const useNavigationController = (
       'onTrafficUpdated',
       'onRemainingTimeOrDistanceChanged',
       'onNavigationInitError',
+      'onTurnByTurn',
       'logDebugInfo',
     ];
 

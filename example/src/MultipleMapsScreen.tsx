@@ -222,7 +222,7 @@ const MultipleMapsScreen = () => {
   }, [navigationCallbacks, addListeners, removeListeners]);
 
   const onMap1Ready = useCallback(async () => {
-    console.log('Map is ready initializing navigator');
+    console.log('Map is ready, initializing navigator...');
     try {
       await navigationController.init();
     } catch (error) {

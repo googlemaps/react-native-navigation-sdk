@@ -53,6 +53,8 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   const audioGuidanceOptions = ['Silent', 'Alerts only', 'Alerts and guidance'];
   const [tripProgressBarEnabled, setTripProgressBarEnabled] = useState(false);
   const [navigationUiEnabled, setNavigationUIEnabled] = useState(true);
+  const [turnByTurnLoggingEnabled, setTurnByTurnLoggingEnabled] =
+    useState(false);
   const [speedLimitIconEnabled, setSpeedLimitIconEnabled] = useState(false);
   const [speedometerEnabled, setSpeedometerEnabled] = useState(false);
   const [trafficIncidentsCardEnabled, setTrafficIncidentsCardEnabled] =
@@ -203,6 +205,12 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     console.log('setNavigationUIEnabled', isOn);
     setNavigationUIEnabled(isOn);
     navigationViewController.setNavigationUIEnabled(isOn);
+  };
+
+  const toggleTurnByTurnLoggingEnabled = (isOn: boolean) => {
+    console.log('setTurnByTurnLoggingEnabled', isOn);
+    setTurnByTurnLoggingEnabled(isOn);
+    navigationController.setTurnByTurnLoggingEnabled(isOn);
   };
 
   const toggleTrafficIncidentsCardEnabled = (isOn: boolean) => {
@@ -389,6 +397,15 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           value={navigationUiEnabled}
           onValueChange={() => {
             toggleNavigationUiEnabled(!navigationUiEnabled);
+          }}
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Turn-by-turn logging</Text>
+        <Switch
+          value={turnByTurnLoggingEnabled}
+          onValueChange={() => {
+            toggleTurnByTurnLoggingEnabled(!turnByTurnLoggingEnabled);
           }}
         />
       </View>
