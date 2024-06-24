@@ -69,7 +69,11 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   const [longitude, onLngChanged] = useState('');
 
   const disposeNavigation = async () => {
-    navigationController.cleanup();
+    try {
+      await navigationController.cleanup();
+    } catch (e) {
+      console.error('Error cleaning up navigation controller:', e);
+    }
   };
 
   // single destination:

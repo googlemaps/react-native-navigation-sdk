@@ -55,23 +55,26 @@ RCT_EXPORT_MODULE(NavModule);
     return _session;
 }
 
-- (GMSNavigator *)getNavigator {
+- (GMSNavigator *)getNavigatorWithError:(NSString **)error {
     if (self->_session == nil) {
-        @throw [NSException
-                exceptionWithName:@"GoogleMapsNavigationSessionManagerError"
-                reason:@"Navigation session not initialized"
-                userInfo:nil];
+        if (error) {
+            *error = @"Navigation session not initialized";
+        }
+        return nil;
     }
     
-    GMSNavigator *navigator = self->_session.navigator;
-    if (navigator == nil) {
-        @throw [NSException
-                exceptionWithName:@"GoogleMapsNavigationSessionManagerError"
-                reason:@"Terms not accepted"
-                userInfo:nil];
-    }
+    return self->_session.navigator;
+}
+
+- (BOOL)checkNavigatorWithError:(RCTPromiseRejectBlock)reject navigator:(GMSNavigator **)navigator {
+    NSString *error = nil;
+    *navigator = [self getNavigatorWithError:&error];
     
-    return navigator;
+    if (error) {
+        reject(@"session_not_initialized", error, nil);
+        return NO;
+    }
+    return YES;
 }
 
 - (void)initializeSession {
@@ -152,31 +155,30 @@ RCT_EXPORT_METHOD(initializeNavigator : (NSDictionary *)options) {
     });
 }
 
-RCT_EXPORT_METHOD(cleanup) {
+RCT_EXPORT_METHOD(cleanup : (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
         if (self->_session == nil) {
-            @throw [NSException
-                    exceptionWithName:@"GoogleMapsNavigationSessionManagerError"
-                    reason:@"Navigation session not initialized"
-                    userInfo:nil];
+            reject(@"session_not_initialized", @"Navigation session not initialized", nil);
+            return;
         }
-        
+
         if (self->_session.locationSimulator != nil) {
             [self->_session.locationSimulator stopSimulation];
         }
-        
+
         if (self->_session.navigator != nil) {
             [self->_session.navigator clearDestinations];
             self->_session.navigator.guidanceActive = NO;
             self->_session.navigator.sendsBackgroundNotifications = NO;
         }
-        
+
         if (self->_session.roadSnappedLocationProvider != nil) {
             [self->_session.roadSnappedLocationProvider removeListener:self];
         }
-        
+
         self->_session.started = NO;
         self->_session = nil;
+        resolve(@(YES));
     });
 }
 
@@ -184,24 +186,21 @@ RCT_EXPORT_METHOD(setTurnByTurnLoggingEnabled : (BOOL)isEnabled) {
     self.enableUpdateInfo = isEnabled;
 }
 
-RCT_EXPORT_METHOD(getCurrentTimeAndDistance
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getCurrentTimeAndDistance: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (![self getNavigator]) {
-            reject(@"navigator_not_initialized", @"Navigator not initialized", nil);
+        GMSNavigator *navigator = nil;
+        if (![self checkNavigatorWithError:reject navigator:&navigator]) {
             return;
         }
         
-        if (![self getNavigator].currentRouteLeg) {
+        if (!navigator.currentRouteLeg) {
             reject(@"route_not_available", @"No current route available", nil);
             return;
         }
         
-        GMSNavigationDelayCategory severity =
-        [self getNavigator].delayCategoryToNextDestination;
-        NSTimeInterval time = [self getNavigator].timeToNextDestination;
-        CLLocationDistance distance = [self getNavigator].distanceToNextDestination;
+        GMSNavigationDelayCategory severity = navigator.delayCategoryToNextDestination;
+        NSTimeInterval time = navigator.timeToNextDestination;
+        CLLocationDistance distance = navigator.distanceToNextDestination;
         
         resolve(@{
             @"delaySeverity" : @(severity),
@@ -211,37 +210,52 @@ RCT_EXPORT_METHOD(getCurrentTimeAndDistance
     });
 }
 
-RCT_EXPORT_METHOD(setAudioGuidanceType : (nonnull NSNumber *)index) {
+RCT_EXPORT_METHOD(setAudioGuidanceType : (nonnull NSNumber *)index resolve:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (![self getNavigator]) {
-            // TODO: throw error.
+        GMSNavigator *navigator = nil;
+        if (![self checkNavigatorWithError:reject navigator:&navigator]) {
             return;
         }
+        
         if ([index isEqual:@0]) {
-            [[self getNavigator] setVoiceGuidance:GMSNavigationVoiceGuidanceSilent];
+            [navigator setVoiceGuidance:GMSNavigationVoiceGuidanceSilent];
         } else if ([index isEqual:@1]) {
-            [[self getNavigator]
-             setVoiceGuidance:GMSNavigationVoiceGuidanceAlertsOnly];
+            [navigator setVoiceGuidance:GMSNavigationVoiceGuidanceAlertsOnly];
         } else {
-            [[self getNavigator]
-             setVoiceGuidance:GMSNavigationVoiceGuidanceAlertsAndGuidance];
+            [navigator setVoiceGuidance:GMSNavigationVoiceGuidanceAlertsAndGuidance];
         }
+        
+        resolve(@(YES));
     });
 }
 
-RCT_EXPORT_METHOD(startGuidance) {
+RCT_EXPORT_METHOD(startGuidance : (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
         if (self->_destinations != NULL) {
-            [self getNavigator].guidanceActive = YES;
+            GMSNavigator *navigator = nil;
+            if (![self checkNavigatorWithError:reject navigator:&navigator]) {
+                return;
+            }
+            
+            navigator.guidanceActive = YES;
             [self onStartGuidance];
-            [self getNavigator].sendsBackgroundNotifications = YES;
+            navigator.sendsBackgroundNotifications = YES;
+            resolve(@(YES));
+        } else {
+            reject(@"no_destinations", @"Destinations not set", nil);
         }
     });
 }
 
-RCT_EXPORT_METHOD(stopGuidance) {
+RCT_EXPORT_METHOD(stopGuidance : (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self getNavigator].guidanceActive = false;
+        GMSNavigator *navigator = nil;
+        if (![self checkNavigatorWithError:reject navigator:&navigator]) {
+            return;
+        }
+        
+        navigator.guidanceActive = NO;
+        resolve(@(YES));
     });
 }
 
@@ -264,34 +278,53 @@ RCT_EXPORT_METHOD(stopLocationSimulation) {
     });
 }
 
-RCT_EXPORT_METHOD(clearDestinations) {
+RCT_EXPORT_METHOD(clearDestinations : (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        [[self getNavigator] clearDestinations];
+        GMSNavigator *navigator = nil;
+        if (![self checkNavigatorWithError:reject navigator:&navigator]) {
+            return;
+        }
+        
+        [navigator clearDestinations];
         self->_destinations = NULL;
+        resolve(@(YES));
     });
 }
 
-RCT_EXPORT_METHOD(continueToNextDestination) {
+RCT_EXPORT_METHOD(continueToNextDestination : (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        [[self getNavigator] continueToNextDestination];
+        GMSNavigator *navigator = nil;
+        if (![self checkNavigatorWithError:reject navigator:&navigator]) {
+            return;
+        }
+        
+        [navigator continueToNextDestination];
+        resolve(@(YES));
     });
 }
 
 RCT_EXPORT_METHOD(setDestination
                   : (nonnull NSDictionary *)waypoint routingOptions
-                  : (NSDictionary *)routingOptions) {
+                  : (NSDictionary *)routingOptions resolve:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     NSArray *waypoints = @[ waypoint ];
-    [self setDestinations:waypoints routingOptions:routingOptions];
+    [self setDestinations:waypoints routingOptions:routingOptions resolve:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(setDestinations
                   : (nonnull NSArray *)waypoints routingOptions
-                  : (NSDictionary *)routingOptions) {
+                  : (NSDictionary *)routingOptions resolve:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     __weak typeof(self) weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
         __strong typeof(self) strongSelf = weakSelf;
-        if (!strongSelf)
+        if (!strongSelf) {
+            reject(@"internal_error", @"An internal error occurred", nil);
             return;
+        }
+        
+        GMSNavigator *navigator = nil;
+        if (![strongSelf checkNavigatorWithError:reject navigator:&navigator]) {
+            return;
+        }
         
         strongSelf->_destinations = [[NSMutableArray alloc] init];
         
@@ -309,8 +342,6 @@ RCT_EXPORT_METHOD(setDestinations
                                        getLocationCoordinateFrom:wp[@"position"]]
                      title:wp[@"title"]];
             } else {
-                // The validation will be done on the client, so just ignore this
-                // waypoint here.
                 continue;
             }
             
@@ -329,26 +360,22 @@ RCT_EXPORT_METHOD(setDestinations
             [strongSelf->_destinations addObject:w];
         }
         
+        void (^routeStatusCallback)(GMSRouteStatus) = ^(GMSRouteStatus routeStatus) {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf)
+                return;
+            [strongSelf onRouteStatusResult:routeStatus];
+            resolve(@(YES));
+        };
+        
         if (routingOptions != NULL) {
-            [strongSelf configureNavigator:routingOptions];
-            [[strongSelf getNavigator]
-             setDestinations:strongSelf->_destinations
-             routingOptions:[NavModule getRoutingOptions:routingOptions]
-             callback:^(GMSRouteStatus routeStatus) {
-                __strong typeof(weakSelf) strongSelf = weakSelf;
-                if (!strongSelf)
-                    return;
-                [strongSelf onRouteStatusResult:routeStatus];
-            }];
+            [strongSelf configureNavigator:navigator withRoutingOptions:routingOptions];
+            [navigator setDestinations:strongSelf->_destinations
+                        routingOptions:[NavModule getRoutingOptions:routingOptions]
+                              callback:routeStatusCallback];
         } else {
-            [[strongSelf getNavigator]
-             setDestinations:strongSelf->_destinations
-             callback:^(GMSRouteStatus routeStatus) {
-                __strong typeof(weakSelf) strongSelf = weakSelf;
-                if (!strongSelf)
-                    return;
-                [strongSelf onRouteStatusResult:routeStatus];
-            }];
+            [navigator setDestinations:strongSelf->_destinations
+                              callback:routeStatusCallback];
         }
     });
 }
@@ -366,7 +393,7 @@ RCT_EXPORT_METHOD(setDestinations
     return routingOptions;
 }
 
-- (void)configureNavigator:(NSDictionary *)routingOptions {
+- (void)configureNavigator:(GMSNavigator *)navigator withRoutingOptions:(NSDictionary *)routingOptions {
     // TODO(jokerttu): pass travelmode to the views
     // if (routingOptions[@"travelMode"] != nil) {
     //  [_mapView
@@ -375,18 +402,15 @@ RCT_EXPORT_METHOD(setDestinations
     //}
     
     if (routingOptions[@"avoidTolls"] != nil) {
-        [[self getNavigator]
-         setAvoidsTolls:[routingOptions[@"avoidTolls"] boolValue]];
+        [navigator setAvoidsTolls:[routingOptions[@"avoidTolls"] boolValue]];
     }
     
     if (routingOptions[@"avoidFerries"] != nil) {
-        [[self getNavigator]
-         setAvoidsTolls:[routingOptions[@"avoidFerries"] boolValue]];
+        [navigator setAvoidsFerries:[routingOptions[@"avoidFerries"] boolValue]];
     }
     
     if (routingOptions[@"avoidHighways"] != nil) {
-        [[self getNavigator]
-         setAvoidsTolls:[routingOptions[@"avoidHighways"] boolValue]];
+        [navigator setAvoidsHighways:[routingOptions[@"avoidHighways"] boolValue]];
     }
 }
 
@@ -401,12 +425,12 @@ RCT_EXPORT_METHOD(getCurrentRouteSegment
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (![self getNavigator]) {
-            reject(@"navigator_not_initialized", @"Navigator not initialized", nil);
+        GMSNavigator *navigator = nil;
+        if (![self checkNavigatorWithError:reject navigator:&navigator]) {
             return;
         }
         
-        GMSRouteLeg *currentSegment = [self getNavigator].currentRouteLeg;
+        GMSRouteLeg *currentSegment = navigator.currentRouteLeg;
         if (!currentSegment) {
             reject(@"route_not_available", @"No current route available", nil);
             return;
@@ -428,12 +452,12 @@ RCT_EXPORT_METHOD(getRouteSegments
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (![self getNavigator]) {
-            reject(@"navigator_not_initialized", @"Navigator not initialized", nil);
+        GMSNavigator *navigator = nil;
+        if (![self checkNavigatorWithError:reject navigator:&navigator]) {
             return;
         }
         
-        NSArray<GMSRouteLeg *> *routeSegmentList = [self getNavigator].routeLegs;
+        NSArray<GMSRouteLeg *> *routeSegmentList = navigator.routeLegs;
         if (!routeSegmentList) {
             reject(@"route_not_available", @"No current route available", nil);
             return;
@@ -442,20 +466,25 @@ RCT_EXPORT_METHOD(getRouteSegments
         NSMutableArray *arr = [[NSMutableArray alloc] init];
         
         for (int i = 0; i < routeSegmentList.count; i++) {
-            [arr
-             addObject:[ObjectTranslationUtil
-                        transformRouteSegmentToDictionary:routeSegmentList[i]]];
+            [arr addObject:[ObjectTranslationUtil
+                            transformRouteSegmentToDictionary:routeSegmentList[i]]];
         }
         
         resolve(arr);
     });
 }
 
+
 RCT_EXPORT_METHOD(getTraveledPath
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        GMSPath *traveledPath = [self getNavigator].traveledPath;
+        GMSNavigator *navigator = nil;
+        if (![self checkNavigatorWithError:reject navigator:&navigator]) {
+            return;
+        }
+        
+        GMSPath *traveledPath = navigator.traveledPath;
         
         if (traveledPath != nil) {
             resolve([ObjectTranslationUtil transformGMSPathToArray:traveledPath]);
@@ -465,8 +494,13 @@ RCT_EXPORT_METHOD(getTraveledPath
     });
 }
 
-RCT_EXPORT_METHOD(setSpeedAlertOptions : (NSDictionary *)thresholds) {
+RCT_EXPORT_METHOD(setSpeedAlertOptions : (NSDictionary *)thresholds resolve:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
+        GMSNavigator *navigator = nil;
+        if (![self checkNavigatorWithError:reject navigator:&navigator]) {
+            return;
+        }
+        
         double minor = [thresholds[@"minorSpeedAlertPercentThreshold"] doubleValue];
         double major = [thresholds[@"majorSpeedAlertPercentThreshold"] doubleValue];
         double severity =
@@ -489,7 +523,8 @@ RCT_EXPORT_METHOD(setSpeedAlertOptions : (NSDictionary *)thresholds) {
          setSeverityUpgradeDurationSeconds:severityUpgradeDurationSeconds];
         
         // Set SpeedAlertOptions to Navigator
-        [self getNavigator].speedAlertOptions = mutableSpeedAlertOptions;
+        navigator.speedAlertOptions = mutableSpeedAlertOptions;
+        resolve(@(YES));
     });
 }
 
@@ -622,10 +657,8 @@ didUpdateRemainingDistance:(CLLocationDistance)distance {
     if (self.enableUpdateInfo == TRUE &&
         navInfo.navState == GMSNavigationNavStateEnroute) {
         [self onTurnByTurn:navInfo
-distanceToNextDestinationMeters:[self getNavigator]
-         .distanceToNextDestination
-timeToNextDestinationSeconds:[self getNavigator]
-         .timeToNextDestination];
+distanceToNextDestinationMeters:navigator.distanceToNextDestination
+timeToNextDestinationSeconds:navigator.timeToNextDestination];
     }
 }
 

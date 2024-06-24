@@ -126,7 +126,6 @@ const useNavigationController = (
 
   const addListeners = useCallback(
     (newListeners: Partial<NavigationCallbacks>) => {
-      console.log('useNavigationController addListeners called');
       const prevListeners = listenersRef.current;
       const updatedListeners: ListenerMap = { ...prevListeners };
       Object.keys(newListeners).forEach(eventName => {
@@ -144,7 +143,6 @@ const useNavigationController = (
 
   const removeListeners = useCallback(
     (listenersToRemove: Partial<NavigationCallbacks>) => {
-      console.log('useNavigationController removeListeners called');
       const prevListeners = listenersRef.current;
       const updatedListeners: ListenerMap = { ...prevListeners };
       Object.keys(listenersToRemove).forEach(eventName => {
@@ -179,7 +177,6 @@ const useNavigationController = (
       const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
       BatchedBridge.registerCallableModule('NavJavascriptBridge', {});
     }
-    console.log('All listeners removed');
   }, []);
 
   // Cleanup on unmount
@@ -191,14 +188,15 @@ const useNavigationController = (
 
   const navigationController: NavigationController = {
     init: async () => {
+      updateListeners(); // Ensure listeners are up to date
       return await NavModule.initializeNavigator(
         termsAndConditionsDialogOptions
       );
     },
 
-    cleanup: () => {
+    cleanup: async () => {
       removeAllListeners();
-      return NavModule.cleanup();
+      await NavModule.cleanup();
     },
 
     setDestination: async (

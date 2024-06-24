@@ -221,9 +221,14 @@ const MultipleMapsScreen = () => {
     };
   }, [navigationCallbacks, addListeners, removeListeners]);
 
-  const onMap1Ready = useCallback(() => {
-    console.log('Map 1 is ready');
-    navigationController.init();
+  const onMap1Ready = useCallback(async () => {
+    console.log('Map is ready initializing navigator');
+    try {
+      await navigationController.init();
+    } catch (error) {
+      console.error('Error initializing navigator', error);
+      showSnackbar('Error initializing navigator');
+    }
   }, [navigationController]);
 
   const onRecenterButtonClick = useCallback(() => {

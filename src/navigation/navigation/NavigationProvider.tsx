@@ -41,7 +41,6 @@ export const NavigationProvider = ({
   termsAndConditionsDialogOptions,
   children,
 }: NavigationProviderProps) => {
-  console.log('NavigationProvider created');
   const { navigationController, addListeners, removeListeners } =
     useNavigationController(termsAndConditionsDialogOptions);
   return (

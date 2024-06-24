@@ -212,7 +212,6 @@ const NavigationScreen = () => {
   );
 
   useEffect(() => {
-    console.log('**** Registering listeners', Object.keys(navigationCallbacks));
     removeListeners(navigationCallbacks);
     addListeners(navigationCallbacks);
     return () => {
@@ -220,9 +219,14 @@ const NavigationScreen = () => {
     };
   }, [navigationCallbacks, addListeners, removeListeners]);
 
-  const onMapReady = useCallback(() => {
-    console.log('Map is ready');
-    navigationController.init();
+  const onMapReady = useCallback(async () => {
+    console.log('Map is ready initializing navigator');
+    try {
+      await navigationController.init();
+    } catch (error) {
+      console.error('Error initializing navigator', error);
+      showSnackbar('Error initializing navigator');
+    }
   }, [navigationController]);
 
   const onRecenterButtonClick = useCallback(() => {

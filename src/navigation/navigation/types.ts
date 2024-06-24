@@ -242,11 +242,15 @@ export interface Simulator {
  * Allows you to access Navigator methods.
  */
 export interface NavigationController {
-  // Initialize navigation
+  /**
+   * Initializes the navigation module.
+   */
   init(): Promise<void>;
 
-  // Cleanup navigator state controller
-  cleanup(): void;
+  /**
+   * Cleans up the navigation module, releasing any resources that were allocated.
+   */
+  cleanup(): Promise<void>;
 
   /**
    *
