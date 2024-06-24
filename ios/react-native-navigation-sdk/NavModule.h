@@ -27,6 +27,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property BOOL enableUpdateInfo;
 
+- (BOOL)hasSession;
+- (GMSNavigationSession *)getSession;
+
+// Class method to access the singleton instance
++ (instancetype)sharedInstance;
+
 @end
 
 NS_ASSUME_NONNULL_END

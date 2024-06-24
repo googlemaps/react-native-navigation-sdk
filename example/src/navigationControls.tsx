@@ -161,6 +161,10 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     navigationController.simulator.pauseLocationSimulation();
   };
 
+  const resumeSimulation = () => {
+    navigationController.simulator.resumeLocationSimulation();
+  };
+
   const simulateLocation = () => {
     if (!latitude.trim() || !longitude.trim()) {
       Alert.alert('Invalid destination');
@@ -324,6 +328,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       <Button title="Start simulation" onPress={startSimulation} />
       <Button title="Stop simulation" onPress={stopSimulation} />
       <Button title="Pause simulation" onPress={pauseSimulation} />
+      <Button title="Resume simulation" onPress={resumeSimulation} />
       <Button title="Show route overview" onPress={showRouteOverview} />
       <Button title="NavSDK version" onPress={getNavSDKVersion} />
       <Button title="Are terms accepted?" onPress={getAreTermsAccepted} />

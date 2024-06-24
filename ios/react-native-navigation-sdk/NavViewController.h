@@ -60,6 +60,7 @@ typedef void (^OnArrayResult)(NSArray * _Nullable result);
 - (void)setZoomGesturesEnabled:(BOOL)isEnabled;
 - (void)setBuildingsEnabled:(BOOL)isEnabled;
 - (void)setTrafficIncidentCardsEnabled:(BOOL)isEnabled;
+- (void)setHeaderEnabled:(BOOL)isEnabled;
 - (void)setFooterEnabled:(BOOL)isEnabled;
 - (void)setRecenterButtonEnabled:(BOOL)isEnabled;
 - (void)resetMinMaxZoomLevel;
@@ -79,6 +80,7 @@ typedef void (^OnArrayResult)(NSArray * _Nullable result);
 - (void)removePolygon:(NSString *)polygonId;
 - (void)removeCircle:(NSString *)circleId;
 - (void)removeGroundOverlay:(NSString *)overlayId;
+- (BOOL)attachToNavigationSession:(GMSNavigationSession *)session;
 //- (void)removeNavigationListeners;
 @end
 

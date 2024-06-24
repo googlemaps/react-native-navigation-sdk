@@ -16,11 +16,11 @@
 
 #import "NavModule.h"
 #import "NavEventDispatcher.h"
+#import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
 
 @implementation NavModule {
     GMSNavigationSession *_session;
-    GMSLocationSimulator *_locationSimulator;
     NSMutableArray<GMSNavigationMutableWaypoint *> *_destinations;
     NSDictionary *_tosParams;
 }
@@ -28,10 +28,13 @@
 @synthesize enableUpdateInfo = _enableUpdateInfo;
 static NavEventDispatcher *_eventDispatcher;
 
+// Static instance of the NavViewModule to allow access from another modules.
+static NavModule *sharedInstance = nil;
+
 RCT_EXPORT_MODULE(NavModule);
 
+
 + (id)allocWithZone:(NSZone *)zone {
-    static NavModule *sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sharedInstance = [super allocWithZone:zone];
@@ -39,11 +42,24 @@ RCT_EXPORT_MODULE(NavModule);
     return sharedInstance;
 }
 
+// Method to get the shared instance
++ (instancetype)sharedInstance {
+    return sharedInstance;
+}
+
+- (BOOL)hasSession {
+    return _session != nil;
+}
+
+- (GMSNavigationSession *)getSession {
+    return _session;
+}
+
 - (GMSNavigator *)getNavigator {
     if (self->_session == nil) {
         @throw [NSException
                 exceptionWithName:@"GoogleMapsNavigationSessionManagerError"
-                reason:@"Navigator not initialized"
+                reason:@"Navigation session not initialized"
                 userInfo:nil];
     }
     
@@ -58,7 +74,7 @@ RCT_EXPORT_MODULE(NavModule);
     return navigator;
 }
 
-- (void)initializeNavigation {
+- (void)initializeSession {
     // TODO(jokerttu): init mapviews on navigation initialization
     // [_mapView.settings setCompassButton:YES];
     // [self setMyLocationEnabled:YES];
@@ -68,7 +84,8 @@ RCT_EXPORT_MODULE(NavModule);
     //  _mapView.navigationEnabled = YES;
     
     // Try to create a navigation session.
-    if ([self getNavigator] == nil) {
+    
+    if (self->_session == nil && self->_session.navigator == nil) {
         GMSNavigationSession *session =
         [GMSNavigationServices createNavigationSession];
         if (session == nil) {
@@ -85,6 +102,8 @@ RCT_EXPORT_MODULE(NavModule);
         self->_session = session;
     }
     
+    _session.started = YES;
+    
     if (self->_session.navigator) {
         [self->_session.navigator addListener:self];
         self->_session.navigator.stopGuidanceAtArrival = NO;
@@ -93,6 +112,9 @@ RCT_EXPORT_MODULE(NavModule);
     }
     
     [self->_session.roadSnappedLocationProvider addListener:self];
+    
+    NavViewModule *navViewModule = [NavViewModule sharedInstance];
+    [navViewModule attachViewsToNavigationSession:_session];
     
     // TODO(jokerttu): init mapviews on navigation initialization
     //_mapView.cameraMode = GMSNavigationCameraModeFollowing;
@@ -116,7 +138,7 @@ RCT_EXPORT_MODULE(NavModule);
      companyName:companyName
      callback:^(BOOL termsAccepted) {
         if (termsAccepted) {
-            [self initializeNavigation];
+            [self initializeSession];
         } else {
             [self onNavigationInitError:@2];
         }
@@ -127,6 +149,34 @@ RCT_EXPORT_METHOD(initializeNavigator : (NSDictionary *)options) {
     dispatch_async(dispatch_get_main_queue(), ^{
         _tosParams = options;
         [self showTermsAndConditionsDialog];
+    });
+}
+
+RCT_EXPORT_METHOD(cleanup) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (self->_session == nil) {
+            @throw [NSException
+                    exceptionWithName:@"GoogleMapsNavigationSessionManagerError"
+                    reason:@"Navigation session not initialized"
+                    userInfo:nil];
+        }
+        
+        if (self->_session.locationSimulator != nil) {
+            [self->_session.locationSimulator stopSimulation];
+        }
+        
+        if (self->_session.navigator != nil) {
+            [self->_session.navigator clearDestinations];
+            self->_session.navigator.guidanceActive = NO;
+            self->_session.navigator.sendsBackgroundNotifications = NO;
+        }
+        
+        if (self->_session.roadSnappedLocationProvider != nil) {
+            [self->_session.roadSnappedLocationProvider removeListener:self];
+        }
+        
+        self->_session.started = NO;
+        self->_session = nil;
     });
 }
 
@@ -198,18 +248,18 @@ RCT_EXPORT_METHOD(stopGuidance) {
 RCT_EXPORT_METHOD(simulateLocationsAlongExistingRoute
                   : (nonnull NSNumber *)speedMultiplier) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (self->_destinations != NULL && self->_locationSimulator) {
-            [self->_locationSimulator
+        if (self->_destinations != nil && self->_session != nil) {
+            [self->_session.locationSimulator
              setSpeedMultiplier:[speedMultiplier floatValue]];
-            [self->_locationSimulator simulateLocationsAlongExistingRoute];
+            [self->_session.locationSimulator simulateLocationsAlongExistingRoute];
         }
     });
 }
 
 RCT_EXPORT_METHOD(stopLocationSimulation) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (self->_locationSimulator) {
-            [self->_locationSimulator stopSimulation];
+        if (self->_session != nil) {
+            [self->_session.locationSimulator stopSimulation];
         }
     });
 }
@@ -225,6 +275,13 @@ RCT_EXPORT_METHOD(continueToNextDestination) {
     dispatch_async(dispatch_get_main_queue(), ^{
         [[self getNavigator] continueToNextDestination];
     });
+}
+
+RCT_EXPORT_METHOD(setDestination
+                  : (nonnull NSDictionary *)waypoint routingOptions
+                  : (NSDictionary *)routingOptions) {
+    NSArray *waypoints = @[ waypoint ];
+    [self setDestinations:waypoints routingOptions:routingOptions];
 }
 
 RCT_EXPORT_METHOD(setDestinations
@@ -334,8 +391,10 @@ RCT_EXPORT_METHOD(setDestinations
 }
 
 RCT_EXPORT_METHOD(setBackgroundLocationUpdatesEnabled : (BOOL)isEnabled) {
-    _session.roadSnappedLocationProvider.allowsBackgroundLocationUpdates =
-    isEnabled;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _session.roadSnappedLocationProvider.allowsBackgroundLocationUpdates =
+        isEnabled;
+    });
 }
 
 RCT_EXPORT_METHOD(getCurrentRouteSegment
@@ -436,52 +495,64 @@ RCT_EXPORT_METHOD(setSpeedAlertOptions : (NSDictionary *)thresholds) {
 
 RCT_EXPORT_METHOD(simulateLocation : (NSDictionary *)coordinates) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self->_locationSimulator
-         simulateLocationAtCoordinate:
-             [ObjectTranslationUtil
-              getLocationCoordinateFrom:coordinates[@"location"]]];
+        if (self->_session != nil) {
+            [self->_session.locationSimulator
+             simulateLocationAtCoordinate:
+                 [ObjectTranslationUtil
+                  getLocationCoordinateFrom:coordinates[@"location"]]];
+        }
     });
 }
 
 RCT_EXPORT_METHOD(pauseLocationSimulation) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        self->_locationSimulator.paused = YES;
+        if (self->_session != nil) {
+            self->_session.locationSimulator.paused = YES;
+        }
     });
 }
 
 RCT_EXPORT_METHOD(resumeLocationSimulation) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        self->_locationSimulator.paused = NO;
+        if (self->_session != nil) {
+            self->_session.locationSimulator.paused = NO;
+        }
     });
 }
 
 RCT_EXPORT_METHOD(areTermsAccepted
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
-    if (GMSNavigationServices.areTermsAndConditionsAccepted == NO) {
-        resolve(@"false");
-    } else {
-        resolve(@"true");
-    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (GMSNavigationServices.areTermsAndConditionsAccepted == NO) {
+            resolve(@"false");
+        } else {
+            resolve(@"true");
+        }
+    });
 }
 
 RCT_EXPORT_METHOD(getNavSDKVersion
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
-    resolve(GMSNavigationServices.navSDKVersion);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        resolve(GMSNavigationServices.navSDKVersion);
+    });
 }
 
 RCT_EXPORT_METHOD(setAbnormalTerminatingReportingEnabled : (BOOL)isEnabled) {
-    [GMSNavigationServices setAbnormalTerminationReportingEnabled:isEnabled];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [GMSNavigationServices setAbnormalTerminationReportingEnabled:isEnabled];
+    });
 }
 
-RCT_EXPORT_METHOD(startUpdatingLocation : (nonnull NSNumber *)reactTag) {
+RCT_EXPORT_METHOD(startUpdatingLocation) {
     dispatch_async(dispatch_get_main_queue(), ^{
         [self->_session.roadSnappedLocationProvider startUpdatingLocation];
     });
 }
 
-RCT_EXPORT_METHOD(stopUpdatingLocation : (nonnull NSNumber *)reactTag) {
+RCT_EXPORT_METHOD(stopUpdatingLocation) {
     dispatch_async(dispatch_get_main_queue(), ^{
         [self->_session.roadSnappedLocationProvider stopUpdatingLocation];
     });

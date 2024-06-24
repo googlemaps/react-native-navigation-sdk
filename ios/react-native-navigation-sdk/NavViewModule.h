@@ -22,6 +22,12 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NavViewModule : NSObject <RCTBridgeModule>
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, NavViewController *> *viewControllers;
 
+
+- (void)attachViewsToNavigationSession:(GMSNavigationSession *)session;
+
+// Class method to access the singleton instance
++ (instancetype)sharedInstance;
+
 @end
 
 NS_ASSUME_NONNULL_END
