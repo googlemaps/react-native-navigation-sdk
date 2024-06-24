@@ -28,6 +28,7 @@ import {
   type Polygon,
   type Circle,
   getMapViewController,
+  type GroundOverlay,
 } from '../../maps';
 import {
   type LatLng,
@@ -77,11 +78,13 @@ export default class NavigationView extends React.Component<NavigationViewProps>
     this.nativeEventsToCallbackMap = {
       onRecenterButtonClick: this.onRecenterButtonClick,
       onMapReady: this.onMapReady,
+      onMapClick: this.onMapClick,
       onMarkerInfoWindowTapped: this.onMarkerInfoWindowTapped,
       onMarkerClick: this.onMarkerClick,
       onPolylineClick: this.onPolylineClick,
       onPolygonClick: this.onPolygonClick,
       onCircleClick: this.onCircleClick,
+      onGroundOverlayClick: this.onGroundOverlayClick,
     };
   }
 
@@ -171,7 +174,7 @@ export default class NavigationView extends React.Component<NavigationViewProps>
   /**
    * Callback invoked when clicking a circle on the map.
    *
-   * @param {Circle} circle - The polygon object that was clicked.
+   * @param {Circle} circle - The cicle object that was clicked.
    */
   onCircleClick = (circle: Circle) => {
     if (
@@ -179,6 +182,20 @@ export default class NavigationView extends React.Component<NavigationViewProps>
       this.props.mapViewCallbacks.onCircleClick
     ) {
       this.props.mapViewCallbacks.onCircleClick(circle);
+    }
+  };
+
+  /**
+   * Callback invoked when clicking a ground overlay on the map.
+   *
+   * @param {GroundOverlay} overlay - The ground overlay object that was clicked.
+   */
+  onGroundOverlayClick = (overlay: GroundOverlay) => {
+    if (
+      this.props.mapViewCallbacks != null &&
+      this.props.mapViewCallbacks.onGroundOverlayClick
+    ) {
+      this.props.mapViewCallbacks.onGroundOverlayClick(overlay);
     }
   };
 

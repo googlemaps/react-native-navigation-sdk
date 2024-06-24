@@ -268,26 +268,26 @@ const MultipleMapsScreen = () => {
     () => ({
       onMapReady: onMap1Ready,
       onMarkerClick: (marker: Marker) => {
-        console.log('Map 1, onMarkerClick: ', marker);
+        console.log('Map 1, onMarkerClick:', marker);
         mapViewController1?.removeMarker(marker.id);
       },
       onPolygonClick: (polygon: Polygon) => {
-        console.log('Map 1, onPolygonClick: ', polygon);
+        console.log('Map 1, onPolygonClick:', polygon);
         mapViewController1?.removePolygon(polygon.id);
       },
       onCircleClick: (circle: Circle) => {
-        console.log('Map 1, onCircleClick: ', circle);
+        console.log('Map 1, onCircleClick:', circle);
         mapViewController1?.removeCircle(circle.id);
       },
       onPolylineClick: (polyline: Polyline) => {
-        console.log('Map 1, onPolylineClick: ', polyline);
+        console.log('Map 1, onPolylineClick:', polyline);
         mapViewController1?.removePolyline(polyline.id);
       },
       onMarkerInfoWindowTapped: (marker: Marker) => {
-        console.log('Map 1, onMarkerInfoWindowTapped: ', marker);
+        console.log('Map 1, onMarkerInfoWindowTapped:', marker);
       },
       onMapClick: (latLng: LatLng) => {
-        console.log('Map 1, onMapClick: ', latLng);
+        console.log('Map 1, onMapClick:', latLng);
       },
     }),
     [mapViewController1, onMap1Ready]

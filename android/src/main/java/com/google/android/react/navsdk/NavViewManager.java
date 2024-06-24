@@ -390,11 +390,12 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
 
   @Override
   public void onMapClick(LatLng latLng) {
-      CatalystInstance catalystInstance = reactContext.getCatalystInstance();
+    CatalystInstance catalystInstance = reactContext.getCatalystInstance();
 
-      WritableNativeArray params = new WritableNativeArray();
-      params.pushMap(ObjectTranslationUtil.getMapFromLatLng(latLng));
-      catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, "onMapClick", params);
+    WritableNativeArray params = new WritableNativeArray();
+    params.pushMap(ObjectTranslationUtil.getMapFromLatLng(latLng));
+
+    catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, "onMapClick", params);
   }
 
   @Override

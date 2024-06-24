@@ -132,15 +132,15 @@ const NavigationScreen = () => {
   }, []);
 
   const onLocationChanged = useCallback((location: Location) => {
-    console.log('onLocationChanged: ', location);
+    console.log('onLocationChanged:', location);
   }, []);
 
   const onRawLocationChanged = useCallback((location: Location) => {
-    console.log('onRawLocationChanged: ', location);
+    console.log('onRawLocationChanged:', location);
   }, []);
 
   const onTurnByTurn = useCallback((turnByTurn: any) => {
-    console.log('onTurnByTurn: ', turnByTurn);
+    console.log('onTurnByTurn:', turnByTurn);
   }, []);
 
   const onRemainingTimeOrDistanceChanged = useCallback(async () => {
@@ -265,26 +265,26 @@ const NavigationScreen = () => {
     return {
       onMapReady,
       onMarkerClick: (marker: Marker) => {
-        console.log('onMarkerClick: ', marker);
+        console.log('onMarkerClick:', marker);
         mapViewController?.removeMarker(marker.id);
       },
       onPolygonClick: (polygon: Polygon) => {
-        console.log('onPolygonClick: ', polygon);
+        console.log('onPolygonClick:', polygon);
         mapViewController?.removePolygon(polygon.id);
       },
       onCircleClick: (circle: Circle) => {
-        console.log('onCircleClick: ', circle);
+        console.log('onCircleClick:', circle);
         mapViewController?.removeCircle(circle.id);
       },
       onPolylineClick: (polyline: Polyline) => {
-        console.log('onPolylineClick: ', polyline);
+        console.log('onPolylineClick:', polyline);
         mapViewController?.removePolyline(polyline.id);
       },
       onMarkerInfoWindowTapped: (marker: Marker) => {
-        console.log('onMarkerInfoWindowTapped: ', marker);
+        console.log('onMarkerInfoWindowTapped:', marker);
       },
       onMapClick: (latLng: LatLng) => {
-        console.log('onMapClick: ', latLng);
+        console.log('onMapClick:', latLng);
       },
     };
   }, [mapViewController, onMapReady]);

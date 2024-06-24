@@ -274,7 +274,7 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
    * @param isEnabled
    */
   @ReactMethod
-  public void setTurnbyTurnLoggingEnabled(boolean isEnabled) {
+  public void setTurnByTurnLoggingEnabled(boolean isEnabled) {
     if (isEnabled) {
       NavForwardingManager.startNavForwarding(mNavigator, getCurrentActivity(), this);
     } else {

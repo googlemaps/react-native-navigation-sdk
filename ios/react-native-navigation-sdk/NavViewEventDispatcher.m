@@ -17,57 +17,58 @@
 #import "NavViewEventDispatcher.h"
 
 @implementation NavViewEventDispatcher {
-  bool hasListeners;
+    bool hasListeners;
 }
 
 RCT_EXPORT_MODULE(NavViewEventDispatcher);
 
 + (id)allocWithZone:(NSZone *)zone {
-  static NavViewEventDispatcher *sharedInstance = nil;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    sharedInstance = [super allocWithZone:zone];
-  });
-  return sharedInstance;
+    static NavViewEventDispatcher *sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedInstance = [super allocWithZone:zone];
+    });
+    return sharedInstance;
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-  return @[
-    @"onMapReady",
-    @"onRecenterButtonClick",
-    @"onMarkerInfoWindowTapped",
-    @"onMarkerClick",
-    @"onPolylineClick",
-    @"onPolygonClick",
-    @"onCircleClick",
-    @"onMapClick",
-    @"logDebugInfo",
-  ];
+    return @[
+        @"onMapReady",
+        @"onMapClick",
+        @"onRecenterButtonClick",
+        @"onMarkerInfoWindowTapped",
+        @"onMarkerClick",
+        @"onPolylineClick",
+        @"onPolygonClick",
+        @"onCircleClick",
+        @"onGroundOverlayClick",
+        @"logDebugInfo",
+    ];
 }
 
 // Will be called when this module's first listener is added.
 - (void)startObserving {
-  hasListeners = YES;
-  // Set up any upstream listeners or background tasks as necessary
+    hasListeners = YES;
+    // Set up any upstream listeners or background tasks as necessary
 }
 
 // Will be called when this module's last listener is removed, or on dealloc.
 - (void)stopObserving {
-  hasListeners = NO;
-  // Remove upstream listeners, stop unnecessary background tasks
+    hasListeners = NO;
+    // Remove upstream listeners, stop unnecessary background tasks
 }
 
 - (bool)hasListeners {
-  return hasListeners;
+    return hasListeners;
 }
 
 - (void)sendEventName:(NSString *)eventName body:(id)body {
-  if (hasListeners) {
-    [self sendEventWithName:eventName body:body];
-  } else {
-    NSLog(@"NavViewEventDispatcher sendEventName called without listeners: %@",
-          eventName);
-  }
+    if (hasListeners) {
+        [self sendEventWithName:eventName body:body];
+    } else {
+        NSLog(@"NavViewEventDispatcher sendEventName called without listeners: %@",
+              eventName);
+    }
 }
 
 @end

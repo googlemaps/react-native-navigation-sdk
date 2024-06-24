@@ -18,6 +18,7 @@ import type { LatLng, Location } from '../../shared/types';
 import type {
   CameraPosition,
   Circle,
+  GroundOverlay,
   Marker,
   Polygon,
   Polyline,
@@ -151,6 +152,11 @@ export interface MapViewCallbacks {
    * Callback invoked when clicking a circle on the map.
    */
   onCircleClick?(circle: Circle): void;
+
+  /**
+   * Callback invoked when tapping on a ground overlay.
+   */
+  onGroundOverlayClick?(groundOverlay: GroundOverlay): void;
 
   /**
    * Callback invoked when tapping on a marker's info window.
