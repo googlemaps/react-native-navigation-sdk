@@ -49,16 +49,27 @@
   NSTimeInterval seconds = [location.timestamp timeIntervalSince1970];
   double time = seconds * 1000;
 
-  return @{
+  NSMutableDictionary *locationDict = [@{
     @"lat" : @(location.coordinate.latitude),
     @"lng" : @(location.coordinate.longitude),
     @"time" : @(time),
-    @"accuracy" : @(location.horizontalAccuracy),
-    @"altitude" : @(location.altitude),
-    @"bearing" : @(location.course),
     @"speed" : @(location.speed),
-    @"verticalAccuracy" : @(location.verticalAccuracy),
-  };
+  } mutableCopy];
+
+  if (location.horizontalAccuracy >= 0) {
+    locationDict[@"accuracy"] = @(location.horizontalAccuracy);
+  }
+
+  if (location.course >= 0) {
+    locationDict[@"bearing"] = @(location.course);
+  }
+
+  if (location.verticalAccuracy > 0) {
+    locationDict[@"verticalAccuracy"] = @(location.verticalAccuracy);
+    locationDict[@"altitude"] = @(location.altitude);
+  }
+
+  return [locationDict copy];
 }
 
 + (NSDictionary *)transformRouteSegmentToDictionary:(GMSRouteLeg *)routeLeg {

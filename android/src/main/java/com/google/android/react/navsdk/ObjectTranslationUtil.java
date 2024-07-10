@@ -23,6 +23,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.navigation.Waypoint;
 import com.facebook.react.bridge.WritableArray;
 import android.location.Location;
+import android.os.Build;
+
 import com.google.android.libraries.navigation.AlternateRoutesStrategy;
 import com.google.android.libraries.navigation.RoutingOptions;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
@@ -157,17 +159,25 @@ public class ObjectTranslationUtil {
     map.putDouble("lng", location.getLongitude());
     map.putDouble("lat", location.getLatitude());
     map.putDouble("time", location.getTime());
-    map.putDouble("accuracy", location.getAccuracy());
-    map.putDouble("bearing", location.getBearing());
     map.putDouble("speed", location.getSpeed());
     map.putString("provider", location.getProvider());
+
+    if (location.hasBearing()) {
+      map.putDouble("bearing", location.getBearing());
+    }
+
+    if (location.hasAccuracy()) {
+      map.putDouble("accuracy", location.getAccuracy());
+    }
 
     if (location.hasAltitude()) {
       map.putDouble("altitude", location.getAltitude());
     }
 
-    if (location.hasVerticalAccuracy()) {
-      map.putDouble("verticalAccuracy", location.getVerticalAccuracyMeters());
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      if (location.hasVerticalAccuracy()) {
+        map.putDouble("verticalAccuracy", location.getVerticalAccuracyMeters());
+      }
     }
     return map;
   }

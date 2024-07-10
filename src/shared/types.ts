@@ -59,7 +59,7 @@ export interface Location {
    * Number in meters that represents the horizontal accuracy
    * of the location.
    */
-  accuracy: number;
+  accuracy?: number;
 
   /**
    * Number in meters that represents the vertical accuracy of the location.
