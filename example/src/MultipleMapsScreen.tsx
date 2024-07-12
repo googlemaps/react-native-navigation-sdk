@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 /**
  * Copyright 2023 Google LLC
  *
@@ -34,12 +35,12 @@ import {
   type Circle,
   type Polyline,
   type LatLng,
-  NavigationView,
   type NavigationCallbacks,
   useNavigation,
 } from 'react-native-navigation-sdk';
 import usePermissions from './checkPermissions';
 import OverlayModal from './overlayModal';
+import { NavigationViewF } from '../../src/navigation/navigationView/navigationViewF';
 
 const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
   Snackbar.show({ text, duration });
@@ -328,7 +329,7 @@ const MultipleMapsScreen = () => {
   return arePermissionsApproved ? (
     <View style={[styles.container]}>
       <View style={[styles.map_container]}>
-        <NavigationView
+        <NavigationViewF
           width={navViewWidth}
           height={navViewHeight}
           androidStylingOptions={{
@@ -348,7 +349,7 @@ const MultipleMapsScreen = () => {
       </View>
 
       <View style={[styles.map_container]}>
-        <NavigationView
+        <NavigationViewF
           width={navViewWidth}
           height={navViewHeight}
           androidStylingOptions={{

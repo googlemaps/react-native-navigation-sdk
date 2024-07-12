@@ -28,19 +28,18 @@ import {
   type Circle,
   type Polyline,
   type LatLng,
-  NavigationView,
   type NavigationCallbacks,
   useNavigation,
   NavigationInitErrorCode,
   RouteStatus,
   type ArrivalEvent,
   type Location,
-  type TurnByTurnEvent,
 } from 'react-native-navigation-sdk';
 import usePermissions from './checkPermissions';
 import MapsControls from './mapsControls';
 import NavigationControls from './navigationControls';
 import OverlayModal from './overlayModal';
+import { NavigationViewF } from '../../src/navigation/navigationView/navigationViewF';
 
 // Utility function for showing Snackbar
 const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
@@ -296,7 +295,7 @@ const NavigationScreen = () => {
   return arePermissionsApproved ? (
     <View style={[styles.container]}>
       <View style={[styles.map_container]}>
-        <NavigationView
+        <NavigationViewF
           width={navViewWidth}
           height={navViewHeight}
           androidStylingOptions={{
