@@ -17,6 +17,7 @@
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -54,7 +55,7 @@ export const NavigationViewF = (props: NavigationViewProps) => {
     const dim = Dimensions.get('screen');
     return dim.height >= dim.width ? 'portrait' : 'landscape';
   });
-  const ref = useRef(null);
+  const ref = useRef<any>(null);
 
   const isPortrait = () => {
     const dim = Dimensions.get('screen');
@@ -279,13 +280,12 @@ export const NavigationViewF = (props: NavigationViewProps) => {
   };
 
   useEffect(() => {
+    ref.current = nativeEventsToCallbackMap;
     const _viewId = findNodeHandle(mapViewRef.current) || 0;
     viewId.current = _viewId;
 
     if (Platform.OS === 'android') {
-      if (ref.current) {
-        AndroidNavViewHelper.initCallback(ref.current);
-      }
+      AndroidNavViewHelper.initCallback(ref.current);
     } else if (Platform.OS === 'ios') {
       _unregisterNavModuleListeners();
       _registerNavModuleListener();
@@ -308,6 +308,10 @@ export const NavigationViewF = (props: NavigationViewProps) => {
       getNavigationViewController(_viewId)
     );
     props.onMapViewControllerCreated(getMapViewController(_viewId));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useLayoutEffect(() => {
     /**
      * Called immediately before a component is destroyed.
      */
