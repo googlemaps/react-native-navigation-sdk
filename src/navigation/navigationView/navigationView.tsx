@@ -13,7 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as React from 'react';
+
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Dimensions,
   NativeEventEmitter,
@@ -42,88 +50,69 @@ import type { NavigationViewProps } from './types';
 
 /**
  * Represents a navigation view that handles map and navigation interactions within a React Native application.
- *
- * @extends React.Component
+ * @param {NavigationViewProps} props
+ * @return {NavigationView}
  */
-export default class NavigationView extends React.Component<NavigationViewProps> {
-  private viewId: number = -1;
-  private mapViewRef?: any;
-  private nativeEventsToCallbackMap: { [key: string]: (event: any) => void };
+export const NavigationView = (props: NavigationViewProps) => {
+  const viewId = useRef<number>(-1);
+  const mapViewRef = useRef<any>({});
+  const [, setOrientation] = useState<string>(() => {
+    const dim = Dimensions.get('screen');
+    return dim.height >= dim.width ? 'portrait' : 'landscape';
+  });
+  const ref = useRef<any>(null);
 
-  /**
-   * Constructs an instance of NavigationView.
-   * @param {NavigationViewProps} _props - Properties passed to the component.
-   */
-  constructor(_props: NavigationViewProps) {
-    super(_props);
+  const isPortrait = () => {
+    const dim = Dimensions.get('screen');
+    return dim.height >= dim.width;
+  };
 
-    const isPortrait = () => {
-      const dim = Dimensions.get('screen');
-      return dim.height >= dim.width;
+  useEffect(() => {
+    const handleOrientationChange = () => {
+      setOrientation(isPortrait() ? 'portrait' : 'landscape');
     };
-
-    this.state = {
-      count: 0,
-      viewId: {},
-      mapViewRef: {},
-      orientation: isPortrait() ? 'portrait' : 'landscape',
-    };
-
-    Dimensions.addEventListener('change', () => {
-      this.setState({
-        orientation: isPortrait() ? 'portrait' : 'landscape',
-      });
-    });
-
-    this.nativeEventsToCallbackMap = {
-      onRecenterButtonClick: this.onRecenterButtonClick,
-      onMapReady: this.onMapReady,
-      onMapClick: this.onMapClick,
-      onMarkerInfoWindowTapped: this.onMarkerInfoWindowTapped,
-      onMarkerClick: this.onMarkerClick,
-      onPolylineClick: this.onPolylineClick,
-      onPolygonClick: this.onPolygonClick,
-      onCircleClick: this.onCircleClick,
-      onGroundOverlayClick: this.onGroundOverlayClick,
-    };
-  }
+    Dimensions.addEventListener('change', handleOrientationChange);
+  }, []);
 
   /**
    * Callback function invoked when GoogleMap is ready.
    */
-  onMapReady = () => {
-    if (
-      this.props.mapViewCallbacks != null &&
-      this.props.mapViewCallbacks.onMapReady
-    ) {
-      this.props.mapViewCallbacks.onMapReady();
-    }
-  };
+  const onMapReady = useMemo(
+    () => () => {
+      if (props.mapViewCallbacks != null && props.mapViewCallbacks.onMapReady) {
+        props.mapViewCallbacks.onMapReady();
+      }
+    },
+    [props.mapViewCallbacks]
+  );
 
   /**
    * Event handler for map click events.
    * @param {LatLng} latLng - The latitude and longitude of the click event.
    */
-  onMapClick = (latLng: LatLng) => {
-    if (
-      this.props.mapViewCallbacks != null &&
-      this.props.mapViewCallbacks.onMapClick
-    ) {
-      this.props.mapViewCallbacks.onMapClick(latLng);
-    }
-  };
+  const onMapClick = useMemo(
+    () => (latLng: LatLng) => {
+      if (props.mapViewCallbacks != null && props.mapViewCallbacks.onMapClick) {
+        props.mapViewCallbacks.onMapClick(latLng);
+      }
+    },
+    [props.mapViewCallbacks]
+  );
 
   /**
    * Callback function invoked when the re-center button is clicked.
    */
-  onRecenterButtonClick = () => {
-    if (
-      this.props.navigationViewCallbacks != null &&
-      this.props.navigationViewCallbacks.onRecenterButtonClick
-    ) {
-      this.props.navigationViewCallbacks.onRecenterButtonClick();
-    }
-  };
+  const onRecenterButtonClick = useMemo(
+    () => () => {
+      if (
+        props.navigationViewCallbacks != null &&
+        props.navigationViewCallbacks.onRecenterButtonClick
+      ) {
+        props.navigationViewCallbacks.onRecenterButtonClick();
+      }
+    },
+    [props.navigationViewCallbacks]
+  );
 
   /**
    * MapView proxy methods
@@ -134,70 +123,85 @@ export default class NavigationView extends React.Component<NavigationViewProps>
    *
    * @param {Marker} marker - The marker object that was clicked.
    */
-  onMarkerClick = (marker: Marker) => {
-    if (
-      this.props.mapViewCallbacks != null &&
-      this.props.mapViewCallbacks.onMarkerClick
-    ) {
-      this.props.mapViewCallbacks.onMarkerClick(marker);
-    }
-  };
+  const onMarkerClick = useMemo(
+    () => (marker: Marker) => {
+      if (
+        props.mapViewCallbacks != null &&
+        props.mapViewCallbacks.onMarkerClick
+      ) {
+        props.mapViewCallbacks.onMarkerClick(marker);
+      }
+    },
+    [props.mapViewCallbacks]
+  );
 
   /**
    * Callback invoked when clicking a polyline on the map.
    *
    * @param {Polyline} polyline - The polyline object that was clicked.
    */
-  onPolylineClick = (polyline: Polyline) => {
-    if (
-      this.props.mapViewCallbacks != null &&
-      this.props.mapViewCallbacks.onPolylineClick
-    ) {
-      this.props.mapViewCallbacks.onPolylineClick(polyline);
-    }
-  };
+  const onPolylineClick = useMemo(
+    () => (polyline: Polyline) => {
+      if (
+        props.mapViewCallbacks != null &&
+        props.mapViewCallbacks.onPolylineClick
+      ) {
+        props.mapViewCallbacks.onPolylineClick(polyline);
+      }
+    },
+    [props.mapViewCallbacks]
+  );
 
   /**
    * Callback invoked when clicking a polygon on the map.
    *
    * @param {Polygon} polygon - The polygon object that was clicked.
    */
-  onPolygonClick = (polygon: Polygon) => {
-    if (
-      this.props.mapViewCallbacks != null &&
-      this.props.mapViewCallbacks.onPolygonClick
-    ) {
-      this.props.mapViewCallbacks.onPolygonClick(polygon);
-    }
-  };
+  const onPolygonClick = useMemo(
+    () => (polygon: Polygon) => {
+      if (
+        props.mapViewCallbacks != null &&
+        props.mapViewCallbacks.onPolygonClick
+      ) {
+        props.mapViewCallbacks.onPolygonClick(polygon);
+      }
+    },
+    [props.mapViewCallbacks]
+  );
 
   /**
    * Callback invoked when clicking a circle on the map.
    *
    * @param {Circle} circle - The cicle object that was clicked.
    */
-  onCircleClick = (circle: Circle) => {
-    if (
-      this.props.mapViewCallbacks != null &&
-      this.props.mapViewCallbacks.onCircleClick
-    ) {
-      this.props.mapViewCallbacks.onCircleClick(circle);
-    }
-  };
+  const onCircleClick = useMemo(
+    () => (circle: Circle) => {
+      if (
+        props.mapViewCallbacks != null &&
+        props.mapViewCallbacks.onCircleClick
+      ) {
+        props.mapViewCallbacks.onCircleClick(circle);
+      }
+    },
+    [props.mapViewCallbacks]
+  );
 
   /**
    * Callback invoked when clicking a ground overlay on the map.
    *
    * @param {GroundOverlay} overlay - The ground overlay object that was clicked.
    */
-  onGroundOverlayClick = (overlay: GroundOverlay) => {
-    if (
-      this.props.mapViewCallbacks != null &&
-      this.props.mapViewCallbacks.onGroundOverlayClick
-    ) {
-      this.props.mapViewCallbacks.onGroundOverlayClick(overlay);
-    }
-  };
+  const onGroundOverlayClick = useMemo(
+    () => (overlay: GroundOverlay) => {
+      if (
+        props.mapViewCallbacks != null &&
+        props.mapViewCallbacks.onGroundOverlayClick
+      ) {
+        props.mapViewCallbacks.onGroundOverlayClick(overlay);
+      }
+    },
+    [props.mapViewCallbacks]
+  );
 
   /**
    * Callback invoked when tapping on marker's info window.
@@ -205,95 +209,126 @@ export default class NavigationView extends React.Component<NavigationViewProps>
    *
    * @param {Marker} marker - The marker object that info window was tapped.
    */
-  onMarkerInfoWindowTapped = (marker: Marker) => {
-    if (
-      this.props.mapViewCallbacks != null &&
-      this.props.mapViewCallbacks.onMarkerInfoWindowTapped
-    ) {
-      this.props.mapViewCallbacks.onMarkerInfoWindowTapped(marker);
-    }
-  };
+  const onMarkerInfoWindowTapped = useMemo(
+    () => (marker: Marker) => {
+      if (
+        props.mapViewCallbacks != null &&
+        props.mapViewCallbacks.onMarkerInfoWindowTapped
+      ) {
+        props.mapViewCallbacks.onMarkerInfoWindowTapped(marker);
+      }
+    },
+    [props.mapViewCallbacks]
+  );
 
-  private unregisterNavModuleListeners = () => {
+  const nativeEventsToCallbackMap: { [key: string]: (event: any) => void } =
+    useMemo(
+      () => ({
+        onRecenterButtonClick: onRecenterButtonClick,
+        onMapReady: onMapReady,
+        onMapClick: onMapClick,
+        onMarkerInfoWindowTapped: onMarkerInfoWindowTapped,
+        onMarkerClick: onMarkerClick,
+        onPolylineClick: onPolylineClick,
+        onPolygonClick: onPolygonClick,
+        onCircleClick: onCircleClick,
+        onGroundOverlayClick: onGroundOverlayClick,
+      }),
+      [
+        onCircleClick,
+        onGroundOverlayClick,
+        onMapClick,
+        onMapReady,
+        onMarkerClick,
+        onMarkerInfoWindowTapped,
+        onPolygonClick,
+        onPolylineClick,
+        onRecenterButtonClick,
+      ]
+    );
+
+  const _unregisterNavModuleListeners = useCallback(() => {
     const eventEmitter = new NativeEventEmitter(
       NativeModules.NavViewEventDispatcher
     );
 
-    for (const eventName of Object.keys(this.nativeEventsToCallbackMap)) {
+    for (const eventName of Object.keys(nativeEventsToCallbackMap)) {
       eventEmitter.removeAllListeners(eventName);
     }
-  };
+  }, [nativeEventsToCallbackMap]);
 
-  private registerNavModuleListener = () => {
+  const _registerNavModuleListener = useCallback(() => {
     const eventEmitter = new NativeEventEmitter(
       NativeModules.NavViewEventDispatcher
     );
 
-    for (const eventName of Object.keys(this.nativeEventsToCallbackMap)) {
-      const listener = this.nativeEventsToCallbackMap[eventName];
+    for (const eventName of Object.keys(nativeEventsToCallbackMap)) {
+      const listener = nativeEventsToCallbackMap[eventName];
       if (listener !== undefined) {
         eventEmitter.addListener(eventName, listener);
       }
     }
-  };
+  }, [nativeEventsToCallbackMap]);
 
   /**
    * Destroy the fragment if user presses the back button.
    */
-  deleteFragment = () => {
-    sendCommand(this.viewId, commands.deleteFragment);
+  const deleteFragment = () => {
+    sendCommand(viewId.current, commands.deleteFragment);
+  };
+
+  /**
+   * @param {any} _ref - The reference to the NavViewManager component.
+   */
+  const onRefAssign = (_ref: any) => {
+    mapViewRef.current = _ref;
   };
 
   /**
    * Called immediately after a component is mounted.
    */
-  override componentDidMount() {
-    this.viewId = findNodeHandle(this.mapViewRef) || 0;
+  useEffect(() => {
+    ref.current = nativeEventsToCallbackMap;
+    const _viewId = findNodeHandle(mapViewRef.current) || 0;
+    viewId.current = _viewId;
 
     if (Platform.OS === 'android') {
-      AndroidNavViewHelper.initCallback(this);
+      AndroidNavViewHelper.initCallback(ref.current);
     } else if (Platform.OS === 'ios') {
-      this.unregisterNavModuleListeners();
-      this.registerNavModuleListener();
+      _unregisterNavModuleListeners();
+      _registerNavModuleListener();
     }
 
     const args =
       Platform.OS === 'android'
         ? [
-            PixelRatio.getPixelSizeForLayoutSize(this.props.height),
-            PixelRatio.getPixelSizeForLayoutSize(this.props.width),
-            this.props.androidStylingOptions || {},
+            PixelRatio.getPixelSizeForLayoutSize(props.height),
+            PixelRatio.getPixelSizeForLayoutSize(props.width),
+            props.androidStylingOptions || {},
           ]
-        : [
-            this.props.height,
-            this.props.width,
-            this.props.iOSStylingOptions || {},
-          ];
+        : [props.height, props.width, props.iOSStylingOptions || {}];
 
     setTimeout(() => {
-      sendCommand(this.viewId, commands.createFragment, args);
+      sendCommand(_viewId, commands.createFragment, args);
     });
 
-    this.props.onNavigationViewControllerCreated(
-      getNavigationViewController(this.viewId)
+    props.onNavigationViewControllerCreated(
+      getNavigationViewController(_viewId)
     );
-    this.props.onMapViewControllerCreated(getMapViewController(this.viewId));
-  }
+    props.onMapViewControllerCreated(getMapViewController(_viewId));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  /**
-   * Called immediately before a component is destroyed.
-   */
-  override componentWillUnmount() {
-    this.unregisterNavModuleListeners();
-    this.deleteFragment();
-  }
-
-  /**
-   * @param {any} ref - The reference to the NavViewManager component.
-   */
-  onRefAssign = (ref: any) => {
-    this.mapViewRef = ref;
-  };
+  useLayoutEffect(() => {
+    /**
+     * Called immediately before a component is destroyed.
+     */
+    return () => {
+      _unregisterNavModuleListeners();
+      deleteFragment();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Renders the component.
@@ -301,7 +336,5 @@ export default class NavigationView extends React.Component<NavigationViewProps>
    * @return {Element}
    *    Returns the NavViewManager HostComponent.
    */
-  override render() {
-    return <NavViewManager ref={this.onRefAssign} />;
-  }
-}
+  return <NavViewManager ref={onRefAssign} />;
+};

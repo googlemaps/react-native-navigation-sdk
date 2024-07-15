@@ -39,7 +39,7 @@ import usePermissions from './checkPermissions';
 import MapsControls from './mapsControls';
 import NavigationControls from './navigationControls';
 import OverlayModal from './overlayModal';
-import { NavigationViewF } from '../../src/navigation/navigationView/navigationViewF';
+import { NavigationView } from '../../src/navigation/navigationView/navigationView';
 
 // Utility function for showing Snackbar
 const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
@@ -295,7 +295,7 @@ const NavigationScreen = () => {
   return arePermissionsApproved ? (
     <View style={[styles.container]}>
       <View style={[styles.map_container]}>
-        <NavigationViewF
+        <NavigationView
           width={navViewWidth}
           height={navViewHeight}
           androidStylingOptions={{

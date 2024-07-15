@@ -40,7 +40,7 @@ import {
 } from 'react-native-navigation-sdk';
 import usePermissions from './checkPermissions';
 import OverlayModal from './overlayModal';
-import { NavigationViewF } from '../../src/navigation/navigationView/navigationViewF';
+import { NavigationView } from '../../src/navigation/navigationView/navigationView';
 
 const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
   Snackbar.show({ text, duration });
@@ -329,7 +329,7 @@ const MultipleMapsScreen = () => {
   return arePermissionsApproved ? (
     <View style={[styles.container]}>
       <View style={[styles.map_container]}>
-        <NavigationViewF
+        <NavigationView
           width={navViewWidth}
           height={navViewHeight}
           androidStylingOptions={{
@@ -349,7 +349,7 @@ const MultipleMapsScreen = () => {
       </View>
 
       <View style={[styles.map_container]}>
-        <NavigationViewF
+        <NavigationView
           width={navViewWidth}
           height={navViewHeight}
           androidStylingOptions={{
