@@ -109,14 +109,18 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             return;
           }
 
-          Location location = mNavViewManager.getGoogleMap(viewId).getMyLocation();
+          try {
+            Location location = mNavViewManager.getGoogleMap(viewId).getMyLocation();
+            if (location == null) {
+              promise.resolve(null);
+              return;
+            }
 
-          if (location == null) {
+            promise.resolve(ObjectTranslationUtil.getMapFromLocation(location));
+          } catch (Exception e) {
             promise.resolve(null);
             return;
           }
-
-          promise.resolve(ObjectTranslationUtil.getMapFromLocation(location));
         });
   }
 
