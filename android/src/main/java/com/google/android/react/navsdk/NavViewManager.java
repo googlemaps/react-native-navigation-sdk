@@ -343,12 +343,15 @@ public class NavViewManager extends ViewGroupManager<FrameLayout> implements INa
 
   public void setupLayout(View view) {
     Choreographer.getInstance()
-        .postFrameCallback(
-                frameTimeNanos -> {
-                  manuallyLayoutChildren(view);
-                  view.getViewTreeObserver().dispatchOnGlobalLayout();
-                  //Choreographer.getInstance().postFrameCallback(this);
-                });
+      .postFrameCallback(
+        new Choreographer.FrameCallback() {
+          @Override
+          public void doFrame(long frameTimeNanos) {
+            manuallyLayoutChildren(view);
+            view.getViewTreeObserver().dispatchOnGlobalLayout();
+            Choreographer.getInstance().postFrameCallback(this);
+          }
+        });
   }
 
   /** Layout all children properly */
