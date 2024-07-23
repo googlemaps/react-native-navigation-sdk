@@ -133,7 +133,9 @@ const useNavigationController = (
       const updatedListeners: ListenerMap = { ...prevListeners };
       Object.keys(newListeners).forEach(eventName => {
         const eventKey = eventName as keyof NavigationCallbacks;
-        updatedListeners[eventKey] = [
+        (updatedListeners[eventKey] as Array<
+          NonNullable<NavigationCallbacks[typeof eventKey]>
+        >) = [
           ...(updatedListeners[eventKey] || []),
           newListeners[eventKey],
         ].filter(Boolean) as Array<NonNullable<() => void>>;
@@ -151,7 +153,9 @@ const useNavigationController = (
       Object.keys(listenersToRemove).forEach(eventName => {
         const eventKey = eventName as keyof NavigationCallbacks;
         if (updatedListeners[eventKey]) {
-          updatedListeners[eventKey] = updatedListeners[eventKey]!.filter(
+          (updatedListeners[eventKey] as Array<
+            NonNullable<NavigationCallbacks[typeof eventKey]>
+          >) = updatedListeners[eventKey]!.filter(
             listener => listener !== listenersToRemove[eventKey]
           ) as Array<NonNullable<() => void>>;
           if (updatedListeners[eventKey]!.length === 0) {
