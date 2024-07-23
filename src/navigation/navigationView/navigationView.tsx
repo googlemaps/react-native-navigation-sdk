@@ -53,7 +53,7 @@ import type { NavigationViewProps } from './types';
  * @param {NavigationViewProps} props
  * @return {NavigationView}
  */
-const NavigationView = (props: NavigationViewProps) => {
+export const NavigationView = (props: NavigationViewProps) => {
   const viewId = useRef<number>(-1);
   const mapViewRef = useRef<any>({});
   const [, setOrientation] = useState<string>(() => {
