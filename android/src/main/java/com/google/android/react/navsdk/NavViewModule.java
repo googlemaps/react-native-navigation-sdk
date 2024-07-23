@@ -38,10 +38,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.android.libraries.navigation.Navigator;
-import com.google.android.libraries.navigation.RouteSegment;
-import com.google.android.libraries.navigation.TimeAndDistance;
-import com.google.android.libraries.navigation.NavigationRoadStretchRenderingData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -78,101 +74,15 @@ public class NavViewModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void show(String message, int duration) {
-    Log.d(TAG, "show: " + message + " duration: " + duration);
-  }
-
-  @ReactMethod
-  public void getCurrentTimeAndDistance(final Promise promise) {
-    if (mNavViewManager.getNavigator() == null) {
-      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
-      return;
-    }
-
-    TimeAndDistance timeAndDistance = mNavViewManager.getNavigator().getCurrentTimeAndDistance();
-
-    if (timeAndDistance == null) {
-      promise.resolve(null);
-      return;
-    }
-
-    WritableMap map = Arguments.createMap();
-    map.putInt("delaySeverity", timeAndDistance.getDelaySeverity());
-    map.putInt("meters", timeAndDistance.getMeters());
-    map.putInt("seconds", timeAndDistance.getSeconds());
-    promise.resolve(map);
-  }
-
-  @ReactMethod
-  public void areTermsAccepted(final Promise promise) {
-    promise.resolve(mNavViewManager.areTermsAccepted());
-  }
-
-  @ReactMethod
-  public void getCurrentRouteSegment(final Promise promise) {
-    if (mNavViewManager.getNavigator() == null) {
-      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
-      return;
-    }
-
-    RouteSegment routeSegment = mNavViewManager.getNavigator().getCurrentRouteSegment();
-
-    if (routeSegment == null) {
-      promise.resolve(null);
-      return;
-    }
-
-    promise.resolve(ObjectTranslationUtil.getMapFromRouteSegment(routeSegment));
-  }
-
-  @ReactMethod
-  public void getRouteSegments(final Promise promise) {
-    if (mNavViewManager.getNavigator() == null) {
-      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
-      return;
-    }
-
-    List<RouteSegment> routeSegmentList = mNavViewManager.getNavigator().getRouteSegments();
-    WritableArray arr = Arguments.createArray();
-
-    for (RouteSegment segment : routeSegmentList) {
-      arr.pushMap(ObjectTranslationUtil.getMapFromRouteSegment(segment));
-    }
-
-    promise.resolve(arr);
-  }
-
-  @ReactMethod
-  public void getTraveledPath(final Promise promise) {
-    if (mNavViewManager.getNavigator() == null) {
-      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
-      return;
-    }
-
-    WritableArray arr = Arguments.createArray();
-
-    for (LatLng latLng : mNavViewManager.getNavigator().getTraveledRoute()) {
-      arr.pushMap(ObjectTranslationUtil.getMapFromLatLng(latLng));
-    }
-
-    promise.resolve(arr);
-  }
-
-  @ReactMethod
-  public void getNavSDKVersion(final Promise promise) {
-    promise.resolve(mNavViewManager.getNavSDKVersion());
-  }
-
-  @ReactMethod
-  public void getCameraPosition(final Promise promise) {
+  public void getCameraPosition(Integer viewId, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap() == null) {
+          if (mNavViewManager.getGoogleMap(viewId) == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
 
-          CameraPosition cp = mNavViewManager.getGoogleMap().getCameraPosition();
+          CameraPosition cp = mNavViewManager.getGoogleMap(viewId).getCameraPosition();
 
           if (cp == null) {
             promise.resolve(null);
@@ -191,35 +101,39 @@ public class NavViewModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void getMyLocation(final Promise promise) {
+  public void getMyLocation(Integer viewId, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap() == null) {
+          if (mNavViewManager.getGoogleMap(viewId) == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
 
-          Location location = mNavViewManager.getGoogleMap().getMyLocation();
+          try {
+            Location location = mNavViewManager.getGoogleMap(viewId).getMyLocation();
+            if (location == null) {
+              promise.resolve(null);
+              return;
+            }
 
-          if (location == null) {
+            promise.resolve(ObjectTranslationUtil.getMapFromLocation(location));
+          } catch (Exception e) {
             promise.resolve(null);
             return;
           }
-
-          promise.resolve(ObjectTranslationUtil.getMapFromLocation(location));
         });
   }
 
   @ReactMethod
-  public void getUiSettings(final Promise promise) {
+  public void getUiSettings(Integer viewId, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap() == null) {
+          if (mNavViewManager.getGoogleMap(viewId) == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
 
-          UiSettings settings = mNavViewManager.getGoogleMap().getUiSettings();
+          UiSettings settings = mNavViewManager.getGoogleMap(viewId).getUiSettings();
 
           if (settings == null) {
             promise.resolve(null);
@@ -244,25 +158,25 @@ public class NavViewModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void isMyLocationEnabled(final Promise promise) {
+  public void isMyLocationEnabled(Integer viewId, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap() == null) {
+          if (mNavViewManager.getGoogleMap(viewId) == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
 
-          promise.resolve(mNavViewManager.getGoogleMap().isMyLocationEnabled());
+          promise.resolve(mNavViewManager.getGoogleMap(viewId).isMyLocationEnabled());
         });
   }
 
   @ReactMethod
-  public void addMarker(ReadableMap markerOptionsMap, final Promise promise) {
+  public void addMarker(int viewId, ReadableMap markerOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap() != null) {
+          if (mNavViewManager.getGoogleMap(viewId) != null) {
             Marker marker =
-                mNavViewManager.getNavViewFragment().addMarker(markerOptionsMap.toHashMap());
+                mNavViewManager.getFragmentForViewId(viewId).addMarker(markerOptionsMap.toHashMap());
 
             promise.resolve(ObjectTranslationUtil.getMapFromMarker(marker));
           }
@@ -270,60 +184,60 @@ public class NavViewModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void addPolyline(ReadableMap polylineOptionsMap, final Promise promise) {
+  public void addPolyline(int viewId, ReadableMap polylineOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap() == null) {
+          if (mNavViewManager.getGoogleMap(viewId) == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
           Polyline polyline =
-              mNavViewManager.getNavViewFragment().addPolyline(polylineOptionsMap.toHashMap());
+              mNavViewManager.getFragmentForViewId(viewId).addPolyline(polylineOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromPolyline(polyline));
         });
   }
 
   @ReactMethod
-  public void addPolygon(ReadableMap polygonOptionsMap, final Promise promise) {
+  public void addPolygon(int viewId, ReadableMap polygonOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap() == null) {
+          if (mNavViewManager.getGoogleMap(viewId) == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
           Polygon polygon =
-              mNavViewManager.getNavViewFragment().addPolygon(polygonOptionsMap.toHashMap());
+              mNavViewManager.getFragmentForViewId(viewId).addPolygon(polygonOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromPolygon(polygon));
         });
   }
 
   @ReactMethod
-  public void addCircle(ReadableMap circleOptionsMap, final Promise promise) {
+  public void addCircle(int viewId, ReadableMap circleOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap() == null) {
+          if (mNavViewManager.getGoogleMap(viewId) == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
           Circle circle =
-              mNavViewManager.getNavViewFragment().addCircle(circleOptionsMap.toHashMap());
+              mNavViewManager.getFragmentForViewId(viewId).addCircle(circleOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromCircle(circle));
         });
   }
 
   @ReactMethod
-  public void addGroundOverlay(ReadableMap overlayOptionsMap, final Promise promise) {
+  public void addGroundOverlay(int viewId, ReadableMap overlayOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap() == null) {
+          if (mNavViewManager.getGoogleMap(viewId) == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
           GroundOverlay overlay =
-              mNavViewManager.getNavViewFragment().addGroundOverlay(overlayOptionsMap.toHashMap());
+              mNavViewManager.getFragmentForViewId(viewId).addGroundOverlay(overlayOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromGroundOverlay(overlay));
         });
@@ -340,7 +254,7 @@ public class NavViewModule extends ReactContextBaseJavaModule {
         params.pushString("" + args);
       }
 
-      catalystInstance.callFunction(Constants.JAVASCRIPT_FLAG, functionName, params);
+      catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, functionName, params);
     }
   }
 

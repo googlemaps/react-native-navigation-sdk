@@ -25,47 +25,5 @@ import com.google.android.libraries.navigation.ArrivalEvent;
 import com.google.android.libraries.navigation.Navigator;
 
 public interface INavigationCallback {
-  void onArrival(ArrivalEvent event);
-
-  void onRouteChanged();
-
-  void onReroutingRequestedByOffRoute();
-
-  void onTrafficUpdated();
-
-  void onTurnByTurn(NavInfo navInfo);
-
-  void onStartGuidance();
-
   void logDebugInfo(String info);
-
-  void onNavigationReady();
-
-  void onNavigationInitError(int errorCode);
-
-  void onRemainingTimeOrDistanceChanged();
-
-  void onLocationChanged(Location location);
-
-  void onRawLocationUpdate(Location location);
-
-  void onMapReady();
-
-  void onRecenterButtonClick();
-
-  void onRouteStatusResult(Navigator.RouteStatus code);
-
-  void onMarkerClick(Marker marker);
-
-  void onPolylineClick(Polyline polyline);
-
-  void onPolygonClick(Polygon polygon);
-
-  void onCircleClick(Circle circle);
-
-  void onGroundOverlayClick(GroundOverlay overlay);
-
-  void onMarkerInfoWindowTapped(Marker marker);
-
-  void onMapClick(LatLng latLng);
 }

@@ -49,7 +49,7 @@ android {
 
 To securely store your API key, it is recommended to use the [Google Maps Secrets Gradle Plugin](https://developers.google.com/maps/documentation/android-sdk/secrets-gradle-plugin). This plugin helps manage API keys without exposing them in your app's source code.
 
-See example configuration for secrets plugin at example applications [build.gradle](./SampleApp/android/app/build.gradle) file.
+See example configuration for secrets plugin at example applications [build.gradle](./example/android/app/build.gradle) file.
 
 ### iOS
 
@@ -101,7 +101,7 @@ in an unbounded widget will cause the application to behave unexpectedly.
     />
 ```
 
-See the [example](./SampleApp) directory for a complete navigation sample app.
+See the [example](./example) directory for a complete navigation sample app.
 
 ### Requesting and handling permissions
 
@@ -110,7 +110,7 @@ The Google Navigation SDK React Native library offers functionalities that neces
 > [!NOTE]
 > The management of these permissions falls outside the scope of the Navigation SDKs for Android and iOS. As a developer integrating these SDKs into your applications, you are responsible for requesting and obtaining the necessary permissions from the users of your app.
 
-You can see example of handling permissions in the [app.tsx](./SampleApp/src/app.tsx) file of the sample application:
+You can see example of handling permissions in the [app.tsx](./example/src/app.tsx) file of the sample application:
 
 ```tsx
 import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
@@ -120,12 +120,12 @@ import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 // Request permission for accessing the device's location.
 const requestPermissions = async () => {
     const result = await request(
-        Platform.OS =="android" ? 
+        Platform.OS === "android" ? 
             PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION : 
             PERMISSIONS.IOS.LOCATION_ALWAYS,
     );
 
-    if (result == RESULTS.GRANTED) {
+    if (result === RESULTS.GRANTED) {
         setArePermissionsApproved(true);
     } else {
         Snackbar.show({

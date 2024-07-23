@@ -16,6 +16,7 @@
 
 #ifndef INavigationCallback_h
 #define INavigationCallback_h
+
 @import GoogleNavigation;
 
 NS_ASSUME_NONNULL_BEGIN
@@ -28,24 +29,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)onRouteChanged;
 - (void)onArrival:(NSDictionary *)waypoint;
 - (void)onTurnByTurn:(GMSNavigationNavInfo *)navInfo;
-- (void)onTurnByTurn:(GMSNavigationNavInfo *)navInfo
-    distanceToNextDestinationMeters:(double)distanceToNextDestinationMeters
-       timeToNextDestinationSeconds:(double)timeToNextDestinationSeconds;
+- (void)onTurnByTurn:(GMSNavigationNavInfo *)navInfo distanceToNextDestinationMeters:(double)distanceToNextDestinationMeters timeToNextDestinationSeconds:(double)timeToNextDestinationSeconds;
 - (void)onNavigationReady;
 - (void)onNavigationInitError:(NSNumber *)errorCode;
 - (void)onStartGuidance;
-- (void)onMapReady;
-- (void)onMapClick:(NSDictionary *)latLngMap;
-- (void)onRecenterButtonClick;
 - (void)onRouteStatusResult:(GMSRouteStatus)routeStatus;
 - (void)onReroutingRequestedByOffRoute;
 - (void)onLocationChanged:(NSDictionary *)location;
-- (void)onMarkerInfoWindowTapped:(GMSMarker *)marker;
-- (void)onMarkerClick:(GMSMarker *)marker;
-- (void)onPolylineClick:(GMSPolyline *)polyline;
-- (void)onPolygonClick:(GMSPolygon *)polygon;
-- (void)onCircleClick:(GMSCircle *)circle;
-- (void)onGroundOverlayClick:(GMSGroundOverlay *)groundOverlay;
 @end
 
 #endif /* INavigationCallback_h */
