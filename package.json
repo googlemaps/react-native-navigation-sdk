@@ -1,6 +1,6 @@
 {
   "name": "react-native-navigation-sdk",
-  "version": "0.3.4-beta",
+  "version": "1.0.0-beta",
   "author": "Google",
   "description": "A react-native library for Google's Navigation SDK",
   "main": "lib/commonjs/index",
