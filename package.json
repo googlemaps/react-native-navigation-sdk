@@ -1,49 +1,155 @@
 {
   "name": "react-native-navigation-sdk",
-  "version": "0.3.4-beta",
+  "version": "1.0.0-beta",
   "author": "Google",
   "description": "A react-native library for Google's Navigation SDK",
-  "private": false,
-  "license": "UNLICENSED",
+  "main": "lib/commonjs/index",
+  "module": "lib/module/index",
+  "types": "lib/typescript/src/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "cpp",
+    "*.podspec",
+    "!ios/build",
+    "!android/build",
+    "!android/gradle",
+    "!android/gradlew",
+    "!android/gradlew.bat",
+    "!android/local.properties",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__",
+    "!**/.*"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/googlemaps/react-native-navigation-sdk"
+    "url": "git+https://github.com/googlemaps/react-native-navigation-sdk.git"
   },
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/googlemaps/react-native-navigation-sdk/issues"
   },
-  "homepage": "https://github.com/googlemaps/react-native-navigation-sdk",
+  "homepage": "https://github.com/googlemaps/react-native-navigation-sdk#readme",
   "keywords": [
     "react-native",
+    "ios",
     "android",
     "library",
     "google-navigation",
     "navsdk"
   ],
-  "scripts": {
-    "test": "jest",
-    "test:types": "tsc",
-    "prettier:write": "npx prettier --write **/*.{js,jsx,ts,tsx,json} && npx prettier --write *.{js,jsx,ts,tsx,json}",
-    "lint": "tsc --noEmit && eslint --ext .js,.jsx,.ts,.tsx ./",
-    "jsdoc": "jsdoc -c jsdoc.json"
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   },
-  "peerDependencies": {
-    "react-native": "*"
+  "scripts": {
+    "example": "yarn workspace react-native-navigation-sdk-sample",
+    "test": "jest --passWithNoTests",
+    "test:types": "tsc --noEmit",
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
+    "prepare": "bob build"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.3",
-    "@types/react": "^18.2.20",
-    "@types/react-native": "^0.72.2",
-    "@types/react-test-renderer": "^18.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.4.0",
-    "eslint": "^8.47.0",
-    "eslint-config-airbnb-typescript": "^17.1.0",
+    "@commitlint/config-conventional": "^17.0.2",
+    "@evilmartians/lefthook": "^1.5.0",
+    "@react-native/eslint-config": "^0.74.83",
+    "@testing-library/react-native": "^12.5.0",
+    "@types/jest": "^29.5.5",
+    "@types/react": "^18.2.44",
+    "commitlint": "^17.0.2",
+    "del-cli": "^5.1.0",
+    "eslint": "^8.51.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-import": "^2.28.0",
-    "eslint-plugin-jsx-a11y": "^6.7.1",
-    "eslint-plugin-react": "^7.33.1",
-    "prettier": "^3.0.1",
-    "typescript": "^5.1.6"
+    "eslint-plugin-prettier": "^5.0.1",
+    "eslint-plugin-testing-library": "^6.2.2",
+    "jest": "^29.7.0",
+    "prettier": "^3.0.3",
+    "react": "18.2.0",
+    "react-native": "0.74.1",
+    "react-native-builder-bob": "^0.23.2",
+    "turbo": "^1.10.7",
+    "typescript": ">=4.3.5 <5.4.0"
+  },
+  "resolutions": {
+    "@types/react": "^18.2.44"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
+  "workspaces": [
+    "example"
+  ],
+  "packageManager": "yarn@3.6.1",
+  "jest": {
+    "preset": "react-native",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/example/node_modules",
+      "<rootDir>/lib/"
+    ],
+    "moduleNameMapper": {
+      "^react-native$": "<rootDir>/node_modules/react-native"
+    }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "eslintConfig": {
+    "root": true,
+    "extends": [
+      "@react-native",
+      "google",
+      "prettier"
+    ],
+    "rules": {
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": 2,
+      "prettier/prettier": [
+        "error",
+        {
+          "arrowParens": "avoid",
+          "quoteProps": "consistent",
+          "singleQuote": true,
+          "tabWidth": 2,
+          "trailingComma": "es5",
+          "useTabs": false
+        }
+      ]
+    }
+  },
+  "eslintIgnore": [
+    "node_modules/",
+    "coverage/",
+    "lib/"
+  ],
+  "prettier": {
+    "arrowParens": "avoid",
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "commonjs",
+      "module",
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
   }
 }

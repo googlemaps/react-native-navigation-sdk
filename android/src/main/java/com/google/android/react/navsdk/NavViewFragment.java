@@ -17,7 +17,6 @@ import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,8 +25,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -47,22 +44,9 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.libraries.mapsplatform.turnbyturn.model.NavInfo;
-import com.google.android.libraries.navigation.ArrivalEvent;
-import com.google.android.libraries.navigation.ListenableResultFuture;
-import com.google.android.libraries.navigation.NavigationApi;
-import com.google.android.libraries.navigation.NavigationApi.OnTermsResponseListener;
 import com.google.android.libraries.navigation.NavigationView;
-import com.google.android.libraries.navigation.Navigator;
-import com.google.android.libraries.navigation.RoadSnappedLocationProvider;
-import com.google.android.libraries.navigation.RoadSnappedLocationProvider.LocationListener;
-import com.google.android.libraries.navigation.SimulationOptions;
-import com.google.android.libraries.navigation.SpeedAlertOptions;
-import com.google.android.libraries.navigation.SpeedAlertSeverity;
 import com.google.android.libraries.navigation.StylingOptions;
 import com.google.android.libraries.navigation.SupportNavigationFragment;
-import com.google.android.libraries.navigation.TermsAndConditionsCheckOption;
-import com.google.android.libraries.navigation.Waypoint;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,19 +65,9 @@ import java.util.concurrent.Executors;
 public class NavViewFragment extends Fragment {
   private static final String TAG = "NavViewFragment";
   private GoogleMap mGoogleMap;
-  private Navigator mNavigator;
   private SupportNavigationFragment mNavFragment;
-  private INavigationCallback navigationCallback;
+  private INavigationViewCallback navigationViewCallback;
   private StylingOptions mStylingOptions;
-  private String mCompanyName;
-  private String mTitle;
-  private String mCheckOption;
-  private ArrayList<Waypoint> mWaypoints = new ArrayList<>();
-  private ListenableResultFuture<Navigator.RouteStatus> pendingRoute;
-
-  private RoadSnappedLocationProvider mRoadSnappedLocationProvider;
-
-  private Map tocParamsMap;
 
   private List<Marker> markerList = new ArrayList<>();
   private List<Polyline> polylineList = new ArrayList<>();
@@ -101,66 +75,16 @@ public class NavViewFragment extends Fragment {
   private List<GroundOverlay> groundOverlayList = new ArrayList<>();
   private List<Circle> circleList = new ArrayList<>();
 
-  private Navigator.ArrivalListener mArrivalListener =
-      new Navigator.ArrivalListener() {
-        @Override
-        public void onArrival(ArrivalEvent arrivalEvent) {
-          navigationCallback.onArrival(arrivalEvent);
-        }
-      };
 
   private NavigationView.OnRecenterButtonClickedListener onRecenterButtonClickedListener =
       new NavigationView.OnRecenterButtonClickedListener() {
         @Override
         public void onRecenterButtonClick() {
-          if (navigationCallback != null) navigationCallback.onRecenterButtonClick();
+          if (navigationViewCallback != null) navigationViewCallback.onRecenterButtonClick();
         }
       };
 
-  private LocationListener mLocationListener =
-      new LocationListener() {
-        @Override
-        public void onLocationChanged(final Location location) {
-          navigationCallback.onLocationChanged(location);
-        }
 
-        @Override
-        public void onRawLocationUpdate(final Location location) {
-          navigationCallback.onRawLocationUpdate(location);
-        }
-      };
-
-  private Navigator.RouteChangedListener mRouteChangedListener =
-      new Navigator.RouteChangedListener() {
-        @Override
-        public void onRouteChanged() {
-          navigationCallback.onRouteChanged();
-        }
-      };
-
-  private Navigator.TrafficUpdatedListener mTrafficUpdatedListener =
-      new Navigator.TrafficUpdatedListener() {
-        @Override
-        public void onTrafficUpdated() {
-          navigationCallback.onTrafficUpdated();
-        }
-      };
-
-  private Navigator.ReroutingListener mReroutingListener =
-      new Navigator.ReroutingListener() {
-        @Override
-        public void onReroutingRequestedByOffRoute() {
-          navigationCallback.onReroutingRequestedByOffRoute();
-        }
-      };
-
-  private Navigator.RemainingTimeOrDistanceChangedListener mRemainingTimeOrDistanceChangedListener =
-      new Navigator.RemainingTimeOrDistanceChangedListener() {
-        @Override
-        public void onRemainingTimeOrDistanceChanged() {
-          navigationCallback.onRemainingTimeOrDistanceChanged();
-        }
-      };
 
   private String style = "";
 
@@ -185,16 +109,82 @@ public class NavViewFragment extends Fragment {
         (SupportNavigationFragment)
             getChildFragmentManager().findFragmentById(R.id.navigation_fragment2);
 
-    if (areTermsAccepted()) {
-      initializeNavigationApi();
-    } else {
-      this.showTermsAndConditionsDialog();
-    }
+    mNavFragment.setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
 
-    // Observe live data for nav info updates.
-    Observer<NavInfo> navInfoObserver = this::showNavInfo;
-    NavInfoReceivingService.getNavInfoLiveData()
-        .observe(this.getViewLifecycleOwner(), navInfoObserver);
+    mNavFragment.getMapAsync(
+        new OnMapReadyCallback() {
+          public void onMapReady(GoogleMap googleMap) {
+            mGoogleMap = googleMap;
+            navigationViewCallback.onMapReady();
+
+            mNavFragment.setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
+
+            mGoogleMap.setOnMarkerClickListener(
+                new GoogleMap.OnMarkerClickListener() {
+                  @Override
+                  public boolean onMarkerClick(Marker marker) {
+                    navigationViewCallback.onMarkerClick(marker);
+                    return false;
+                  }
+                });
+            mGoogleMap.setOnPolylineClickListener(
+                new GoogleMap.OnPolylineClickListener() {
+                  @Override
+                  public void onPolylineClick(Polyline polyline) {
+                    navigationViewCallback.onPolylineClick(polyline);
+                  }
+                });
+            mGoogleMap.setOnPolygonClickListener(
+                new GoogleMap.OnPolygonClickListener() {
+                  @Override
+                  public void onPolygonClick(Polygon polygon) {
+                    navigationViewCallback.onPolygonClick(polygon);
+                  }
+                });
+            mGoogleMap.setOnCircleClickListener(
+                new GoogleMap.OnCircleClickListener() {
+                  @Override
+                  public void onCircleClick(Circle circle) {
+                    navigationViewCallback.onCircleClick(circle);
+                  }
+                });
+            mGoogleMap.setOnGroundOverlayClickListener(
+                new GoogleMap.OnGroundOverlayClickListener() {
+                  @Override
+                  public void onGroundOverlayClick(GroundOverlay groundOverlay) {
+                    navigationViewCallback.onGroundOverlayClick(groundOverlay);
+                  }
+                });
+
+            mGoogleMap.setOnInfoWindowClickListener(
+                new GoogleMap.OnInfoWindowClickListener() {
+                  @Override
+                  public void onInfoWindowClick(Marker marker) {
+                    navigationViewCallback.onMarkerInfoWindowTapped(marker);
+                  }
+                });
+
+            mGoogleMap.setOnMapClickListener(
+                new GoogleMap.OnMapClickListener() {
+                  @Override
+                  public void onMapClick(LatLng latLng) {
+                    navigationViewCallback.onMapClick(latLng);
+                  }
+                });
+          }
+        });
+
+    Executors.newSingleThreadExecutor()
+        .execute(
+            () -> {
+              requireActivity()
+                  .runOnUiThread(
+                      (Runnable)
+                          () -> {
+                            mNavFragment.addOnRecenterButtonClickedListener(
+                                onRecenterButtonClickedListener);
+                          });
+            });
   }
 
   public void applyStylingOptions() {
@@ -205,37 +195,6 @@ public class NavViewFragment extends Fragment {
 
   public void setStylingOptions(Map stylingOptions) {
     mStylingOptions = new StylingOptionsBuilder.Builder(stylingOptions).build();
-  }
-
-  public void setSpeedAlertOptions(@Nullable Map options) {
-    if (options == null) {
-      mNavigator.setSpeedAlertOptions(null);
-      return;
-    }
-
-    float minorThresholdPercentage =
-        (float) CollectionUtil.getDouble("minorSpeedAlertPercentThreshold", options, -1);
-    float majorThresholdPercentage =
-        (float) CollectionUtil.getDouble("majorSpeedAlertPercentThreshold", options, -1);
-    float severityUpgradeDurationSeconds =
-        (float) CollectionUtil.getDouble("severityUpgradeDurationSeconds", options, -1);
-
-    // The JS layer will validate the values before calling.
-    SpeedAlertOptions alertOptions =
-        new SpeedAlertOptions.Builder()
-            .setSpeedAlertThresholdPercentage(SpeedAlertSeverity.MINOR, minorThresholdPercentage)
-            .setSpeedAlertThresholdPercentage(SpeedAlertSeverity.MAJOR, majorThresholdPercentage)
-            .setSeverityUpgradeDurationSeconds(severityUpgradeDurationSeconds)
-            .build();
-
-    mNavigator.setSpeedAlertOptions(alertOptions);
-  }
-
-  private void showNavInfo(NavInfo navInfo) {
-    if (navInfo == null) {
-      return;
-    }
-    navigationCallback.onTurnByTurn(navInfo);
   }
 
   @SuppressLint("MissingPermission")
@@ -253,14 +212,6 @@ public class NavViewFragment extends Fragment {
     }
 
     mNavFragment.setForceNightMode(EnumTranslationUtil.getForceNightModeFromJsValue(jsValue));
-  }
-
-  public void setAudioGuidanceType(int jsValue) {
-    if (mNavigator == null) {
-      return;
-    }
-
-    mNavigator.setAudioGuidance(EnumTranslationUtil.getAudioGuidanceFromJsValue(jsValue));
   }
 
   public void setRecenterButtonEnabled(boolean isEnabled) {
@@ -631,144 +582,6 @@ public class NavViewFragment extends Fragment {
     }
   }
 
-  /** Starts the Navigation API, saving a reference to the ready Navigator instance. */
-  private void initializeNavigationApi() {
-    NavigationApi.getNavigator(
-        getActivity().getApplication(),
-        new NavigationApi.NavigatorListener() {
-          @Override
-          public void onNavigatorReady(Navigator navigator) {
-            // Keep a reference to the Navigator (used to configure and start nav)
-            mNavigator = navigator;
-            navigationCallback.onNavigationReady();
-            mRoadSnappedLocationProvider =
-                NavigationApi.getRoadSnappedLocationProvider(getActivity().getApplication());
-          }
-
-          @Override
-          public void onError(@NavigationApi.ErrorCode int errorCode) {
-            String errMsg;
-            switch (errorCode) {
-              case NavigationApi.ErrorCode.NOT_AUTHORIZED:
-                errMsg =
-                    "Error loading Navigation API: Your API key is invalid or not authorized to use"
-                        + " Navigation.";
-                logDebugInfo(errMsg);
-                break;
-              case NavigationApi.ErrorCode.TERMS_NOT_ACCEPTED:
-                errMsg =
-                    "Error loading Navigation API: User did not accept the Navigation Terms of"
-                        + " Use.";
-                logDebugInfo(errMsg);
-                break;
-              case NavigationApi.ErrorCode.NETWORK_ERROR:
-                errMsg = "Error loading Navigation API: Network error";
-                logDebugInfo(errMsg);
-                break;
-              default:
-                errMsg = "Error loading Navigation API: Location permission is not granted";
-                logDebugInfo(errMsg);
-            }
-
-            navigationCallback.onNavigationInitError(errorCode);
-          }
-        });
-
-    mNavFragment.getMapAsync(
-        new OnMapReadyCallback() {
-          public void onMapReady(GoogleMap googleMap) {
-            mGoogleMap = googleMap;
-            navigationCallback.onMapReady();
-
-            mGoogleMap.setOnMarkerClickListener(
-                new GoogleMap.OnMarkerClickListener() {
-                  @Override
-                  public boolean onMarkerClick(Marker marker) {
-                    navigationCallback.onMarkerClick(marker);
-                    return false;
-                  }
-                });
-            mGoogleMap.setOnPolylineClickListener(
-                new GoogleMap.OnPolylineClickListener() {
-                  @Override
-                  public void onPolylineClick(Polyline polyline) {
-                    navigationCallback.onPolylineClick(polyline);
-                  }
-                });
-            mGoogleMap.setOnPolygonClickListener(
-                new GoogleMap.OnPolygonClickListener() {
-                  @Override
-                  public void onPolygonClick(Polygon polygon) {
-                    navigationCallback.onPolygonClick(polygon);
-                  }
-                });
-            mGoogleMap.setOnCircleClickListener(
-                new GoogleMap.OnCircleClickListener() {
-                  @Override
-                  public void onCircleClick(Circle circle) {
-                    navigationCallback.onCircleClick(circle);
-                  }
-                });
-            mGoogleMap.setOnGroundOverlayClickListener(
-                new GoogleMap.OnGroundOverlayClickListener() {
-                  @Override
-                  public void onGroundOverlayClick(GroundOverlay groundOverlay) {
-                    navigationCallback.onGroundOverlayClick(groundOverlay);
-                  }
-                });
-
-            mGoogleMap.setOnInfoWindowClickListener(
-                new GoogleMap.OnInfoWindowClickListener() {
-                  @Override
-                  public void onInfoWindowClick(Marker marker) {
-                    navigationCallback.onMarkerInfoWindowTapped(marker);
-                  }
-                });
-
-            mGoogleMap.setOnMapClickListener(
-                new GoogleMap.OnMapClickListener() {
-                  @Override
-                  public void onMapClick(LatLng latLng) {
-                    navigationCallback.onMapClick(latLng);
-                  }
-                });
-          }
-        });
-
-    Executors.newSingleThreadExecutor()
-        .execute(
-            () -> {
-              requireActivity()
-                  .runOnUiThread(
-                      (Runnable)
-                          () -> {
-                            mNavFragment.addOnRecenterButtonClickedListener(
-                                onRecenterButtonClickedListener);
-                          });
-            });
-  }
-
-  /**
-   * Registers a number of example event listeners that show an on screen message when certain
-   * navigation events occur (e.g. the driver's route changes or the destination is reached).
-   */
-  private void registerNavigationListeners() {
-    mNavigator.addArrivalListener(mArrivalListener);
-    mNavigator.addRouteChangedListener(mRouteChangedListener);
-    mNavigator.addTrafficUpdatedListener(mTrafficUpdatedListener);
-    mNavigator.addReroutingListener(mReroutingListener);
-    mNavigator.addRemainingTimeOrDistanceChangedListener(
-        0, 0, mRemainingTimeOrDistanceChangedListener);
-  }
-
-  private void removeNavigationListeners() {
-    mNavigator.removeArrivalListener(mArrivalListener);
-    mNavigator.removeRouteChangedListener(mRouteChangedListener);
-    mNavigator.removeTrafficUpdatedListener(mTrafficUpdatedListener);
-    mNavigator.removeReroutingListener(mReroutingListener);
-    mNavigator.removeRemainingTimeOrDistanceChangedListener(
-        mRemainingTimeOrDistanceChangedListener);
-  }
 
   /** Moves the position of the camera to hover over Melbourne. */
   public void moveCamera(Map map) {
@@ -782,151 +595,6 @@ public class NavViewFragment extends Fragment {
         CameraPosition.builder().target(latLng).zoom(zoom).tilt(tilt).bearing(bearing).build();
 
     mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-  }
-
-  private void createWaypoint(Map map) {
-    String placeId = CollectionUtil.getString("placeId", map);
-    String title = CollectionUtil.getString("title", map);
-
-    Double lat = null;
-    Double lng = null;
-
-    if (map.containsKey("position")) {
-      Map latlng = (Map) map.get("position");
-      if (latlng.get("lat") != null) lat = Double.parseDouble(latlng.get("lat").toString());
-      if (latlng.get("lng") != null) lng = Double.parseDouble(latlng.get("lng").toString());
-    }
-
-    boolean vehicleStopover = CollectionUtil.getBool("vehicleStopover", map, false);
-    boolean preferSameSideOfRoad = CollectionUtil.getBool("preferSameSideOfRoad", map, false);
-
-    try {
-      Waypoint.Builder waypointBuilder =
-          Waypoint.builder()
-              .setTitle(title)
-              .setVehicleStopover(vehicleStopover)
-              .setPreferSameSideOfRoad(preferSameSideOfRoad);
-
-      if (map.containsKey("preferredHeading")) {
-        int preferredHeading = (int) map.get("preferredHeading");
-        waypointBuilder.setPreferredHeading(preferredHeading);
-      }
-
-      if (placeId == null || placeId.isEmpty() && lat != null && lng != null) {
-        mWaypoints.add(waypointBuilder.setLatLng(lat, lng).build());
-      } else {
-        mWaypoints.add(waypointBuilder.setPlaceIdString(placeId).build());
-      }
-    } catch (Waypoint.UnsupportedPlaceIdException e) {
-      logDebugInfo("Error starting navigation: Place ID is not supported: " + placeId);
-    } catch (Waypoint.InvalidSegmentHeadingException e) {
-      logDebugInfo("Error starting navigation: Preferred heading has to be between 0 and 360");
-    }
-  }
-
-  public void setDestination(Map waypoint, @Nullable Map routingOptions) {
-    pendingRoute = null; // reset pendingRoute.
-    mWaypoints.clear(); // reset waypoints
-    createWaypoint(waypoint);
-
-    if (routingOptions != null) {
-      pendingRoute =
-          mNavigator.setDestination(
-              mWaypoints.get(0), ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions));
-    } else {
-      pendingRoute = mNavigator.setDestination(mWaypoints.get(0));
-    }
-
-    setOnResultListener(
-        new IRouteStatusResult() {
-          @Override
-          public void onResult(Navigator.RouteStatus code) {
-            navigationCallback.onRouteStatusResult(code);
-          }
-        });
-  }
-
-  public void setDestinations(ReadableArray args, @Nullable Map routingOptions) {
-    pendingRoute = null; // reset pendingRoute.
-    mWaypoints.clear(); // reset waypoints
-
-    // Set up a waypoint for each place that we want to go to.
-    for (int i = 0; i < args.size(); i++) {
-      Map map = args.getMap(i).toHashMap();
-      createWaypoint(map);
-    }
-
-    if (routingOptions != null) {
-      pendingRoute =
-          mNavigator.setDestinations(
-              mWaypoints, ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions));
-    } else {
-      pendingRoute = mNavigator.setDestinations(mWaypoints);
-    }
-
-    setOnResultListener(
-        new IRouteStatusResult() {
-          @Override
-          public void onResult(Navigator.RouteStatus code) {
-            navigationCallback.onRouteStatusResult(code);
-          }
-        });
-  }
-
-  private void setOnResultListener(IRouteStatusResult listener) {
-    // Set an action to perform when a route is determined to the destination
-    if (pendingRoute != null)
-      pendingRoute.setOnResultListener(
-          new ListenableResultFuture.OnResultListener<Navigator.RouteStatus>() {
-            @Override
-            public void onResult(Navigator.RouteStatus code) {
-              listener.onResult(code);
-              switch (code) {
-                case OK:
-                  removeNavigationListeners();
-                  registerNavigationListeners();
-                  break;
-                default:
-                  break;
-              }
-            }
-          });
-  }
-
-  public void startGuidance() {
-    if (mWaypoints.isEmpty()) {
-      return;
-    }
-
-    mNavigator.startGuidance();
-    navigationCallback.onStartGuidance();
-  }
-
-  public void runSimulation(float speedMultiplier) {
-    if (mWaypoints.isEmpty()) {
-      return;
-    }
-
-    mNavigator
-        .getSimulator()
-        .simulateLocationsAlongExistingRoute(
-            new SimulationOptions().speedMultiplier(speedMultiplier));
-  }
-
-  public void stopGuidance() {
-    mNavigator.stopGuidance();
-  }
-
-  public void stopLocationSimulation() {
-    mNavigator.getSimulator().unsetUserLocation();
-  }
-
-  public void pauseLocationSimulation() {
-    mNavigator.getSimulator().pause();
-  }
-
-  public void resumeLocationSimulation() {
-    mNavigator.getSimulator().resume();
   }
 
   public void setZoomLevel(int level) {
@@ -1006,16 +674,21 @@ public class NavViewFragment extends Fragment {
     }
   }
 
-  public void setAbnormalTerminatingReportingEnabled(boolean isOn) {
-    if (mGoogleMap != null) {
-      NavigationApi.setAbnormalTerminationReportingEnabled(isOn);
-    }
-  }
-
   public void setTrafficIncidentCards(boolean isOn) {
     if (mGoogleMap != null) {
       mNavFragment.setTrafficIncidentCardsEnabled(isOn);
     }
+  }
+
+  public void setHeaderEnabled(boolean isOn) {
+    if (mNavFragment == null) {
+      return;
+    }
+
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          mNavFragment.setHeaderEnabled(isOn);
+        });
   }
 
   public void setFooterEnabled(boolean isOn) {
@@ -1039,26 +712,10 @@ public class NavViewFragment extends Fragment {
     }
   }
 
-  public void setNavigationCallback(INavigationCallback navigationCallback) {
-    this.navigationCallback = navigationCallback;
+  public void setNavigationViewCallback(INavigationViewCallback navigationViewCallback) {
+    this.navigationViewCallback = navigationViewCallback;
   }
 
-  private void logDebugInfo(String errorMessage) {
-    navigationCallback.logDebugInfo(errorMessage);
-  }
-
-  /**
-   * Enable turn by turn logging using background service
-   *
-   * @param isEnabled
-   */
-  public void setTurnbyTurnLoggingEnabled(boolean isEnabled) {
-    if (isEnabled) {
-      NavForwardingManager.startNavForwarding(mNavigator, requireActivity(), navigationCallback);
-    } else {
-      NavForwardingManager.stopNavForwarding(mNavigator, requireActivity(), navigationCallback);
-    }
-  }
 
   /** Toggles whether the location marker is enabled. */
   public void setMyLocationButtonEnabled(boolean isOn) {
@@ -1123,80 +780,6 @@ public class NavViewFragment extends Fragment {
         });
   }
 
-  public void clearDestinations() {
-    if (mNavigator != null) {
-      mNavigator.clearDestinations();
-    }
-  }
-
-  public void continueToNextDestination() {
-    if (mNavigator != null) {
-      mNavigator.continueToNextDestination();
-    }
-  }
-
-  public void simulateLocation(Map map) {
-    if (mNavigator != null) {
-      Double lat = null;
-      Double lng = null;
-      if (map.containsKey("location")) {
-        Map latlng = (Map) map.get("location");
-        if (latlng.get("lat") != null) lat = Double.parseDouble(latlng.get("lat").toString());
-        if (latlng.get("lng") != null) lng = Double.parseDouble(latlng.get("lng").toString());
-      }
-      mNavigator.getSimulator().setUserLocation(new LatLng(lat, lng));
-    }
-  }
-
-  public void setTocParams(Map map) {
-    this.tocParamsMap = map;
-  }
-
-  private void showTermsAndConditionsDialog() {
-    if (this.tocParamsMap == null) {
-      return;
-    }
-
-    String companyName = CollectionUtil.getString("companyName", this.tocParamsMap);
-    String title = CollectionUtil.getString("title", this.tocParamsMap);
-    boolean showOnlyDisclaimer =
-        CollectionUtil.getBool("showOnlyDisclaimer", this.tocParamsMap, false);
-
-    TermsAndConditionsCheckOption tosOption =
-        showOnlyDisclaimer
-            ? TermsAndConditionsCheckOption.SKIPPED
-            : TermsAndConditionsCheckOption.ENABLED;
-
-    NavigationApi.showTermsAndConditionsDialog(
-        getActivity(),
-        companyName,
-        title,
-        null,
-        new OnTermsResponseListener() {
-          @Override
-          public void onTermsResponse(boolean areTermsAccepted) {
-            if (areTermsAccepted) {
-              initializeNavigationApi();
-            } else {
-              navigationCallback.onNavigationInitError(NavigationApi.ErrorCode.TERMS_NOT_ACCEPTED);
-            }
-          }
-        },
-        tosOption);
-  }
-
-  public Boolean areTermsAccepted() {
-    return NavigationApi.areTermsAccepted(getActivity().getApplication());
-  }
-
-  public String getNavSDKVersion() {
-    return NavigationApi.getNavSDKVersion();
-  }
-
-  public void resetTermsAccepted() {
-    NavigationApi.resetTermsAccepted(getActivity().getApplication());
-  }
-
   @Override
   public void onDestroy() {
     super.onDestroy();
@@ -1217,37 +800,12 @@ public class NavViewFragment extends Fragment {
     cleanup();
   }
 
-  public Navigator getNavigator() {
-    return mNavigator;
-  }
-
   public GoogleMap getGoogleMap() {
     return mGoogleMap;
   }
 
   private void cleanup() {
-    mRoadSnappedLocationProvider.removeLocationListener(mLocationListener);
-    mNavigator.unregisterServiceForNavUpdates();
-    mNavigator.removeArrivalListener(mArrivalListener);
-    mNavigator.removeReroutingListener(mReroutingListener);
-    mNavigator.removeRouteChangedListener(mRouteChangedListener);
-    mNavigator.removeTrafficUpdatedListener(mTrafficUpdatedListener);
-    mNavigator.removeRemainingTimeOrDistanceChangedListener(
-        mRemainingTimeOrDistanceChangedListener);
     mNavFragment.removeOnRecenterButtonClickedListener(onRecenterButtonClickedListener);
-    mNavigator.cleanup();
-    mWaypoints.clear();
   }
 
-  private interface IRouteStatusResult {
-    void onResult(Navigator.RouteStatus code);
-  }
-
-  public void startUpdatingLocation() {
-    mRoadSnappedLocationProvider.addLocationListener(mLocationListener);
-  }
-
-  public void stopUpdatingLocation() {
-    mRoadSnappedLocationProvider.removeLocationListener(mLocationListener);
-  }
 }

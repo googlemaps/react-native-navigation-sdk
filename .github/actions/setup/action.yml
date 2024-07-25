@@ -1,0 +1,41 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Setup
+description: Setup Node.js and install dependencies
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version-file: .nvmrc
+
+    - name: Cache dependencies
+      id: yarn-cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          **/node_modules
+          .yarn/install-state.gz
+        key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}-${{ hashFiles('**/package.json', '!node_modules/**') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          ${{ runner.os }}-yarn-
+
+    - name: Install dependencies
+      if: steps.yarn-cache.outputs.cache-hit != 'true'
+      run: yarn install --immutable
+      shell: bash
