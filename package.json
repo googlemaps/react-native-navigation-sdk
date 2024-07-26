@@ -2,7 +2,7 @@
   "name": "react-native-navigation-sdk",
   "version": "1.0.0-beta",
   "author": "Google",
-  "description": "A react-native library for Google's Navigation SDK",
+  "description": "A React Native library for Navigation SDK on Google Maps Platform",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/src/index.d.ts",
@@ -41,6 +41,7 @@
     "android",
     "library",
     "google-navigation",
+    "navigation-sdk",
     "navsdk"
   ],
   "publishConfig": {
@@ -151,5 +152,8 @@
         }
       ]
     ]
+  },
+  "publishConfig": {
+    "registry": "https://wombat-dressing-room.appspot.com"
   }
 }

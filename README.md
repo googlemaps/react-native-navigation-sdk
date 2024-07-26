@@ -2,7 +2,7 @@
 
 ## Description
 
-This repository contains a React Native plugin that provides a [Google Navigation](https://developers.google.com/maps/documentation/navigation) widget to React Native apps targeting Android and iOS.
+This repository contains a React Native plugin that provides a [Google Navigation](https://developers.google.com/maps/documentation/navigation) component for building native Android and iOS apps using React.
 
 > [!NOTE]
 > This package is in Beta until it reaches version 1.0. According to [semantic versioning](https://semver.org/#spec-item-4), breaking changes may be introduced before 1.0.
@@ -29,11 +29,17 @@ This repository contains a React Native plugin that provides a [Google Navigatio
 
 ## Installation
 
-1. To install the library run the following command from your project root: 
+This package is listed on NPM as [@googlemaps/react-native-navigation-sdk](https://www.npmjs.com/package/@googlemaps/react-native-navigation-sdk). Install it with:
 
-`npm install --save https://github.com/googlemaps/react-native-navigation-sdk#{version_tag}`
+```shell
+npm i @googlemaps/react-native-navigation-sdk
+```
 
-For more details, see [Google Navigation SDK Documentation](https://developers.google.com/maps/documentation/navigation).
+In your TSX or JSX file, import the components you need:
+
+```tsx
+import { NavigationView } from '@googlemaps/react-native-navigation-sdk';
+```
 
 ### Android
 
@@ -120,8 +126,8 @@ import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 // Request permission for accessing the device's location.
 const requestPermissions = async () => {
     const result = await request(
-        Platform.OS === "android" ? 
-            PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION : 
+        Platform.OS === "android" ?
+            PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION :
             PERMISSIONS.IOS.LOCATION_ALWAYS,
     );
 
