@@ -76,4 +76,4 @@ jobs:
         # npm publish will trigger the build via the prepack hook
         run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_WOMBAT_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_WOMBOT_TOKEN }}
