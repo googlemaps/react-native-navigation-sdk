@@ -22,7 +22,7 @@ public class CollectionUtil {
 
   public static int getInt(String name, Map map, int defaultValue) {
     if (map.containsKey(name) && map.get(name) != null) {
-      return ((Integer) map.get(name)).intValue();
+      return ((Double) map.get(name)).intValue();
     }
     return defaultValue;
   }

@@ -1,24 +1,33 @@
-# Google Maps Navigation (Preview)
+# Google Navigation for React Native (Beta)
 
 ## Description
 
-This repository contains a React Native library that provides a [Google Maps Navigation](https://developers.google.com/maps/documentation/navigation) component for building native Android and iOS apps using React.
+This repository contains a React Native plugin that provides a [Google Navigation](https://developers.google.com/maps/documentation/navigation) widget to React Native apps targeting Android and iOS.
 
-The library is currenty in experimental state with a limited set of features available. [Turn-by-turn](https://developers.google.com/maps/documentation/navigation/android-sdk/tbt-feed), [Ground overlays](https://developers.google.com/maps/documentation/android-sdk/groundoverlay), and [Street view](https://developers.google.com/maps/documentation/android-sdk/streetview) are some of the main features that are not included but will come in the GA release.
+> [!NOTE]
+> This package is in Beta until it reaches version 1.0. According to [semantic versioning](https://semver.org/#spec-item-4), breaking changes may be introduced before 1.0.
 
 ## Requirements
 
-|             | Android | iOS       |
-| ----------- | ------- | --------- |
-| **Support** | SDK 23+ | iOS 14.0+ |
+|                                 | Android | iOS       |
+| ------------------------------- | ------- | --------- |
+| **Minimum mobile OS supported** | SDK 23+ | iOS 14.0+ |
 
 * A React Native project
-* A Google Cloud project with the [Navigation SDK enabled](https://developers.google.com/maps/documentation/navigation/android-sdk/set-up-project) and the [Maps SDK for iOS enabled](https://developers.google.com/maps/documentation/navigation/ios-sdk/config)
-* An API key from the project above
+- A Google Cloud project with a Mobility solution enabled, such as On-Demand Rides and Deliveries or Last Mile Fleet Solution. This requires you to Contact Sales as described in the [Mobility services documentation](https://developers.google.com/maps/documentation/transportation-logistics/mobility).
+- In that Google Cloud project,  these four products also need to be enabled depending on the target(s) of your React Native app:
+  - [Maps SDK for Android](https://developers.google.com/maps/documentation/android-sdk/cloud-setup#enabling-apis)
+  - [Navigation SDK for Android](https://developers.google.com/maps/documentation/navigation/android-sdk/set-up-project)
+  - [Maps SDK for iOS](https://developers.google.com/maps/documentation/ios-sdk/cloud-setup#enabling-apis)
+  - [Navigation SDK for iOS](https://developers.google.com/maps/documentation/navigation/ios-sdk/config)
+* An [API key](https://console.cloud.google.com/google/maps-apis/credentials) from the project above
 * If targeting Android, [Google Play Services](https://developers.google.com/android/guides/overview) installed and enabled
 * [Attributions and licensing text](https://developers.google.com/maps/documentation/navigation/android-sdk/set-up-project#include_the_required_attributions_in_your_app) added to your app
 
-## Installation
+> [!IMPORTANT]
+> [Apply API restrictions](https://developers.google.com/maps/api-security-best-practices#api-restriction) to the API key to limit usage to "Navigation SDK, "Maps SDK for Android", and "Maps SDK for iOS" for enhanced security and cost management. This helps guard against unauthorized use of your API key.
+
+## Instalation
 
 This package is listed on NPM as [@googlemaps/react-native-navigation-sdk](https://www.npmjs.com/package/@googlemaps/react-native-navigation-sdk). Install it with:
 
@@ -46,7 +55,7 @@ android {
 
 To securely store your API key, it is recommended to use the [Google Maps Secrets Gradle Plugin](https://developers.google.com/maps/documentation/android-sdk/secrets-gradle-plugin). This plugin helps manage API keys without exposing them in your app's source code.
 
-See example configuration for secrets plugin at example applications [build.gradle](./SampleApp/android/app/build.gradle) file.
+See example configuration for secrets plugin at example applications [build.gradle](./example/android/app/build.gradle) file.
 
 ### iOS
 
@@ -98,7 +107,7 @@ in an unbounded widget will cause the application to behave unexpectedly.
     />
 ```
 
-See the [example](./SampleApp) directory for a complete navigation sample app.
+See the [example](./example) directory for a complete navigation sample app.
 
 ### Requesting and handling permissions
 
@@ -107,7 +116,7 @@ The Google Navigation SDK React Native library offers functionalities that neces
 > [!NOTE]
 > The management of these permissions falls outside the scope of the Navigation SDKs for Android and iOS. As a developer integrating these SDKs into your applications, you are responsible for requesting and obtaining the necessary permissions from the users of your app.
 
-You can see example of handling permissions in the [app.tsx](./SampleApp/src/app.tsx) file of the sample application:
+You can see example of handling permissions in the [app.tsx](./example/src/app.tsx) file of the sample application:
 
 ```tsx
 import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
@@ -122,7 +131,7 @@ const requestPermissions = async () => {
             PERMISSIONS.IOS.LOCATION_ALWAYS,
     );
 
-    if (result == RESULTS.GRANTED) {
+    if (result === RESULTS.GRANTED) {
         setArePermissionsApproved(true);
     } else {
         Snackbar.show({
@@ -142,7 +151,6 @@ See the [Contributing guide](./CONTRIBUTING.md).
 This library uses Google Maps Platform services. Use of Google Maps Platform services through this library is subject to the [Google Maps Platform Terms of Service](https://cloud.google.com/maps-platform/terms).
 
 This library is not a Google Maps Platform Core Service. Therefore, the Google Maps Platform Terms of Service (e.g. Technical Support Services, Service Level Agreements, and Deprecation Policy) do not apply to the code in this library.
-
 
 ## Support
 
