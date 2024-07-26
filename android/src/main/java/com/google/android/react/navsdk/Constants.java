@@ -14,8 +14,7 @@
 package com.google.android.react.navsdk;
 
 public class Constants {
-  public static final String NAV_JAVASCRIPT_FLAG = "NavJavascriptBridge";
-  public static final String NAV_VIEW_JAVASCRIPT_FLAG = "NavViewJavascriptBridge";
+  public static final String JAVASCRIPT_FLAG = "JavaScriptVisibleToJava";
   public static final String LAT_FIELD_KEY = "lat";
   public static final String LNG_FIELD_KEY = "lng";
 }

@@ -22,23 +22,16 @@ buildscript {
 
     dependencies {
         classpath("com.android.tools.build:gradle:7.2.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
     }
 }
 
-def isNewArchitectureEnabled() {
-  return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
-}
-
 apply plugin: 'com.android.library'
-
-if (isNewArchitectureEnabled()) {
-  apply plugin: "com.facebook.react"
-}
+apply plugin: 'kotlin-android'
 
 android {
-    namespace "com.google.android.react.navsdk"
-    
-    compileSdkVersion 31
+    buildToolsVersion = "31.0.0"
+    compileSdkVersion = 31
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -53,15 +46,12 @@ android {
         versionName "1.0"
     }
 
-    buildTypes {
-        release {
-        minifyEnabled false
-        }
-    }
-
     lintOptions {
         abortOnError false
-        disable "GradleCompatible"
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
     }
 }
 
@@ -74,6 +64,6 @@ dependencies {
     implementation 'com.facebook.react:react-native:+'
     implementation 'com.android.support:multidex:1.0.3'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation "com.google.android.libraries.navigation:navigation:5.3.1"
+    implementation "com.google.android.libraries.navigation:navigation:5.2.3"
     api 'com.google.guava:guava:31.0.1-android'
 }

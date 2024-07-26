@@ -16,12 +16,14 @@
 
 #import <Foundation/Foundation.h>
 #import <React/RCTViewManager.h>
-#import "INavigationViewCallback.h"
+#import "INavigationCallback.h"
+#import "NavViewController.h"
 #import "RCTEventDispatcher.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RCTNavViewManager : RCTViewManager <INavigationViewCallback>
+@interface RCTNavViewManager : RCTViewManager <INavigationCallback>
+@property NavViewController *viewController;
 
 - (instancetype)init;
 

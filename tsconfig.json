@@ -1,28 +1,35 @@
 {
   "compilerOptions": {
-    "rootDir": ".",
-    "paths": {
-      "react-native-navigation-sdk": ["./src/index"]
-    },
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "jsx": "react",
+    "isolatedModules": true,
+    "jsx": "react-native",
     "lib": ["esnext"],
-    "module": "esnext",
+    "types": ["react-native", "jest"],
     "moduleResolution": "node",
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noImplicitUseStrict": false,
-    "noStrictGenericChecks": false,
-    "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
+    "noEmit": true,
     "strict": true,
     "target": "esnext",
-    "verbatimModuleSyntax": true
-  }
+    "noImplicitReturns": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "allowUnreachableCode": true,
+    "noImplicitAny": true,
+    "moduleSuffixes": [".android", ".ios", ""]
+  },
+  "include": [
+    "./components/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "metro.config.js",
+    "jest.config.js",
+    "__tests__/**/*-test.ts"
+  ]
 }
