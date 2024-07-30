@@ -19,6 +19,7 @@
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -59,7 +60,7 @@ jobs:
 
       - if: ${{ steps.release.outputs.release_created }}
         name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       # Now configure node with the registry used for publishing
       - if: ${{ steps.release.outputs.release_created }}
