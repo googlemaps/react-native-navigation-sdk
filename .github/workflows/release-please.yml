@@ -41,8 +41,6 @@ jobs:
         with:
           release-type: node
           token: ${{ secrets.SYNCED_GITHUB_TOKEN_REPO }}
-          package-name: "@googlemaps/react-native-navigation-sdk"
-          bump-minor-pre-major: true
 
       # Everything below is for NPM publishing when a release is cut.
       # Note the "if" statement on all commands to make sure that publishing
