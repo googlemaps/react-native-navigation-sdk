@@ -24,10 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753
-        with:
-          go-version: '^1.13.1'
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
       - name: Install addlicense
         run: go install github.com/google/addlicense@latest
       - name: Check license header

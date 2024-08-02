@@ -1,0 +1,57 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# A workflow that publishes the library to CocoaPods
+name: Publish
+
+on:
+  workflow_call: # called when release-please steps.release.outputs.release_created
+  workflow_dispatch: # manually trigger if previous runs failed
+
+concurrency:
+  group: publishing
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node for Dependency Installation
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm install
+
+      # Now configure node with the registry used for publishing
+      - name: Setup Node for Publishing
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://wombat-dressing-room.appspot.com/"
+
+      - name: Publish
+        # npm publish will trigger the build via the prepack hook
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_WOMBOT_TOKEN }}
