@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Google LLC
+ * Copyright 2024 Google LLC
  *
  * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
  * except in compliance with the License. You may obtain a copy of the License at
@@ -610,15 +610,12 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
     }
   }
 
-  public void simulateLocation(Map map) {
+  @ReactMethod
+  public void simulateLocation(ReadableMap location) {
     if (mNavigator != null) {
-      Double lat = null;
-      Double lng = null;
-      if (map.containsKey("location")) {
-        Map latlng = (Map) map.get("location");
-        if (latlng.get("lat") != null) lat = Double.parseDouble(latlng.get("lat").toString());
-        if (latlng.get("lng") != null) lng = Double.parseDouble(latlng.get("lng").toString());
-      }
+      HashMap<String, Object> locationMap = location.toHashMap();
+      Double lat = CollectionUtil.getDouble("lat", locationMap, 0);
+      Double lng = CollectionUtil.getDouble("lng", locationMap, 0);
       mNavigator.getSimulator().setUserLocation(new LatLng(lat, lng));
     }
   }
