@@ -95,6 +95,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+          java-package: 'jdk'
 
       - name: Finalize Android SDK
         if: env.turbo_cache_hit != 1
@@ -153,12 +154,12 @@ jobs:
         with:
           path: |
             **/ios/Pods
-          key: ${{ runner.os }}-cocoapods-${{ hashFiles('example/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-cocoapods-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-cocoapods-
 
       - name: Install cocoapods
-        if: env.turbo_cache_hit != 1 && steps.cocoapods-cache.outputs.cache-hit != 'true'
+        if: env.turbo_cache_hit != 1 || steps.cocoapods-cache.outputs.cache-hit != 'true'
         run: |
           cd example/ios
           pod install

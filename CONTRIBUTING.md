@@ -68,14 +68,16 @@ keep the code consistent and avoid common pitfalls.
 
 #### Commit changes
 
-1. `git commit -a -m "<your informative commit message>"`
+1. This project uses `lefthook` to ensure tests pass before committing. Please configure your environment paths to include the Go binary path for `addlicense` and the Node binary path for `npx` in the `~/.lefthookrc` file. For more information, refer to the [lefthook documentation](https://github.com/evilmartians/lefthook/blob/master/docs/configuration.md#rc).
 
-  Please make sure all your check-ins have detailed commit messages explaining the patch.
-  When naming the title of your pull request, please follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0-beta.4/) guide. For example, for a fix to the Driver library: 
-  
-  `fix(navigation_view): fixed a bug!`
+2. `git commit -a -m "<your informative commit message>"`
 
-2. `git push origin <name_of_your_branch>`
+    Please make sure all your check-ins have detailed commit messages explaining the patch.
+    When naming the title of your pull request, please follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0-beta.4/) guide. For example, for a fix to the Driver library: 
+
+    `fix(navigation_view): fixed a bug!`
+
+3. `git push origin <name_of_your_branch>`
 
 #### Create pull request
 
