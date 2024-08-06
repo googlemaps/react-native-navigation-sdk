@@ -79,16 +79,7 @@ RCT_EXPORT_MODULE(NavModule);
 }
 
 - (void)initializeSession {
-    // TODO(jokerttu): init mapviews on navigation initialization
-    // [_mapView.settings setCompassButton:YES];
-    // [self setMyLocationEnabled:YES];
-    // [_mapView.settings setMyLocationButton:YES];
-    
-    // [_mapView.navigationUIDelegate self];
-    //  _mapView.navigationEnabled = YES;
-    
     // Try to create a navigation session.
-    
     if (self->_session == nil && self->_session.navigator == nil) {
         GMSNavigationSession *session =
         [GMSNavigationServices createNavigationSession];
@@ -119,10 +110,6 @@ RCT_EXPORT_MODULE(NavModule);
     
     NavViewModule *navViewModule = [NavViewModule sharedInstance];
     [navViewModule attachViewsToNavigationSession:_session];
-    
-    // TODO(jokerttu): init mapviews on navigation initialization
-    //_mapView.cameraMode = GMSNavigationCameraModeFollowing;
-    //[_mapView setFollowingPerspective:GMSNavigationCameraPerspectiveTilted];
     
     [self onNavigationReady];
 }
