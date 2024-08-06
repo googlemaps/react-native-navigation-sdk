@@ -282,6 +282,7 @@ didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
     } else {
         [_mapView setFollowingPerspective:GMSNavigationCameraPerspectiveTilted];
     }
+    _mapView.cameraMode = GMSNavigationCameraModeFollowing;
 }
 
 - (void)setSpeedometerEnabled:(BOOL)isEnabled {
@@ -304,7 +305,6 @@ didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
 }
 
 - (BOOL)attachToNavigationSession:(GMSNavigationSession *)session {
-    BOOL navigationWasEnabled = _mapView.isNavigationEnabled;
     BOOL result = [_mapView enableNavigationWithSession:session];
     _mapView.navigationUIDelegate = self;
     return result;
