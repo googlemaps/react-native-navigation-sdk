@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.4.1...v0.4.2) (2024-08-06)
+
+
+### Bug Fixes
+
+* setFollowingPerspective functionality for iOS ([#222](https://github.com/googlemaps/react-native-navigation-sdk/issues/222)) ([ea85603](https://github.com/googlemaps/react-native-navigation-sdk/commit/ea85603daad5dc247fa390103ba3638ab9d43aaf))
+
 ## [0.4.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.4.0...v0.4.1) (2024-08-05)
 
 
