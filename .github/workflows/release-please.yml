@@ -57,3 +57,8 @@ jobs:
       - if: ${{ steps.release.outputs.release_created }}
         name: Start publish
         uses: ./.github/workflows/publish.yml
+
+  publish:
+    needs: release-please
+    if: ${{ release-please.steps.release.outputs.release_created }}
+    uses: ./.github/workflows/publish.yml
