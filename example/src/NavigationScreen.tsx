@@ -34,7 +34,7 @@ import {
   RouteStatus,
   type ArrivalEvent,
   type Location,
-} from 'react-native-navigation-sdk';
+} from '@googlemaps/react-native-navigation-sdk';
 import usePermissions from './checkPermissions';
 import MapsControls from './mapsControls';
 import NavigationControls from './navigationControls';

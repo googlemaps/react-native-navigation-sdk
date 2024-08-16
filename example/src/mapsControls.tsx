@@ -27,7 +27,7 @@ import {
   type Circle,
   type Polyline,
   type Polygon,
-} from 'react-native-navigation-sdk';
+} from '@googlemaps/react-native-navigation-sdk';
 
 export interface MapControlsProps {
   readonly mapViewController: MapViewController;
