@@ -50,5 +50,5 @@ jobs:
 
   publish:
     needs: release-please
-    if: ${{ jobs.release-please.outputs.release_ready }}
+    if: ${{ needs.release-please.outputs.release_ready }}
     uses: ./.github/workflows/publish.yml
