@@ -38,27 +38,17 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     needs: build-and-test
+    outputs:
+      release_ready: ${{ steps.release.outputs.release_created }}
     steps:
       - id: release
         name: Release Please
         uses: googleapis/release-please-action@v4
-
         with:
           release-type: node
           token: ${{ secrets.SYNCED_GITHUB_TOKEN_REPO }}
 
-      # Everything below is for NPM publishing when a release is cut.
-      # Note the "if" statement on all commands to make sure that publishing
-      # only happens when a release is cut.
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - if: ${{ steps.release.outputs.release_created }}
-        name: Start publish
-        uses: ./.github/workflows/publish.yml
-
   publish:
     needs: release-please
-    if: ${{ steps.release.outputs.release_created }}
+    if: ${{ jobs.release-please.outputs.release_ready }}
     uses: ./.github/workflows/publish.yml
