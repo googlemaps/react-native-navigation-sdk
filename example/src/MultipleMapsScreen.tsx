@@ -37,7 +37,7 @@ import {
   type LatLng,
   type NavigationCallbacks,
   useNavigation,
-} from 'react-native-navigation-sdk';
+} from '@googlemaps/react-native-navigation-sdk';
 import usePermissions from './checkPermissions';
 import OverlayModal from './overlayModal';
 import { NavigationView } from '../../src/navigation/navigationView/navigationView';

@@ -27,7 +27,7 @@ import MultipleMapsScreen from './MultipleMapsScreen';
 import {
   NavigationProvider,
   type TermsAndConditionsDialogOptions,
-} from 'react-native-navigation-sdk';
+} from '@googlemaps/react-native-navigation-sdk';
 
 export type ScreenNames = ['Home', 'Navigation', 'Multiple maps'];
 
