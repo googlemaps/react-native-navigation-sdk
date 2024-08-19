@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.4.2...v0.4.3) (2024-08-19)
+
+
+### Miscellaneous Chores
+
+* release 0.4.3 ([6f0b74f](https://github.com/googlemaps/react-native-navigation-sdk/commit/6f0b74f3ae9d3a830f2055090fc1a88691109d9d))
+
 ## [0.4.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.4.1...v0.4.2) (2024-08-06)
 
 
