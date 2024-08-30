@@ -25,9 +25,10 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -38,11 +39,28 @@ jobs:
       - name: Typecheck files
         run: yarn test:types
 
-  test:
+  check-formatting:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Install clang-format and google-java-format
+        run: sudo apt-get install clang-format-18 google-java-format
+
+      - name: Check Objective-C formatting
+        run: ./scripts/format-objc.sh --check
+
+      - name: Check Java formatting
+        run: ./scripts/format-java.sh --check
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -52,9 +70,10 @@ jobs:
 
   build-library:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -64,11 +83,12 @@ jobs:
 
   build-android:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       TURBO_CACHE_DIR: .turbo/android
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -122,11 +142,12 @@ jobs:
 
   build-ios:
     runs-on: macos-14
+    timeout-minutes: 30
     env:
       TURBO_CACHE_DIR: .turbo/ios
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup
         uses: ./.github/actions/setup

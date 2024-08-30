@@ -15,7 +15,14 @@
 pre-commit:
   parallel: true
   commands:
+    format-objc:
+      runner: sh
+      run: ./scripts/format-objc.sh --check
+    format-java:
+      runner: sh
+      run: ./scripts/format-java.sh --check
     license-check:
+      runner: sh
       run: ./scripts/addlicense.sh --check
     lint:
       glob: '*.{js,ts,jsx,tsx}'
