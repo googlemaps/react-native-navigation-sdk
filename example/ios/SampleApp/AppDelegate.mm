@@ -26,8 +26,15 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
-  NSString *api_key =
-      [[NSBundle mainBundle] objectForInfoDictionaryKey:@"API_KEY"];
+  
+  // Note: Ensure that you have copied the Keys.plist.sample to Keys.plist
+  // and have added the correct API_KEY value to the file.
+  //
+  // Get the path for the Keys.plist file in the main bundle and read API_KEY.
+  NSString *path = [[NSBundle mainBundle] pathForResource:@"Keys" ofType:@"plist"];
+  NSDictionary *keysDictionary = [NSDictionary dictionaryWithContentsOfFile:path];
+  NSString *api_key = [keysDictionary objectForKey:@"API_KEY"];
+  
   [GMSServices provideAPIKey:api_key];
   [GMSServices setMetalRendererEnabled:YES];
   return [super application:application

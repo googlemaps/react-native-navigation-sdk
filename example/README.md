@@ -18,7 +18,7 @@ This contains a sample application to showcase the functionality of the NavSDK l
 
    `pod install`
 
-4. In your Google cloud console, add the Google API key to the project. Add this newly created API key to the Info.plist file inside `example/ios/SampleApp/`.
+4. Copy the `Keys.plist.sample` file located in `example/ios/SampleApp/` to a new file named `Keys.plist`. This file is git ignored and won't be accidentally committed. In your Google cloud console, add the Google API key to the project and add this newly created API key to the `Keys.plist` file.
 
     ```xml
     <key>API_KEY</key>
