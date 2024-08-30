@@ -47,10 +47,32 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install clang-format and google-java-format
-        run: sudo apt-get install clang-format-18 google-java-format
+        run: sudo apt-get install clang-format
 
       - name: Check Objective-C formatting
         run: ./scripts/format-objc.sh --check
+
+      - name: Install JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          java-package: 'jdk'
+
+      - name: Download google-java-format
+        run: |
+          GOOGLE_JAVA_FORMAT_VERSION=1.23.0 
+          GOOGLE_JAVA_FORMAT_URL=https://github.com/google/google-java-format/releases/download/v${GOOGLE_JAVA_FORMAT_VERSION}/google-java-format-${GOOGLE_JAVA_FORMAT_VERSION}-all-deps.jar
+          mkdir -p $HOME/google-java-format
+          curl -L -o $HOME/google-java-format/google-java-format.jar $GOOGLE_JAVA_FORMAT_URL
+
+      - name: Create google-java-format wrapper script
+        run: |
+          cat << 'EOF' > /usr/local/bin/google-java-format
+          #!/bin/sh
+          exec java -jar "$HOME/google-java-format/google-java-format.jar" "$@"
+          EOF
+          chmod +x /usr/local/bin/google-java-format
 
       - name: Check Java formatting
         run: ./scripts/format-java.sh --check

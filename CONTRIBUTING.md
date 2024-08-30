@@ -29,8 +29,8 @@ This project follows
 - [git](https://git-scm.com) (used for source version control).
 - An IDE such as [Android Studio](https://developer.android.com/studio) or [Visual Studio Code](https://code.visualstudio.com/).
 - [addlicense](https://github.com/google/addlicense)
-- [google-java-format](https://github.com/google/google-java-format) (used to format Java code).
-- [clang-format v18](https://clang.llvm.org/docs/ClangFormat.html) (used to format Objective-C code).
+- [google-java-format Version 1.23.0](https://github.com/google/google-java-format) (used to format Java code).
+- [clang-format](https://clang.llvm.org/docs/ClangFormat.html) (used to format Objective-C code).
 
 ## 2. Forking & cloning the repository
 
