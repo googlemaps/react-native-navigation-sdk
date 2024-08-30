@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  map_container: {
+  map_view: {
     flex: 1,
     color: 'transparent',
   },
@@ -63,12 +63,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     justifyContent: 'space-between',
   },
-  controlButton: {
-    alignSelf: 'center',
+  controlButtons: {
+    alignSelf: 'stretch',
     flexDirection: 'row',
     flexWrap: 'wrap',
     margin: 10,
-    justifyContent: 'space-between',
+    justifyContent: 'space-evenly',
   },
   dropdownButtonStyle: {
     marginLeft: 12,

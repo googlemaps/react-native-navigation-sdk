@@ -21,7 +21,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RCTNavViewManager : RCTViewManager <INavigationViewCallback>
+@interface RCTNavViewManager : RCTViewManager
 
 - (instancetype)init;
 

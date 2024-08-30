@@ -88,8 +88,6 @@ in an unbounded widget will cause the application to behave unexpectedly.
     // Permissions must have been granted by this point.
 
     <NavigationView
-        width={navViewWidth}
-        height={navViewHeight}
         androidStylingOptions={{
             primaryDayModeThemeColor: '#34eba8',
             headerDistanceValueTextColor: '#76b5c5',
@@ -140,6 +138,16 @@ const requestPermissions = async () => {
         });
     }
 };
+```
+
+### Changing the NavigationView size
+By default, `NavigationView` uses all the available space provided to it. To adjust the size of the NavigationView, use the `style` prop.
+
+```tsx
+    <NavigationView
+        style={{width: 200, height: 50%}}
+        ...
+    />
 ```
 
 ## Contributing

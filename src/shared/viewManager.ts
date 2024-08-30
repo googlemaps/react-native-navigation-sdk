@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 
-import { Platform, UIManager, requireNativeComponent } from 'react-native';
+import {
+  Platform,
+  UIManager,
+  requireNativeComponent,
+  type HostComponent,
+  type ViewProps,
+} from 'react-native';
+import type { DirectEventHandler } from 'react-native/Libraries/Types/CodegenTypes';
+import type { LatLng } from '.';
+import type { Circle, GroundOverlay, Marker, Polygon, Polyline } from '../maps';
 
 export const viewManagerName =
   Platform.OS === 'android' ? 'NavViewManager' : 'RCTNavView';
@@ -44,4 +53,20 @@ export const sendCommand = (
 export const commands =
   UIManager.getViewManagerConfig(viewManagerName).Commands;
 
-export const NavViewManager = requireNativeComponent(viewManagerName);
+export interface NativeNavViewProps extends ViewProps {
+  flex?: number | undefined;
+  onMapReady?: DirectEventHandler<null>;
+  onMapClick?: DirectEventHandler<LatLng>;
+  onMarkerClick?: DirectEventHandler<Marker>;
+  onPolylineClick?: DirectEventHandler<Polyline>;
+  onPolygonClick?: DirectEventHandler<Polygon>;
+  onCircleClick?: DirectEventHandler<Circle>;
+  onGroundOverlayClick?: DirectEventHandler<GroundOverlay>;
+  onMarkerInfoWindowTapped?: DirectEventHandler<Marker>;
+  onRecenterButtonClick?: DirectEventHandler<null>;
+}
+
+type NativeNavViewManagerComponentType = HostComponent<NativeNavViewProps>;
+export const NavViewManager = requireNativeComponent<NativeNavViewProps>(
+  viewManagerName
+) as NativeNavViewManagerComponentType;

@@ -243,21 +243,6 @@ public class NavViewModule extends ReactContextBaseJavaModule {
         });
   }
 
-  private void sendCommandToReactNative(String functionName, String args) {
-    ReactContext reactContext = getReactApplicationContext();
-
-    if (reactContext != null) {
-      CatalystInstance catalystInstance = reactContext.getCatalystInstance();
-      WritableNativeArray params = new WritableNativeArray();
-
-      if (args != null) {
-        params.pushString("" + args);
-      }
-
-      catalystInstance.callFunction(Constants.NAV_VIEW_JAVASCRIPT_FLAG, functionName, params);
-    }
-  }
-
   @Override
   public boolean canOverrideExistingModule() {
     return true;

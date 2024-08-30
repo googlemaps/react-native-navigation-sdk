@@ -18,14 +18,18 @@ import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
+
+import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.UiThreadUtil;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.uimanager.UIManagerHelper;
+import com.facebook.react.uimanager.events.EventDispatcher;
+import com.facebook.react.uimanager.events.Event;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -47,6 +51,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.libraries.navigation.NavigationView;
 import com.google.android.libraries.navigation.StylingOptions;
 import com.google.android.libraries.navigation.SupportNavigationFragment;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,14 +64,12 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 
 /**
- * A simple {@link Fragment} subclass. Use the {@link NavViewFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * A fragment that displays a navigation view with a Google Map using SupportNavigationFragment.
+ * This fragment's lifecycle is managed by NavViewManager.
  */
-public class NavViewFragment extends Fragment {
+public class NavViewFragment extends SupportNavigationFragment {
   private static final String TAG = "NavViewFragment";
   private GoogleMap mGoogleMap;
-  private SupportNavigationFragment mNavFragment;
-  private INavigationViewCallback navigationViewCallback;
   private StylingOptions mStylingOptions;
 
   private List<Marker> markerList = new ArrayList<>();
@@ -74,122 +77,96 @@ public class NavViewFragment extends Fragment {
   private List<Polygon> polygonList = new ArrayList<>();
   private List<GroundOverlay> groundOverlayList = new ArrayList<>();
   private List<Circle> circleList = new ArrayList<>();
+  private int viewTag; // React native view tag.
+  private ReactApplicationContext reactContext;
 
+  public NavViewFragment(ReactApplicationContext reactContext, int viewTag) {
+    this.reactContext = reactContext;
+    this.viewTag = viewTag;
+  }
 
-  private NavigationView.OnRecenterButtonClickedListener onRecenterButtonClickedListener =
-      new NavigationView.OnRecenterButtonClickedListener() {
-        @Override
-        public void onRecenterButtonClick() {
-          if (navigationViewCallback != null) navigationViewCallback.onRecenterButtonClick();
-        }
-      };
-
-
+  private NavigationView.OnRecenterButtonClickedListener onRecenterButtonClickedListener = new NavigationView.OnRecenterButtonClickedListener() {
+    @Override
+    public void onRecenterButtonClick() {
+      emitEvent("onRecenterButtonClick", null);
+    }
+  };
 
   private String style = "";
-
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-  }
-
-  @Override
-  @SuppressLint("MissingPermission")
-  public View onCreateView(
-      LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    return inflater.inflate(R.layout.fragment_nav_view, container, false);
-  }
 
   @SuppressLint("MissingPermission")
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    mNavFragment =
-        (SupportNavigationFragment)
-            getChildFragmentManager().findFragmentById(R.id.navigation_fragment2);
+    setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
 
-    mNavFragment.setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
+    getMapAsync(new OnMapReadyCallback() {
+      public void onMapReady(GoogleMap googleMap) {
+        mGoogleMap = googleMap;
 
-    mNavFragment.getMapAsync(
-        new OnMapReadyCallback() {
-          public void onMapReady(GoogleMap googleMap) {
-            mGoogleMap = googleMap;
-            navigationViewCallback.onMapReady();
+        emitEvent("onMapReady", null);
 
-            mNavFragment.setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
+        setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
 
-            mGoogleMap.setOnMarkerClickListener(
-                new GoogleMap.OnMarkerClickListener() {
-                  @Override
-                  public boolean onMarkerClick(Marker marker) {
-                    navigationViewCallback.onMarkerClick(marker);
-                    return false;
-                  }
-                });
-            mGoogleMap.setOnPolylineClickListener(
-                new GoogleMap.OnPolylineClickListener() {
-                  @Override
-                  public void onPolylineClick(Polyline polyline) {
-                    navigationViewCallback.onPolylineClick(polyline);
-                  }
-                });
-            mGoogleMap.setOnPolygonClickListener(
-                new GoogleMap.OnPolygonClickListener() {
-                  @Override
-                  public void onPolygonClick(Polygon polygon) {
-                    navigationViewCallback.onPolygonClick(polygon);
-                  }
-                });
-            mGoogleMap.setOnCircleClickListener(
-                new GoogleMap.OnCircleClickListener() {
-                  @Override
-                  public void onCircleClick(Circle circle) {
-                    navigationViewCallback.onCircleClick(circle);
-                  }
-                });
-            mGoogleMap.setOnGroundOverlayClickListener(
-                new GoogleMap.OnGroundOverlayClickListener() {
-                  @Override
-                  public void onGroundOverlayClick(GroundOverlay groundOverlay) {
-                    navigationViewCallback.onGroundOverlayClick(groundOverlay);
-                  }
-                });
-
-            mGoogleMap.setOnInfoWindowClickListener(
-                new GoogleMap.OnInfoWindowClickListener() {
-                  @Override
-                  public void onInfoWindowClick(Marker marker) {
-                    navigationViewCallback.onMarkerInfoWindowTapped(marker);
-                  }
-                });
-
-            mGoogleMap.setOnMapClickListener(
-                new GoogleMap.OnMapClickListener() {
-                  @Override
-                  public void onMapClick(LatLng latLng) {
-                    navigationViewCallback.onMapClick(latLng);
-                  }
-                });
+        mGoogleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+          @Override
+          public boolean onMarkerClick(Marker marker) {
+            emitEvent("onMapReady", ObjectTranslationUtil.getMapFromMarker(marker));
+            return false;
+          }
+        });
+        mGoogleMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
+          @Override
+          public void onPolylineClick(Polyline polyline) {
+            emitEvent("onPolylineClick", ObjectTranslationUtil.getMapFromPolyline(polyline));
+          }
+        });
+        mGoogleMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
+          @Override
+          public void onPolygonClick(Polygon polygon) {
+            emitEvent("onPolygonClick", ObjectTranslationUtil.getMapFromPolygon(polygon));
+          }
+        });
+        mGoogleMap.setOnCircleClickListener(new GoogleMap.OnCircleClickListener() {
+          @Override
+          public void onCircleClick(Circle circle) {
+            emitEvent("onCircleClick", ObjectTranslationUtil.getMapFromCircle(circle));
+          }
+        });
+        mGoogleMap.setOnGroundOverlayClickListener(new GoogleMap.OnGroundOverlayClickListener() {
+          @Override
+          public void onGroundOverlayClick(GroundOverlay groundOverlay) {
+            emitEvent("onGroundOverlayClick", ObjectTranslationUtil.getMapFromGroundOverlay(groundOverlay));
           }
         });
 
-    Executors.newSingleThreadExecutor()
-        .execute(
-            () -> {
-              requireActivity()
-                  .runOnUiThread(
-                      (Runnable)
-                          () -> {
-                            mNavFragment.addOnRecenterButtonClickedListener(
-                                onRecenterButtonClickedListener);
-                          });
-            });
+        mGoogleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+          @Override
+          public void onInfoWindowClick(Marker marker) {
+            emitEvent("onInfoWindowClick", ObjectTranslationUtil.getMapFromMarker(marker));
+          }
+        });
+
+        mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+          @Override
+          public void onMapClick(LatLng latLng) {
+            emitEvent("onMapClick", ObjectTranslationUtil.getMapFromLatLng(latLng));
+          }
+        });
+      }
+    });
+
+    Executors.newSingleThreadExecutor().execute(() -> {
+      requireActivity().runOnUiThread((Runnable) () -> {
+        super.addOnRecenterButtonClickedListener(onRecenterButtonClickedListener);
+      });
+    });
   }
 
   public void applyStylingOptions() {
     if (mStylingOptions != null) {
-      mNavFragment.setStylingOptions(mStylingOptions);
+      super.setStylingOptions(mStylingOptions);
     }
   }
 
@@ -207,19 +184,7 @@ public class NavViewFragment extends Fragment {
   }
 
   public void setNightModeOption(int jsValue) {
-    if (mNavFragment == null) {
-      return;
-    }
-
-    mNavFragment.setForceNightMode(EnumTranslationUtil.getForceNightModeFromJsValue(jsValue));
-  }
-
-  public void setRecenterButtonEnabled(boolean isEnabled) {
-    if (mNavFragment == null) {
-      return;
-    }
-
-    mNavFragment.setRecenterButtonEnabled(isEnabled);
+    super.setForceNightMode(EnumTranslationUtil.getForceNightModeFromJsValue(jsValue));
   }
 
   public void setMapType(int jsValue) {
@@ -275,8 +240,7 @@ public class NavViewFragment extends Fragment {
 
     CircleOptions options = new CircleOptions();
 
-    float strokeWidth =
-        Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
+    float strokeWidth = Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
     options.strokeWidth(strokeWidth);
 
     double radius = CollectionUtil.getDouble("radius", optionsMap, 0.0);
@@ -315,8 +279,7 @@ public class NavViewFragment extends Fragment {
     String title = CollectionUtil.getString("title", optionsMap);
     String snippet = CollectionUtil.getString("snippet", optionsMap);
     float alpha = Double.valueOf(CollectionUtil.getDouble("alpha", optionsMap, 1)).floatValue();
-    float rotation =
-        Double.valueOf(CollectionUtil.getDouble("rotation", optionsMap, 0)).floatValue();
+    float rotation = Double.valueOf(CollectionUtil.getDouble("rotation", optionsMap, 0)).floatValue();
     boolean draggable = CollectionUtil.getBool("draggable", optionsMap, false);
     boolean flat = CollectionUtil.getBool("flat", optionsMap, false);
     boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
@@ -390,8 +353,7 @@ public class NavViewFragment extends Fragment {
 
     String strokeColor = CollectionUtil.getString("strokeColor", optionsMap);
     String fillColor = CollectionUtil.getString("fillColor", optionsMap);
-    float strokeWidth =
-        Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
+    float strokeWidth = Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
     boolean clickable = CollectionUtil.getBool("clickable", optionsMap, false);
     boolean geodesic = CollectionUtil.getBool("geodesic", optionsMap, false);
     boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
@@ -442,16 +404,15 @@ public class NavViewFragment extends Fragment {
   }
 
   public void removeMarker(String id) {
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          for (Marker m : markerList) {
-            if (m.getId().equals(id)) {
-              m.remove();
-              markerList.remove(m);
-              return;
-            }
-          }
-        });
+    UiThreadUtil.runOnUiThread(() -> {
+      for (Marker m : markerList) {
+        if (m.getId().equals(id)) {
+          m.remove();
+          markerList.remove(m);
+          return;
+        }
+      }
+    });
   }
 
   public void removePolyline(String id) {
@@ -513,8 +474,7 @@ public class NavViewFragment extends Fragment {
     String imagePath = CollectionUtil.getString("imgPath", map);
     float width = Double.valueOf(CollectionUtil.getDouble("width", map, 0)).floatValue();
     float height = Double.valueOf(CollectionUtil.getDouble("height", map, 0)).floatValue();
-    float transparency =
-        Double.valueOf(CollectionUtil.getDouble("transparency", map, 0)).floatValue();
+    float transparency = Double.valueOf(CollectionUtil.getDouble("transparency", map, 0)).floatValue();
     boolean clickable = CollectionUtil.getBool("clickable", map, false);
     boolean visible = CollectionUtil.getBool("visible", map, true);
 
@@ -541,22 +501,17 @@ public class NavViewFragment extends Fragment {
   }
 
   public void setMapStyle(String url) {
-    Executors.newSingleThreadExecutor()
-        .execute(
-            () -> {
-              try {
-                style = fetchJsonFromUrl(url);
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-              requireActivity()
-                  .runOnUiThread(
-                      (Runnable)
-                          () -> {
-                            MapStyleOptions options = new MapStyleOptions(style);
-                            mGoogleMap.setMapStyle(options);
-                          });
-            });
+    Executors.newSingleThreadExecutor().execute(() -> {
+      try {
+        style = fetchJsonFromUrl(url);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      requireActivity().runOnUiThread((Runnable) () -> {
+        MapStyleOptions options = new MapStyleOptions(style);
+        mGoogleMap.setMapStyle(options);
+      });
+    });
   }
 
   public String fetchJsonFromUrl(String urlString) throws IOException {
@@ -583,7 +538,9 @@ public class NavViewFragment extends Fragment {
   }
 
 
-  /** Moves the position of the camera to hover over Melbourne. */
+  /**
+   * Moves the position of the camera to hover over Melbourne.
+   */
   public void moveCamera(Map map) {
     LatLng latLng = ObjectTranslationUtil.getLatLngFromMap((Map) map.get("target"));
 
@@ -591,8 +548,7 @@ public class NavViewFragment extends Fragment {
     float tilt = (float) CollectionUtil.getDouble("tilt", map, 0);
     float bearing = (float) CollectionUtil.getDouble("bearing", map, 0);
 
-    CameraPosition cameraPosition =
-        CameraPosition.builder().target(latLng).zoom(zoom).tilt(tilt).bearing(bearing).build();
+    CameraPosition cameraPosition = CameraPosition.builder().target(latLng).zoom(zoom).tilt(tilt).bearing(bearing).build();
 
     mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
   }
@@ -674,129 +630,34 @@ public class NavViewFragment extends Fragment {
     }
   }
 
-  public void setTrafficIncidentCards(boolean isOn) {
-    if (mGoogleMap != null) {
-      mNavFragment.setTrafficIncidentCardsEnabled(isOn);
-    }
-  }
-
-  public void setHeaderEnabled(boolean isOn) {
-    if (mNavFragment == null) {
-      return;
-    }
-
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          mNavFragment.setHeaderEnabled(isOn);
-        });
-  }
-
-  public void setFooterEnabled(boolean isOn) {
-    if (mNavFragment == null) {
-      return;
-    }
-
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          mNavFragment.setEtaCardEnabled(isOn);
-        });
-  }
-
-  public void showRouteOverview() {
-    mNavFragment.showRouteOverview();
-  }
-
   public void setMapToolbarEnabled(boolean isOn) {
     if (mGoogleMap != null) {
       mGoogleMap.getUiSettings().setMapToolbarEnabled(isOn);
     }
   }
 
-  public void setNavigationViewCallback(INavigationViewCallback navigationViewCallback) {
-    this.navigationViewCallback = navigationViewCallback;
-  }
-
-
-  /** Toggles whether the location marker is enabled. */
+  /**
+   * Toggles whether the location marker is enabled.
+   */
   public void setMyLocationButtonEnabled(boolean isOn) {
     if (mGoogleMap == null) {
       return;
     }
 
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          mGoogleMap.getUiSettings().setMyLocationButtonEnabled(isOn);
-        });
-  }
-
-  /** Toggles the visibility of the Trip Progress Bar UI. This is an EXPERIMENTAL FEATURE. */
-  public void setTripProgressBarUiEnabled(boolean isOn) {
-    if (mNavFragment == null) {
-      return;
-    }
-
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          mNavFragment.setTripProgressBarEnabled(isOn);
-        });
-  }
-
-  /**
-   * Toggles the visibility of speed limit icon
-   *
-   * @param isOn
-   */
-  public void setSpeedLimitIconEnabled(boolean isOn) {
-    if (mNavFragment == null) {
-      return;
-    }
-
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          mNavFragment.setSpeedLimitIconEnabled(isOn);
-        });
-  }
-
-  /** Toggles whether the Navigation UI is enabled. */
-  public void setNavigationUiEnabled(boolean isOn) {
-    if (mNavFragment == null) {
-      return;
-    }
-
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          mNavFragment.setNavigationUiEnabled(isOn);
-        });
-  }
-
-  public void setSpeedometerEnabled(boolean isEnable) {
-    if (mNavFragment == null) {
-      return;
-    }
-
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          mNavFragment.setSpeedometerEnabled(isEnable);
-        });
+    UiThreadUtil.runOnUiThread(() -> {
+      mGoogleMap.getUiSettings().setMyLocationButtonEnabled(isOn);
+    });
   }
 
   @Override
   public void onDestroy() {
     super.onDestroy();
-    if (mNavFragment != null) {
-      mNavFragment.onDestroy();
-    }
     cleanup();
   }
 
   @Override
   public void onDestroyView() {
     super.onDestroyView();
-
-    if (mNavFragment != null) {
-      mNavFragment.onDestroyView();
-    }
-
     cleanup();
   }
 
@@ -805,7 +666,39 @@ public class NavViewFragment extends Fragment {
   }
 
   private void cleanup() {
-    mNavFragment.removeOnRecenterButtonClickedListener(onRecenterButtonClickedListener);
+    removeOnRecenterButtonClickedListener(onRecenterButtonClickedListener);
   }
 
+  private void emitEvent(String eventName, @Nullable WritableMap data) {
+    if (reactContext != null) {
+      EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, viewTag);
+
+      if (dispatcher != null) {
+        int surfaceId = UIManagerHelper.getSurfaceId(reactContext);
+        dispatcher.dispatchEvent(new NavViewEvent(surfaceId, viewTag, eventName, data));
+      }
+    }
+  }
+
+  public class NavViewEvent extends Event<NavViewEvent> {
+    private String eventName;
+    private @Nullable WritableMap eventData;
+
+    public NavViewEvent(int surfaceId, int viewTag, String eventName, @Nullable WritableMap eventData) {
+      super(surfaceId, viewTag);
+      this.eventName = eventName;
+      this.eventData = eventData;
+    }
+
+    @Override
+    public String getEventName() {
+      return eventName;
+    }
+
+    @Override
+    public WritableMap getEventData() {
+      return eventData;
+    }
+  }
 }
+

@@ -29,6 +29,7 @@
  * limitations under the License.
  */
 
+import type { StyleProp, ViewStyle } from 'react-native';
 import type {
   MapViewCallbacks,
   MapViewController,
@@ -64,13 +65,13 @@ export interface NavigationViewCallbacks {
  * additional methods focused on managing navigation events and state changes.
  */
 export interface NavigationViewProps {
-  readonly width: number;
-  readonly height: number;
   readonly androidStylingOptions?: AndroidStylingOptions;
   readonly iOSStylingOptions?: iOSStylingOptions;
 
   readonly navigationViewCallbacks?: NavigationViewCallbacks;
   readonly mapViewCallbacks?: MapViewCallbacks;
+
+  readonly style?: StyleProp<ViewStyle> | undefined;
 
   onNavigationViewControllerCreated(
     navigationViewController: NavigationViewController

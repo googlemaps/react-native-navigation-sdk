@@ -201,7 +201,7 @@ export interface NavigationCallbacks {
   onTurnByTurn?(turnByTurnEvents: TurnByTurnEvent[]): void;
 
   /**
-   * Allows developers to listen for relevant debug logs.
+   * Allows developers to listen for relevant debug logs (Android only).
    *
    * @param message relevant log message
    */

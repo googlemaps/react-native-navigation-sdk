@@ -15,7 +15,7 @@
  */
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Button, Dimensions, View } from 'react-native';
+import { Button, Switch, Text, View } from 'react-native';
 import Snackbar from 'react-native-snackbar';
 import styles from './styles';
 import {
@@ -52,6 +52,8 @@ enum OverlayType {
   MapControls = 'MapControls',
 }
 
+const marginAmount = 50;
+
 const NavigationScreen = () => {
   const { arePermissionsApproved } = usePermissions();
   const [overlayType, setOverlayType] = useState<OverlayType>(OverlayType.None);
@@ -63,9 +65,13 @@ const NavigationScreen = () => {
   const { navigationController, addListeners, removeListeners } =
     useNavigation();
 
+  const [navigationInitialized, setNavigationInitialized] = useState(false);
+
   const onRouteChanged = useCallback(() => {
     showSnackbar('Route Changed');
   }, []);
+
+  const [margin, setMargin] = useState<number | null>(null);
 
   const onArrival = useCallback(
     (event: ArrivalEvent) => {
@@ -89,7 +95,13 @@ const NavigationScreen = () => {
 
   const onNavigationReady = useCallback(() => {
     console.log('onNavigationReady');
+    setNavigationInitialized(true);
   }, []);
+
+  const onNavigationDispose = useCallback(async () => {
+    await navigationViewController?.setNavigationUIEnabled(false);
+    setNavigationInitialized(false);
+  }, [navigationViewController]);
 
   const onNavigationInitError = useCallback(
     (errorCode: NavigationInitErrorCode) => {
@@ -218,7 +230,6 @@ const NavigationScreen = () => {
   );
 
   useEffect(() => {
-    removeListeners(navigationCallbacks);
     addListeners(navigationCallbacks);
     return () => {
       removeListeners(navigationCallbacks);
@@ -246,15 +257,6 @@ const NavigationScreen = () => {
   const onShowMapsControlsClick = useCallback(() => {
     setOverlayType(OverlayType.MapControls);
   }, [setOverlayType]);
-
-  const navViewWidth = useMemo(() => Dimensions.get('window').width, []);
-  const navViewHeight = useMemo(
-    () =>
-      Dimensions.get('window').height -
-      0.05 * Dimensions.get('window').height -
-      100,
-    []
-  );
 
   const navigationViewCallbacks: NavigationViewCallbacks = {
     onRecenterButtonClick,
@@ -294,38 +296,43 @@ const NavigationScreen = () => {
 
   return arePermissionsApproved ? (
     <View style={[styles.container]}>
-      <View style={[styles.map_container]}>
-        <NavigationView
-          width={navViewWidth}
-          height={navViewHeight}
-          androidStylingOptions={{
-            primaryDayModeThemeColor: '#34eba8',
-            headerDistanceValueTextColor: '#76b5c5',
-            headerInstructionsFirstRowTextSize: '20f',
-          }}
-          iOSStylingOptions={{
-            navigationHeaderPrimaryBackgroundColor: '#34eba8',
-            navigationHeaderDistanceValueTextColor: '#76b5c5',
-          }}
-          navigationViewCallbacks={navigationViewCallbacks}
-          mapViewCallbacks={mapViewCallbacks}
-          onMapViewControllerCreated={setMapViewController}
-          onNavigationViewControllerCreated={setNavigationViewController}
-        />
-      </View>
+      <NavigationView
+        style={[
+          {
+            ...styles.map_view,
+            margin: margin,
+          },
+        ]}
+        androidStylingOptions={{
+          primaryDayModeThemeColor: '#34eba8',
+          headerDistanceValueTextColor: '#76b5c5',
+          headerInstructionsFirstRowTextSize: '20f',
+        }}
+        iOSStylingOptions={{
+          navigationHeaderPrimaryBackgroundColor: '#34eba8',
+          navigationHeaderDistanceValueTextColor: '#76b5c5',
+        }}
+        navigationViewCallbacks={navigationViewCallbacks}
+        mapViewCallbacks={mapViewCallbacks}
+        onMapViewControllerCreated={setMapViewController}
+        onNavigationViewControllerCreated={setNavigationViewController}
+      />
 
-      {navigationViewController != null && navigationController != null && (
-        <OverlayModal
-          visible={overlayType === OverlayType.NavControls}
-          closeOverlay={closeOverlay}
-        >
-          <NavigationControls
-            navigationController={navigationController}
-            navigationViewController={navigationViewController}
-            getCameraPosition={mapViewController?.getCameraPosition}
-          />
-        </OverlayModal>
-      )}
+      {navigationViewController != null &&
+        navigationController != null &&
+        navigationInitialized && (
+          <OverlayModal
+            visible={overlayType === OverlayType.NavControls}
+            closeOverlay={closeOverlay}
+          >
+            <NavigationControls
+              navigationController={navigationController}
+              navigationViewController={navigationViewController}
+              getCameraPosition={mapViewController?.getCameraPosition}
+              onNavigationDispose={onNavigationDispose}
+            />
+          </OverlayModal>
+        )}
 
       {mapViewController != null && (
         <OverlayModal
@@ -336,10 +343,22 @@ const NavigationScreen = () => {
         </OverlayModal>
       )}
 
-      <View style={styles.controlButton}>
-        <Button title="Navigation" onPress={onShowNavControlsClick} />
-        <View style={{ margin: 10 }} />
+      <View style={styles.controlButtons}>
+        <Button
+          title="Navigation"
+          onPress={onShowNavControlsClick}
+          disabled={!navigationInitialized}
+        />
         <Button title="Maps" onPress={onShowMapsControlsClick} />
+        <View style={styles.rowContainer}>
+          <Text>Margin</Text>
+          <Switch
+            value={!!margin}
+            onValueChange={() => {
+              setMargin(margin ? null : marginAmount);
+            }}
+          />
+        </View>
       </View>
     </View>
   ) : (
