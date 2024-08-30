@@ -39,18 +39,25 @@ jobs:
       - name: Typecheck files
         run: yarn test:types
 
-  check-formatting:
+  check-objc-formatting:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install clang-format and google-java-format
+      - name: Install clang-format
         run: sudo apt-get install clang-format
 
       - name: Check Objective-C formatting
         run: ./scripts/format-objc.sh --check
+
+  check-java-formatting:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Install JDK
         uses: actions/setup-java@v3
