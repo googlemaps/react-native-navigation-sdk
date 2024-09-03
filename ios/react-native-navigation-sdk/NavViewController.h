@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#import <UIKit/UIKit.h>
 #import "INavigationViewCallback.h"
 #import "ObjectTranslationUtil.h"
+#import <UIKit/UIKit.h>
 @import GoogleNavigation;
 
 NS_ASSUME_NONNULL_BEGIN
@@ -25,21 +25,19 @@ NS_ASSUME_NONNULL_BEGIN
     : UIViewController <GMSMapViewNavigationUIDelegate, GMSMapViewDelegate>
 
 @property(weak, nonatomic) id<INavigationViewCallback> callbacks;
-@property double height;
-@property double width;
-
 typedef void (^RouteStatusCallback)(GMSRouteStatus routeStatus);
 typedef void (^OnStringResult)(NSString *result);
 typedef void (^OnBooleanResult)(BOOL result);
-typedef void (^OnDictionaryResult)(NSDictionary * _Nullable result);
-typedef void (^OnArrayResult)(NSArray * _Nullable result);
-- (instancetype)initWithSize:(double)height width:(double)width;
+typedef void (^OnDictionaryResult)(NSDictionary *_Nullable result);
+typedef void (^OnArrayResult)(NSArray *_Nullable result);
+- (instancetype)initWithWidth:(CGFloat)width height:(CGFloat)height;
+- (void)updateLayoutWithWidth:(CGFloat)width height:(CGFloat)height;
 - (void)setStylingOptions:(nonnull NSDictionary *)stylingOptions;
 - (void)getCameraPosition:(OnDictionaryResult)completionBlock;
 - (void)getMyLocation:(OnDictionaryResult)completionBlock;
 - (void)getUiSettings:(OnDictionaryResult)completionBlock;
 - (void)isMyLocationEnabled:(OnBooleanResult)completionBlock;
-- (void)moveCamera:(NSDictionary *) cameraPositionMap;
+- (void)moveCamera:(NSDictionary *)cameraPositionMap;
 - (void)setTripProgressBarEnabled:(BOOL)isEnabled;
 - (void)setNavigationUIEnabled:(BOOL)isEnabled;
 - (void)setFollowingPerspective:(NSNumber *)index;
@@ -68,11 +66,16 @@ typedef void (^OnArrayResult)(NSArray * _Nullable result);
 - (void)setMapStyle:(GMSMapStyle *)mapStyle;
 - (void)setMapType:(GMSMapViewType)mapType;
 - (void)clearMapView;
-- (void)addGroundOverlay:(NSDictionary *)overlayOptions result: (OnDictionaryResult)completionBlock;
-- (void)addCircle:(NSDictionary *)circleOptions result: (OnDictionaryResult)completionBlock;
-- (void)addMarker:(NSDictionary *)markerOptions result: (OnDictionaryResult)completionBlock;
-- (void)addPolygon:(NSDictionary *)polygonOptions result:(OnDictionaryResult)completionBlock;
-- (void)addPolyline:(NSDictionary *)options result:(OnDictionaryResult)completionBlock;
+- (void)addGroundOverlay:(NSDictionary *)overlayOptions
+                  result:(OnDictionaryResult)completionBlock;
+- (void)addCircle:(NSDictionary *)circleOptions
+           result:(OnDictionaryResult)completionBlock;
+- (void)addMarker:(NSDictionary *)markerOptions
+           result:(OnDictionaryResult)completionBlock;
+- (void)addPolygon:(NSDictionary *)polygonOptions
+            result:(OnDictionaryResult)completionBlock;
+- (void)addPolyline:(NSDictionary *)options
+             result:(OnDictionaryResult)completionBlock;
 - (GMSMapView *)mapView;
 - (void)showRouteOverview;
 - (void)removeMarker:(NSString *)markerId;
@@ -81,6 +84,7 @@ typedef void (^OnArrayResult)(NSArray * _Nullable result);
 - (void)removeCircle:(NSString *)circleId;
 - (void)removeGroundOverlay:(NSString *)overlayId;
 - (BOOL)attachToNavigationSession:(GMSNavigationSession *)session;
+- (void)setTravelMode:(GMSNavigationTravelMode)travelMode;
 //- (void)removeNavigationListeners;
 @end
 

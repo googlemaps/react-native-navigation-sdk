@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-inline-styles */
 /**
  * Copyright 2023 Google LLC
  *
@@ -16,7 +15,7 @@
  */
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Button, Dimensions, View } from 'react-native';
+import { Button, View } from 'react-native';
 import Snackbar from 'react-native-snackbar';
 import MapsControls from './mapsControls';
 import NavigationControls from './navigationControls';
@@ -60,9 +59,11 @@ const MultipleMapsScreen = () => {
     useState<MapViewController | null>(null);
   const [mapViewController2, setMapViewController2] =
     useState<MapViewController | null>(null);
-  const [navigationViewController, setNavigationViewController] =
+  const [navigationViewController1, setNavigationViewController1] =
     useState<NavigationViewController | null>(null);
-
+  const [navigationViewController2, setNavigationViewController2] =
+    useState<NavigationViewController | null>(null);
+  const [navigationInitialized, setNavigationInitialized] = useState(false);
   const { navigationController, addListeners, removeListeners } =
     useNavigation();
 
@@ -90,9 +91,23 @@ const MultipleMapsScreen = () => {
     showSnackbar('Traffic Updated');
   }, []);
 
-  const onNavigationReady = useCallback(() => {
-    console.log('onNavigationReady');
-  }, []);
+  const onNavigationReady = useCallback(async () => {
+    if (
+      navigationViewController1 != null &&
+      navigationViewController2 != null
+    ) {
+      await navigationViewController1.setNavigationUIEnabled(true);
+      await navigationViewController2.setNavigationUIEnabled(true);
+      console.log('onNavigationReady');
+      setNavigationInitialized(true);
+    }
+  }, [navigationViewController1, navigationViewController2]);
+
+  const onNavigationDispose = useCallback(async () => {
+    await navigationViewController1?.setNavigationUIEnabled(false);
+    await navigationViewController2?.setNavigationUIEnabled(false);
+    setNavigationInitialized(false);
+  }, [navigationViewController1, navigationViewController2]);
 
   const onNavigationInitError = useCallback(
     (errorCode: NavigationInitErrorCode) => {
@@ -145,10 +160,7 @@ const MultipleMapsScreen = () => {
     const currentTimeAndDistance =
       await navigationController.getCurrentTimeAndDistance();
 
-    console.log(
-      'called onRemainingTimeOrDistanceChanged',
-      currentTimeAndDistance
-    );
+    console.log('onRemainingTimeOrDistanceChanged', currentTimeAndDistance);
   }, [navigationController]);
 
   const onRouteStatusResult = useCallback(
@@ -248,16 +260,6 @@ const MultipleMapsScreen = () => {
     setOverlayType(OverlayType.MapControls2);
   }, []);
 
-  const navViewWidth = useMemo(() => Dimensions.get('window').width, []);
-  const navViewHeight = useMemo(
-    () =>
-      (Dimensions.get('window').height -
-        0.05 * Dimensions.get('window').height -
-        150) /
-      2.0,
-    []
-  );
-
   const navigationViewCallbacks: NavigationViewCallbacks = useMemo(
     () => ({
       onRecenterButtonClick,
@@ -328,60 +330,53 @@ const MultipleMapsScreen = () => {
 
   return arePermissionsApproved ? (
     <View style={[styles.container]}>
-      <View style={[styles.map_container]}>
-        <NavigationView
-          width={navViewWidth}
-          height={navViewHeight}
-          androidStylingOptions={{
-            primaryDayModeThemeColor: '#34eba8',
-            headerDistanceValueTextColor: '#76b5c5',
-            headerInstructionsFirstRowTextSize: '20f',
-          }}
-          iOSStylingOptions={{
-            navigationHeaderPrimaryBackgroundColor: '#34eba8',
-            navigationHeaderDistanceValueTextColor: '#76b5c5',
-          }}
-          navigationViewCallbacks={navigationViewCallbacks}
-          mapViewCallbacks={mapViewCallbacks1}
-          onMapViewControllerCreated={setMapViewController1}
-          onNavigationViewControllerCreated={setNavigationViewController}
-        />
-      </View>
+      <NavigationView
+        androidStylingOptions={{
+          primaryDayModeThemeColor: '#34eba8',
+          headerDistanceValueTextColor: '#76b5c5',
+          headerInstructionsFirstRowTextSize: '20f',
+        }}
+        iOSStylingOptions={{
+          navigationHeaderPrimaryBackgroundColor: '#34eba8',
+          navigationHeaderDistanceValueTextColor: '#76b5c5',
+        }}
+        navigationViewCallbacks={navigationViewCallbacks}
+        mapViewCallbacks={mapViewCallbacks1}
+        onMapViewControllerCreated={setMapViewController1}
+        onNavigationViewControllerCreated={setNavigationViewController1}
+      />
 
-      <View style={[styles.map_container]}>
-        <NavigationView
-          width={navViewWidth}
-          height={navViewHeight}
-          androidStylingOptions={{
-            primaryDayModeThemeColor: '#34eba8',
-            headerDistanceValueTextColor: '#76b5c5',
-            headerInstructionsFirstRowTextSize: '20f',
-          }}
-          iOSStylingOptions={{
-            navigationHeaderPrimaryBackgroundColor: '#34eba8',
-            navigationHeaderDistanceValueTextColor: '#76b5c5',
-          }}
-          navigationViewCallbacks={navigationViewCallbacks}
-          mapViewCallbacks={mapViewCallbacks2}
-          onMapViewControllerCreated={setMapViewController2}
-          onNavigationViewControllerCreated={() => {
-            // pass as navigation is controller only for first view in this example.
-          }}
-        />
-      </View>
+      <NavigationView
+        androidStylingOptions={{
+          primaryDayModeThemeColor: '#34eba8',
+          headerDistanceValueTextColor: '#76b5c5',
+          headerInstructionsFirstRowTextSize: '20f',
+        }}
+        iOSStylingOptions={{
+          navigationHeaderPrimaryBackgroundColor: '#34eba8',
+          navigationHeaderDistanceValueTextColor: '#76b5c5',
+        }}
+        navigationViewCallbacks={navigationViewCallbacks}
+        mapViewCallbacks={mapViewCallbacks2}
+        onMapViewControllerCreated={setMapViewController2}
+        onNavigationViewControllerCreated={setNavigationViewController2}
+      />
 
-      {navigationViewController != null && navigationController != null && (
-        <OverlayModal
-          visible={overlayType === OverlayType.NavControls}
-          closeOverlay={closeOverlay}
-        >
-          <NavigationControls
-            navigationController={navigationController}
-            navigationViewController={navigationViewController}
-            getCameraPosition={mapViewController1?.getCameraPosition}
-          />
-        </OverlayModal>
-      )}
+      {navigationViewController1 != null &&
+        navigationController != null &&
+        navigationInitialized && (
+          <OverlayModal
+            visible={overlayType === OverlayType.NavControls}
+            closeOverlay={closeOverlay}
+          >
+            <NavigationControls
+              navigationController={navigationController}
+              navigationViewController={navigationViewController1}
+              getCameraPosition={mapViewController1?.getCameraPosition}
+              onNavigationDispose={onNavigationDispose}
+            />
+          </OverlayModal>
+        )}
 
       {mapViewController1 != null && (
         <OverlayModal
@@ -401,12 +396,14 @@ const MultipleMapsScreen = () => {
         </OverlayModal>
       )}
 
-      <View style={styles.controlButton}>
-        <Button title="Navigation (Map 1)" onPress={onShowNavControlsClick} />
-        <View style={{ margin: 10 }} />
-        <Button title="Maps 1" onPress={onShowMapsControlsClick1} />
-        <View style={{ margin: 10 }} />
-        <Button title="Maps 2" onPress={onShowMapsControlsClick2} />
+      <View style={styles.controlButtons}>
+        <Button
+          title="Nav (Map 1)"
+          onPress={onShowNavControlsClick}
+          disabled={!navigationInitialized}
+        />
+        <Button title="Map 1" onPress={onShowMapsControlsClick1} />
+        <Button title="Map 2" onPress={onShowMapsControlsClick2} />
       </View>
     </View>
   ) : (

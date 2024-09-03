@@ -25,15 +25,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 @required
 
-- (void)onMapReady;
-- (void)onMapClick:(NSDictionary *)latLngMap;
-- (void)onRecenterButtonClick;
-- (void)onMarkerInfoWindowTapped:(GMSMarker *)marker;
-- (void)onMarkerClick:(GMSMarker *)marker;
-- (void)onPolylineClick:(GMSPolyline *)polyline;
-- (void)onPolygonClick:(GMSPolygon *)polygon;
-- (void)onCircleClick:(GMSCircle *)circle;
-- (void)onGroundOverlayClick:(GMSGroundOverlay *)groundOverlay;
+- (void)handleMapReady;
+- (void)handleMapClick:(NSDictionary *)latLngMap;
+- (void)handleRecenterButtonClick;
+- (void)handleMarkerInfoWindowTapped:(GMSMarker *)marker;
+- (void)handleMarkerClick:(GMSMarker *)marker;
+- (void)handlePolylineClick:(GMSPolyline *)polyline;
+- (void)handlePolygonClick:(GMSPolygon *)polygon;
+- (void)handleCircleClick:(GMSCircle *)circle;
+- (void)handleGroundOverlayClick:(GMSGroundOverlay *)groundOverlay;
 @end
 
 NS_ASSUME_NONNULL_END

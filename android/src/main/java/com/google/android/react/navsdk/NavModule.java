@@ -187,6 +187,7 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
     mWaypoints.clear();
 
     UiThreadUtil.runOnUiThread(() -> {
+      mNavigator.clearDestinations();
       mNavigator.cleanup();
     });
   }

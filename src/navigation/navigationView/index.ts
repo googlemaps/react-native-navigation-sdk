@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-export * from './androidNavViewHelper';
 export * from './navigationViewController';
 export * from '../shared';
 export * from './stylingOptions';

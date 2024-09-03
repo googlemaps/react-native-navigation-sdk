@@ -33,15 +33,19 @@ export interface MapControlsProps {
   readonly mapViewController: MapViewController;
 }
 
+export const defaultZoom: number = 15;
+
 const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
   const mapTypeOptions = ['None', 'Normal', 'Satellite', 'Terrain', 'Hybrid'];
-  const [zoom, setZoom] = useState(15);
+  const [zoom, setZoom] = useState<number | null>(null);
   const [enableLocationMarker, setEnableLocationMarker] = useState(true);
   const [latitude, onLatChanged] = useState('');
   const [longitude, onLngChanged] = useState('');
 
   useEffect(() => {
-    mapViewController.setZoomLevel(zoom);
+    if (zoom !== null) {
+      mapViewController.setZoomLevel(zoom);
+    }
   }, [mapViewController, zoom]);
 
   const setMyLocationButtonEnabled = (isOn: boolean) => {
@@ -126,7 +130,7 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
       radius: 100,
       fillColor: '#FFFFFF',
       strokeColor: '#000000',
-      strokeWidth: 100,
+      strokeWidth: 5,
       visible: true,
       clickable: true,
     });
@@ -146,7 +150,6 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
       });
     }
 
-    console.log(latLngs.length);
     const polyline: Polyline = await mapViewController.addPolyline({
       points: latLngs,
       width: 10,
@@ -208,13 +211,13 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
       <Button
         title="Zoom in"
         onPress={() => {
-          setZoom(zoom + 1);
+          setZoom((zoom ?? defaultZoom) + 1);
         }}
       />
       <Button
         title="Zoom Out"
         onPress={() => {
-          setZoom(zoom - 1);
+          setZoom((zoom ?? defaultZoom) - 1);
         }}
       />
       <Button title="Add marker" onPress={addMarker} />

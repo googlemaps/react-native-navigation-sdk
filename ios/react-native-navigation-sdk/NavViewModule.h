@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-#import <React/RCTBridgeModule.h>
 #import "NavViewController.h"
+#import <React/RCTBridgeModule.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface NavViewModule : NSObject <RCTBridgeModule>
-@property (nonatomic, strong) NSMutableDictionary<NSNumber *, NavViewController *> *viewControllers;
-
+@property(nonatomic, strong)
+    NSMutableDictionary<NSNumber *, NavViewController *> *viewControllers;
 
 - (void)attachViewsToNavigationSession:(GMSNavigationSession *)session;
+- (void)setTravelMode:(GMSNavigationTravelMode)travelMode;
 
 // Class method to access the singleton instance
 + (instancetype)sharedInstance;

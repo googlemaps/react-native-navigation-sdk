@@ -40,12 +40,14 @@ import styles from './styles';
 export interface NavigationControlsProps {
   readonly navigationController: NavigationController;
   readonly navigationViewController: NavigationViewController;
+  readonly onNavigationDispose?: () => void;
   readonly getCameraPosition: undefined | (() => Promise<CameraPosition>);
 }
 
 const NavigationControls: React.FC<NavigationControlsProps> = ({
   navigationController,
   navigationViewController,
+  onNavigationDispose,
   getCameraPosition,
 }) => {
   const perspectiveOptions = ['Tilted', 'North up', 'Heading up'];
@@ -73,6 +75,9 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   const disposeNavigation = async () => {
     try {
       await navigationController.cleanup();
+      if (onNavigationDispose) {
+        onNavigationDispose();
+      }
     } catch (e) {
       console.error('Error cleaning up navigation controller:', e);
     }

@@ -15,21 +15,27 @@
  */
 
 #import "RCTNavViewManager.h"
+#import "NavView.h"
 #import "NavViewController.h"
-#import "NavViewEventDispatcher.h"
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
 #import <React/RCTUIManager.h>
 
 @implementation RCTNavViewManager
 static NSMutableDictionary<NSNumber *, NavViewController *> *_viewControllers;
-static NavViewEventDispatcher *_eventDispatcher;
 static NavViewModule *_navViewModule;
 
-// TODO: move _stylingOptions to the viewController property
-static NSDictionary *_stylingOptions = NULL;
-
 RCT_EXPORT_MODULE();
+
+RCT_EXPORT_VIEW_PROPERTY(onRecenterButtonClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onMapReady, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onMapClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onMarkerInfoWindowTapped, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onMarkerClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onPolylineClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onPolygonClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onCircleClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onGroundOverlayClick, RCTDirectEventBlock);
 
 - (instancetype)init {
   if (self = [super init]) {
@@ -41,7 +47,7 @@ RCT_EXPORT_MODULE();
 }
 
 - (UIView *)view {
-  return [[UIView alloc] init];
+  return [[NavView alloc] init];
 }
 
 + (BOOL)requiresMainQueueSetup {
@@ -66,33 +72,21 @@ RCT_EXPORT_MODULE();
 }
 
 RCT_EXPORT_METHOD(createFragment
-                  : (nonnull NSNumber *)reactTag height
-                  : (double)height width
-                  : (double)width stylingOptions
+                  : (nonnull NSNumber *)reactTag stylingOptions
                   : (NSDictionary *)stylingOptions) {
   [self.bridge.uiManager
       addUIBlock:^(RCTUIManager *uiManager,
                    NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-        UIView *view = viewRegistry[reactTag];
-        if (!view || ![view isKindOfClass:[UIView class]]) {
+        NavView *view = (NavView *)viewRegistry[reactTag];
+        if (!view || ![view isKindOfClass:[NavView class]]) {
           RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
           return;
         }
 
         NavViewController *viewController =
-            [[NavViewController alloc] initWithSize:height width:width];
-
-        [viewController setNavigationCallbacks:self];
-        if (stylingOptions != nil && [stylingOptions count] > 0) {
-          _stylingOptions = stylingOptions;
-        }
-
-        [view addSubview:viewController.view];
-        [view setFrame:CGRectMake(0, 0, width, height)];
+            [view initializeViewControllerWithStylingOptions:stylingOptions];
 
         [self registerViewController:viewController forTag:reactTag];
-
-        _eventDispatcher = [NavViewEventDispatcher allocWithZone:nil];
       }];
 }
 
@@ -100,8 +94,8 @@ RCT_EXPORT_METHOD(deleteFragment : (nonnull NSNumber *)reactTag) {
   [self.bridge.uiManager
       addUIBlock:^(RCTUIManager *uiManager,
                    NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-        UIView *view = viewRegistry[reactTag];
-        if (!view || ![view isKindOfClass:[UIView class]]) {
+        NavView *view = (NavView *)viewRegistry[reactTag];
+        if (!view || ![view isKindOfClass:[NavView class]]) {
           RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
           return;
         }
@@ -246,70 +240,6 @@ RCT_EXPORT_METHOD(showRouteOverview : (nonnull NSNumber *)reactTag) {
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController showRouteOverview];
   });
-}
-
-- (void)onRecenterButtonClick {
-  [self sendCommandToReactNative:@"onRecenterButtonClick"];
-}
-
-- (void)onMapReady {
-  [self sendCommandToReactNative:@"onMapReady"];
-}
-
-- (void)onMapClick:(NSDictionary *)latLngMap {
-  [self sendCommandToReactNative:@"onMapClick" args:latLngMap];
-}
-
-- (void)onMarkerInfoWindowTapped:(GMSMarker *)marker {
-  [self sendCommandToReactNative:@"onMarkerInfoWindowTapped"
-                            args:[ObjectTranslationUtil
-                                     transformMarkerToDictionary:marker]];
-}
-
-- (void)onMarkerClick:(GMSMarker *)marker {
-  [self sendCommandToReactNative:@"onMarkerClick"
-                            args:[ObjectTranslationUtil
-                                     transformMarkerToDictionary:marker]];
-}
-
-- (void)onPolylineClick:(GMSPolyline *)polyline {
-  [self sendCommandToReactNative:@"onPolylineClick"
-                            args:[ObjectTranslationUtil
-                                     transformPolylineToDictionary:polyline]];
-}
-
-- (void)onPolygonClick:(GMSPolygon *)polygon {
-  [self sendCommandToReactNative:@"onPolygonClick"
-                            args:[ObjectTranslationUtil
-                                     transformPolygonToDictionary:polygon]];
-}
-
-- (void)onCircleClick:(GMSCircle *)circle {
-  [self sendCommandToReactNative:@"onCircleClick"
-                            args:[ObjectTranslationUtil
-                                     transformCircleToDictionary:circle]];
-}
-
-- (void)onGroundOverlayClick:(GMSGroundOverlay *)groundOverlay {
-  [self sendCommandToReactNative:@"onGroundOverlayClick"
-                            args:[ObjectTranslationUtil
-                                     transformGroundOverlayToDictionary:
-                                         groundOverlay]];
-}
-
-- (void)sendCommandToReactNative:(NSString *)command {
-  if (_eventDispatcher != NULL) {
-    [_eventDispatcher sendEventName:command
-                               body:@{
-                                 @"args" : @[],
-                               }];
-  }
-}
-
-- (void)sendCommandToReactNative:(NSString *)command args:(NSObject *)args {
-  if (_eventDispatcher != NULL) {
-    [_eventDispatcher sendEventName:command body:args];
-  }
 }
 
 // MAPS SDK

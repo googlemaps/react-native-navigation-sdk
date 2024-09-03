@@ -15,6 +15,7 @@
  */
 
 #import "NavViewModule.h"
+#import "NavView.h"
 
 @implementation NavViewModule
 
@@ -42,6 +43,12 @@ static NavViewModule *sharedInstance = nil;
   }
 }
 
+- (void)setTravelMode:(GMSNavigationTravelMode)travelMode {
+  for (NavViewController *viewController in self.viewControllers.allValues) {
+    [viewController setTravelMode:travelMode];
+  }
+}
+
 - (NavViewController *)getViewControllerForTag:(NSNumber *)reactTag {
   NavViewController *viewController = self.viewControllers[reactTag];
   return viewController;
@@ -51,16 +58,16 @@ RCT_EXPORT_METHOD(getCameraPosition
                   : (nonnull NSNumber *)reactTag resolver
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    if (viewController) {
-      [viewController getCameraPosition:^(NSDictionary *result) {
-        resolve(result);
-      }];
-    } else {
-      reject(@"no_view_controller", @"No viewController found", nil);
-    }
-  });
+    dispatch_async(dispatch_get_main_queue(), ^{
+      NavViewController *viewController = [self getViewControllerForTag:reactTag];
+        if (viewController) {
+          [viewController getCameraPosition:^(NSDictionary *result) {
+            resolve(result);
+          }];
+        } else {
+          reject(@"no_view_controller", @"No viewController found", nil);
+        }
+    });
 }
 
 RCT_EXPORT_METHOD(getMyLocation
