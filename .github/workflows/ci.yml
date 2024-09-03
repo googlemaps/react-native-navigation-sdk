@@ -166,6 +166,9 @@ jobs:
         env:
           NO_FLIPPER: 1
 
+      - name: Copy Keys.plist file from sample
+        run: cp example/ios/SampleApp/Keys.plist.sample example/ios/SampleApp/Keys.plist
+
       - name: Build example for iOS
         run: |
           yarn turbo run build:ios --cache-dir="${{ env.TURBO_CACHE_DIR }}"
