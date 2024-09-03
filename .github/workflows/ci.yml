@@ -167,7 +167,7 @@ jobs:
           NO_FLIPPER: 1
 
       - name: Copy Keys.plist file from sample
-        run: cp example/ios/SampleApp/Keys.plist.example example/ios/SampleApp/Keys.plist
+        run: cp example/ios/SampleApp/Keys.plist.sample example/ios/SampleApp/Keys.plist
 
       - name: Build example for iOS
         run: |
