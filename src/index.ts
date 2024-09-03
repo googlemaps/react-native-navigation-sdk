@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+export * from './auto';
 export * from './maps';
 export * from './navigation';
 export * from './shared';

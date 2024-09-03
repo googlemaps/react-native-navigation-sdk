@@ -13,26 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef NavModule_h
-#define NavModule_h
-
 #import <React/RCTBridgeModule.h>
-#import "INavigationCallback.h"
-@import GoogleNavigation;
+#import "NavViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface NavModule : NSObject <RCTBridgeModule, GMSNavigatorListener, GMSRoadSnappedLocationProviderListener, INavigationCallback>
+@interface NavAutoModule : NSObject <RCTBridgeModule>
+@property (nonatomic, strong) NavViewController *viewController;
 
-typedef void (^NavigationSessionReadyCallback)(void);
+typedef void (^NavAutoModuleReadyCallback)(void);
 
-@property BOOL enableUpdateInfo;
-
-- (BOOL)hasSession;
-- (GMSNavigationSession *)getSession;
-+ (void)unregisterNavigationSessionReadyCallback;
-+ (void)registerNavigationSessionReadyCallback:(NavigationSessionReadyCallback)callback;
+- (void)registerViewController:(NavViewController *)vc;
++ (void)registerNavAutoModuleReadyCallback:(NavAutoModuleReadyCallback)callback;
++ (void)unregisterNavAutoModuleReadyCallback;
 
 // Class method to access the singleton instance
 + (instancetype)sharedInstance;
@@ -40,5 +33,3 @@ typedef void (^NavigationSessionReadyCallback)(void);
 @end
 
 NS_ASSUME_NONNULL_END
-
-#endif /* NavModule_h */

@@ -18,6 +18,7 @@
 #import "NavEventDispatcher.h"
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
+#import "NavAutoModule.h"
 
 @implementation NavModule {
   GMSNavigationSession *_session;
@@ -27,6 +28,7 @@
 
 @synthesize enableUpdateInfo = _enableUpdateInfo;
 static NavEventDispatcher *_eventDispatcher;
+static NavigationSessionReadyCallback _navigationSessionReadyCallback;
 
 // Static instance of the NavViewModule to allow access from another modules.
 static NavModule *sharedInstance = nil;
@@ -82,17 +84,22 @@ RCT_EXPORT_MODULE(NavModule);
   // Try to create a navigation session.
   if (self->_session == nil && self->_session.navigator == nil) {
     GMSNavigationSession *session =
-        [GMSNavigationServices createNavigationSession];
-    if (session == nil) {
-      // According to the API documentation, the only reason a nil session is
-      // ever returned is due to terms and conditions not having been accepted
-      // yet.
-      //
-      // At this point, this should not happen due to the earlier check.
-      @throw [NSException
-          exceptionWithName:@"GoogleMapsNavigationSessionManagerError"
-                     reason:@"Terms not accepted"
-                   userInfo:nil];
+      [GMSNavigationServices createNavigationSession];
+      if (session == nil) {
+          // According to the API documentation, the only reason a nil session is
+          // ever returned is due to terms and conditions not having been accepted
+          // yet.
+          //
+          // At this point, this should not happen due to the earlier check.
+          @throw [NSException
+                  exceptionWithName:@"GoogleMapsNavigationSessionManagerError"
+                  reason:@"Terms not accepted"
+                  userInfo:nil];
+      }
+      self->_session = session;
+      if (_navigationSessionReadyCallback) {
+        _navigationSessionReadyCallback();
+      }
     }
     self->_session = session;
   }
@@ -112,6 +119,14 @@ RCT_EXPORT_MODULE(NavModule);
   [navViewModule attachViewsToNavigationSession:_session];
 
   [self onNavigationReady];
+}
+
++ (void)registerNavigationSessionReadyCallback:(NavigationSessionReadyCallback)callback {
+  _navigationSessionReadyCallback = [callback copy];
+}
+
++ (void)unregisterNavigationSessionReadyCallback {
+  _navigationSessionReadyCallback = nil;
 }
 
 - (void)showTermsAndConditionsDialog {

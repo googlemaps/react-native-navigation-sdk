@@ -22,8 +22,8 @@ import {
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Button, StyleSheet } from 'react-native';
-import NavigationScreen from './NavigationScreen';
-import MultipleMapsScreen from './MultipleMapsScreen';
+import NavigationScreen from './screens/NavigationScreen';
+import MultipleMapsScreen from './screens/MultipleMapsScreen';
 import {
   NavigationProvider,
   type TermsAndConditionsDialogOptions,

@@ -176,7 +176,7 @@ public class NavViewModule extends ReactContextBaseJavaModule {
         () -> {
           if (mNavViewManager.getGoogleMap(viewId) != null) {
             Marker marker =
-                mNavViewManager.getFragmentForViewId(viewId).addMarker(markerOptionsMap.toHashMap());
+                mNavViewManager.getFragmentForViewId(viewId).getMapController().addMarker(markerOptionsMap.toHashMap());
 
             promise.resolve(ObjectTranslationUtil.getMapFromMarker(marker));
           }
@@ -192,7 +192,7 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             return;
           }
           Polyline polyline =
-              mNavViewManager.getFragmentForViewId(viewId).addPolyline(polylineOptionsMap.toHashMap());
+              mNavViewManager.getFragmentForViewId(viewId).getMapController().addPolyline(polylineOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromPolyline(polyline));
         });
@@ -207,7 +207,7 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             return;
           }
           Polygon polygon =
-              mNavViewManager.getFragmentForViewId(viewId).addPolygon(polygonOptionsMap.toHashMap());
+              mNavViewManager.getFragmentForViewId(viewId).getMapController().addPolygon(polygonOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromPolygon(polygon));
         });
@@ -222,7 +222,7 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             return;
           }
           Circle circle =
-              mNavViewManager.getFragmentForViewId(viewId).addCircle(circleOptionsMap.toHashMap());
+              mNavViewManager.getFragmentForViewId(viewId).getMapController().addCircle(circleOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromCircle(circle));
         });
@@ -237,7 +237,7 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             return;
           }
           GroundOverlay overlay =
-              mNavViewManager.getFragmentForViewId(viewId).addGroundOverlay(overlayOptionsMap.toHashMap());
+              mNavViewManager.getFragmentForViewId(viewId).getMapController().addGroundOverlay(overlayOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromGroundOverlay(overlay));
         });

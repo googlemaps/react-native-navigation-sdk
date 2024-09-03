@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#import <RCTAppDelegate.h>
-#import <UIKit/UIKit.h>
+#import <CarPlay/CarPlay.h>
+#import "NavViewController.h"
 
-@interface AppDelegate : RCTAppDelegate
-@property (nonatomic, strong) UIWindow *window;
-@property (nonatomic, strong) RCTBridge *bridge;
-@property (nonatomic, strong) RCTRootView *rootView;
+@interface CarSceneDelegate : UIResponder <CPTemplateApplicationSceneDelegate>
+
+@property (nonatomic, strong) CPInterfaceController *interfaceController;
+@property (nonatomic, strong) CPWindow *carWindow;
+@property (nonatomic, strong) CPMapTemplate *mapTemplate;
+@property (nonatomic, strong) NavViewController *navViewController;
+@property (nonatomic, assign) BOOL sessionAttached;
+@property (nonatomic, assign) BOOL viewcontrollerRegistered;
+
 @end
