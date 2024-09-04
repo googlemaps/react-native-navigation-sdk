@@ -57,6 +57,10 @@ didDisconnectInterfaceController:(CPInterfaceController *)interfaceController {
 - (void)attachSession {
   if ([NavModule sharedInstance] != nil && !_sessionAttached) {
     [self.navViewController attachToNavigationSession:[[NavModule sharedInstance] getSession]];
+    [self.navViewController setHeaderEnabled:NO];
+    [self.navViewController setRecenterButtonEnabled:NO];
+    [self.navViewController setFooterEnabled:NO];
+    [self.navViewController setSpeedometerEnabled:NO];
     _sessionAttached = YES;
   }
 }
