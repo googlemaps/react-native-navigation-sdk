@@ -26,7 +26,7 @@
   self.carWindow = window;
 
   self.mapTemplate = [[CPMapTemplate alloc] init];
-  self.navViewController = [[NavViewController alloc] initWithSize:self.carWindow.frame.size.height width:self.carWindow.frame.size.width];
+  self.navViewController = [[NavViewController alloc] init];
   self.carWindow.rootViewController = self.navViewController;
   [self.interfaceController setRootTemplate:self.mapTemplate animated:YES completion:nil];
   [NavModule registerNavigationSessionReadyCallback:^{

@@ -101,8 +101,6 @@ RCT_EXPORT_MODULE(NavModule);
         _navigationSessionReadyCallback();
       }
     }
-    self->_session = session;
-  }
 
   _session.started = YES;
 
