@@ -34,7 +34,7 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
-import com.google.android.libraries.geo.navcore.service.base.NavigationService;
+import com.google.android.react.navsdk.AndroidAutoBaseScreen;
 
 public class SampleAndroidAutoSession extends Session {
   static final String TAG = SampleAndroidAutoSession.class.getSimpleName();
