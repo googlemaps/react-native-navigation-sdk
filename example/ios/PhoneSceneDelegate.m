@@ -37,6 +37,7 @@
   UIWindow *window = [[UIWindow alloc] initWithWindowScene:windowScene];
   window.rootViewController = rootViewController;
   self.window = window;
+  [appDelegate setWindow:window];
   [window makeKeyAndVisible];
 }
 
