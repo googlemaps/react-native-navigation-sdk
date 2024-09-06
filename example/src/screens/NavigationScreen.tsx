@@ -19,29 +19,30 @@ import { Button, Switch, Text, View } from 'react-native';
 import Snackbar from 'react-native-snackbar';
 
 import {
-  NavigationView,
-  type MapViewController,
-  type NavigationViewController,
-  type Marker,
-  type NavigationViewCallbacks,
-  type MapViewCallbacks,
-  type Polygon,
-  type Circle,
-  type Polyline,
-  type LatLng,
-  type NavigationCallbacks,
-  useNavigation,
   NavigationInitErrorCode,
+  NavigationView,
   RouteStatus,
   type ArrivalEvent,
+  type Circle,
+  type LatLng,
   type Location,
-  getMapViewAutoController,
+  type MapViewCallbacks,
+  type MapViewController,
+  type Marker,
+  type NavigationAutoCallbacks,
+  type NavigationCallbacks,
+  type NavigationViewCallbacks,
+  type NavigationViewController,
+  type Polygon,
+  type Polyline,
+  useNavigation,
+  useNavigationAuto,
 } from '@googlemaps/react-native-navigation-sdk';
-import usePermissions from '../checkPermissions';
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
 import OverlayModal from '../helpers/overlayModal';
 import styles from '../styles';
+import usePermissions from '../checkPermissions';
 
 // Utility function for showing Snackbar
 const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
@@ -64,7 +65,12 @@ const NavigationScreen = () => {
     useState<MapViewController | null>(null);
   const [navigationViewController, setNavigationViewController] =
     useState<NavigationViewController | null>(null);
-  const autoMapViewController = getMapViewAutoController();
+
+  const {
+    mapViewAutoController,
+    addListeners: addAutoListener,
+    removeListeners: removeAutoListeners,
+  } = useNavigationAuto();
 
   const { navigationController, addListeners, removeListeners } =
     useNavigation();
@@ -233,12 +239,28 @@ const NavigationScreen = () => {
     ]
   );
 
+  const navigationAutoCallbacks: NavigationAutoCallbacks = useMemo(
+    () => ({
+      onCustomNavigationAutoEvent: (event: any) => {
+        console.log('onCustomNavigationAutoEvent:', event);
+      },
+    }),
+    []
+  );
+
   useEffect(() => {
     addListeners(navigationCallbacks);
     return () => {
       removeListeners(navigationCallbacks);
     };
   }, [navigationCallbacks, addListeners, removeListeners]);
+
+  useEffect(() => {
+    addAutoListener(navigationAutoCallbacks);
+    return () => {
+      removeAutoListeners(navigationAutoCallbacks);
+    };
+  }, [navigationAutoCallbacks, addAutoListener, removeAutoListeners]);
 
   const onMapReady = useCallback(async () => {
     console.log('Map is ready, initializing navigator...');
@@ -351,12 +373,12 @@ const NavigationScreen = () => {
         </OverlayModal>
       )}
 
-      {autoMapViewController != null && (
+      {mapViewAutoController != null && (
         <OverlayModal
           visible={overlayType === OverlayType.AutoMapControls}
           closeOverlay={closeOverlay}
         >
-          <MapsControls mapViewController={autoMapViewController} />
+          <MapsControls mapViewController={mapViewAutoController} />
         </OverlayModal>
       )}
 

@@ -19,29 +19,30 @@ import { Button, View } from 'react-native';
 import Snackbar from 'react-native-snackbar';
 
 import {
-  NavigationView,
-  type MapViewController,
-  type NavigationViewController,
-  type ArrivalEvent,
   NavigationInitErrorCode,
-  type Location,
+  NavigationView,
   RouteStatus,
-  type Marker,
-  type NavigationViewCallbacks,
-  type MapViewCallbacks,
-  type Polygon,
+  type ArrivalEvent,
   type Circle,
-  type Polyline,
   type LatLng,
+  type Location,
+  type MapViewCallbacks,
+  type MapViewController,
+  type Marker,
   type NavigationCallbacks,
+  type NavigationViewCallbacks,
+  type NavigationViewController,
+  type Polygon,
+  type Polyline,
   useNavigation,
 } from '@googlemaps/react-native-navigation-sdk';
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
-import usePermissions from '../checkPermissions';
 import OverlayModal from '../helpers/overlayModal';
 import styles from '../styles';
+import usePermissions from '../checkPermissions';
 
+// Utility function for showing Snackbar
 const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
   Snackbar.show({ text, duration });
 };

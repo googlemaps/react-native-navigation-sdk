@@ -16,13 +16,17 @@ package com.google.android.react.navsdk;
 import android.location.Location;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.CatalystInstance;
+import com.facebook.react.bridge.NativeArray;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeArray;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -39,7 +43,7 @@ import java.util.Map;
  * This exposes a series of methods that can be called diretly from the React Native code. They have
  * been implemented using promises as it's not recommended for them to be synchronous.
  */
-public class NavAutoModule extends ReactContextBaseJavaModule {
+public class NavAutoModule extends ReactContextBaseJavaModule implements INavigationAutoCallback {
   public static final String REACT_CLASS = "NavAutoModule";
   private static final String TAG = "AndroidAutoModule";
   private static NavAutoModule instance;
@@ -502,5 +506,30 @@ public class NavAutoModule extends ReactContextBaseJavaModule {
 
         mMapViewController.moveCamera(map.toHashMap());
       });
+  }
+
+
+  @Override
+  public void onCustomNavigationAutoEvent(String type, ReadableMap data) {
+    WritableMap map = Arguments.createMap();
+    map.putString("type", type);
+    map.putMap("data", data);
+
+    WritableNativeArray params = new WritableNativeArray();
+    params.pushMap(map);
+
+    sendCommandToReactNative( "onCustomNavigationAutoEvent", params);
+  }
+
+  /**
+   * Send command to react native.
+   */
+  private void sendCommandToReactNative(String functionName, NativeArray params) {
+    ReactContext reactContext = getReactApplicationContext();
+
+    if (reactContext != null) {
+      CatalystInstance catalystInstance = reactContext.getCatalystInstance();
+      catalystInstance.callFunction(Constants.NAV_AUTO_JAVASCRIPT_FLAG, functionName, params);
+    }
   }
 }

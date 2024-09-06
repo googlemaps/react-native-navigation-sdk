@@ -15,6 +15,7 @@
  */
 
 #import "NavAutoModule.h"
+#import "NavAutoEventDispatcher.h"
 
 @implementation NavAutoModule
 
@@ -24,13 +25,17 @@ RCT_EXPORT_MODULE(NavAutoModule);
 static NavAutoModule *sharedInstance = nil;
 
 static NavAutoModuleReadyCallback _navAutoModuleReadyCallback;
+static NavAutoEventDispatcher *_eventDispatcher;
 
 + (id)allocWithZone:(NSZone *)zone {
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
+    _eventDispatcher = [NavAutoEventDispatcher allocWithZone:zone];
     sharedInstance = [super allocWithZone:zone];
   });
-  _navAutoModuleReadyCallback();
+  if (_navAutoModuleReadyCallback) {
+    _navAutoModuleReadyCallback();
+  }
   return sharedInstance;
 }
 
@@ -39,11 +44,20 @@ static NavAutoModuleReadyCallback _navAutoModuleReadyCallback;
   return sharedInstance;
 }
 
+// Get or create the shared instance
++ (instancetype)getOrCreateSharedInstance {
+  if (sharedInstance == nil) {
+    sharedInstance = [[NavAutoModule allocWithZone:nil] init];
+  }
+  return sharedInstance;
+}
+
 - (void)registerViewController:(NavViewController *)vc {
   self.viewController = vc;
 }
 
-+ (void)registerNavAutoModuleReadyCallback:(NavAutoModuleReadyCallback)callback {
++ (void)registerNavAutoModuleReadyCallback:
+    (NavAutoModuleReadyCallback)callback {
   _navAutoModuleReadyCallback = [callback copy];
 }
 
@@ -360,5 +374,22 @@ RCT_EXPORT_METHOD(moveCamera: (NSDictionary *)cameraPosition) {
   });
 }
 
+- (void)onCustomNavigationAutoEvent:(NSString *)type
+                               data:(nullable NSDictionary *)data {
+  NSMutableDictionary *map = [NSMutableDictionary dictionary];
+  [map setObject:type forKey:@"type"];
+  [map setObject:(data != nil ? data : [NSNull null]) forKey:@"data"];
+
+  [self sendCommandToReactNative:@"onCustomNavigationAutoEvent" args:map];
+}
+
+/*
+ * Method to send command to React Native using the NavEventDispatcher instance.
+ */
+- (void)sendCommandToReactNative:(NSString *)command args:(NSObject *)args {
+  if (_eventDispatcher != NULL) {
+    [_eventDispatcher sendEventName:command body:args];
+  }
+}
 
 @end

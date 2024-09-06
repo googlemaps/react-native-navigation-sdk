@@ -20,7 +20,7 @@ import type {
   NavigationCallbacks,
   TermsAndConditionsDialogOptions,
 } from './types';
-import useNavigationController from './useNavigationController';
+import { useNavigationController } from './useNavigationController';
 
 interface NavigationContextProps {
   navigationController: NavigationController;

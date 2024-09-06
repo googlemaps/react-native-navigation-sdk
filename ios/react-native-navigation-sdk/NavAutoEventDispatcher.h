@@ -14,5 +14,21 @@
  * limitations under the License.
  */
 
-export * from './types';
-export * from './useNavigationAuto';
+#ifndef NavAutoEventDispatcher_h
+#define NavAutoEventDispatcher_h
+
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
+
+NS_ASSUME_NONNULL_BEGIN
+
+@interface NavAutoEventDispatcher : RCTEventEmitter <RCTBridgeModule>
+
+- (void)sendEventName:(NSString *)eventName body:(id)body;
+- (bool)hasListeners;
+
+@end
+
+NS_ASSUME_NONNULL_END
+
+#endif /* NavAutoEventDispatcher_h */

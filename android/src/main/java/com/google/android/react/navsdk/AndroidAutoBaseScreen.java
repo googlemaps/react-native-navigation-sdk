@@ -16,7 +16,6 @@
 
 package com.google.android.react.navsdk;
 
-import static java.lang.Double.max;
 
 import android.annotation.SuppressLint;
 import android.app.Presentation;
@@ -32,27 +31,17 @@ import androidx.car.app.SurfaceCallback;
 import androidx.car.app.SurfaceContainer;
 import androidx.car.app.model.Action;
 import androidx.car.app.model.ActionStrip;
-import androidx.car.app.model.Distance;
-import androidx.car.app.model.Pane;
-import androidx.car.app.model.PaneTemplate;
-import androidx.car.app.model.Row;
 import androidx.car.app.model.Template;
-import androidx.car.app.navigation.model.Maneuver;
 import androidx.car.app.navigation.model.NavigationTemplate;
-import androidx.car.app.navigation.model.RoutingInfo;
-import androidx.car.app.navigation.model.Step;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.facebook.react.bridge.ReadableMap;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.CircleOptions;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.libraries.mapsplatform.turnbyturn.model.NavInfo;
-import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
 import com.google.android.libraries.navigation.NavigationViewForAuto;
 
 import com.google.android.libraries.navigation.StylingOptions;
@@ -65,7 +54,6 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
   private Presentation mPresentation;
   protected GoogleMap mGoogleMap;
   protected boolean mNavigationInitialized = false;
-  protected RoutingInfo mCurrentRoutingInfo;
   private MapViewController mMapViewController;
 
   private boolean mAndroidAutoModuleInitialized = false;
@@ -98,7 +86,6 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
     });
 
     carContext.getCarService(AppManager.class).setSurfaceCallback(this);
-    NavInfoReceivingService.getNavInfoLiveData().observe(this, this::processNextStep);
 
     Lifecycle lifecycle = getLifecycle();
     lifecycle.addObserver(mLifeCycleObserver);
@@ -117,8 +104,6 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
       }
     };
 
-
-
   private void registerControllersForAndroidAutoModule() {
     if (mAndroidAutoModuleInitialized && mMapViewController != null) {
       NavAutoModule.getInstance().androidAutoNavigationScreenInitialized(mMapViewController, this);
@@ -129,38 +114,6 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
     if (mAndroidAutoModuleInitialized) {
       NavAutoModule.getInstance().androidAutoNavigationScreenDisposed();
     }
-  }
-
-  private void processNextStep(NavInfo navInfo) {
-    if (navInfo == null || navInfo.getCurrentStep() == null) {
-      return;
-    }
-
-    /**
-     *   Converts data received from the Navigation data feed
-     *   into Android-Auto compatible data structures. For more information
-     *   see the "Ensure correct maneuver types" below.
-     */
-    Step currentStep = buildStepFromStepInfo(navInfo.getCurrentStep());
-    Distance distanceToStep = Distance.create(max(navInfo.getDistanceToCurrentStepMeters(),0), Distance.UNIT_METERS);
-
-    mCurrentRoutingInfo =
-      new RoutingInfo.Builder().setCurrentStep(currentStep, distanceToStep).build();
-
-    // Invalidate the current template which leads to another onGetTemplate call.
-    invalidate();
-  }
-
-  private Step buildStepFromStepInfo(StepInfo stepInfo) {
-    Maneuver.Builder
-      maneuverBuilder = new Maneuver.Builder(
-      stepInfo.getManeuver());
-    Step.Builder stepBuilder =
-      new Step.Builder()
-        .setRoad(stepInfo.getFullRoadName())
-        .setCue(stepInfo.getFullInstructionText())
-        .setManeuver(maneuverBuilder.build());
-    return stepBuilder.build();
   }
 
   private boolean isSurfaceReady(SurfaceContainer surfaceContainer) {
@@ -236,45 +189,16 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
     mGoogleMap.animateCamera(update); // map is set in onSurfaceAvailable.
   }
 
+  protected void sendCustomEvent(String type, ReadableMap data){
+    NavAutoModule.getInstance().onCustomNavigationAutoEvent(type, data);
+  }
+
   @NonNull
   @Override
   @SuppressLint("MissingPermission")
   public Template onGetTemplate() {
-    NavigationTemplate.Builder navigationTemplateBuilder = new NavigationTemplate.Builder()
-      .setActionStrip(new ActionStrip.Builder().addAction(
-          new Action.Builder()
-            .setTitle("Re-center")
-            .setOnClickListener(
-              () -> {
-                if (mGoogleMap == null)
-                  return;
-                mGoogleMap.followMyLocation(GoogleMap.CameraPerspective.TILTED);
-              }
-            )
-            .build()).addAction(
-          new Action.Builder()
-            .setTitle("Add circle")
-            .setOnClickListener(
-              () -> {
-                if (mGoogleMap == null)
-                  return;
-
-                CircleOptions options = new CircleOptions();
-                options.strokeWidth(10);
-                options.radius(100000);
-                options.center(new LatLng(0, 0));
-                mGoogleMap.addCircle(options);
-              }
-            )
-            .build())
-        .build())
-      .setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build());
-
-    if (mCurrentRoutingInfo != null) {
-      navigationTemplateBuilder.setNavigationInfo(mCurrentRoutingInfo);
-    }
-
-    return navigationTemplateBuilder.build();
+   return  new NavigationTemplate.Builder()
+        .setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build()).build();
   }
 }
 

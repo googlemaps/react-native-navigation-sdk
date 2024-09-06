@@ -26,6 +26,13 @@
   self.carWindow = window;
 
   self.mapTemplate = [[CPMapTemplate alloc] init];
+  
+  CPBarButton *customButton = [[CPBarButton alloc] initWithTitle:@"Custom Event" handler:^(CPBarButton * _Nonnull button) {
+    [[NavAutoModule getOrCreateSharedInstance] onCustomNavigationAutoEvent:@"sampleEvent" data:nil];
+  }];
+  
+  self.mapTemplate.leadingNavigationBarButtons = @[customButton];
+   
   self.navViewController = [[NavViewController alloc] init];
   self.carWindow.rootViewController = self.navViewController;
   [self.interfaceController setRootTemplate:self.mapTemplate animated:YES completion:nil];

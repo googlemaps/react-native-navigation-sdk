@@ -54,6 +54,7 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
+    "prepare:example": "yarn workspace react-native-navigation-sdk-sample prepare",
     "build": "bob build"
   },
   "devDependencies": {
