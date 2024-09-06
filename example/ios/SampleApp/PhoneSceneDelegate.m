@@ -15,13 +15,13 @@
  */
 #import <UIKit/UIKit.h>
 #import <React/RCTRootView.h>
-#import "AppDelegate.h"
+#import "AppDelegateCarPlay.h"
 #import "PhoneSceneDelegate.h"
 
 @implementation PhoneSceneDelegate
 
 - (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {
-  AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+  AppDelegateCarPlay *appDelegate = (AppDelegateCarPlay *)[UIApplication sharedApplication].delegate;
   if (!appDelegate) {
     return;
   }

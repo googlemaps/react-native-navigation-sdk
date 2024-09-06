@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#import <RCTAppDelegate.h>
 #import <UIKit/UIKit.h>
+#import <React/RCTRootView.h>
+#import "AppDelegateCarPlay.h"
 
-@interface AppDelegate : RCTAppDelegate
+@interface PhoneSceneDelegate : UIResponder <UIWindowSceneDelegate>
+
+@property (nonatomic, strong) UIWindow *window;
 
 @end

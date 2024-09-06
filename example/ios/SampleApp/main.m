@@ -14,11 +14,19 @@
 
 #import <UIKit/UIKit.h>
 
+#if defined(CARPLAY)
+#import "AppDelegateCarPlay.h"
+#else
 #import "AppDelegate.h"
+#endif
 
 int main(int argc, char *argv[])
 {
   @autoreleasepool {
+    #if defined(CARPLAY)
+    return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegateCarPlay class]));
+    #else
     return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
+    #endif
   }
 }
