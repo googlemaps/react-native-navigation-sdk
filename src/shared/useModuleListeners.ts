@@ -55,7 +55,7 @@ export const useModuleListeners = <
         acc[eventKey] = (...args: unknown[]) => {
           listenersRef.current[eventKey]?.forEach(callback =>
             callback(
-              ...[eventTransformer ? eventTransformer(eventKey, ...args) : args]
+              ...(eventTransformer ? eventTransformer(eventKey, ...args) : args)
             )
           );
         };
