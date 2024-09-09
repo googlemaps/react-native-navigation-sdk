@@ -45,13 +45,17 @@ export const useNavigationAuto = (): {
   const moduleListenersHandler = useModuleListeners<NavigationAutoCallbacks>(
     NavAutoEventDispatcher,
     androidBridge,
-    ['onCustomNavigationAutoEvent']
+    ['onAutoScreenAvailabilityChanged', 'onCustomNavigationAutoEvent']
   );
 
   const mapViewAutoController = useMemo(
     () => ({
       cleanup: async () => {
         moduleListenersHandler.removeAllListeners();
+      },
+
+      isAutoScreenAvailable: async () => {
+        return await NavAutoModule.isAutoScreenAvailable();
       },
 
       setMapType: (mapType: MapType) => {

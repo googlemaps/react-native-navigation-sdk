@@ -54,6 +54,12 @@ static NavAutoEventDispatcher *_eventDispatcher;
 
 - (void)registerViewController:(NavViewController *)vc {
   self.viewController = vc;
+  [self onScreenStateChange:true];
+}
+
+- (void)unRegisterViewController {
+  self.viewController = nil;
+  [self onScreenStateChange:false];
 }
 
 + (void)registerNavAutoModuleReadyCallback:
@@ -372,6 +378,20 @@ RCT_EXPORT_METHOD(moveCamera: (NSDictionary *)cameraPosition) {
       [self->_viewController moveCamera:cameraPosition];
     }
   });
+}
+
+RCT_EXPORT_METHOD(isAutoScreenAvailable
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    BOOL hasViewController = self->_viewController != nil;
+    resolve([NSNumber numberWithBool:hasViewController]);
+  });
+}
+
+- (void)onScreenStateChange:(BOOL)available {
+  [self sendCommandToReactNative:@"onAutoScreenAvailabilityChanged"
+                            args:[NSNumber numberWithBool:available]];
 }
 
 - (void)onCustomNavigationAutoEvent:(NSString *)type

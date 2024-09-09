@@ -28,7 +28,9 @@
   self.mapTemplate = [[CPMapTemplate alloc] init];
   
   CPBarButton *customButton = [[CPBarButton alloc] initWithTitle:@"Custom Event" handler:^(CPBarButton * _Nonnull button) {
-    [[NavAutoModule getOrCreateSharedInstance] onCustomNavigationAutoEvent:@"sampleEvent" data:nil];
+    NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
+    dictionary[@"sampleDataKey"] = @"sampleDataContent";
+    [[NavAutoModule getOrCreateSharedInstance] onCustomNavigationAutoEvent:@"sampleEvent" data:dictionary];
   }];
   
   self.mapTemplate.leadingNavigationBarButtons = @[customButton];
@@ -48,11 +50,12 @@
 
 - (void)templateApplicationScene:(CPTemplateApplicationScene *)templateApplicationScene
 didDisconnectInterfaceController:(CPInterfaceController *)interfaceController {
+  [self unRegisterViewController];
   self.interfaceController = nil;
   self.carWindow = nil;
   self.mapTemplate = nil;
   self.navViewController = nil;
-  self.viewcontrollerRegistered = NO;
+  self.viewControllerRegistered = NO;
   self.sessionAttached = NO;
 }
 
@@ -73,9 +76,16 @@ didDisconnectInterfaceController:(CPInterfaceController *)interfaceController {
 }
 
 - (void)registerViewController {
-  if ([NavAutoModule sharedInstance] != nil && !_viewcontrollerRegistered) {
+  if ([NavAutoModule sharedInstance] != nil && !_viewControllerRegistered) {
     [[NavAutoModule sharedInstance] registerViewController:self.navViewController];
-    _viewcontrollerRegistered = YES;
+    _viewControllerRegistered = YES;
+  }
+}
+
+- (void)unRegisterViewController {
+  if ([NavAutoModule sharedInstance] != nil && _viewControllerRegistered) {
+    [[NavAutoModule sharedInstance] unRegisterViewController];
+    _viewControllerRegistered = NO;
   }
 }
 

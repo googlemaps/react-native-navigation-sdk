@@ -37,6 +37,7 @@ import {
   type Polyline,
   useNavigation,
   useNavigationAuto,
+  type CustomNavigationAutoEvent,
 } from '@googlemaps/react-native-navigation-sdk';
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
@@ -71,6 +72,8 @@ const NavigationScreen = () => {
     addListeners: addAutoListener,
     removeListeners: removeAutoListeners,
   } = useNavigationAuto();
+  const [mapViewAutoAvailable, setMapViewAutoAvailable] =
+    useState<boolean>(false);
 
   const { navigationController, addListeners, removeListeners } =
     useNavigation();
@@ -241,12 +244,24 @@ const NavigationScreen = () => {
 
   const navigationAutoCallbacks: NavigationAutoCallbacks = useMemo(
     () => ({
-      onCustomNavigationAutoEvent: (event: any) => {
+      onCustomNavigationAutoEvent: (event: CustomNavigationAutoEvent) => {
         console.log('onCustomNavigationAutoEvent:', event);
+      },
+      onAutoScreenAvailabilityChanged: (available: boolean) => {
+        console.log('onAutoScreenAvailabilityChanged:', available);
+        setMapViewAutoAvailable(available);
       },
     }),
     []
   );
+
+  useEffect(() => {
+    (async () => {
+      const isAvailable = await mapViewAutoController.isAutoScreenAvailable();
+      console.log('isAutoScreenAvailable:', isAvailable);
+      setMapViewAutoAvailable(isAvailable);
+    })();
+  }, [mapViewAutoController]);
 
   useEffect(() => {
     addListeners(navigationCallbacks);
@@ -373,7 +388,7 @@ const NavigationScreen = () => {
         </OverlayModal>
       )}
 
-      {mapViewAutoController != null && (
+      {mapViewAutoAvailable && mapViewAutoController != null && (
         <OverlayModal
           visible={overlayType === OverlayType.AutoMapControls}
           closeOverlay={closeOverlay}
@@ -389,7 +404,9 @@ const NavigationScreen = () => {
           disabled={!navigationInitialized}
         />
         <Button title="Maps" onPress={onShowMapsControlsClick} />
-        <Button title="Auto" onPress={onShowAutoMapsControlsClick} />
+        {mapViewAutoAvailable && (
+          <Button title="Auto" onPress={onShowAutoMapsControlsClick} />
+        )}
         <View style={styles.rowContainer}>
           <Text>Margin</Text>
           <Switch

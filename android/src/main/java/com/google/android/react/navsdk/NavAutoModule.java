@@ -93,14 +93,13 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
     if (mStylingOptions != null && mNavigationViewController != null) {
       mNavigationViewController.setStylingOptions(mStylingOptions);
     }
-    // TODO: Send initialized message
+    sendScreenState(true);
   }
 
   public void androidAutoNavigationScreenDisposed() {
+    sendScreenState(false);
     mMapViewController = null;
     mNavigationViewController = null;
-
-    // TODO: Send dispose message
   }
 
   public void setStylingOptions(Map<String, Object> stylingOptions) {
@@ -508,6 +507,17 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
       });
   }
 
+  @ReactMethod
+  public void isAutoScreenAvailable(final Promise promise) {
+    promise.resolve(mMapViewController != null);
+  }
+
+  public void sendScreenState(boolean available) {
+    WritableNativeArray params = new WritableNativeArray();
+    params.pushBoolean(available);
+
+    sendCommandToReactNative( "onAutoScreenAvailabilityChanged", params);
+  }
 
   @Override
   public void onCustomNavigationAutoEvent(String type, ReadableMap data) {

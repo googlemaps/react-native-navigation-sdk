@@ -19,7 +19,12 @@ import type { MapViewController } from '../maps';
 /** Defines all callbacks to be emitted by NavViewAuto support. */
 export interface NavigationAutoCallbacks {
   /**
-   * Callback function invoked when guidance is started.
+   * Callback function invoked when the screen availability changes.
+   */
+  onAutoScreenAvailabilityChanged?(available: boolean): void;
+
+  /**
+   * Callback function invoked when a custom navigation auto event is received.
    */
   onCustomNavigationAutoEvent?(event: CustomNavigationAutoEvent): void;
 }
@@ -38,7 +43,7 @@ export interface CustomNavigationAutoEvent {
   /**
    * The event data.
    */
-  data: Record<string, unknown>;
+  data?: Record<string, unknown>;
 }
 
 export interface MapViewAutoController extends MapViewController {
@@ -46,4 +51,9 @@ export interface MapViewAutoController extends MapViewController {
    * Cleans up the navigation module, releasing any resources that were allocated.
    */
   cleanup(): Promise<void>;
+
+  /**
+   * Queries screen visibility.
+   */
+  isAutoScreenAvailable(): Promise<boolean>;
 }
