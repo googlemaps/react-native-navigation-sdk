@@ -145,7 +145,7 @@ public class NavViewFragment extends SupportNavigationFragment {
         mGoogleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
           @Override
           public void onInfoWindowClick(Marker marker) {
-            emitEvent("onInfoWindowClick", ObjectTranslationUtil.getMapFromMarker(marker));
+            emitEvent("onMarkerInfoWindowTapped", ObjectTranslationUtil.getMapFromMarker(marker));
           }
         });
 
