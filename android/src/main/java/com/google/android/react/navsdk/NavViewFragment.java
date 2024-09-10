@@ -24,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableMap;
@@ -697,6 +698,9 @@ public class NavViewFragment extends SupportNavigationFragment {
 
     @Override
     public WritableMap getEventData() {
+      if (eventData == null) {
+        return Arguments.createMap();
+      }
       return eventData;
     }
   }
