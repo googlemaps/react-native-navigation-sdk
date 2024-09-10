@@ -29,6 +29,7 @@
 @synthesize enableUpdateInfo = _enableUpdateInfo;
 static NavEventDispatcher *_eventDispatcher;
 static NavigationSessionReadyCallback _navigationSessionReadyCallback;
+static NavigationSessionDisposedCallback _navigationSessionDisposedCallback;
 
 // Static instance of the NavViewModule to allow access from another modules.
 static NavModule *sharedInstance = nil;
@@ -127,6 +128,14 @@ RCT_EXPORT_MODULE(NavModule);
   _navigationSessionReadyCallback = nil;
 }
 
++ (void)registerNavigationSessionDisposedCallback:(NavigationSessionDisposedCallback)callback {
+  _navigationSessionDisposedCallback = [callback copy];
+}
+
++ (void)unregisterNavigationSessionDisposedCallback {
+  _navigationSessionDisposedCallback = nil;
+}
+
 - (void)showTermsAndConditionsDialog {
   BOOL showAwareness = _tosParams[@"showOnlyDisclaimer"] != nil &&
                        [_tosParams[@"showOnlyDisclaimer"] boolValue];
@@ -182,6 +191,9 @@ RCT_EXPORT_METHOD(cleanup
 
     self->_session.started = NO;
     self->_session = nil;
+    if (_navigationSessionDisposedCallback) {
+      _navigationSessionDisposedCallback();
+    }
     resolve(@(YES));
   });
 }

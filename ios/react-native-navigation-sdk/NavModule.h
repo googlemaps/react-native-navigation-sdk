@@ -26,6 +26,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NavModule : NSObject <RCTBridgeModule, GMSNavigatorListener, GMSRoadSnappedLocationProviderListener, INavigationCallback>
 
 typedef void (^NavigationSessionReadyCallback)(void);
+typedef void (^NavigationSessionDisposedCallback)(void);
 
 @property BOOL enableUpdateInfo;
 
@@ -33,6 +34,8 @@ typedef void (^NavigationSessionReadyCallback)(void);
 - (GMSNavigationSession *)getSession;
 + (void)unregisterNavigationSessionReadyCallback;
 + (void)registerNavigationSessionReadyCallback:(NavigationSessionReadyCallback)callback;
++ (void)unregisterNavigationSessionDisposedCallback;
++ (void)registerNavigationSessionDisposedCallback:(NavigationSessionDisposedCallback)callback;
 
 // Class method to access the singleton instance
 + (instancetype)sharedInstance;

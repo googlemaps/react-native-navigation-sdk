@@ -40,11 +40,12 @@
   [self.interfaceController setRootTemplate:self.mapTemplate animated:YES completion:nil];
   [NavModule registerNavigationSessionReadyCallback:^{
     [self attachSession];
-    [NavModule unregisterNavigationSessionReadyCallback];
+  }];
+  [NavModule registerNavigationSessionDisposedCallback:^{
+    self->_sessionAttached = NO;
   }];
   [NavAutoModule registerNavAutoModuleReadyCallback:^{
     [self registerViewController];
-    [NavAutoModule unregisterNavAutoModuleReadyCallback];
   }];
 }
 
@@ -65,7 +66,7 @@ didDisconnectInterfaceController:(CPInterfaceController *)interfaceController {
 }
 
 - (void)attachSession {
-  if ([NavModule sharedInstance] != nil && !_sessionAttached) {
+  if ([NavModule sharedInstance] != nil && [[NavModule sharedInstance] hasSession] && !_sessionAttached) {
     [self.navViewController attachToNavigationSession:[[NavModule sharedInstance] getSession]];
     [self.navViewController setHeaderEnabled:NO];
     [self.navViewController setRecenterButtonEnabled:NO];
