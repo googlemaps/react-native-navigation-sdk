@@ -21,74 +21,19 @@
 
 @implementation CarSceneDelegate
 
-- (void)templateApplicationScene:(CPTemplateApplicationScene *)templateApplicationScene didConnectInterfaceController:(CPInterfaceController *)interfaceController toWindow:(CPWindow *)window {
-  self.interfaceController = interfaceController;
-  self.carWindow = window;
+- (CPMapTemplate *)getTemplate {
+  CPMapTemplate *template = [[CPMapTemplate alloc] init];
+  [template showPanningInterfaceAnimated:YES];
 
-  self.mapTemplate = [[CPMapTemplate alloc] init];
-  
   CPBarButton *customButton = [[CPBarButton alloc] initWithTitle:@"Custom Event" handler:^(CPBarButton * _Nonnull button) {
     NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
     dictionary[@"sampleDataKey"] = @"sampleDataContent";
     [[NavAutoModule getOrCreateSharedInstance] onCustomNavigationAutoEvent:@"sampleEvent" data:dictionary];
   }];
-  
-  self.mapTemplate.leadingNavigationBarButtons = @[customButton];
-   
-  self.navViewController = [[NavViewController alloc] init];
-  self.carWindow.rootViewController = self.navViewController;
-  [self.interfaceController setRootTemplate:self.mapTemplate animated:YES completion:nil];
-  [NavModule registerNavigationSessionReadyCallback:^{
-    [self attachSession];
-  }];
-  [NavModule registerNavigationSessionDisposedCallback:^{
-    self->_sessionAttached = NO;
-  }];
-  [NavAutoModule registerNavAutoModuleReadyCallback:^{
-    [self registerViewController];
-  }];
-}
 
-- (void)templateApplicationScene:(CPTemplateApplicationScene *)templateApplicationScene
-didDisconnectInterfaceController:(CPInterfaceController *)interfaceController {
-  [self unRegisterViewController];
-  self.interfaceController = nil;
-  self.carWindow = nil;
-  self.mapTemplate = nil;
-  self.navViewController = nil;
-  self.viewControllerRegistered = NO;
-  self.sessionAttached = NO;
+  template.leadingNavigationBarButtons = @[customButton];
+  template.trailingNavigationBarButtons = @[];
+  return template;
 }
-
-- (void)sceneDidBecomeActive:(UIScene *)scene {
-  [self attachSession];
-  [self registerViewController];
-}
-
-- (void)attachSession {
-  if ([NavModule sharedInstance] != nil && [[NavModule sharedInstance] hasSession] && !_sessionAttached) {
-    [self.navViewController attachToNavigationSession:[[NavModule sharedInstance] getSession]];
-    [self.navViewController setHeaderEnabled:NO];
-    [self.navViewController setRecenterButtonEnabled:NO];
-    [self.navViewController setFooterEnabled:NO];
-    [self.navViewController setSpeedometerEnabled:NO];
-    _sessionAttached = YES;
-  }
-}
-
-- (void)registerViewController {
-  if ([NavAutoModule sharedInstance] != nil && !_viewControllerRegistered) {
-    [[NavAutoModule sharedInstance] registerViewController:self.navViewController];
-    _viewControllerRegistered = YES;
-  }
-}
-
-- (void)unRegisterViewController {
-  if ([NavAutoModule sharedInstance] != nil && _viewControllerRegistered) {
-    [[NavAutoModule sharedInstance] unRegisterViewController];
-    _viewControllerRegistered = NO;
-  }
-}
-
 
 @end
