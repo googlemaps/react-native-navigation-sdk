@@ -37,8 +37,6 @@ target 'SampleApp' do
 end
 
 target 'SampleAppCarPlay' do
-  carplay_config = use_native_modules!
-
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
