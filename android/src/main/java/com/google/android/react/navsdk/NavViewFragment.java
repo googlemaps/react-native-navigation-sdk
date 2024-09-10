@@ -113,7 +113,7 @@ public class NavViewFragment extends SupportNavigationFragment {
         mGoogleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
           @Override
           public boolean onMarkerClick(Marker marker) {
-            emitEvent("onMapReady", ObjectTranslationUtil.getMapFromMarker(marker));
+            emitEvent("onMarkerClick", ObjectTranslationUtil.getMapFromMarker(marker));
             return false;
           }
         });
