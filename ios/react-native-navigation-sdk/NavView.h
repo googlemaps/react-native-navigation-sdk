@@ -33,7 +33,7 @@
 @property(nonatomic, copy) RCTDirectEventBlock onCircleClick;
 @property(nonatomic, copy) RCTDirectEventBlock onGroundOverlayClick;
 
-- (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions;
+- (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions isNavigationEnabled:(BOOL)isNavigationEnabled;
 - (NavViewController *)getViewController;
 
 @end

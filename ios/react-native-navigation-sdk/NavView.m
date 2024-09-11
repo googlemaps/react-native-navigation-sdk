@@ -36,8 +36,9 @@
   }
 }
 
-- (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions {
+- (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions isNavigationEnabled:(BOOL)isNavigationEnabled {
   _viewController = [[NavViewController alloc] init];
+  _viewController.isNavigationEnabled = isNavigationEnabled;
   // Test if styling options is not nil
   if (stylingOptions != nil && [stylingOptions count] > 0) {
     [_viewController setStylingOptions:stylingOptions];

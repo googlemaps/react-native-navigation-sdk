@@ -280,6 +280,9 @@
 #pragma mark - View Controller functions
 
 - (BOOL)attachToNavigationSession:(GMSNavigationSession *)session {
+  if (!_isNavigationEnabled) {
+    return NO;
+  }
   BOOL result = [_mapView enableNavigationWithSession:session];
   _mapView.navigationUIDelegate = self;
   [self applyStylingOptions];

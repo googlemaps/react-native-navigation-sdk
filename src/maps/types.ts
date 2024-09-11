@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+import type { StyleProp, ViewStyle } from 'react-native';
 import type { LatLng } from '../shared/types';
+import type { MapViewCallbacks, MapViewController } from './mapView/types';
 
 /**
  * An immutable class that aggregates all camera position parameters such as
@@ -156,4 +158,15 @@ export interface UISettings {
   isZoomControlsEnabled: boolean;
   /** Defines zoom gestures are enabled/disabled on the GoogleMap. */
   isZoomGesturesEnabled: boolean;
+}
+
+/**
+ * `MapViewProps` interface provides methods focused on managing map events and state changes.
+ */
+export interface MapViewProps {
+  readonly mapViewCallbacks?: MapViewCallbacks;
+
+  readonly style?: StyleProp<ViewStyle> | undefined;
+
+  onMapViewControllerCreated(mapViewController: MapViewController): void;
 }
