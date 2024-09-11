@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
@@ -39,7 +40,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
   private static NavViewManager instance;
 
-  private final HashMap<Integer, WeakReference<NavViewFragment>> fragmentMap = new HashMap<>();
+  private final HashMap<Integer, WeakReference<IViewFragment>> fragmentMap = new HashMap<>();
 
   private ReactApplicationContext reactContext;
 
@@ -117,20 +118,20 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     return map;
   }
 
-  public NavViewFragment getFragmentForRoot(ViewGroup root) {
+  public IViewFragment getFragmentForRoot(ViewGroup root) {
     int viewId = root.getId();
     return getFragmentForViewId(viewId);
   }
 
-  public NavViewFragment getFragmentForViewId(int viewId) {
-    WeakReference<NavViewFragment> weakReference = fragmentMap.get(viewId);
+  public IViewFragment getFragmentForViewId(int viewId) {
+    WeakReference<IViewFragment> weakReference = fragmentMap.get(viewId);
     if (weakReference == null || weakReference.get() == null) {
       throw new IllegalStateException("Fragment not found for the provided viewId.");
     }
     return weakReference.get();
   }
 
-  public NavViewFragment getAnyFragment() {
+  public IViewFragment getAnyFragment() {
     if (fragmentMap.isEmpty()) {
       return null;
     }
@@ -139,7 +140,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
   }
 
   public void applyStylingOptions() {
-    for (WeakReference<NavViewFragment> weakReference : fragmentMap.values()) {
+    for (WeakReference<IViewFragment> weakReference : fragmentMap.values()) {
       if (weakReference.get() != null) {
         weakReference.get().applyStylingOptions();
       }
@@ -155,17 +156,27 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     switch (Command.find(commandIdInt)) {
       case CREATE_FRAGMENT:
         Map<String, Object> stylingOptions = args.getMap(0).toHashMap();
-        createFragment(root, stylingOptions);
+        Boolean isNavigationEnabled = args.getBoolean(1);
+        createFragment(root, stylingOptions, isNavigationEnabled);
         break;
       case DELETE_FRAGMENT:
         try {
           int viewId = root.getId();
           FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
-          activity
+          IViewFragment fragment = Objects.requireNonNull(fragmentMap.remove(viewId)).get();
+          if (fragment.isNavigationSupportedOnMap()) {
+            activity
               .getSupportFragmentManager()
               .beginTransaction()
-              .remove(Objects.requireNonNull(fragmentMap.remove(viewId)).get())
+              .remove((Fragment) fragment)
               .commitNowAllowingStateLoss();
+          } else {
+            activity
+              .getFragmentManager()
+              .beginTransaction()
+              .remove((android.app.Fragment) fragment)
+              .commit(); // TODO: Check if commitNowAllowingStateLoss() could be used.
+          }
         } catch (Exception ignored) {
         }
         break;
@@ -309,25 +320,41 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     return (Map) eventTypeConstants;
   }
 
-  /** Replace your React Native view with a custom fragment */
-  public void createFragment(FrameLayout root, Map stylingOptions) {
+  /**
+   * Replace your React Native view with a custom fragment
+   */
+  public void createFragment(
+    FrameLayout root, Map stylingOptions, Boolean isNavigationEnabled) {
     setupLayout(root);
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
     if (activity != null) {
       int viewId = root.getId();
-      NavViewFragment fragment = new NavViewFragment(reactContext, root.getId());
-      fragmentMap.put(viewId, new WeakReference<NavViewFragment>(fragment));
+      if (isNavigationEnabled) {
+        NavViewFragment fragment = new NavViewFragment(reactContext, root.getId());
+        fragmentMap.put(viewId, new WeakReference<IViewFragment>(fragment));
 
-      if (stylingOptions != null) {
-        fragment.setStylingOptions(stylingOptions);
-      }
+        if (stylingOptions != null) {
+          fragment.setStylingOptions(stylingOptions);
+        }
 
-      activity
-          .getSupportFragmentManager()
+        activity.getSupportFragmentManager()
           .beginTransaction()
           .replace(viewId, fragment, String.valueOf(viewId))
           .commit();
+      } else {
+        MapViewFragment fragment = new MapViewFragment(reactContext, root.getId());
+        fragmentMap.put(viewId, new WeakReference<IViewFragment>(fragment));
+
+        if (stylingOptions != null) {
+          fragment.setStylingOptions(stylingOptions);
+        }
+
+        activity.getFragmentManager()
+          .beginTransaction()
+          .replace(viewId, fragment, String.valueOf(viewId))
+          .commit();
+      }
     }
   }
 
@@ -350,7 +377,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
   /** Layout all children properly */
   public void manuallyLayoutChildren(FrameLayout view) {
-    NavViewFragment fragment = getFragmentForRoot(view);
+    IViewFragment fragment = getFragmentForRoot(view);
     if (fragment.isAdded()) {
       View childView = fragment.getView();
       if (childView != null) {
