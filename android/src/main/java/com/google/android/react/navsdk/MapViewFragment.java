@@ -33,8 +33,8 @@ import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.uimanager.events.Event;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -68,7 +68,7 @@ import java.util.concurrent.Executors;
  * This fragment's lifecycle is managed by NavViewManager.
  */
 @SuppressLint("ValidFragment")
-public class MapViewFragment extends MapFragment implements IViewFragment {
+public class MapViewFragment extends SupportMapFragment implements IViewFragment {
   private static final String TAG = "MapViewFragment";
   private GoogleMap mGoogleMap;
   private StylingOptions mStylingOptions;
@@ -146,10 +146,6 @@ public class MapViewFragment extends MapFragment implements IViewFragment {
         });
       }
     });
-  }
-
-  public boolean isNavigationSupportedOnMap() {
-    return false;
   }
 
   public void applyStylingOptions() {}
@@ -629,18 +625,6 @@ public class MapViewFragment extends MapFragment implements IViewFragment {
     });
   }
 
-  @Override
-  public void onDestroy() {
-    super.onDestroy();
-    cleanup();
-  }
-
-  @Override
-  public void onDestroyView() {
-    super.onDestroyView();
-    cleanup();
-  }
-
   private void emitEvent(String eventName, @Nullable WritableMap data) {
     if (reactContext != null) {
       EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, viewTag);
@@ -674,8 +658,6 @@ public class MapViewFragment extends MapFragment implements IViewFragment {
   public void setRecenterButtonEnabled(boolean enabled) {}
 
   public void showRouteOverview() {}
-
-  private void cleanup() {}
 
   public class NavViewEvent extends Event<NavViewEvent> {
     private String eventName;

@@ -164,19 +164,11 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
           int viewId = root.getId();
           FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
           IViewFragment fragment = Objects.requireNonNull(fragmentMap.remove(viewId)).get();
-          if (fragment.isNavigationSupportedOnMap()) {
-            activity
-              .getSupportFragmentManager()
-              .beginTransaction()
-              .remove((Fragment) fragment)
-              .commitNowAllowingStateLoss();
-          } else {
-            activity
-              .getFragmentManager()
-              .beginTransaction()
-              .remove((android.app.Fragment) fragment)
-              .commit(); // TODO: Check if commitNowAllowingStateLoss() could be used.
-          }
+          activity
+            .getSupportFragmentManager()
+            .beginTransaction()
+            .remove((Fragment) fragment)
+            .commitNowAllowingStateLoss();
         } catch (Exception ignored) {
         }
         break;
@@ -330,31 +322,28 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
     if (activity != null) {
       int viewId = root.getId();
+      Fragment fragment;
       if (isNavigationEnabled) {
-        NavViewFragment fragment = new NavViewFragment(reactContext, root.getId());
-        fragmentMap.put(viewId, new WeakReference<IViewFragment>(fragment));
+        NavViewFragment navFragment = new NavViewFragment(reactContext, root.getId());
+        fragmentMap.put(viewId, new WeakReference<IViewFragment>(navFragment));
+        fragment = navFragment;
 
         if (stylingOptions != null) {
-          fragment.setStylingOptions(stylingOptions);
+          navFragment.setStylingOptions(stylingOptions);
         }
-
-        activity.getSupportFragmentManager()
-          .beginTransaction()
-          .replace(viewId, fragment, String.valueOf(viewId))
-          .commit();
       } else {
-        MapViewFragment fragment = new MapViewFragment(reactContext, root.getId());
-        fragmentMap.put(viewId, new WeakReference<IViewFragment>(fragment));
+        MapViewFragment mapFragment = new MapViewFragment(reactContext, root.getId());
+        fragmentMap.put(viewId, new WeakReference<IViewFragment>(mapFragment));
+        fragment = mapFragment;
 
         if (stylingOptions != null) {
-          fragment.setStylingOptions(stylingOptions);
+          mapFragment.setStylingOptions(stylingOptions);
         }
-
-        activity.getFragmentManager()
-          .beginTransaction()
-          .replace(viewId, fragment, String.valueOf(viewId))
-          .commit();
       }
+      activity.getSupportFragmentManager()
+        .beginTransaction()
+        .replace(viewId, fragment, String.valueOf(viewId))
+        .commit();
     }
   }
 

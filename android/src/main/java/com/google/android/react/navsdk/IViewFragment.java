@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.Map;
 
 public interface IViewFragment {
-  boolean isNavigationSupportedOnMap();
   void setStylingOptions(Map stylingOptions);
   void applyStylingOptions();
   void setFollowingPerspective(int jsValue);
