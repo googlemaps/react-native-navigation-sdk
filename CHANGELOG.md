@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.5.0...v0.5.1) (2024-09-10)
+
+
+### Bug Fixes
+
+* apply styling options for iOS navigation view ([#248](https://github.com/googlemaps/react-native-navigation-sdk/issues/248)) ([32dd6b3](https://github.com/googlemaps/react-native-navigation-sdk/commit/32dd6b3ced3ab7e07cec85d22b5b053028e645b6))
+* ensure EventDispatcher always receives non-null data from NavViewEvent ([#256](https://github.com/googlemaps/react-native-navigation-sdk/issues/256)) ([0ee4e8a](https://github.com/googlemaps/react-native-navigation-sdk/commit/0ee4e8a5b687bc947f7420afc018484df10b0c21))
+* marker click events on android ([#257](https://github.com/googlemaps/react-native-navigation-sdk/issues/257)) ([a3ee9ae](https://github.com/googlemaps/react-native-navigation-sdk/commit/a3ee9ae29939bba0b42f6a34b8ba7c84e2d93efe))
+
 ## [0.5.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.4.3...v0.5.0) (2024-09-05)
 
 
