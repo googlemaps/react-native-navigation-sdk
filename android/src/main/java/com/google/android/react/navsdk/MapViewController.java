@@ -11,15 +11,12 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.android.react.navsdk;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Color;
-
 import androidx.core.util.Supplier;
-
 import com.facebook.react.bridge.UiThreadUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -38,7 +35,6 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,16 +66,21 @@ public class MapViewController {
     this.mNavigationViewCallback = navigationViewCallback;
     if (mGoogleMap == null || mNavigationViewCallback == null) return;
 
-    mGoogleMap.setOnMarkerClickListener(marker -> {
-      mNavigationViewCallback.onMarkerClick(marker);
-      return false;
-    });
+    mGoogleMap.setOnMarkerClickListener(
+        marker -> {
+          mNavigationViewCallback.onMarkerClick(marker);
+          return false;
+        });
 
-    mGoogleMap.setOnPolylineClickListener(polyline -> mNavigationViewCallback.onPolylineClick(polyline));
-    mGoogleMap.setOnPolygonClickListener(polygon -> mNavigationViewCallback.onPolygonClick(polygon));
+    mGoogleMap.setOnPolylineClickListener(
+        polyline -> mNavigationViewCallback.onPolylineClick(polyline));
+    mGoogleMap.setOnPolygonClickListener(
+        polygon -> mNavigationViewCallback.onPolygonClick(polygon));
     mGoogleMap.setOnCircleClickListener(circle -> mNavigationViewCallback.onCircleClick(circle));
-    mGoogleMap.setOnGroundOverlayClickListener(groundOverlay -> mNavigationViewCallback.onGroundOverlayClick(groundOverlay));
-    mGoogleMap.setOnInfoWindowClickListener(marker -> mNavigationViewCallback.onMarkerInfoWindowTapped(marker));
+    mGoogleMap.setOnGroundOverlayClickListener(
+        groundOverlay -> mNavigationViewCallback.onGroundOverlayClick(groundOverlay));
+    mGoogleMap.setOnInfoWindowClickListener(
+        marker -> mNavigationViewCallback.onMarkerInfoWindowTapped(marker));
     mGoogleMap.setOnMapClickListener(latLng -> mNavigationViewCallback.onMapClick(latLng));
   }
 
@@ -94,7 +95,8 @@ public class MapViewController {
 
     CircleOptions options = new CircleOptions();
 
-    float strokeWidth = Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
+    float strokeWidth =
+        Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
     options.strokeWidth(strokeWidth);
 
     double radius = CollectionUtil.getDouble("radius", optionsMap, 0.0);
@@ -103,7 +105,8 @@ public class MapViewController {
     boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
     options.visible(visible);
 
-    options.center(ObjectTranslationUtil.getLatLngFromMap((Map<String, Object>) optionsMap.get("center")));
+    options.center(
+        ObjectTranslationUtil.getLatLngFromMap((Map<String, Object>) optionsMap.get("center")));
 
     boolean clickable = CollectionUtil.getBool("clickable", optionsMap, false);
     options.clickable(clickable);
@@ -124,7 +127,6 @@ public class MapViewController {
     return circle;
   }
 
-
   public Marker addMarker(Map<String, Object> optionsMap) {
     if (mGoogleMap == null) {
       return null;
@@ -134,7 +136,8 @@ public class MapViewController {
     String title = CollectionUtil.getString("title", optionsMap);
     String snippet = CollectionUtil.getString("snippet", optionsMap);
     float alpha = Double.valueOf(CollectionUtil.getDouble("alpha", optionsMap, 1)).floatValue();
-    float rotation = Double.valueOf(CollectionUtil.getDouble("rotation", optionsMap, 0)).floatValue();
+    float rotation =
+        Double.valueOf(CollectionUtil.getDouble("rotation", optionsMap, 0)).floatValue();
     boolean draggable = CollectionUtil.getBool("draggable", optionsMap, false);
     boolean flat = CollectionUtil.getBool("flat", optionsMap, false);
     boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
@@ -145,7 +148,8 @@ public class MapViewController {
       options.icon(icon);
     }
 
-    options.position(ObjectTranslationUtil.getLatLngFromMap((Map<String, Object>) optionsMap.get("position")));
+    options.position(
+        ObjectTranslationUtil.getLatLngFromMap((Map<String, Object>) optionsMap.get("position")));
 
     if (title != null) {
       options.title(title);
@@ -185,7 +189,7 @@ public class MapViewController {
 
     PolylineOptions options = new PolylineOptions();
     for (int i = 0; i < latLngArr.size(); i++) {
-      Map<String,Object> latLngMap = (Map<String,Object>) latLngArr.get(i);
+      Map<String, Object> latLngMap = (Map<String, Object>) latLngArr.get(i);
       LatLng latLng = createLatLng(latLngMap);
       options.add(latLng);
     }
@@ -212,7 +216,8 @@ public class MapViewController {
 
     String strokeColor = CollectionUtil.getString("strokeColor", optionsMap);
     String fillColor = CollectionUtil.getString("fillColor", optionsMap);
-    float strokeWidth = Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
+    float strokeWidth =
+        Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
     boolean clickable = CollectionUtil.getBool("clickable", optionsMap, false);
     boolean geodesic = CollectionUtil.getBool("geodesic", optionsMap, false);
     boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
@@ -221,7 +226,7 @@ public class MapViewController {
 
     PolygonOptions options = new PolygonOptions();
     for (int i = 0; i < latLngArr.size(); i++) {
-      Map<String,Object> latLngMap = (Map<String,Object>) latLngArr.get(i);
+      Map<String, Object> latLngMap = (Map<String, Object>) latLngArr.get(i);
       LatLng latLng = createLatLng(latLngMap);
       options.add(latLng);
     }
@@ -234,7 +239,7 @@ public class MapViewController {
       List<LatLng> listHoles = new ArrayList<>();
 
       for (int j = 0; j < arr.size(); j++) {
-        Map<String,Object> latLngMap = (Map<String,Object>) arr.get(j);
+        Map<String, Object> latLngMap = (Map<String, Object>) arr.get(j);
         LatLng latLng = createLatLng(latLngMap);
 
         listHoles.add(latLng);
@@ -270,14 +275,15 @@ public class MapViewController {
     String imagePath = CollectionUtil.getString("imgPath", map);
     float width = Double.valueOf(CollectionUtil.getDouble("width", map, 0)).floatValue();
     float height = Double.valueOf(CollectionUtil.getDouble("height", map, 0)).floatValue();
-    float transparency = Double.valueOf(CollectionUtil.getDouble("transparency", map, 0)).floatValue();
+    float transparency =
+        Double.valueOf(CollectionUtil.getDouble("transparency", map, 0)).floatValue();
     boolean clickable = CollectionUtil.getBool("clickable", map, false);
     boolean visible = CollectionUtil.getBool("visible", map, true);
 
     Double lat = null;
     Double lng = null;
     if (map.containsKey("location")) {
-      Map<String,Object> latlng = (Map<String,Object>) map.get("location");
+      Map<String, Object> latlng = (Map<String, Object>) map.get("location");
       if (latlng.get("lat") != null) lat = Double.parseDouble(latlng.get("lat").toString());
       if (latlng.get("lng") != null) lng = Double.parseDouble(latlng.get("lng").toString());
     }
@@ -297,15 +303,16 @@ public class MapViewController {
   }
 
   public void removeMarker(String id) {
-    UiThreadUtil.runOnUiThread(() -> {
-      for (Marker m : markerList) {
-        if (m.getId().equals(id)) {
-          m.remove();
-          markerList.remove(m);
-          return;
-        }
-      }
-    });
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          for (Marker m : markerList) {
+            if (m.getId().equals(id)) {
+              m.remove();
+              markerList.remove(m);
+              return;
+            }
+          }
+        });
   }
 
   public void removePolyline(String id) {
@@ -349,34 +356,36 @@ public class MapViewController {
   }
 
   public void setMapStyle(String url) {
-    Executors.newSingleThreadExecutor().execute(() -> {
-      try {
-        style = fetchJsonFromUrl(url);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+    Executors.newSingleThreadExecutor()
+        .execute(
+            () -> {
+              try {
+                style = fetchJsonFromUrl(url);
+              } catch (IOException e) {
+                throw new RuntimeException(e);
+              }
 
-      Activity activity = activitySupplier.get();
-      if (activity != null) {
-        activity.runOnUiThread(() -> {
-          MapStyleOptions options = new MapStyleOptions(style);
-          mGoogleMap.setMapStyle(options);
-        });
-      }
-    });
+              Activity activity = activitySupplier.get();
+              if (activity != null) {
+                activity.runOnUiThread(
+                    () -> {
+                      MapStyleOptions options = new MapStyleOptions(style);
+                      mGoogleMap.setMapStyle(options);
+                    });
+              }
+            });
   }
 
-  /**
-   * Moves the position of the camera to hover over Melbourne.
-   */
+  /** Moves the position of the camera to hover over Melbourne. */
   public void moveCamera(Map<String, Object> map) {
-    LatLng latLng = ObjectTranslationUtil.getLatLngFromMap((Map<String,Object>) map.get("target"));
+    LatLng latLng = ObjectTranslationUtil.getLatLngFromMap((Map<String, Object>) map.get("target"));
 
     float zoom = (float) CollectionUtil.getDouble("zoom", map, 0);
     float tilt = (float) CollectionUtil.getDouble("tilt", map, 0);
     float bearing = (float) CollectionUtil.getDouble("bearing", map, 0);
 
-    CameraPosition cameraPosition = CameraPosition.builder().target(latLng).zoom(zoom).tilt(tilt).bearing(bearing).build();
+    CameraPosition cameraPosition =
+        CameraPosition.builder().target(latLng).zoom(zoom).tilt(tilt).bearing(bearing).build();
 
     mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
   }
@@ -388,13 +397,18 @@ public class MapViewController {
       int bearing = CollectionUtil.getInt("bearing", map, 0);
       int animationDuration = CollectionUtil.getInt("duration", map, 0);
 
-      CameraPosition cameraPosition = new CameraPosition.Builder().target(ObjectTranslationUtil.getLatLngFromMap((Map<String, Object>) map.get("target"))) // Set the target location
-        .zoom(zoom) // Set the desired zoom level
-        .tilt(tilt) // Set the desired tilt angle (0 for straight down, 90 for straight up)
-        .bearing(bearing) // Set the desired bearing (rotation angle in degrees)
-        .build();
+      CameraPosition cameraPosition =
+          new CameraPosition.Builder()
+              .target(
+                  ObjectTranslationUtil.getLatLngFromMap(
+                      (Map<String, Object>) map.get("target"))) // Set the target location
+              .zoom(zoom) // Set the desired zoom level
+              .tilt(tilt) // Set the desired tilt angle (0 for straight down, 90 for straight up)
+              .bearing(bearing) // Set the desired bearing (rotation angle in degrees)
+              .build();
 
-      mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), animationDuration, null);
+      mGoogleMap.animateCamera(
+          CameraUpdateFactory.newCameraPosition(cameraPosition), animationDuration, null);
     }
   }
 
@@ -477,17 +491,16 @@ public class MapViewController {
     }
   }
 
-  /**
-   * Toggles whether the location marker is enabled.
-   */
+  /** Toggles whether the location marker is enabled. */
   public void setMyLocationButtonEnabled(boolean isOn) {
     if (mGoogleMap == null) {
       return;
     }
 
-    UiThreadUtil.runOnUiThread(() -> {
-      mGoogleMap.getUiSettings().setMyLocationButtonEnabled(isOn);
-    });
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          mGoogleMap.getUiSettings().setMyLocationButtonEnabled(isOn);
+        });
   }
 
   public void setMapType(int jsValue) {
@@ -513,7 +526,6 @@ public class MapViewController {
 
     mGoogleMap.resetMinMaxZoomPreference();
   }
-
 
   @SuppressLint("MissingPermission")
   public void setFollowingPerspective(int jsValue) {

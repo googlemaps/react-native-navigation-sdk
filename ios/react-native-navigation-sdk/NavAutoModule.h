@@ -19,7 +19,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface NavAutoModule : NSObject <RCTBridgeModule>
-@property (nonatomic, strong, nullable) NavViewController *viewController;
+@property(nonatomic, strong, nullable) NavViewController *viewController;
 
 typedef void (^NavAutoModuleReadyCallback)(void);
 

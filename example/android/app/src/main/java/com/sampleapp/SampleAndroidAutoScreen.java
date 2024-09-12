@@ -19,7 +19,6 @@ package com.sampleapp;
 import static java.lang.Double.max;
 
 import android.annotation.SuppressLint;
-
 import androidx.annotation.NonNull;
 import androidx.car.app.CarContext;
 import androidx.car.app.model.Action;
@@ -33,17 +32,13 @@ import androidx.car.app.navigation.model.Maneuver;
 import androidx.car.app.navigation.model.NavigationTemplate;
 import androidx.car.app.navigation.model.RoutingInfo;
 import androidx.car.app.navigation.model.Step;
-
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.CircleOptions;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.NavInfo;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
 import com.google.android.react.navsdk.AndroidAutoBaseScreen;
 import com.google.android.react.navsdk.NavInfoReceivingService;
-import com.google.android.react.navsdk.ObjectTranslationUtil;
 
 public class SampleAndroidAutoScreen extends AndroidAutoBaseScreen {
   protected RoutingInfo mNavInfo;
@@ -64,29 +59,26 @@ public class SampleAndroidAutoScreen extends AndroidAutoBaseScreen {
     }
 
     /**
-     *   Converts data received from the Navigation data feed
-     *   into Android-Auto compatible data structures. For more information
-     *   see the "Ensure correct maneuver types" below.
+     * Converts data received from the Navigation data feed into Android-Auto compatible data
+     * structures. For more information see the "Ensure correct maneuver types" below.
      */
     Step currentStep = buildStepFromStepInfo(navInfo.getCurrentStep());
-    Distance distanceToStep = Distance.create(max(navInfo.getDistanceToCurrentStepMeters(),0), Distance.UNIT_METERS);
+    Distance distanceToStep =
+        Distance.create(max(navInfo.getDistanceToCurrentStepMeters(), 0), Distance.UNIT_METERS);
 
-    mNavInfo =
-      new RoutingInfo.Builder().setCurrentStep(currentStep, distanceToStep).build();
+    mNavInfo = new RoutingInfo.Builder().setCurrentStep(currentStep, distanceToStep).build();
 
     // Invalidate the current template which leads to another onGetTemplate call.
     invalidate();
   }
 
   private Step buildStepFromStepInfo(StepInfo stepInfo) {
-    Maneuver.Builder
-      maneuverBuilder = new Maneuver.Builder(
-      stepInfo.getManeuver());
+    Maneuver.Builder maneuverBuilder = new Maneuver.Builder(stepInfo.getManeuver());
     Step.Builder stepBuilder =
-      new Step.Builder()
-        .setRoad(stepInfo.getFullRoadName())
-        .setCue(stepInfo.getFullInstructionText())
-        .setManeuver(maneuverBuilder.build());
+        new Step.Builder()
+            .setRoad(stepInfo.getFullRoadName())
+            .setCue(stepInfo.getFullInstructionText())
+            .setManeuver(maneuverBuilder.build());
     return stepBuilder.build();
   }
 
@@ -95,40 +87,44 @@ public class SampleAndroidAutoScreen extends AndroidAutoBaseScreen {
   public Template onGetTemplate() {
     if (!mNavigationInitialized) {
       return new PaneTemplate.Builder(
-        new Pane.Builder().addRow(
-          new Row.Builder()
-            .setTitle("Nav SampleApp")
-            .addText("Initialize navigation to see navigation view on the Android Auto screen")
-            .build()
-        ).build()
-      ).build();
+              new Pane.Builder()
+                  .addRow(
+                      new Row.Builder()
+                          .setTitle("Nav SampleApp")
+                          .addText(
+                              "Initialize navigation to see navigation view on the Android Auto"
+                                  + " screen")
+                          .build())
+                  .build())
+          .build();
     }
 
     @SuppressLint("MissingPermission")
-    NavigationTemplate.Builder navigationTemplateBuilder = new NavigationTemplate.Builder()
-      .setActionStrip(new ActionStrip.Builder().addAction(
-          new Action.Builder()
-            .setTitle("Re-center")
-            .setOnClickListener(
-              () -> {
-                if (mGoogleMap == null)
-                  return;
-                mGoogleMap.followMyLocation(GoogleMap.CameraPerspective.TILTED);
-              }
-            )
-            .build()).addAction(
-          new Action.Builder()
-            .setTitle("Custom event")
-            .setOnClickListener(
-              () -> {
-                WritableMap map = Arguments.createMap();
-                map.putString("sampleKey", "sampleValue");
-                sendCustomEvent("sampleEvent", map);
-              }
-            )
-            .build())
-        .build())
-      .setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build());
+    NavigationTemplate.Builder navigationTemplateBuilder =
+        new NavigationTemplate.Builder()
+            .setActionStrip(
+                new ActionStrip.Builder()
+                    .addAction(
+                        new Action.Builder()
+                            .setTitle("Re-center")
+                            .setOnClickListener(
+                                () -> {
+                                  if (mGoogleMap == null) return;
+                                  mGoogleMap.followMyLocation(GoogleMap.CameraPerspective.TILTED);
+                                })
+                            .build())
+                    .addAction(
+                        new Action.Builder()
+                            .setTitle("Custom event")
+                            .setOnClickListener(
+                                () -> {
+                                  WritableMap map = Arguments.createMap();
+                                  map.putString("sampleKey", "sampleValue");
+                                  sendCustomEvent("sampleEvent", map);
+                                })
+                            .build())
+                    .build())
+            .setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build());
 
     // Show turn-by-turn navigation information if available.
     if (mNavInfo != null) {

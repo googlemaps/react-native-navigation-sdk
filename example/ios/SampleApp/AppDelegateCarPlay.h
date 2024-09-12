@@ -17,7 +17,7 @@
 #import <UIKit/UIKit.h>
 
 @interface AppDelegateCarPlay : RCTAppDelegate
-@property (nonatomic, strong) UIWindow *window;
-@property (nonatomic, strong) RCTBridge *bridge;
-@property (nonatomic, strong) RCTRootView *rootView;
+@property(nonatomic, strong) UIWindow *window;
+@property(nonatomic, strong) RCTBridge *bridge;
+@property(nonatomic, strong) RCTRootView *rootView;
 @end

@@ -16,15 +16,13 @@ package com.google.android.react.navsdk;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.UIManagerHelper;
-import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.uimanager.events.Event;
+import com.facebook.react.uimanager.events.EventDispatcher;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.Circle;
@@ -41,7 +39,8 @@ import com.google.android.libraries.navigation.SupportNavigationFragment;
  * A fragment that displays a navigation view with a Google Map using SupportNavigationFragment.
  * This fragment's lifecycle is managed by NavViewManager.
  */
-public class NavViewFragment extends SupportNavigationFragment implements INavigationViewController, INavigationViewCallback {
+public class NavViewFragment extends SupportNavigationFragment
+    implements INavigationViewController, INavigationViewCallback {
   private static final String TAG = "NavViewFragment";
   private MapViewController mMapViewController;
   private GoogleMap mGoogleMap;
@@ -55,12 +54,13 @@ public class NavViewFragment extends SupportNavigationFragment implements INavig
     this.viewTag = viewTag;
   }
 
-  private NavigationView.OnRecenterButtonClickedListener onRecenterButtonClickedListener = new NavigationView.OnRecenterButtonClickedListener() {
-    @Override
-    public void onRecenterButtonClick() {
-      emitEvent("onRecenterButtonClick", null);
-    }
-  };
+  private NavigationView.OnRecenterButtonClickedListener onRecenterButtonClickedListener =
+      new NavigationView.OnRecenterButtonClickedListener() {
+        @Override
+        public void onRecenterButtonClick() {
+          emitEvent("onRecenterButtonClick", null);
+        }
+      };
 
   private String style = "";
 
@@ -71,22 +71,23 @@ public class NavViewFragment extends SupportNavigationFragment implements INavig
 
     setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
 
-    getMapAsync(new OnMapReadyCallback() {
-      public void onMapReady(GoogleMap googleMap) {
-        mGoogleMap = googleMap;
+    getMapAsync(
+        new OnMapReadyCallback() {
+          public void onMapReady(GoogleMap googleMap) {
+            mGoogleMap = googleMap;
 
-        mMapViewController = new MapViewController();
-        mMapViewController.initialize(googleMap, () -> requireActivity());
+            mMapViewController = new MapViewController();
+            mMapViewController.initialize(googleMap, () -> requireActivity());
 
-        // Setup map listeners with the provided callback
-        mMapViewController.setupMapListeners(NavViewFragment.this);
+            // Setup map listeners with the provided callback
+            mMapViewController.setupMapListeners(NavViewFragment.this);
 
-        emitEvent("onMapReady", null);
+            emitEvent("onMapReady", null);
 
-        setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
-        addOnRecenterButtonClickedListener(onRecenterButtonClickedListener);
-      }
-    });
+            setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
+            addOnRecenterButtonClickedListener(onRecenterButtonClickedListener);
+          }
+        });
   }
 
   public MapViewController getMapController() {
@@ -178,7 +179,8 @@ public class NavViewFragment extends SupportNavigationFragment implements INavig
 
   private void emitEvent(String eventName, @Nullable WritableMap data) {
     if (reactContext != null) {
-      EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, viewTag);
+      EventDispatcher dispatcher =
+          UIManagerHelper.getEventDispatcherForReactTag(reactContext, viewTag);
 
       if (dispatcher != null) {
         int surfaceId = UIManagerHelper.getSurfaceId(reactContext);
@@ -191,7 +193,8 @@ public class NavViewFragment extends SupportNavigationFragment implements INavig
     private String eventName;
     private @Nullable WritableMap eventData;
 
-    public NavViewEvent(int surfaceId, int viewTag, String eventName, @Nullable WritableMap eventData) {
+    public NavViewEvent(
+        int surfaceId, int viewTag, String eventName, @Nullable WritableMap eventData) {
       super(surfaceId, viewTag);
       this.eventName = eventName;
       this.eventData = eventData;
@@ -208,4 +211,3 @@ public class NavViewFragment extends SupportNavigationFragment implements INavig
     }
   }
 }
-

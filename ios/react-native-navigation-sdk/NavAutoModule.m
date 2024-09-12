@@ -62,8 +62,7 @@ static NavAutoEventDispatcher *_eventDispatcher;
   [self onScreenStateChange:false];
 }
 
-+ (void)registerNavAutoModuleReadyCallback:
-    (NavAutoModuleReadyCallback)callback {
++ (void)registerNavAutoModuleReadyCallback:(NavAutoModuleReadyCallback)callback {
   _navAutoModuleReadyCallback = [callback copy];
 }
 
@@ -71,7 +70,7 @@ static NavAutoEventDispatcher *_eventDispatcher;
   _navAutoModuleReadyCallback = nil;
 }
 
-RCT_EXPORT_METHOD(setMapType: (NSInteger)mapType) {
+RCT_EXPORT_METHOD(setMapType : (NSInteger)mapType) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       GMSMapViewType mapViewType;
@@ -97,12 +96,11 @@ RCT_EXPORT_METHOD(setMapType: (NSInteger)mapType) {
   });
 }
 
-RCT_EXPORT_METHOD(setMapStyle: (NSString *)jsonStyleString) {
+RCT_EXPORT_METHOD(setMapStyle : (NSString *)jsonStyleString) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       NSError *error;
-      GMSMapStyle *mapStyle = [GMSMapStyle styleWithJSONString:jsonStyleString
-                                                         error:&error];
+      GMSMapStyle *mapStyle = [GMSMapStyle styleWithJSONString:jsonStyleString error:&error];
       if (!mapStyle) {
         return;
       }
@@ -126,9 +124,9 @@ RCT_EXPORT_METHOD(addMarker
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController addMarker:markerOptions
-                         result:^(NSDictionary *result) {
-        resolve(result);
-      }];
+                                result:^(NSDictionary *result) {
+                                  resolve(result);
+                                }];
     } else {
       reject(@"no_view_controller", @"No viewController found", nil);
     }
@@ -142,9 +140,9 @@ RCT_EXPORT_METHOD(addCircle
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController addCircle:circleOptions
-                         result:^(NSDictionary *result) {
-        resolve(result);
-      }];
+                                result:^(NSDictionary *result) {
+                                  resolve(result);
+                                }];
     } else {
       reject(@"no_view_controller", @"No viewController found", nil);
     }
@@ -158,9 +156,9 @@ RCT_EXPORT_METHOD(addPolyline
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController addPolyline:polylineOptions
-                           result:^(NSDictionary *result) {
-        resolve(result);
-      }];
+                                  result:^(NSDictionary *result) {
+                                    resolve(result);
+                                  }];
     } else {
       reject(@"no_view_controller", @"No viewController found", nil);
     }
@@ -174,16 +172,16 @@ RCT_EXPORT_METHOD(addPolygon
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController addPolygon:polygonOptions
-                          result:^(NSDictionary *result) {
-        resolve(result);
-      }];
+                                 result:^(NSDictionary *result) {
+                                   resolve(result);
+                                 }];
     } else {
       reject(@"no_view_controller", @"No viewController found", nil);
     }
   });
 }
 
-RCT_EXPORT_METHOD(removeMarker: (NSString *)markerId) {
+RCT_EXPORT_METHOD(removeMarker : (NSString *)markerId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController removeMarker:markerId];
@@ -191,7 +189,7 @@ RCT_EXPORT_METHOD(removeMarker: (NSString *)markerId) {
   });
 }
 
-RCT_EXPORT_METHOD(removePolygon: (NSString *)polygonId) {
+RCT_EXPORT_METHOD(removePolygon : (NSString *)polygonId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController removePolygon:polygonId];
@@ -199,7 +197,7 @@ RCT_EXPORT_METHOD(removePolygon: (NSString *)polygonId) {
   });
 }
 
-RCT_EXPORT_METHOD(removePolyline: (NSString *)polylineId) {
+RCT_EXPORT_METHOD(removePolyline : (NSString *)polylineId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController removePolyline:polylineId];
@@ -207,7 +205,7 @@ RCT_EXPORT_METHOD(removePolyline: (NSString *)polylineId) {
   });
 }
 
-RCT_EXPORT_METHOD(removeCircle: (NSString *)circleId) {
+RCT_EXPORT_METHOD(removeCircle : (NSString *)circleId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController removeCircle:circleId];
@@ -215,7 +213,7 @@ RCT_EXPORT_METHOD(removeCircle: (NSString *)circleId) {
   });
 }
 
-RCT_EXPORT_METHOD(setIndoorEnabled: (BOOL *)enabled) {
+RCT_EXPORT_METHOD(setIndoorEnabled : (BOOL *)enabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setIndoorEnabled:enabled];
@@ -223,7 +221,7 @@ RCT_EXPORT_METHOD(setIndoorEnabled: (BOOL *)enabled) {
   });
 }
 
-RCT_EXPORT_METHOD(setTrafficEnabled: (BOOL *)enabled) {
+RCT_EXPORT_METHOD(setTrafficEnabled : (BOOL *)enabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setTrafficEnabled:enabled];
@@ -231,7 +229,7 @@ RCT_EXPORT_METHOD(setTrafficEnabled: (BOOL *)enabled) {
   });
 }
 
-RCT_EXPORT_METHOD(setCompassEnabled: (BOOL *)enabled) {
+RCT_EXPORT_METHOD(setCompassEnabled : (BOOL *)enabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setCompassEnabled:enabled];
@@ -239,7 +237,7 @@ RCT_EXPORT_METHOD(setCompassEnabled: (BOOL *)enabled) {
   });
 }
 
-RCT_EXPORT_METHOD(setMyLocationButtonEnabled: (BOOL *)enabled) {
+RCT_EXPORT_METHOD(setMyLocationButtonEnabled : (BOOL *)enabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setMyLocationEnabled:enabled];
@@ -247,7 +245,7 @@ RCT_EXPORT_METHOD(setMyLocationButtonEnabled: (BOOL *)enabled) {
   });
 }
 
-RCT_EXPORT_METHOD(setMyLocationEnabled: (BOOL *)enabled) {
+RCT_EXPORT_METHOD(setMyLocationEnabled : (BOOL *)enabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setMyLocationEnabled:enabled];
@@ -255,7 +253,7 @@ RCT_EXPORT_METHOD(setMyLocationEnabled: (BOOL *)enabled) {
   });
 }
 
-RCT_EXPORT_METHOD(setRotateGesturesEnabled: (BOOL *)enabled) {
+RCT_EXPORT_METHOD(setRotateGesturesEnabled : (BOOL *)enabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setRotateGesturesEnabled:enabled];
@@ -263,7 +261,7 @@ RCT_EXPORT_METHOD(setRotateGesturesEnabled: (BOOL *)enabled) {
   });
 }
 
-RCT_EXPORT_METHOD(setScrollGesturesEnabled: (BOOL *)enabled) {
+RCT_EXPORT_METHOD(setScrollGesturesEnabled : (BOOL *)enabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setScrollGesturesEnabled:enabled];
@@ -271,7 +269,7 @@ RCT_EXPORT_METHOD(setScrollGesturesEnabled: (BOOL *)enabled) {
   });
 }
 
-RCT_EXPORT_METHOD(setScrollGesturesEnabledDuringRotateOrZoom: (BOOL *)enabled) {
+RCT_EXPORT_METHOD(setScrollGesturesEnabledDuringRotateOrZoom : (BOOL *)enabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setScrollGesturesEnabledDuringRotateOrZoom:enabled];
@@ -292,7 +290,7 @@ RCT_EXPORT_METHOD(setZoomLevel
   });
 }
 
-RCT_EXPORT_METHOD(setTiltGesturesEnabled: (BOOL *)enabled) {
+RCT_EXPORT_METHOD(setTiltGesturesEnabled : (BOOL *)enabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setTiltGesturesEnabled:enabled];
@@ -300,7 +298,7 @@ RCT_EXPORT_METHOD(setTiltGesturesEnabled: (BOOL *)enabled) {
   });
 }
 
-RCT_EXPORT_METHOD(setZoomGesturesEnabled: (BOOL *)enabled) {
+RCT_EXPORT_METHOD(setZoomGesturesEnabled : (BOOL *)enabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setZoomGesturesEnabled:enabled];
@@ -308,7 +306,7 @@ RCT_EXPORT_METHOD(setZoomGesturesEnabled: (BOOL *)enabled) {
   });
 }
 
-RCT_EXPORT_METHOD(setBuildingsEnabled: (BOOL *)enabled) {
+RCT_EXPORT_METHOD(setBuildingsEnabled : (BOOL *)enabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setBuildingsEnabled:enabled];
@@ -335,7 +333,7 @@ RCT_EXPORT_METHOD(getMyLocation
                   : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
-      [self->_viewController getMyLocation:^(NSDictionary * _Nullable result) {
+      [self->_viewController getMyLocation:^(NSDictionary *_Nullable result) {
         resolve(result);
       }];
     } else {
@@ -349,7 +347,7 @@ RCT_EXPORT_METHOD(getUiSettings
                   : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
-      [self->_viewController getUiSettings:^(NSDictionary * _Nullable result) {
+      [self->_viewController getUiSettings:^(NSDictionary *_Nullable result) {
         resolve(result);
       }];
     } else {
@@ -372,7 +370,7 @@ RCT_EXPORT_METHOD(isMyLocationEnabled
   });
 }
 
-RCT_EXPORT_METHOD(moveCamera: (NSDictionary *)cameraPosition) {
+RCT_EXPORT_METHOD(moveCamera : (NSDictionary *)cameraPosition) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController moveCamera:cameraPosition];
@@ -394,8 +392,7 @@ RCT_EXPORT_METHOD(isAutoScreenAvailable
                             args:[NSNumber numberWithBool:available]];
 }
 
-- (void)onCustomNavigationAutoEvent:(NSString *)type
-                               data:(nullable NSDictionary *)data {
+- (void)onCustomNavigationAutoEvent:(NSString *)type data:(nullable NSDictionary *)data {
   NSMutableDictionary *map = [NSMutableDictionary dictionary];
   [map setObject:type forKey:@"type"];
   [map setObject:(data != nil ? data : [NSNull null]) forKey:@"data"];

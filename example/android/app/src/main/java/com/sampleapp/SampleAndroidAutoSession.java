@@ -22,7 +22,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.car.app.CarContext;
 import androidx.car.app.CarToast;
@@ -33,8 +32,6 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
-
-import com.google.android.react.navsdk.AndroidAutoBaseScreen;
 
 public class SampleAndroidAutoSession extends Session {
   static final String TAG = SampleAndroidAutoSession.class.getSimpleName();
@@ -47,59 +44,58 @@ public class SampleAndroidAutoSession extends Session {
   }
 
   private final LifecycleObserver mLifeCycleObserver =
-    new DefaultLifecycleObserver() {
+      new DefaultLifecycleObserver() {
 
-      @Override
-      public void onCreate(@NonNull LifecycleOwner lifecycleOwner) {
-        Log.i(TAG, "In onCreate()");
-      }
+        @Override
+        public void onCreate(@NonNull LifecycleOwner lifecycleOwner) {
+          Log.i(TAG, "In onCreate()");
+        }
 
-      @Override
-      public void onStart(@NonNull LifecycleOwner lifecycleOwner) {
-        Log.i(TAG, "In onStart()");
-        getCarContext()
-          .bindService(
-            new Intent(getCarContext(), SampleAndroidAutoService.class),
-            mServiceConnection,
-            Context.BIND_AUTO_CREATE);
-      }
+        @Override
+        public void onStart(@NonNull LifecycleOwner lifecycleOwner) {
+          Log.i(TAG, "In onStart()");
+          getCarContext()
+              .bindService(
+                  new Intent(getCarContext(), SampleAndroidAutoService.class),
+                  mServiceConnection,
+                  Context.BIND_AUTO_CREATE);
+        }
 
-      @Override
-      public void onResume(@NonNull LifecycleOwner lifecycleOwner) {
-        Log.i(TAG, "In onResume()");
-      }
+        @Override
+        public void onResume(@NonNull LifecycleOwner lifecycleOwner) {
+          Log.i(TAG, "In onResume()");
+        }
 
-      @Override
-      public void onPause(@NonNull LifecycleOwner lifecycleOwner) {
-        Log.i(TAG, "In onPause()");
-      }
+        @Override
+        public void onPause(@NonNull LifecycleOwner lifecycleOwner) {
+          Log.i(TAG, "In onPause()");
+        }
 
-      @Override
-      public void onStop(@NonNull LifecycleOwner lifecycleOwner) {
-        Log.i(TAG, "In onStop()");
-        getCarContext().unbindService(mServiceConnection);
-      }
+        @Override
+        public void onStop(@NonNull LifecycleOwner lifecycleOwner) {
+          Log.i(TAG, "In onStop()");
+          getCarContext().unbindService(mServiceConnection);
+        }
 
-      @Override
-      public void onDestroy(@NonNull LifecycleOwner lifecycleOwner) {
-        Log.i(TAG, "In onDestroy()");
-      }
-    };
+        @Override
+        public void onDestroy(@NonNull LifecycleOwner lifecycleOwner) {
+          Log.i(TAG, "In onDestroy()");
+        }
+      };
 
   // Monitors the state of the connection to the Navigation service.
   final ServiceConnection mServiceConnection =
-    new ServiceConnection() {
-      @Override
-      public void onServiceConnected(ComponentName name, IBinder service) {
-        Log.i(TAG, "In onServiceConnected() component:" + name);
+      new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+          Log.i(TAG, "In onServiceConnected() component:" + name);
+        }
 
-      }
-
-      @Override
-      public void onServiceDisconnected(ComponentName name) {
-        Log.i(TAG, "In onServiceDisconnected() component:" + name);
-      }
-    };
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+          Log.i(TAG, "In onServiceDisconnected() component:" + name);
+        }
+      };
 
   @Override
   @NonNull
@@ -109,10 +105,8 @@ public class SampleAndroidAutoSession extends Session {
     String action = intent.getAction();
     if (action != null && CarContext.ACTION_NAVIGATE.equals(action)) {
       CarToast.makeText(
-          getCarContext(),
-          "Navigation intent: " + intent.getDataString(),
-          CarToast.LENGTH_LONG)
-        .show();
+              getCarContext(), "Navigation intent: " + intent.getDataString(), CarToast.LENGTH_LONG)
+          .show();
     }
 
     return new SampleAndroidAutoScreen(getCarContext());

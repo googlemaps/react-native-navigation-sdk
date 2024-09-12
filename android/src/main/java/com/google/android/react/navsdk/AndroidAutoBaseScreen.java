@@ -16,13 +16,11 @@
 
 package com.google.android.react.navsdk;
 
-
 import android.annotation.SuppressLint;
 import android.app.Presentation;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
-
 import androidx.annotation.NonNull;
 import androidx.car.app.AppManager;
 import androidx.car.app.CarContext;
@@ -37,16 +35,15 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
-
 import com.facebook.react.bridge.ReadableMap;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.libraries.navigation.NavigationViewForAuto;
-
 import com.google.android.libraries.navigation.StylingOptions;
 
-public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCallback, INavigationViewController {
+public abstract class AndroidAutoBaseScreen extends Screen
+    implements SurfaceCallback, INavigationViewController {
   private static final String VIRTUAL_DISPLAY_NAME = "SampleAppNavScreen";
 
   private NavigationViewForAuto mNavigationView;
@@ -70,20 +67,21 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
     invalidate();
   }
 
-  public AndroidAutoBaseScreen(
-    @NonNull CarContext carContext) {
+  public AndroidAutoBaseScreen(@NonNull CarContext carContext) {
 
     super(carContext);
 
-    NavAutoModule.setModuleReadyListener(() -> {
-      mAndroidAutoModuleInitialized = true;
-      registerControllersForAndroidAutoModule();
-    });
+    NavAutoModule.setModuleReadyListener(
+        () -> {
+          mAndroidAutoModuleInitialized = true;
+          registerControllersForAndroidAutoModule();
+        });
 
-    NavModule.setModuleReadyListener(() -> {
-      mNavModuleInitialized = true;
-      NavModule.getInstance().registerNavigationReadyListener(this::onNavigationReady);
-    });
+    NavModule.setModuleReadyListener(
+        () -> {
+          mNavModuleInitialized = true;
+          NavModule.getInstance().registerNavigationReadyListener(this::onNavigationReady);
+        });
 
     carContext.getCarService(AppManager.class).setSurfaceCallback(this);
 
@@ -91,18 +89,19 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
     lifecycle.addObserver(mLifeCycleObserver);
   }
 
-
   private final LifecycleObserver mLifeCycleObserver =
-    new DefaultLifecycleObserver() {
-      @Override
-      public void onDestroy(@NonNull LifecycleOwner lifecycleOwner) {
-        if (mNavModuleInitialized) {
-          try {
-            NavModule.getInstance().unRegisterNavigationReadyListener(screenInstance::onNavigationReady);
-          } catch (Exception e) {}
+      new DefaultLifecycleObserver() {
+        @Override
+        public void onDestroy(@NonNull LifecycleOwner lifecycleOwner) {
+          if (mNavModuleInitialized) {
+            try {
+              NavModule.getInstance()
+                  .unRegisterNavigationReadyListener(screenInstance::onNavigationReady);
+            } catch (Exception e) {
+            }
+          }
         }
-      }
-    };
+      };
 
   private void registerControllersForAndroidAutoModule() {
     if (mAndroidAutoModuleInitialized && mMapViewController != null) {
@@ -118,9 +117,9 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
 
   private boolean isSurfaceReady(SurfaceContainer surfaceContainer) {
     return surfaceContainer.getSurface() != null
-      && surfaceContainer.getDpi() != 0
-      && surfaceContainer.getHeight() != 0
-      && surfaceContainer.getWidth() != 0;
+        && surfaceContainer.getDpi() != 0
+        && surfaceContainer.getHeight() != 0
+        && surfaceContainer.getWidth() != 0;
   }
 
   @Override
@@ -129,15 +128,15 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
       return;
     }
     mVirtualDisplay =
-      getCarContext()
-        .getSystemService(DisplayManager.class)
-        .createVirtualDisplay(
-          VIRTUAL_DISPLAY_NAME,
-          surfaceContainer.getWidth(),
-          surfaceContainer.getHeight(),
-          surfaceContainer.getDpi(),
-          surfaceContainer.getSurface(),
-          DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY);
+        getCarContext()
+            .getSystemService(DisplayManager.class)
+            .createVirtualDisplay(
+                VIRTUAL_DISPLAY_NAME,
+                surfaceContainer.getWidth(),
+                surfaceContainer.getHeight(),
+                surfaceContainer.getDpi(),
+                surfaceContainer.getSurface(),
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY);
     mPresentation = new Presentation(getCarContext(), mVirtualDisplay.getDisplay());
 
     mNavigationView = new NavigationViewForAuto(getCarContext());
@@ -148,13 +147,14 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
     mPresentation.setContentView(mNavigationView);
     mPresentation.show();
 
-    mNavigationView.getMapAsync((GoogleMap googleMap) -> {
-      mGoogleMap = googleMap;
-      mMapViewController = new MapViewController();
-      mMapViewController.initialize(googleMap, () -> null);
-      registerControllersForAndroidAutoModule();
-      invalidate();
-    });
+    mNavigationView.getMapAsync(
+        (GoogleMap googleMap) -> {
+          mGoogleMap = googleMap;
+          mMapViewController = new MapViewController();
+          mMapViewController.initialize(googleMap, () -> null);
+          registerControllersForAndroidAutoModule();
+          invalidate();
+        });
   }
 
   @Override
@@ -168,7 +168,6 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
     mPresentation.dismiss();
     mVirtualDisplay.release();
   }
-
 
   @Override
   public void onScroll(float distanceX, float distanceY) {
@@ -184,12 +183,11 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
       return;
     }
     CameraUpdate update =
-      CameraUpdateFactory.zoomBy((scaleFactor - 1),
-        new Point((int) focusX, (int) focusY));
+        CameraUpdateFactory.zoomBy((scaleFactor - 1), new Point((int) focusX, (int) focusY));
     mGoogleMap.animateCamera(update); // map is set in onSurfaceAvailable.
   }
 
-  protected void sendCustomEvent(String type, ReadableMap data){
+  protected void sendCustomEvent(String type, ReadableMap data) {
     NavAutoModule.getInstance().onCustomNavigationAutoEvent(type, data);
   }
 
@@ -197,9 +195,8 @@ public abstract class AndroidAutoBaseScreen extends Screen implements SurfaceCal
   @Override
   @SuppressLint("MissingPermission")
   public Template onGetTemplate() {
-   return  new NavigationTemplate.Builder()
-        .setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build()).build();
+    return new NavigationTemplate.Builder()
+        .setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build())
+        .build();
   }
 }
-
-

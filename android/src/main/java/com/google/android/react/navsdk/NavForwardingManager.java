@@ -14,7 +14,6 @@
 package com.google.android.react.navsdk;
 
 import android.content.Context;
-
 import com.google.android.libraries.navigation.Navigator;
 
 /** Starts and stops the forwarding of turn-by-turn nav info from Nav SDK. */

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#import <Foundation/Foundation.h>
-#import <CarPlay/CarPlay.h>
 #import "CarSceneDelegate.h"
-#import "NavModule.h"
+#import <CarPlay/CarPlay.h>
+#import <Foundation/Foundation.h>
 #import "NavAutoModule.h"
+#import "NavModule.h"
 
 @implementation CarSceneDelegate
 
@@ -25,13 +25,16 @@
   CPMapTemplate *template = [[CPMapTemplate alloc] init];
   [template showPanningInterfaceAnimated:YES];
 
-  CPBarButton *customButton = [[CPBarButton alloc] initWithTitle:@"Custom Event" handler:^(CPBarButton * _Nonnull button) {
-    NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
-    dictionary[@"sampleDataKey"] = @"sampleDataContent";
-    [[NavAutoModule getOrCreateSharedInstance] onCustomNavigationAutoEvent:@"sampleEvent" data:dictionary];
-  }];
+  CPBarButton *customButton = [[CPBarButton alloc]
+      initWithTitle:@"Custom Event"
+            handler:^(CPBarButton *_Nonnull button) {
+              NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
+              dictionary[@"sampleDataKey"] = @"sampleDataContent";
+              [[NavAutoModule getOrCreateSharedInstance] onCustomNavigationAutoEvent:@"sampleEvent"
+                                                                                data:dictionary];
+            }];
 
-  template.leadingNavigationBarButtons = @[customButton];
+  template.leadingNavigationBarButtons = @[ customButton ];
   template.trailingNavigationBarButtons = @[];
   return template;
 }

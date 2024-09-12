@@ -23,7 +23,10 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface NavModule : NSObject <RCTBridgeModule, GMSNavigatorListener, GMSRoadSnappedLocationProviderListener, INavigationCallback>
+@interface NavModule : NSObject <RCTBridgeModule,
+                                 GMSNavigatorListener,
+                                 GMSRoadSnappedLocationProviderListener,
+                                 INavigationCallback>
 
 typedef void (^NavigationSessionReadyCallback)(void);
 typedef void (^NavigationSessionDisposedCallback)(void);

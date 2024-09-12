@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#import <Foundation/Foundation.h>
-#import <CarPlay/CarPlay.h>
 #import "BaseCarSceneDelegate.h"
-#import "NavModule.h"
+#import <CarPlay/CarPlay.h>
+#import <Foundation/Foundation.h>
 #import "NavAutoModule.h"
+#import "NavModule.h"
 
 @implementation BaseCarSceneDelegate
 
-- (void)templateApplicationScene:(CPTemplateApplicationScene *)templateApplicationScene didConnectInterfaceController:(CPInterfaceController *)interfaceController toWindow:(CPWindow *)window {
+- (void)templateApplicationScene:(CPTemplateApplicationScene *)templateApplicationScene
+    didConnectInterfaceController:(CPInterfaceController *)interfaceController
+                         toWindow:(CPWindow *)window {
   self.interfaceController = interfaceController;
   self.carWindow = window;
   self.mapTemplate = [self getTemplate];
@@ -48,7 +50,7 @@
 }
 
 - (void)templateApplicationScene:(CPTemplateApplicationScene *)templateApplicationScene
-didDisconnectInterfaceController:(CPInterfaceController *)interfaceController {
+    didDisconnectInterfaceController:(CPInterfaceController *)interfaceController {
   [self unRegisterViewController];
   self.interfaceController = nil;
   self.carWindow = nil;
@@ -64,7 +66,8 @@ didDisconnectInterfaceController:(CPInterfaceController *)interfaceController {
 }
 
 - (void)attachSession {
-  if ([NavModule sharedInstance] != nil && [[NavModule sharedInstance] hasSession] && !_sessionAttached) {
+  if ([NavModule sharedInstance] != nil && [[NavModule sharedInstance] hasSession] &&
+      !_sessionAttached) {
     [self.navViewController attachToNavigationSession:[[NavModule sharedInstance] getSession]];
     [self.navViewController setHeaderEnabled:NO];
     [self.navViewController setRecenterButtonEnabled:NO];
@@ -114,7 +117,7 @@ didDisconnectInterfaceController:(CPInterfaceController *)interfaceController {
   if (scrollAmount.x != 0 && scrollAmount.y != 0) {
     // Adjust length if scrolling diagonally.
     scrollAmount =
-    CGPointMake(scrollAmount.x * (CGFloat)M_SQRT1_2, scrollAmount.y * (CGFloat)M_SQRT1_2);
+        CGPointMake(scrollAmount.x * (CGFloat)M_SQRT1_2, scrollAmount.y * (CGFloat)M_SQRT1_2);
   }
   return scrollAmount;
 }

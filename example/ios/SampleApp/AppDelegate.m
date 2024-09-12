@@ -21,7 +21,7 @@
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application
-didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   self.moduleName = @"SampleApp";
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
@@ -37,8 +37,7 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
   [GMSServices provideAPIKey:api_key];
   [GMSServices setMetalRendererEnabled:YES];
-  return [super application:application
-didFinishLaunchingWithOptions:launchOptions];
+  return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
@@ -47,11 +46,9 @@ didFinishLaunchingWithOptions:launchOptions];
 
 - (NSURL *)bundleURL {
 #if DEBUG
-  return
-  [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
+  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
-  return [[NSBundle mainBundle] URLForResource:@"main"
-                                 withExtension:@"jsbundle"];
+  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
 }
 

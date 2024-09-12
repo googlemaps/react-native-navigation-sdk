@@ -58,16 +58,16 @@ RCT_EXPORT_METHOD(getCameraPosition
                   : (nonnull NSNumber *)reactTag resolver
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      NavViewController *viewController = [self getViewControllerForTag:reactTag];
-        if (viewController) {
-          [viewController getCameraPosition:^(NSDictionary *result) {
-            resolve(result);
-          }];
-        } else {
-          reject(@"no_view_controller", @"No viewController found", nil);
-        }
-    });
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NavViewController *viewController = [self getViewControllerForTag:reactTag];
+    if (viewController) {
+      [viewController getCameraPosition:^(NSDictionary *result) {
+        resolve(result);
+      }];
+    } else {
+      reject(@"no_view_controller", @"No viewController found", nil);
+    }
+  });
 }
 
 RCT_EXPORT_METHOD(getMyLocation

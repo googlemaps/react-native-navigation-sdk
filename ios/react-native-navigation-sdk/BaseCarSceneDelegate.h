@@ -16,14 +16,15 @@
 #import <CarPlay/CarPlay.h>
 #import "NavViewController.h"
 
-@interface BaseCarSceneDelegate : UIResponder <CPTemplateApplicationSceneDelegate, CPMapTemplateDelegate>
+@interface BaseCarSceneDelegate
+    : UIResponder <CPTemplateApplicationSceneDelegate, CPMapTemplateDelegate>
 
-@property (nonatomic, strong) CPInterfaceController *interfaceController;
-@property (nonatomic, strong) CPWindow *carWindow;
-@property (nonatomic, strong) CPMapTemplate *mapTemplate;
-@property (nonatomic, strong) NavViewController *navViewController;
-@property (nonatomic, assign) BOOL sessionAttached;
-@property (nonatomic, assign) BOOL viewControllerRegistered;
+@property(nonatomic, strong) CPInterfaceController *interfaceController;
+@property(nonatomic, strong) CPWindow *carWindow;
+@property(nonatomic, strong) CPMapTemplate *mapTemplate;
+@property(nonatomic, strong) NavViewController *navViewController;
+@property(nonatomic, assign) BOOL sessionAttached;
+@property(nonatomic, assign) BOOL viewControllerRegistered;
 
 - (CPMapTemplate *)getTemplate;
 

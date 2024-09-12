@@ -15,10 +15,10 @@
  */
 
 #import "NavModule.h"
+#import "NavAutoModule.h"
 #import "NavEventDispatcher.h"
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
-#import "NavAutoModule.h"
 
 @implementation NavModule {
   GMSNavigationSession *_session;
@@ -69,8 +69,7 @@ RCT_EXPORT_MODULE(NavModule);
   return self->_session.navigator;
 }
 
-- (BOOL)checkNavigatorWithError:(RCTPromiseRejectBlock)reject
-                      navigator:(GMSNavigator **)navigator {
+- (BOOL)checkNavigatorWithError:(RCTPromiseRejectBlock)reject navigator:(GMSNavigator **)navigator {
   NSString *error = nil;
   *navigator = [self getNavigatorWithError:&error];
 
@@ -84,24 +83,22 @@ RCT_EXPORT_MODULE(NavModule);
 - (void)initializeSession {
   // Try to create a navigation session.
   if (self->_session == nil && self->_session.navigator == nil) {
-    GMSNavigationSession *session =
-      [GMSNavigationServices createNavigationSession];
-      if (session == nil) {
-          // According to the API documentation, the only reason a nil session is
-          // ever returned is due to terms and conditions not having been accepted
-          // yet.
-          //
-          // At this point, this should not happen due to the earlier check.
-          @throw [NSException
-                  exceptionWithName:@"GoogleMapsNavigationSessionManagerError"
-                  reason:@"Terms not accepted"
-                  userInfo:nil];
-      }
-      self->_session = session;
-      if (_navigationSessionReadyCallback) {
-        _navigationSessionReadyCallback();
-      }
+    GMSNavigationSession *session = [GMSNavigationServices createNavigationSession];
+    if (session == nil) {
+      // According to the API documentation, the only reason a nil session is
+      // ever returned is due to terms and conditions not having been accepted
+      // yet.
+      //
+      // At this point, this should not happen due to the earlier check.
+      @throw [NSException exceptionWithName:@"GoogleMapsNavigationSessionManagerError"
+                                     reason:@"Terms not accepted"
+                                   userInfo:nil];
     }
+    self->_session = session;
+    if (_navigationSessionReadyCallback) {
+      _navigationSessionReadyCallback();
+    }
+  }
 
   _session.started = YES;
 
@@ -137,25 +134,23 @@ RCT_EXPORT_MODULE(NavModule);
 }
 
 - (void)showTermsAndConditionsDialog {
-  BOOL showAwareness = _tosParams[@"showOnlyDisclaimer"] != nil &&
-                       [_tosParams[@"showOnlyDisclaimer"] boolValue];
+  BOOL showAwareness =
+      _tosParams[@"showOnlyDisclaimer"] != nil && [_tosParams[@"showOnlyDisclaimer"] boolValue];
 
-  [GMSNavigationServices
-      setShouldOnlyShowDriverAwarenesssDisclaimer:showAwareness];
+  [GMSNavigationServices setShouldOnlyShowDriverAwarenesssDisclaimer:showAwareness];
 
   NSString *companyName = [_tosParams valueForKey:@"companyName"];
   NSString *titleHead = [_tosParams valueForKey:@"title"];
 
-  [GMSNavigationServices
-      showTermsAndConditionsDialogIfNeededWithTitle:titleHead
-                                        companyName:companyName
-                                           callback:^(BOOL termsAccepted) {
-                                             if (termsAccepted) {
-                                               [self initializeSession];
-                                             } else {
-                                               [self onNavigationInitError:@2];
-                                             }
-                                           }];
+  [GMSNavigationServices showTermsAndConditionsDialogIfNeededWithTitle:titleHead
+                                                           companyName:companyName
+                                                              callback:^(BOOL termsAccepted) {
+                                                                if (termsAccepted) {
+                                                                  [self initializeSession];
+                                                                } else {
+                                                                  [self onNavigationInitError:@2];
+                                                                }
+                                                              }];
 }
 
 RCT_EXPORT_METHOD(initializeNavigator : (NSDictionary *)options) {
@@ -170,8 +165,7 @@ RCT_EXPORT_METHOD(cleanup
                   : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_session == nil) {
-      reject(@"session_not_initialized", @"Navigation session not initialized",
-             nil);
+      reject(@"session_not_initialized", @"Navigation session not initialized", nil);
       return;
     }
 
@@ -218,16 +212,11 @@ RCT_EXPORT_METHOD(getCurrentTimeAndDistance
       return;
     }
 
-    GMSNavigationDelayCategory severity =
-        navigator.delayCategoryToNextDestination;
+    GMSNavigationDelayCategory severity = navigator.delayCategoryToNextDestination;
     NSTimeInterval time = navigator.timeToNextDestination;
     CLLocationDistance distance = navigator.distanceToNextDestination;
 
-    resolve(@{
-      @"delaySeverity" : @(severity),
-      @"meters" : @(distance),
-      @"seconds" : @(time)
-    });
+    resolve(@{@"delaySeverity" : @(severity), @"meters" : @(distance), @"seconds" : @(time)});
   });
 }
 
@@ -287,12 +276,10 @@ RCT_EXPORT_METHOD(stopGuidance
   });
 }
 
-RCT_EXPORT_METHOD(simulateLocationsAlongExistingRoute
-                  : (nonnull NSNumber *)speedMultiplier) {
+RCT_EXPORT_METHOD(simulateLocationsAlongExistingRoute : (nonnull NSNumber *)speedMultiplier) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_destinations != nil && self->_session != nil) {
-      [self->_session.locationSimulator
-          setSpeedMultiplier:[speedMultiplier floatValue]];
+      [self->_session.locationSimulator setSpeedMultiplier:[speedMultiplier floatValue]];
       [self->_session.locationSimulator simulateLocationsAlongExistingRoute];
     }
   });
@@ -341,10 +328,7 @@ RCT_EXPORT_METHOD(setDestination
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
   NSArray *waypoints = @[ waypoint ];
-  [self setDestinations:waypoints
-         routingOptions:routingOptions
-                resolve:resolve
-               rejecter:reject];
+  [self setDestinations:waypoints routingOptions:routingOptions resolve:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(setDestinations
@@ -373,12 +357,10 @@ RCT_EXPORT_METHOD(setDestinations
       NSString *placeId = wp[@"placeId"];
 
       if (placeId && ![placeId isEqual:@""]) {
-        w = [[GMSNavigationMutableWaypoint alloc] initWithPlaceID:placeId
-                                                            title:wp[@"title"]];
+        w = [[GMSNavigationMutableWaypoint alloc] initWithPlaceID:placeId title:wp[@"title"]];
       } else if (wp[@"position"]) {
         w = [[GMSNavigationMutableWaypoint alloc]
-            initWithLocation:[ObjectTranslationUtil
-                                 getLocationCoordinateFrom:wp[@"position"]]
+            initWithLocation:[ObjectTranslationUtil getLocationCoordinateFrom:wp[@"position"]]
                        title:wp[@"title"]];
       } else {
         continue;
@@ -399,47 +381,39 @@ RCT_EXPORT_METHOD(setDestinations
       [strongSelf->_destinations addObject:w];
     }
 
-    void (^routeStatusCallback)(GMSRouteStatus) =
-        ^(GMSRouteStatus routeStatus) {
-          __strong typeof(weakSelf) strongSelf = weakSelf;
-          if (!strongSelf)
-            return;
-          [strongSelf onRouteStatusResult:routeStatus];
-          resolve(@(YES));
-        };
+    void (^routeStatusCallback)(GMSRouteStatus) = ^(GMSRouteStatus routeStatus) {
+      __strong typeof(weakSelf) strongSelf = weakSelf;
+      if (!strongSelf) return;
+      [strongSelf onRouteStatusResult:routeStatus];
+      resolve(@(YES));
+    };
 
     if (routingOptions != NULL) {
-      [strongSelf configureNavigator:navigator
-                  withRoutingOptions:routingOptions];
+      [strongSelf configureNavigator:navigator withRoutingOptions:routingOptions];
       [navigator setDestinations:strongSelf->_destinations
                   routingOptions:[NavModule getRoutingOptions:routingOptions]
                         callback:routeStatusCallback];
     } else {
-      [navigator setDestinations:strongSelf->_destinations
-                        callback:routeStatusCallback];
+      [navigator setDestinations:strongSelf->_destinations callback:routeStatusCallback];
     }
   });
 }
 
 + (GMSNavigationRoutingOptions *)getRoutingOptions:(NSDictionary *)options {
-  GMSNavigationMutableRoutingOptions *routingOptions =
-      [[GMSNavigationMutableRoutingOptions alloc]
-          initWithRoutingStrategy:(GMSNavigationRoutingStrategy)
-                                      [options[@"routingStrategy"] intValue]];
+  GMSNavigationMutableRoutingOptions *routingOptions = [[GMSNavigationMutableRoutingOptions alloc]
+      initWithRoutingStrategy:(GMSNavigationRoutingStrategy)[options[@"routingStrategy"] intValue]];
 
-  [routingOptions setAlternateRoutesStrategy:
-                      (GMSNavigationAlternateRoutesStrategy)
-                          [options[@"alternateRoutesStrategy"] intValue]];
+  [routingOptions setAlternateRoutesStrategy:(GMSNavigationAlternateRoutesStrategy)
+                                                 [options[@"alternateRoutesStrategy"] intValue]];
 
   return routingOptions;
 }
 
 - (void)configureNavigator:(GMSNavigator *)navigator
         withRoutingOptions:(NSDictionary *)routingOptions {
-
   if (routingOptions[@"travelMode"] != nil) {
     NavViewModule *navViewModule = [NavViewModule sharedInstance];
-    [navViewModule setTravelMode:(GMSNavigationTravelMode)[routingOptions[@"travelMode"]intValue]];
+    [navViewModule setTravelMode:(GMSNavigationTravelMode)[routingOptions[@"travelMode"] intValue]];
   }
 
   if (routingOptions[@"avoidTolls"] != nil) {
@@ -457,8 +431,7 @@ RCT_EXPORT_METHOD(setDestinations
 
 RCT_EXPORT_METHOD(setBackgroundLocationUpdatesEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
-    self->_session.roadSnappedLocationProvider.allowsBackgroundLocationUpdates =
-        isEnabled;
+    self->_session.roadSnappedLocationProvider.allowsBackgroundLocationUpdates = isEnabled;
   });
 }
 
@@ -481,10 +454,8 @@ RCT_EXPORT_METHOD(getCurrentRouteSegment
       @"destinationLatLng" : [ObjectTranslationUtil
           transformCoordinateToDictionary:currentSegment.destinationCoordinate],
       @"destinationWaypoint" : [ObjectTranslationUtil
-          transformNavigationWaypointToDictionary:currentSegment
-                                                      .destinationWaypoint],
-      @"segmentLatLngList" :
-          [ObjectTranslationUtil transformGMSPathToArray:currentSegment.path]
+          transformNavigationWaypointToDictionary:currentSegment.destinationWaypoint],
+      @"segmentLatLngList" : [ObjectTranslationUtil transformGMSPathToArray:currentSegment.path]
     });
   });
 }
@@ -507,9 +478,7 @@ RCT_EXPORT_METHOD(getRouteSegments
     NSMutableArray *arr = [[NSMutableArray alloc] init];
 
     for (int i = 0; i < routeSegmentList.count; i++) {
-      [arr
-          addObject:[ObjectTranslationUtil
-                        transformRouteSegmentToDictionary:routeSegmentList[i]]];
+      [arr addObject:[ObjectTranslationUtil transformRouteSegmentToDictionary:routeSegmentList[i]]];
     }
 
     resolve(arr);
@@ -547,8 +516,7 @@ RCT_EXPORT_METHOD(setSpeedAlertOptions
 
     double minor = [thresholds[@"minorSpeedAlertPercentThreshold"] doubleValue];
     double major = [thresholds[@"majorSpeedAlertPercentThreshold"] doubleValue];
-    double severity =
-        [thresholds[@"severityUpgradeDurationSeconds"] doubleValue];
+    double severity = [thresholds[@"severityUpgradeDurationSeconds"] doubleValue];
 
     CGFloat minorSpeedAlertThresholdPercentage = minor;
     CGFloat majorSpeedAlertThresholdPercentage = major;
@@ -563,8 +531,7 @@ RCT_EXPORT_METHOD(setSpeedAlertOptions
     [mutableSpeedAlertOptions
         setSpeedAlertThresholdPercentage:majorSpeedAlertThresholdPercentage
                    forSpeedAlertSeverity:GMSNavigationSpeedAlertSeverityMajor];
-    [mutableSpeedAlertOptions
-        setSeverityUpgradeDurationSeconds:severityUpgradeDurationSeconds];
+    [mutableSpeedAlertOptions setSeverityUpgradeDurationSeconds:severityUpgradeDurationSeconds];
 
     // Set SpeedAlertOptions to Navigator
     navigator.speedAlertOptions = mutableSpeedAlertOptions;
@@ -576,8 +543,8 @@ RCT_EXPORT_METHOD(simulateLocation : (NSDictionary *)coordinates) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_session != nil) {
       [self->_session.locationSimulator
-          simulateLocationAtCoordinate:
-              [ObjectTranslationUtil getLocationCoordinateFrom:coordinates]];
+          simulateLocationAtCoordinate:[ObjectTranslationUtil
+                                           getLocationCoordinateFrom:coordinates]];
     }
   });
 }
@@ -661,19 +628,15 @@ RCT_EXPORT_METHOD(stopUpdatingLocation) {
 // Listener for continuous location updates.
 - (void)locationProvider:(GMSRoadSnappedLocationProvider *)locationProvider
        didUpdateLocation:(CLLocation *)location {
-  [self onLocationChanged:[ObjectTranslationUtil
-                              transformCLLocationToDictionary:location]];
+  [self onLocationChanged:[ObjectTranslationUtil transformCLLocationToDictionary:location]];
 }
 
 // Listener to handle arrival events.
-- (void)navigator:(GMSNavigator *)navigator
-    didArriveAtWaypoint:(GMSNavigationWaypoint *)waypoint {
+- (void)navigator:(GMSNavigator *)navigator didArriveAtWaypoint:(GMSNavigationWaypoint *)waypoint {
   NSMutableDictionary *eventMap = [[NSMutableDictionary alloc] init];
 
-  eventMap[@"waypoint"] =
-      [ObjectTranslationUtil transformNavigationWaypointToDictionary:waypoint];
-  eventMap[@"isFinalDestination"] =
-      @(navigator.routeLegs != nil && navigator.routeLegs.count == 1);
+  eventMap[@"waypoint"] = [ObjectTranslationUtil transformNavigationWaypointToDictionary:waypoint];
+  eventMap[@"isFinalDestination"] = @(navigator.routeLegs != nil && navigator.routeLegs.count == 1);
 
   [self onArrival:eventMap];
 }
@@ -684,8 +647,7 @@ RCT_EXPORT_METHOD(stopUpdatingLocation) {
 }
 
 // Listener for time to next destination.
-- (void)navigator:(GMSNavigator *)navigator
-    didUpdateRemainingTime:(NSTimeInterval)time {
+- (void)navigator:(GMSNavigator *)navigator didUpdateRemainingTime:(NSTimeInterval)time {
   [self onRemainingTimeOrDistanceChanged];
 }
 
@@ -695,10 +657,8 @@ RCT_EXPORT_METHOD(stopUpdatingLocation) {
   [self onRemainingTimeOrDistanceChanged];
 }
 
-- (void)navigator:(GMSNavigator *)navigator
-    didUpdateNavInfo:(GMSNavigationNavInfo *)navInfo {
-  if (self.enableUpdateInfo == TRUE &&
-      navInfo.navState == GMSNavigationNavStateEnroute) {
+- (void)navigator:(GMSNavigator *)navigator didUpdateNavInfo:(GMSNavigationNavInfo *)navInfo {
+  if (self.enableUpdateInfo == TRUE && navInfo.navState == GMSNavigationNavStateEnroute) {
     [self onTurnByTurn:navInfo
         distanceToNextDestinationMeters:navigator.distanceToNextDestination
            timeToNextDestinationSeconds:navigator.timeToNextDestination];
@@ -741,41 +701,39 @@ RCT_EXPORT_METHOD(stopUpdatingLocation) {
 - (void)onRouteStatusResult:(GMSRouteStatus)routeStatus {
   NSString *status = @"";
   switch (routeStatus) {
-  case GMSRouteStatusOK:
-    status = @"OK";
-    break;
-  case GMSRouteStatusNetworkError:
-    status = @"NETWORK_ERROR";
-    break;
-  case GMSRouteStatusNoRouteFound:
-    status = @"NO_ROUTE_FOUND";
-    break;
-  case GMSRouteStatusQuotaExceeded:
-    status = @"QUOTA_CHECK_FAILED";
-    break;
-  case GMSRouteStatusCanceled:
-    status = @"ROUTE_CANCELED";
-    break;
-  case GMSRouteStatusLocationUnavailable:
-    status = @"LOCATION_DISABLED";
-    break;
-  case GMSRouteStatusNoWaypointsError:
-    status = @"WAYPOINT_ERROR";
-    break;
-  case GMSRouteStatusWaypointError:
-    status = @"WAYPOINT_ERROR";
-    break;
-  default:
-    status = @"";
-    break;
+    case GMSRouteStatusOK:
+      status = @"OK";
+      break;
+    case GMSRouteStatusNetworkError:
+      status = @"NETWORK_ERROR";
+      break;
+    case GMSRouteStatusNoRouteFound:
+      status = @"NO_ROUTE_FOUND";
+      break;
+    case GMSRouteStatusQuotaExceeded:
+      status = @"QUOTA_CHECK_FAILED";
+      break;
+    case GMSRouteStatusCanceled:
+      status = @"ROUTE_CANCELED";
+      break;
+    case GMSRouteStatusLocationUnavailable:
+      status = @"LOCATION_DISABLED";
+      break;
+    case GMSRouteStatusNoWaypointsError:
+      status = @"WAYPOINT_ERROR";
+      break;
+    case GMSRouteStatusWaypointError:
+      status = @"WAYPOINT_ERROR";
+      break;
+    default:
+      status = @"";
+      break;
   }
   [self sendCommandToReactNative:@"onRouteStatusResult" args:status];
 }
 
 - (void)onTurnByTurn:(nonnull GMSNavigationNavInfo *)navInfo {
-  [self onTurnByTurn:navInfo
-      distanceToNextDestinationMeters:0
-         timeToNextDestinationSeconds:0];
+  [self onTurnByTurn:navInfo distanceToNextDestinationMeters:0 timeToNextDestinationSeconds:0];
 }
 
 - (void)onTurnByTurn:(GMSNavigationNavInfo *)navInfo
@@ -784,16 +742,14 @@ RCT_EXPORT_METHOD(stopUpdatingLocation) {
   NSMutableDictionary *obj = [[NSMutableDictionary alloc] init];
 
   [obj setValue:[NSNumber numberWithLong:navInfo.navState] forKey:@"navState"];
-  [obj setValue:[NSNumber numberWithBool:navInfo.routeChanged]
-         forKey:@"routeChanged"];
+  [obj setValue:[NSNumber numberWithBool:navInfo.routeChanged] forKey:@"routeChanged"];
   if (navInfo.distanceToCurrentStepMeters) {
     [obj setValue:[NSNumber numberWithLong:navInfo.distanceToCurrentStepMeters]
            forKey:@"distanceToCurrentStepMeters"];
   }
 
   if (navInfo.distanceToFinalDestinationMeters) {
-    [obj setValue:[NSNumber
-                      numberWithLong:navInfo.distanceToFinalDestinationMeters]
+    [obj setValue:[NSNumber numberWithLong:navInfo.distanceToFinalDestinationMeters]
            forKey:@"distanceToFinalDestinationMeters"];
   }
   if (navInfo.timeToCurrentStepSeconds) {
@@ -812,14 +768,12 @@ RCT_EXPORT_METHOD(stopUpdatingLocation) {
   }
 
   if (navInfo.timeToFinalDestinationSeconds) {
-    [obj
-        setValue:[NSNumber numberWithLong:navInfo.timeToFinalDestinationSeconds]
-          forKey:@"timeToFinalDestinationSeconds"];
+    [obj setValue:[NSNumber numberWithLong:navInfo.timeToFinalDestinationSeconds]
+           forKey:@"timeToFinalDestinationSeconds"];
   }
 
   if (navInfo.currentStep != NULL) {
-    [obj setObject:[self getStepInfo:navInfo.currentStep]
-            forKey:@"currentStep"];
+    [obj setObject:[self getStepInfo:navInfo.currentStep] forKey:@"currentStep"];
   }
 
   NSMutableArray *steps = [[NSMutableArray alloc] init];
@@ -847,12 +801,9 @@ RCT_EXPORT_METHOD(stopUpdatingLocation) {
          forKey:@"distanceFromPrevStepMeters"];
   [obj setValue:[NSNumber numberWithInteger:stepInfo.timeFromPrevStepSeconds]
          forKey:@"timeFromPrevStepSeconds"];
-  [obj setValue:[NSNumber numberWithInteger:stepInfo.drivingSide]
-         forKey:@"drivingSide"];
-  [obj setValue:[NSNumber numberWithInteger:stepInfo.stepNumber]
-         forKey:@"stepNumber"];
-  [obj setValue:[NSNumber numberWithInteger:stepInfo.maneuver]
-         forKey:@"maneuver"];
+  [obj setValue:[NSNumber numberWithInteger:stepInfo.drivingSide] forKey:@"drivingSide"];
+  [obj setValue:[NSNumber numberWithInteger:stepInfo.stepNumber] forKey:@"stepNumber"];
+  [obj setValue:[NSNumber numberWithInteger:stepInfo.maneuver] forKey:@"maneuver"];
   [obj setValue:stepInfo.exitNumber forKey:@"exitNumber"];
   [obj setValue:stepInfo.fullRoadName forKey:@"fullRoadName"];
   [obj setValue:stepInfo.fullInstructionText forKey:@"instruction"];

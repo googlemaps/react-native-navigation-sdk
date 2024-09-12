@@ -58,8 +58,7 @@ RCT_EXPORT_MODULE(NavAutoEventDispatcher);
   if (hasListeners) {
     [self sendEventWithName:eventName body:body];
   } else {
-    NSLog(@"NavAutoEventDispatcher sendEventName called without listeners: %@",
-          eventName);
+    NSLog(@"NavAutoEventDispatcher sendEventName called without listeners: %@", eventName);
   }
 }
 

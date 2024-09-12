@@ -14,7 +14,6 @@
 package com.google.android.react.navsdk;
 
 import android.location.Location;
-
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.CatalystInstance;
 import com.facebook.react.bridge.NativeArray;
@@ -27,16 +26,14 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.libraries.navigation.StylingOptions;
-
 import java.util.Map;
 
 /**
@@ -87,7 +84,8 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
     }
   }
 
-  public void androidAutoNavigationScreenInitialized(MapViewController mapViewController, INavigationViewController navigationViewController) {
+  public void androidAutoNavigationScreenInitialized(
+      MapViewController mapViewController, INavigationViewController navigationViewController) {
     mMapViewController = mapViewController;
     mNavigationViewController = navigationViewController;
     if (mStylingOptions != null && mNavigationViewController != null) {
@@ -112,399 +110,395 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
   @ReactMethod
   public void setMapType(int jsValue) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setMapType(jsValue);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setMapType(jsValue);
+        });
   }
 
   @ReactMethod
   public void setMapStyle(String url) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setMapStyle(url);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setMapStyle(url);
+        });
   }
 
   @ReactMethod
   public void setMapToolbarEnabled(boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setMapToolbarEnabled(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setMapToolbarEnabled(isOn);
+        });
   }
 
   @ReactMethod
   public void addCircle(ReadableMap circleOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-          return;
-        }
-        Circle circle =
-          mMapViewController.addCircle(circleOptionsMap.toHashMap());
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+          Circle circle = mMapViewController.addCircle(circleOptionsMap.toHashMap());
 
-        promise.resolve(ObjectTranslationUtil.getMapFromCircle(circle));
-      });
+          promise.resolve(ObjectTranslationUtil.getMapFromCircle(circle));
+        });
   }
 
   @ReactMethod
   public void addMarker(ReadableMap markerOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-          return;
-        }
-        Marker marker =
-          mMapViewController.addMarker(markerOptionsMap.toHashMap());
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+          Marker marker = mMapViewController.addMarker(markerOptionsMap.toHashMap());
 
-        promise.resolve(ObjectTranslationUtil.getMapFromMarker(marker));
-      });
+          promise.resolve(ObjectTranslationUtil.getMapFromMarker(marker));
+        });
   }
 
   @ReactMethod
   public void addPolyline(ReadableMap polylineOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-          return;
-        }
-        Polyline polyline =
-          mMapViewController.addPolyline(polylineOptionsMap.toHashMap());
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+          Polyline polyline = mMapViewController.addPolyline(polylineOptionsMap.toHashMap());
 
-        promise.resolve(ObjectTranslationUtil.getMapFromPolyline(polyline));
-      });
+          promise.resolve(ObjectTranslationUtil.getMapFromPolyline(polyline));
+        });
   }
 
   @ReactMethod
   public void addPolygon(ReadableMap polygonOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-          return;
-        }
-        Polygon polygon =
-          mMapViewController.addPolygon(polygonOptionsMap.toHashMap());
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+          Polygon polygon = mMapViewController.addPolygon(polygonOptionsMap.toHashMap());
 
-        promise.resolve(ObjectTranslationUtil.getMapFromPolygon(polygon));
-      });
+          promise.resolve(ObjectTranslationUtil.getMapFromPolygon(polygon));
+        });
   }
 
   @ReactMethod
   public void removeCircle(String id) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.removeCircle(id);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.removeCircle(id);
+        });
   }
 
   @ReactMethod
   public void removeMarker(String id) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.removeMarker(id);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.removeMarker(id);
+        });
   }
 
   @ReactMethod
   public void removePolyline(String id) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.removePolyline(id);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.removePolyline(id);
+        });
   }
 
   @ReactMethod
   public void removePolygon(String id) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.removePolygon(id);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.removePolygon(id);
+        });
   }
 
   @ReactMethod
   public void clearMapView() {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.clearMapView();
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.clearMapView();
+        });
   }
 
   @ReactMethod
   public void setIndoorEnabled(Boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setIndoorEnabled(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setIndoorEnabled(isOn);
+        });
   }
 
   @ReactMethod
   public void setTrafficEnabled(Boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setTrafficEnabled(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setTrafficEnabled(isOn);
+        });
   }
 
   @ReactMethod
   public void setCompassEnabled(Boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setCompassEnabled(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setCompassEnabled(isOn);
+        });
   }
 
   @ReactMethod
   public void setMyLocationButtonEnabled(Boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setMyLocationButtonEnabled(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setMyLocationButtonEnabled(isOn);
+        });
   }
 
   @ReactMethod
   public void setMyLocationEnabled(Boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setMyLocationEnabled(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setMyLocationEnabled(isOn);
+        });
   }
 
   @ReactMethod
   public void setRotateGesturesEnabled(Boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setRotateGesturesEnabled(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setRotateGesturesEnabled(isOn);
+        });
   }
 
   @ReactMethod
   public void setScrollGesturesEnabled(Boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setScrollGesturesEnabled(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setScrollGesturesEnabled(isOn);
+        });
   }
 
   @ReactMethod
   public void setScrollGesturesEnabledDuringRotateOrZoom(Boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setScrollGesturesEnabledDuringRotateOrZoom(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setScrollGesturesEnabledDuringRotateOrZoom(isOn);
+        });
   }
 
   @ReactMethod
   public void setZoomControlsEnabled(Boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setZoomControlsEnabled(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setZoomControlsEnabled(isOn);
+        });
   }
 
   @ReactMethod
   public void setZoomLevel(final Integer level, final Promise promise) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-          return;
-        }
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
 
-        mMapViewController.setZoomLevel(level);
-        promise.resolve(true);
-      });
+          mMapViewController.setZoomLevel(level);
+          promise.resolve(true);
+        });
   }
 
   @ReactMethod
   public void setTiltGesturesEnabled(Boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setTiltGesturesEnabled(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setTiltGesturesEnabled(isOn);
+        });
   }
 
   @ReactMethod
   public void setZoomGesturesEnabled(Boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setZoomGesturesEnabled(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setZoomGesturesEnabled(isOn);
+        });
   }
 
   @ReactMethod
   public void setBuildingsEnabled(Boolean isOn) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
-        mMapViewController.setBuildingsEnabled(isOn);
-      });
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setBuildingsEnabled(isOn);
+        });
   }
 
   @ReactMethod
   public void getCameraPosition(final Promise promise) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-          return;
-        }
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
 
-        CameraPosition cp = mMapViewController.getGoogleMap().getCameraPosition();
+          CameraPosition cp = mMapViewController.getGoogleMap().getCameraPosition();
 
-        if (cp == null) {
-          promise.resolve(null);
-          return;
-        }
+          if (cp == null) {
+            promise.resolve(null);
+            return;
+          }
 
-        LatLng target = cp.target;
-        WritableMap map = Arguments.createMap();
-        map.putDouble("bearing", cp.bearing);
-        map.putDouble("tilt", cp.tilt);
-        map.putDouble("zoom", cp.zoom);
-        map.putMap("target", ObjectTranslationUtil.getMapFromLatLng(target));
+          LatLng target = cp.target;
+          WritableMap map = Arguments.createMap();
+          map.putDouble("bearing", cp.bearing);
+          map.putDouble("tilt", cp.tilt);
+          map.putDouble("zoom", cp.zoom);
+          map.putMap("target", ObjectTranslationUtil.getMapFromLatLng(target));
 
-        promise.resolve(map);
-      });
+          promise.resolve(map);
+        });
   }
 
   @ReactMethod
   public void getMyLocation(final Promise promise) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-          return;
-        }
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
 
-        try {
-          Location location = mMapViewController.getGoogleMap().getMyLocation();
-          promise.resolve(ObjectTranslationUtil.getMapFromLocation(location));
-        } catch (Exception e) {
-          promise.resolve(null);
-          return;
-        }
-      });
+          try {
+            Location location = mMapViewController.getGoogleMap().getMyLocation();
+            promise.resolve(ObjectTranslationUtil.getMapFromLocation(location));
+          } catch (Exception e) {
+            promise.resolve(null);
+            return;
+          }
+        });
   }
 
   @ReactMethod
   public void getUiSettings(final Promise promise) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-          return;
-        }
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
 
-        UiSettings settings = mMapViewController.getGoogleMap().getUiSettings();
+          UiSettings settings = mMapViewController.getGoogleMap().getUiSettings();
 
-        if (settings == null) {
-          promise.resolve(null);
-          return;
-        }
+          if (settings == null) {
+            promise.resolve(null);
+            return;
+          }
 
-        WritableMap map = Arguments.createMap();
-        map.putBoolean("isCompassEnabled", settings.isCompassEnabled());
-        map.putBoolean("isMapToolbarEnabled", settings.isMapToolbarEnabled());
-        map.putBoolean("isIndoorLevelPickerEnabled", settings.isIndoorLevelPickerEnabled());
-        map.putBoolean("isRotateGesturesEnabled", settings.isRotateGesturesEnabled());
-        map.putBoolean("isScrollGesturesEnabled", settings.isScrollGesturesEnabled());
-        map.putBoolean(
-          "isScrollGesturesEnabledDuringRotateOrZoom",
-          settings.isScrollGesturesEnabledDuringRotateOrZoom());
-        map.putBoolean("isTiltGesturesEnabled", settings.isTiltGesturesEnabled());
-        map.putBoolean("isZoomControlsEnabled", settings.isZoomControlsEnabled());
-        map.putBoolean("isZoomGesturesEnabled", settings.isZoomGesturesEnabled());
+          WritableMap map = Arguments.createMap();
+          map.putBoolean("isCompassEnabled", settings.isCompassEnabled());
+          map.putBoolean("isMapToolbarEnabled", settings.isMapToolbarEnabled());
+          map.putBoolean("isIndoorLevelPickerEnabled", settings.isIndoorLevelPickerEnabled());
+          map.putBoolean("isRotateGesturesEnabled", settings.isRotateGesturesEnabled());
+          map.putBoolean("isScrollGesturesEnabled", settings.isScrollGesturesEnabled());
+          map.putBoolean(
+              "isScrollGesturesEnabledDuringRotateOrZoom",
+              settings.isScrollGesturesEnabledDuringRotateOrZoom());
+          map.putBoolean("isTiltGesturesEnabled", settings.isTiltGesturesEnabled());
+          map.putBoolean("isZoomControlsEnabled", settings.isZoomControlsEnabled());
+          map.putBoolean("isZoomGesturesEnabled", settings.isZoomGesturesEnabled());
 
-        promise.resolve(map);
-      });
+          promise.resolve(map);
+        });
   }
 
   @ReactMethod
   public void isMyLocationEnabled(final Promise promise) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-          return;
-        }
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
 
-        promise.resolve(mMapViewController.getGoogleMap().isMyLocationEnabled());
-      });
+          promise.resolve(mMapViewController.getGoogleMap().isMyLocationEnabled());
+        });
   }
 
   @ReactMethod
   public void moveCamera(ReadableMap map) {
     UiThreadUtil.runOnUiThread(
-      () -> {
-        if (mMapViewController == null) {
-          return;
-        }
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
 
-        mMapViewController.moveCamera(map.toHashMap());
-      });
+          mMapViewController.moveCamera(map.toHashMap());
+        });
   }
 
   @ReactMethod
@@ -516,7 +510,7 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
     WritableNativeArray params = new WritableNativeArray();
     params.pushBoolean(available);
 
-    sendCommandToReactNative( "onAutoScreenAvailabilityChanged", params);
+    sendCommandToReactNative("onAutoScreenAvailabilityChanged", params);
   }
 
   @Override
@@ -528,12 +522,10 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
     WritableNativeArray params = new WritableNativeArray();
     params.pushMap(map);
 
-    sendCommandToReactNative( "onCustomNavigationAutoEvent", params);
+    sendCommandToReactNative("onCustomNavigationAutoEvent", params);
   }
 
-  /**
-   * Send command to react native.
-   */
+  /** Send command to react native. */
   private void sendCommandToReactNative(String functionName, NativeArray params) {
     ReactContext reactContext = getReactApplicationContext();
 

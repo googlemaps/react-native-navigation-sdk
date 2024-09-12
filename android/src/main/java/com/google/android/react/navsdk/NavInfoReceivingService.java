@@ -22,11 +22,9 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.Process;
-
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-
 import com.google.android.libraries.mapsplatform.turnbyturn.TurnByTurnManager;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.NavInfo;
 

@@ -20,13 +20,12 @@
 #import "AppDelegate.h"
 #endif
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   @autoreleasepool {
-    #if defined(CARPLAY)
+#if defined(CARPLAY)
     return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegateCarPlay class]));
-    #else
+#else
     return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
-    #endif
+#endif
   }
 }

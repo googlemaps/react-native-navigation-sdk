@@ -14,22 +14,14 @@
 package com.google.android.react.navsdk;
 
 import android.location.Location;
-import android.util.Log;
-import android.widget.Toast;
-
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Callback;
-import com.facebook.react.bridge.CatalystInstance;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.UiThreadUtil;
-import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.WritableNativeArray;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
@@ -38,13 +30,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -176,7 +162,10 @@ public class NavViewModule extends ReactContextBaseJavaModule {
         () -> {
           if (mNavViewManager.getGoogleMap(viewId) != null) {
             Marker marker =
-                mNavViewManager.getFragmentForViewId(viewId).getMapController().addMarker(markerOptionsMap.toHashMap());
+                mNavViewManager
+                    .getFragmentForViewId(viewId)
+                    .getMapController()
+                    .addMarker(markerOptionsMap.toHashMap());
 
             promise.resolve(ObjectTranslationUtil.getMapFromMarker(marker));
           }
@@ -192,7 +181,10 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             return;
           }
           Polyline polyline =
-              mNavViewManager.getFragmentForViewId(viewId).getMapController().addPolyline(polylineOptionsMap.toHashMap());
+              mNavViewManager
+                  .getFragmentForViewId(viewId)
+                  .getMapController()
+                  .addPolyline(polylineOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromPolyline(polyline));
         });
@@ -207,7 +199,10 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             return;
           }
           Polygon polygon =
-              mNavViewManager.getFragmentForViewId(viewId).getMapController().addPolygon(polygonOptionsMap.toHashMap());
+              mNavViewManager
+                  .getFragmentForViewId(viewId)
+                  .getMapController()
+                  .addPolygon(polygonOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromPolygon(polygon));
         });
@@ -222,7 +217,10 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             return;
           }
           Circle circle =
-              mNavViewManager.getFragmentForViewId(viewId).getMapController().addCircle(circleOptionsMap.toHashMap());
+              mNavViewManager
+                  .getFragmentForViewId(viewId)
+                  .getMapController()
+                  .addCircle(circleOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromCircle(circle));
         });
@@ -237,7 +235,10 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             return;
           }
           GroundOverlay overlay =
-              mNavViewManager.getFragmentForViewId(viewId).getMapController().addGroundOverlay(overlayOptionsMap.toHashMap());
+              mNavViewManager
+                  .getFragmentForViewId(viewId)
+                  .getMapController()
+                  .addGroundOverlay(overlayOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromGroundOverlay(overlay));
         });

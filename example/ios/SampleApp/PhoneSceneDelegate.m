@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#import <UIKit/UIKit.h>
-#import <React/RCTRootView.h>
-#import "AppDelegateCarPlay.h"
 #import "PhoneSceneDelegate.h"
+#import <React/RCTRootView.h>
+#import <UIKit/UIKit.h>
+#import "AppDelegateCarPlay.h"
 
 @implementation PhoneSceneDelegate
 
-- (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {
-  AppDelegateCarPlay *appDelegate = (AppDelegateCarPlay *)[UIApplication sharedApplication].delegate;
+- (void)scene:(UIScene *)scene
+    willConnectToSession:(UISceneSession *)session
+                 options:(UISceneConnectionOptions *)connectionOptions {
+  AppDelegateCarPlay *appDelegate =
+      (AppDelegateCarPlay *)[UIApplication sharedApplication].delegate;
   if (!appDelegate) {
     return;
   }

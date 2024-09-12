@@ -13,27 +13,25 @@
  */
 package com.google.android.react.navsdk;
 
-import java.util.HashMap;
-import java.util.Map;
-import com.facebook.react.bridge.Arguments;
-import com.google.android.libraries.navigation.RouteSegment;
-import com.facebook.react.bridge.WritableMap;
-import com.google.android.libraries.navigation.NavigationRoadStretchRenderingData;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.libraries.navigation.Waypoint;
-import com.facebook.react.bridge.WritableArray;
 import android.location.Location;
 import android.os.Build;
-
-import com.google.android.libraries.navigation.AlternateRoutesStrategy;
-import com.google.android.libraries.navigation.RoutingOptions;
-import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
 import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.GroundOverlay;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.GroundOverlay;
+import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
+import com.google.android.libraries.navigation.AlternateRoutesStrategy;
+import com.google.android.libraries.navigation.NavigationRoadStretchRenderingData;
+import com.google.android.libraries.navigation.RouteSegment;
+import com.google.android.libraries.navigation.RoutingOptions;
+import com.google.android.libraries.navigation.Waypoint;
 import java.util.List;
+import java.util.Map;
 
 public class ObjectTranslationUtil {
   public static WritableMap getMapFromRouteSegment(RouteSegment routeSegment) {
