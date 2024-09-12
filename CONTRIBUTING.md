@@ -29,6 +29,8 @@ This project follows
 - [git](https://git-scm.com) (used for source version control).
 - An IDE such as [Android Studio](https://developer.android.com/studio) or [Visual Studio Code](https://code.visualstudio.com/).
 - [addlicense](https://github.com/google/addlicense)
+- [google-java-format Version 1.23.0](https://github.com/google/google-java-format) (used to format Java code).
+- [clang-format](https://clang.llvm.org/docs/ClangFormat.html) (used to format Objective-C code).
 
 ## 2. Forking & cloning the repository
 
@@ -43,22 +45,6 @@ This project follows
 - `git remote add upstream git@github.com:googlemaps/react-native-sdk.git` (So that you
   fetch from the master repository, not your clone, when running `git fetch`
   et al.)
-
-## 3. Test your changes
-
-- Make sure to test your changes before sending them for review. To do so, update and run the [Sample app](./example/) at `./example`.
-
-### Code reviews
-
-All submissions, including submissions by project members, require review. We
-use GitHub pull requests for this purpose. Consult
-[GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
-information on using pull requests.
-
-Please peruse the
-[Typescript style guide](https://google.github.io/styleguide/tsguide.html), [Java style guide](https://google.github.io/styleguide/javaguide.html), and [Objective-C style guide](https://google.github.io/styleguide/objcguide.html) before
-working on anything non-trivial. These guidelines are intended to
-keep the code consistent and avoid common pitfalls.
 
 #### Create branch
 
@@ -84,3 +70,42 @@ keep the code consistent and avoid common pitfalls.
 1. `git pull-request` (if you are using [Hub](http://github.com/github/hub/)) or
   go to `https://github.com/googlemaps/react-native-navigation-sdk` and click the
   "Compare & pull request" button
+
+## 3. Test your changes
+
+Make sure to test your changes before sending them for review. To do so, update and run the [Sample app](./example/) at `./example`.
+
+## 4. Code Formatting
+
+### Objective-C and Java Code Formatting
+
+This project enforces code formatting for Objective-C and Java files to follow Google's style guidelines. The formatting is automatically checked before commits and during continuous integration (CI) using Lefthook and GitHub Actions.
+
+#### Running Formatters Locally
+
+Before committing your changes, you should run the formatters manually to ensure your code adheres to the required style:
+
+**Objective-C:**
+```bash
+./scripts/format-objc.sh
+```
+This script will format all Objective-C files under the /ios and /example/ios directories according to Google's Objective-C style guide.
+
+**Java:**
+```bash
+./scripts/format-java.sh
+```
+This script will format all Java files under the /android and /example/android directories according to Google's Java style guide.
+
+
+## 5. Code reviews
+
+All submissions, including submissions by project members, require review. We
+use GitHub pull requests for this purpose. Consult
+[GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
+information on using pull requests.
+
+Please peruse the
+[Typescript style guide](https://google.github.io/styleguide/tsguide.html), [Java style guide](https://google.github.io/styleguide/javaguide.html), and [Objective-C style guide](https://google.github.io/styleguide/objcguide.html) before
+working on anything non-trivial. These guidelines are intended to
+keep the code consistent and avoid common pitfalls.

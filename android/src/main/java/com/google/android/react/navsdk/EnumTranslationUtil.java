@@ -13,11 +13,11 @@
  */
 package com.google.android.react.navsdk;
 
-import com.google.android.libraries.navigation.AlternateRoutesStrategy;
-import com.google.android.libraries.navigation.Navigator;
-import com.google.android.libraries.navigation.ForceNightMode;
-import com.google.android.gms.maps.GoogleMap.CameraPerspective;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.CameraPerspective;
+import com.google.android.libraries.navigation.AlternateRoutesStrategy;
+import com.google.android.libraries.navigation.ForceNightMode;
+import com.google.android.libraries.navigation.Navigator;
 
 public class EnumTranslationUtil {
   public static AlternateRoutesStrategy getAlternateRoutesStrategyFromJsValue(int jsValue) {

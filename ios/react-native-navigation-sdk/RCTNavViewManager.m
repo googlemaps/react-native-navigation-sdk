@@ -15,11 +15,11 @@
  */
 
 #import "RCTNavViewManager.h"
+#import <React/RCTUIManager.h>
 #import "NavView.h"
 #import "NavViewController.h"
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
-#import <React/RCTUIManager.h>
 
 @implementation RCTNavViewManager
 static NSMutableDictionary<NSNumber *, NavViewController *> *_viewControllers;
@@ -58,8 +58,7 @@ RCT_EXPORT_VIEW_PROPERTY(onGroundOverlayClick, RCTDirectEventBlock);
   return _viewControllers[reactTag];
 }
 
-- (void)registerViewController:(NavViewController *)viewController
-                        forTag:(NSNumber *)reactTag {
+- (void)registerViewController:(NavViewController *)viewController forTag:(NSNumber *)reactTag {
   @synchronized(_viewControllers) {
     _viewControllers[reactTag] = viewController;
   }
@@ -75,8 +74,7 @@ RCT_EXPORT_METHOD(createFragment
                   : (nonnull NSNumber *)reactTag stylingOptions
                   : (NSDictionary *)stylingOptions) {
   [self.bridge.uiManager
-      addUIBlock:^(RCTUIManager *uiManager,
-                   NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+      addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
         NavView *view = (NavView *)viewRegistry[reactTag];
         if (!view || ![view isKindOfClass:[NavView class]]) {
           RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
@@ -92,16 +90,14 @@ RCT_EXPORT_METHOD(createFragment
 
 RCT_EXPORT_METHOD(deleteFragment : (nonnull NSNumber *)reactTag) {
   [self.bridge.uiManager
-      addUIBlock:^(RCTUIManager *uiManager,
-                   NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+      addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
         NavView *view = (NavView *)viewRegistry[reactTag];
         if (!view || ![view isKindOfClass:[NavView class]]) {
           RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
           return;
         }
 
-        NavViewController *viewController =
-            [self getViewControllerForTag:reactTag];
+        NavViewController *viewController = [self getViewControllerForTag:reactTag];
         if (viewController) {
           [view removeReactSubview:viewController.view];
           [self unregisterViewControllerForTag:reactTag];
@@ -145,9 +141,7 @@ RCT_EXPORT_METHOD(setFollowingPerspective
   });
 }
 
-RCT_EXPORT_METHOD(setNightMode
-                  : (nonnull NSNumber *)reactTag index
-                  : (nonnull NSNumber *)index) {
+RCT_EXPORT_METHOD(setNightMode : (nonnull NSNumber *)reactTag index : (nonnull NSNumber *)index) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController setNightMode:index];
@@ -181,45 +175,35 @@ RCT_EXPORT_METHOD(setRecenterButtonEnabled
   });
 }
 
-RCT_EXPORT_METHOD(setZoomLevel
-                  : (nonnull NSNumber *)reactTag level
-                  : (nonnull NSNumber *)level) {
+RCT_EXPORT_METHOD(setZoomLevel : (nonnull NSNumber *)reactTag level : (nonnull NSNumber *)level) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController setZoomLevel:level];
   });
 }
 
-RCT_EXPORT_METHOD(removeMarker
-                  : (nonnull NSNumber *)reactTag params
-                  : (NSString *)markerId) {
+RCT_EXPORT_METHOD(removeMarker : (nonnull NSNumber *)reactTag params : (NSString *)markerId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController removeMarker:markerId];
   });
 }
 
-RCT_EXPORT_METHOD(removePolyline
-                  : (nonnull NSNumber *)reactTag params
-                  : (NSString *)polylineId) {
+RCT_EXPORT_METHOD(removePolyline : (nonnull NSNumber *)reactTag params : (NSString *)polylineId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController removePolyline:polylineId];
   });
 }
 
-RCT_EXPORT_METHOD(removePolygon
-                  : (nonnull NSNumber *)reactTag params
-                  : (NSString *)polygonId) {
+RCT_EXPORT_METHOD(removePolygon : (nonnull NSNumber *)reactTag params : (NSString *)polygonId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController removePolygon:polygonId];
   });
 }
 
-RCT_EXPORT_METHOD(removeCircle
-                  : (nonnull NSNumber *)reactTag params
-                  : (NSString *)circleId) {
+RCT_EXPORT_METHOD(removeCircle : (nonnull NSNumber *)reactTag params : (NSString *)circleId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController removeCircle:circleId];
@@ -243,27 +227,21 @@ RCT_EXPORT_METHOD(showRouteOverview : (nonnull NSNumber *)reactTag) {
 }
 
 // MAPS SDK
-RCT_EXPORT_METHOD(setIndoorEnabled
-                  : (nonnull NSNumber *)reactTag isEnabled
-                  : (BOOL)isEnabled) {
+RCT_EXPORT_METHOD(setIndoorEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController setIndoorEnabled:isEnabled];
   });
 }
 
-RCT_EXPORT_METHOD(setTrafficEnabled
-                  : (nonnull NSNumber *)reactTag isEnabled
-                  : (BOOL)isEnabled) {
+RCT_EXPORT_METHOD(setTrafficEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController setTrafficEnabled:isEnabled];
   });
 }
 
-RCT_EXPORT_METHOD(setCompassEnabled
-                  : (nonnull NSNumber *)reactTag isEnabled
-                  : (BOOL)isEnabled) {
+RCT_EXPORT_METHOD(setCompassEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController setCompassEnabled:isEnabled];
@@ -279,9 +257,7 @@ RCT_EXPORT_METHOD(setMyLocationButtonEnabled
   });
 }
 
-RCT_EXPORT_METHOD(setMyLocationEnabled
-                  : (nonnull NSNumber *)reactTag isEnabled
-                  : (BOOL)isEnabled) {
+RCT_EXPORT_METHOD(setMyLocationEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController setMyLocationEnabled:isEnabled];
@@ -333,9 +309,7 @@ RCT_EXPORT_METHOD(setZoomGesturesEnabled
   });
 }
 
-RCT_EXPORT_METHOD(setBuildingsEnabled
-                  : (nonnull NSNumber *)reactTag isEnabled
-                  : (BOOL)isEnabled) {
+RCT_EXPORT_METHOD(setBuildingsEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController setBuildingsEnabled:isEnabled];
@@ -351,18 +325,14 @@ RCT_EXPORT_METHOD(setTrafficIncidentCardsEnabled
   });
 }
 
-RCT_EXPORT_METHOD(setHeaderEnabled
-                  : (nonnull NSNumber *)reactTag isEnabled
-                  : (BOOL)isEnabled) {
+RCT_EXPORT_METHOD(setHeaderEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController setHeaderEnabled:isEnabled];
   });
 }
 
-RCT_EXPORT_METHOD(setFooterEnabled
-                  : (nonnull NSNumber *)reactTag isEnabled
-                  : (BOOL)isEnabled) {
+RCT_EXPORT_METHOD(setFooterEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController setFooterEnabled:isEnabled];
@@ -397,15 +367,12 @@ RCT_EXPORT_METHOD(setMapStyle
                   : (RCTResponseSenderBlock)debugCallback) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NSError *error;
-    GMSMapStyle *mapStyle = [GMSMapStyle styleWithJSONString:jsonStyleString
-                                                       error:&error];
+    GMSMapStyle *mapStyle = [GMSMapStyle styleWithJSONString:jsonStyleString error:&error];
 
     if (!mapStyle) {
       // Send error message through debugCallback instead of logging it
       debugCallback(@[ [NSString
-          stringWithFormat:
-              @"One or more of the map styles failed to load. Error: %@",
-              error] ]);
+          stringWithFormat:@"One or more of the map styles failed to load. Error: %@", error] ]);
       return;
     }
 
@@ -421,27 +388,25 @@ RCT_EXPORT_METHOD(setMapStyle
   });
 }
 
-RCT_EXPORT_METHOD(setMapType
-                  : (nonnull NSNumber *)reactTag mapType
-                  : (NSInteger)mapType) {
+RCT_EXPORT_METHOD(setMapType : (nonnull NSNumber *)reactTag mapType : (NSInteger)mapType) {
   dispatch_async(dispatch_get_main_queue(), ^{
     GMSMapViewType mapViewType;
     switch (mapType) {
-    case 1:
-      mapViewType = kGMSTypeNormal;
-      break;
-    case 2:
-      mapViewType = kGMSTypeSatellite;
-      break;
-    case 3:
-      mapViewType = kGMSTypeTerrain;
-      break;
-    case 4:
-      mapViewType = kGMSTypeHybrid;
-      break;
-    default:
-      mapViewType = kGMSTypeNone;
-      break;
+      case 1:
+        mapViewType = kGMSTypeNormal;
+        break;
+      case 2:
+        mapViewType = kGMSTypeSatellite;
+        break;
+      case 3:
+        mapViewType = kGMSTypeTerrain;
+        break;
+      case 4:
+        mapViewType = kGMSTypeHybrid;
+        break;
+      default:
+        mapViewType = kGMSTypeNone;
+        break;
     }
 
     NavViewController *viewController = [self getViewControllerForTag:reactTag];

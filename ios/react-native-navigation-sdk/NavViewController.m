@@ -15,10 +15,10 @@
  */
 
 #import "NavViewController.h"
+#import <React/RCTLog.h>
 #import "NavModule.h"
 #import "ObjectTranslationUtil.h"
 #import "UIColor+Util.h"
-#import <React/RCTLog.h>
 
 @import GoogleNavigation;
 @import UserNotifications;
@@ -63,16 +63,13 @@
   [self.callbacks handleRecenterButtonClick];
 }
 
-- (void)mapView:(GMSMapView *)mapView
-    didTapInfoWindowOfMarker:(GMSMarker *)marker {
+- (void)mapView:(GMSMapView *)mapView didTapInfoWindowOfMarker:(GMSMarker *)marker {
   [self.callbacks handleMarkerInfoWindowTapped:marker];
 }
 
-- (void)mapView:(GMSMapView *)mapView
-    didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
+- (void)mapView:(GMSMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
   [self.callbacks
-      handleMapClick:[ObjectTranslationUtil
-                         transformCoordinateToDictionary:coordinate]];
+      handleMapClick:[ObjectTranslationUtil transformCoordinateToDictionary:coordinate]];
 }
 
 - (BOOL)mapView:(GMSMapView *)mapView didTapMarker:(GMSMarker *)marker {
@@ -104,79 +101,66 @@
 - (void)applyStylingOptions {
   if (_stylingOptions) {
     if (_stylingOptions[@"navigationHeaderPrimaryBackgroundColor"] != nil) {
-      NSString *hexString =
-          _stylingOptions[@"navigationHeaderPrimaryBackgroundColor"];
+      NSString *hexString = _stylingOptions[@"navigationHeaderPrimaryBackgroundColor"];
       _mapView.settings.navigationHeaderPrimaryBackgroundColor =
           [UIColor colorWithHexString:hexString];
     }
 
     if (_stylingOptions[@"navigationHeaderSecondaryBackgroundColor"] != nil) {
-      NSString *hexString =
-          _stylingOptions[@"navigationHeaderSecondaryBackgroundColor"];
+      NSString *hexString = _stylingOptions[@"navigationHeaderSecondaryBackgroundColor"];
       _mapView.settings.navigationHeaderSecondaryBackgroundColor =
           [UIColor colorWithHexString:hexString];
     }
 
-    if (_stylingOptions[@"navigationHeaderPrimaryBackgroundColorNightMode"] !=
-        nil) {
-      NSString *hexString =
-          _stylingOptions[@"navigationHeaderPrimaryBackgroundColorNightMode"];
+    if (_stylingOptions[@"navigationHeaderPrimaryBackgroundColorNightMode"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderPrimaryBackgroundColorNightMode"];
       _mapView.settings.navigationHeaderPrimaryBackgroundColorNightMode =
           [UIColor colorWithHexString:hexString];
     }
 
-    if (_stylingOptions[@"navigationHeaderSecondaryBackgroundColorNightMode"] !=
-        nil) {
-      NSString *hexString =
-          _stylingOptions[@"navigationHeaderSecondaryBackgroundColorNightMode"];
+    if (_stylingOptions[@"navigationHeaderSecondaryBackgroundColorNightMode"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderSecondaryBackgroundColorNightMode"];
       _mapView.settings.navigationHeaderSecondaryBackgroundColorNightMode =
           [UIColor colorWithHexString:hexString];
     }
 
     if (_stylingOptions[@"navigationHeaderLargeManeuverIconColor"] != nil) {
-      NSString *hexString =
-          _stylingOptions[@"navigationHeaderLargeManeuverIconColor"];
+      NSString *hexString = _stylingOptions[@"navigationHeaderLargeManeuverIconColor"];
       _mapView.settings.navigationHeaderLargeManeuverIconColor =
           [UIColor colorWithHexString:hexString];
     }
 
     if (_stylingOptions[@"navigationHeaderSmallManeuverIconColor"] != nil) {
-      NSString *hexString =
-          _stylingOptions[@"navigationHeaderSmallManeuverIconColor"];
+      NSString *hexString = _stylingOptions[@"navigationHeaderSmallManeuverIconColor"];
       _mapView.settings.navigationHeaderSmallManeuverIconColor =
           [UIColor colorWithHexString:hexString];
     }
 
     if (_stylingOptions[@"navigationHeaderGuidanceRecommendedLaneColor"] != nil) {
-      NSString *hexString =
-          _stylingOptions[@"navigationHeaderGuidanceRecommendedLaneColor"];
+      NSString *hexString = _stylingOptions[@"navigationHeaderGuidanceRecommendedLaneColor"];
       _mapView.settings.navigationHeaderGuidanceRecommendedLaneColor =
           [UIColor colorWithHexString:hexString];
     }
 
     if (_stylingOptions[@"navigationHeaderNextStepTextColor"] != nil) {
       NSString *hexString = _stylingOptions[@"navigationHeaderNextStepTextColor"];
-      _mapView.settings.navigationHeaderNextStepTextColor =
-          [UIColor colorWithHexString:hexString];
+      _mapView.settings.navigationHeaderNextStepTextColor = [UIColor colorWithHexString:hexString];
     }
 
     if (_stylingOptions[@"navigationHeaderDistanceValueTextColor"] != nil) {
-      NSString *hexString =
-          _stylingOptions[@"navigationHeaderDistanceValueTextColor"];
+      NSString *hexString = _stylingOptions[@"navigationHeaderDistanceValueTextColor"];
       _mapView.settings.navigationHeaderDistanceValueTextColor =
           [UIColor colorWithHexString:hexString];
     }
 
     if (_stylingOptions[@"navigationHeaderDistanceUnitsTextColor"] != nil) {
-      NSString *hexString =
-          _stylingOptions[@"navigationHeaderDistanceUnitsTextColor"];
+      NSString *hexString = _stylingOptions[@"navigationHeaderDistanceUnitsTextColor"];
       _mapView.settings.navigationHeaderDistanceUnitsTextColor =
           [UIColor colorWithHexString:hexString];
     }
 
     if (_stylingOptions[@"navigationHeaderInstructionsTextColor"] != nil) {
-      NSString *hexString =
-          _stylingOptions[@"navigationHeaderInstructionsTextColor"];
+      NSString *hexString = _stylingOptions[@"navigationHeaderInstructionsTextColor"];
       _mapView.settings.navigationHeaderInstructionsTextColor =
           [UIColor colorWithHexString:hexString];
     }
@@ -184,10 +168,10 @@
 }
 
 - (void)setZoomLevel:(nonnull NSNumber *)level {
-  _mapView.camera = [GMSMutableCameraPosition
-      cameraWithLatitude:_mapView.myLocation.coordinate.latitude
-               longitude:_mapView.myLocation.coordinate.longitude
-                    zoom:[level floatValue]];
+  _mapView.camera =
+      [GMSMutableCameraPosition cameraWithLatitude:_mapView.myLocation.coordinate.latitude
+                                         longitude:_mapView.myLocation.coordinate.longitude
+                                              zoom:[level floatValue]];
 }
 
 - (void)setNavigationUIEnabled:(BOOL)isEnabled {
@@ -203,10 +187,7 @@
   map[@"tilt"] = @(cam.viewingAngle);
   map[@"zoom"] = @(cam.zoom);
 
-  map[@"target"] = @{
-    @"lat" : @(cameraPosition.latitude),
-    @"lng" : @(cameraPosition.longitude)
-  };
+  map[@"target"] = @{@"lat" : @(cameraPosition.latitude), @"lng" : @(cameraPosition.longitude)};
 
   completionBlock(map);
 }
@@ -215,8 +196,7 @@
   CLLocation *userLocation = _mapView.myLocation;
 
   if (userLocation != nil) {
-    completionBlock(
-        [ObjectTranslationUtil transformCLLocationToDictionary:userLocation]);
+    completionBlock([ObjectTranslationUtil transformCLLocationToDictionary:userLocation]);
   } else {
     completionBlock(nil);
   }
@@ -244,8 +224,7 @@
 
 - (void)moveCamera:(NSDictionary *)map {
   GMSMutableCameraPosition *position = [[GMSMutableCameraPosition alloc] init];
-  position.target =
-      [ObjectTranslationUtil getLocationCoordinateFrom:map[@"target"]];
+  position.target = [ObjectTranslationUtil getLocationCoordinateFrom:map[@"target"]];
   position.zoom = [[map objectForKey:@"zoom"] floatValue];
   position.bearing = [[map objectForKey:@"bearing"] doubleValue];
   position.viewingAngle = [[map objectForKey:@"tilt"] doubleValue];
@@ -281,11 +260,9 @@
 
 - (void)setFollowingPerspective:(NSNumber *)index {
   if ([index isEqual:@1]) {
-    [_mapView
-        setFollowingPerspective:GMSNavigationCameraPerspectiveTopDownNorthUp];
+    [_mapView setFollowingPerspective:GMSNavigationCameraPerspectiveTopDownNorthUp];
   } else if ([index isEqual:@2]) {
-    [_mapView
-        setFollowingPerspective:GMSNavigationCameraPerspectiveTopDownHeadingUp];
+    [_mapView setFollowingPerspective:GMSNavigationCameraPerspectiveTopDownHeadingUp];
   } else {
     [_mapView setFollowingPerspective:GMSNavigationCameraPerspectiveTilted];
   }
@@ -314,8 +291,7 @@
 }
 
 - (void)viewWillTransitionToSize:(CGSize)size
-       withTransitionCoordinator:
-           (nonnull id<UIViewControllerTransitionCoordinator>)coordinator {
+       withTransitionCoordinator:(nonnull id<UIViewControllerTransitionCoordinator>)coordinator {
 }
 
 - (void)setNavigationCallbacks:(nonnull id<INavigationViewCallback>)fn {
@@ -406,7 +382,7 @@
 - (UIColor *)colorFromHexString:(NSString *)hexString {
   unsigned rgb = 0;
   NSScanner *scanner = [NSScanner scannerWithString:hexString];
-  [scanner setScanLocation:1]; // bypass '#' character
+  [scanner setScanLocation:1];  // bypass '#' character
   [scanner scanHexInt:&rgb];
   return [UIColor colorWithRed:((rgb & 0xFF0000) >> 16) / 255.0
                          green:((rgb & 0xFF00) >> 8) / 255.0
@@ -414,36 +390,28 @@
                          alpha:1.0];
 }
 
-- (void)addGroundOverlay:(NSDictionary *)overlayOptions
-                  result:(OnDictionaryResult)completionBlock {
+- (void)addGroundOverlay:(NSDictionary *)overlayOptions result:(OnDictionaryResult)completionBlock {
   NSDictionary *latLng = [overlayOptions objectForKey:@"location"];
-  CLLocationCoordinate2D position =
-      [ObjectTranslationUtil getLocationCoordinateFrom:latLng];
+  CLLocationCoordinate2D position = [ObjectTranslationUtil getLocationCoordinateFrom:latLng];
 
   NSString *imgPath = [overlayOptions objectForKey:@"imgPath"];
-  UIImage *icon = [UIImage imageNamed:imgPath]; // Assuming local asset
+  UIImage *icon = [UIImage imageNamed:imgPath];  // Assuming local asset
 
   CGFloat widthInMeters = [[overlayOptions objectForKey:@"width"] doubleValue];
-  CGFloat heightInMeters =
-      [[overlayOptions objectForKey:@"height"] doubleValue];
+  CGFloat heightInMeters = [[overlayOptions objectForKey:@"height"] doubleValue];
 
   CLLocationCoordinate2D northeast = CLLocationCoordinate2DMake(
       position.latitude + (heightInMeters / 111111.0),
-      position.longitude +
-          (widthInMeters / (111111.0 * cos(position.latitude * M_PI / 180.0))));
+      position.longitude + (widthInMeters / (111111.0 * cos(position.latitude * M_PI / 180.0))));
   CLLocationCoordinate2D southwest = CLLocationCoordinate2DMake(
       position.latitude - (heightInMeters / 111111.0),
-      position.longitude -
-          (widthInMeters / (111111.0 * cos(position.latitude * M_PI / 180.0))));
+      position.longitude - (widthInMeters / (111111.0 * cos(position.latitude * M_PI / 180.0))));
 
-  GMSCoordinateBounds *overlayBounds =
-      [[GMSCoordinateBounds alloc] initWithCoordinate:southwest
-                                           coordinate:northeast];
-  GMSGroundOverlay *overlay =
-      [GMSGroundOverlay groundOverlayWithBounds:overlayBounds icon:icon];
+  GMSCoordinateBounds *overlayBounds = [[GMSCoordinateBounds alloc] initWithCoordinate:southwest
+                                                                            coordinate:northeast];
+  GMSGroundOverlay *overlay = [GMSGroundOverlay groundOverlayWithBounds:overlayBounds icon:icon];
   overlay.bearing = [[overlayOptions objectForKey:@"bearing"] floatValue];
-  overlay.opacity =
-      1.0 - [[overlayOptions objectForKey:@"transparency"] floatValue];
+  overlay.opacity = 1.0 - [[overlayOptions objectForKey:@"transparency"] floatValue];
   overlay.tappable = [[overlayOptions objectForKey:@"clickable"] boolValue];
 
   overlay.userData = @[ [[NSUUID UUID] UUIDString] ];
@@ -457,26 +425,22 @@
 
   [_groundOverlayList addObject:overlay];
 
-  completionBlock(
-      [ObjectTranslationUtil transformGroundOverlayToDictionary:overlay]);
+  completionBlock([ObjectTranslationUtil transformGroundOverlayToDictionary:overlay]);
 }
 
-- (void)addCircle:(NSDictionary *)circleOptions
-           result:(OnDictionaryResult)completionBlock {
+- (void)addCircle:(NSDictionary *)circleOptions result:(OnDictionaryResult)completionBlock {
   NSDictionary *latLng = [circleOptions objectForKey:@"center"];
-  CLLocationCoordinate2D center =
-      [ObjectTranslationUtil getLocationCoordinateFrom:latLng];
+  CLLocationCoordinate2D center = [ObjectTranslationUtil getLocationCoordinateFrom:latLng];
 
-  GMSCircle *circle = [GMSCircle
-      circleWithPosition:center
-                  radius:[[circleOptions objectForKey:@"radius"] doubleValue]];
+  GMSCircle *circle =
+      [GMSCircle circleWithPosition:center
+                             radius:[[circleOptions objectForKey:@"radius"] doubleValue]];
 
   circle.strokeWidth = [[circleOptions objectForKey:@"strokeWidth"] floatValue];
 
   if (circleOptions[@"strokeColor"] != nil) {
     // Assuming strokeColor is a hex string
-    circle.strokeColor =
-        [self colorFromHexString:[circleOptions objectForKey:@"strokeColor"]];
+    circle.strokeColor = [self colorFromHexString:[circleOptions objectForKey:@"strokeColor"]];
   }
 
   NSString *fillColor = [circleOptions objectForKey:@"fillColor"];
@@ -500,8 +464,7 @@
   completionBlock([ObjectTranslationUtil transformCircleToDictionary:circle]);
 }
 
-- (void)addMarker:(NSDictionary *)markerOptions
-           result:(OnDictionaryResult)completionBlock {
+- (void)addMarker:(NSDictionary *)markerOptions result:(OnDictionaryResult)completionBlock {
   NSDictionary *position = [markerOptions objectForKey:@"position"];
   CLLocationCoordinate2D coordinatePosition =
       [ObjectTranslationUtil getLocationCoordinateFrom:position];
@@ -523,18 +486,17 @@
 
   marker.map = _mapView;
 
-  if ([[markerOptions objectForKey:@"imgPath"]
-          isKindOfClass:[NSString class]]) {
+  if ([[markerOptions objectForKey:@"imgPath"] isKindOfClass:[NSString class]]) {
     NSString *imgPath = [markerOptions objectForKey:@"imgPath"];
     if (imgPath) {
-      UIImage *icon = [UIImage imageNamed:imgPath]; // Assuming local asset
+      UIImage *icon = [UIImage imageNamed:imgPath];  // Assuming local asset
       marker.icon = icon;
     }
   }
 
   BOOL visible = [[markerOptions objectForKey:@"visible"] boolValue];
   if (!visible) {
-    marker.map = nil; // Setting map to nil hides the marker
+    marker.map = nil;  // Setting map to nil hides the marker
   }
 
   [_markerList addObject:marker];
@@ -542,10 +504,8 @@
   completionBlock([ObjectTranslationUtil transformMarkerToDictionary:marker]);
 }
 
-- (void)addPolygon:(NSDictionary *)polygonOptions
-            result:(OnDictionaryResult)completionBlock {
-  GMSPath *path =
-      [ObjectTranslationUtil transformToPath:polygonOptions[@"points"]];
+- (void)addPolygon:(NSDictionary *)polygonOptions result:(OnDictionaryResult)completionBlock {
+  GMSPath *path = [ObjectTranslationUtil transformToPath:polygonOptions[@"points"]];
 
   GMSPolygon *polygon = [GMSPolygon polygonWithPath:path];
 
@@ -572,8 +532,7 @@
   }
 
   if ([polygonOptions objectForKey:@"strokeWidth"]) {
-    polygon.strokeWidth =
-        [[polygonOptions objectForKey:@"strokeWidth"] floatValue];
+    polygon.strokeWidth = [[polygonOptions objectForKey:@"strokeWidth"] floatValue];
   }
 
   if ([polygonOptions objectForKey:@"geodesic"]) {
@@ -596,21 +555,19 @@
   completionBlock([ObjectTranslationUtil transformPolygonToDictionary:polygon]);
 }
 
-- (void)addPolyline:(NSDictionary *)options
-             result:(OnDictionaryResult)completionBlock {
+- (void)addPolyline:(NSDictionary *)options result:(OnDictionaryResult)completionBlock {
   GMSPath *path = [ObjectTranslationUtil transformToPath:options[@"points"]];
   GMSPolyline *polyline = [GMSPolyline polylineWithPath:path];
 
   polyline.strokeWidth = [[options objectForKey:@"width"] floatValue];
-  polyline.strokeColor = [self
-      colorFromHexString:[options objectForKey:@"color"]]; // Assuming color is
+  polyline.strokeColor =
+      [self colorFromHexString:[options objectForKey:@"color"]];  // Assuming color is
   // a hex string
   polyline.tappable = [[options objectForKey:@"clickable"] boolValue];
 
   polyline.userData = @[ [[NSUUID UUID] UUIDString] ];
 
-  if ([options objectForKey:@"visible"] != nil &&
-      [[options objectForKey:@"visible"] boolValue]) {
+  if ([options objectForKey:@"visible"] != nil && [[options objectForKey:@"visible"] boolValue]) {
     polyline.map = _mapView;
   } else {
     polyline.map = nil;
@@ -618,8 +575,7 @@
 
   [_polylineList addObject:polyline];
 
-  completionBlock(
-      [ObjectTranslationUtil transformPolylineToDictionary:polyline]);
+  completionBlock([ObjectTranslationUtil transformPolylineToDictionary:polyline]);
 }
 
 - (void)removeMarker:(NSString *)markerId {

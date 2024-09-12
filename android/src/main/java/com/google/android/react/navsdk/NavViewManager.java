@@ -19,19 +19,15 @@ import android.view.Choreographer;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
-
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
-import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.google.android.gms.maps.GoogleMap;
-
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,18 +61,13 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     this.reactContext = reactContext;
   }
 
-
-  /**
-   * Return a FrameLayout which will later hold the Fragment
-   */
+  /** Return a FrameLayout which will later hold the Fragment */
   @Override
   public FrameLayout createViewInstance(ThemedReactContext reactContext) {
     return new FrameLayout(reactContext);
   }
 
-  /**
-   * Map the "create" command to an integer
-   */
+  /** Map the "create" command to an integer */
   @Nullable
   @Override
   public Map<String, Integer> getCommandsMap() {
@@ -98,7 +89,9 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     map.put(SET_MY_LOCATION_ENABLED.toString(), SET_MY_LOCATION_ENABLED.getValue());
     map.put(SET_ROTATE_GESTURES_ENABLED.toString(), SET_ROTATE_GESTURES_ENABLED.getValue());
     map.put(SET_SCROLL_GESTURES_ENABLED.toString(), SET_SCROLL_GESTURES_ENABLED.getValue());
-    map.put(SET_SCROLL_GESTURES_ENABLED_DURING_ROTATE_OR_ZOOM.toString(),SET_SCROLL_GESTURES_ENABLED_DURING_ROTATE_OR_ZOOM.getValue());
+    map.put(
+        SET_SCROLL_GESTURES_ENABLED_DURING_ROTATE_OR_ZOOM.toString(),
+        SET_SCROLL_GESTURES_ENABLED_DURING_ROTATE_OR_ZOOM.getValue());
     map.put(SET_ZOOM_CONTROLS_ENABLED.toString(), SET_ZOOM_CONTROLS_ENABLED.getValue());
     map.put(SET_TILT_GESTURES_ENABLED.toString(), SET_TILT_GESTURES_ENABLED.getValue());
     map.put(SET_ZOOM_GESTURES_ENABLED.toString(), SET_ZOOM_GESTURES_ENABLED.getValue());
@@ -109,7 +102,9 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     map.put(RESET_MIN_MAX_ZOOM_LEVEL.toString(), RESET_MIN_MAX_ZOOM_LEVEL.getValue());
     map.put(SET_MAP_STYLE.toString(), SET_MAP_STYLE.getValue());
     map.put(ANIMATE_CAMERA.toString(), ANIMATE_CAMERA.getValue());
-    map.put(SET_TRAFFIC_INCIDENT_CARDS_ENABLED.toString(), SET_TRAFFIC_INCIDENT_CARDS_ENABLED.getValue());
+    map.put(
+        SET_TRAFFIC_INCIDENT_CARDS_ENABLED.toString(),
+        SET_TRAFFIC_INCIDENT_CARDS_ENABLED.getValue());
     map.put(SET_RECENTER_BUTTON_ENABLED.toString(), SET_RECENTER_BUTTON_ENABLED.getValue());
     map.put(SHOW_ROUTE_OVERVIEW.toString(), SHOW_ROUTE_OVERVIEW.getValue());
     map.put(REMOVE_MARKER.toString(), REMOVE_MARKER.getValue());
@@ -152,7 +147,8 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
   }
 
   @Override
-  public void receiveCommand(@NonNull FrameLayout root, String commandId, @Nullable ReadableArray args) {
+  public void receiveCommand(
+      @NonNull FrameLayout root, String commandId, @Nullable ReadableArray args) {
     super.receiveCommand(root, commandId, args);
     int commandIdInt = Integer.parseInt(commandId);
 
@@ -166,10 +162,10 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
           int viewId = root.getId();
           FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
           activity
-            .getSupportFragmentManager()
-            .beginTransaction()
-            .remove(Objects.requireNonNull(fragmentMap.remove(viewId)).get())
-            .commitNowAllowingStateLoss();
+              .getSupportFragmentManager()
+              .beginTransaction()
+              .remove(Objects.requireNonNull(fragmentMap.remove(viewId)).get())
+              .commitNowAllowingStateLoss();
         } catch (Exception ignored) {
         }
         break;
@@ -288,27 +284,33 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
   @Override
   public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
     Map<String, Object> baseEventTypeConstants = super.getExportedCustomDirectEventTypeConstants();
-    Map<String, Object> eventTypeConstants = baseEventTypeConstants != null ? baseEventTypeConstants : new HashMap<>();
+    Map<String, Object> eventTypeConstants =
+        baseEventTypeConstants != null ? baseEventTypeConstants : new HashMap<>();
 
-    ((Map) eventTypeConstants).putAll(MapBuilder.builder()
-      .put("onRecenterButtonClick", MapBuilder.of("registrationName", "onRecenterButtonClick"))
-      .put("onMapReady", MapBuilder.of("registrationName", "onMapReady"))
-      .put("onMapClick", MapBuilder.of("registrationName", "onMapClick"))
-      .put("onMarkerClick", MapBuilder.of("registrationName", "onMarkerClick"))
-      .put("onPolylineClick", MapBuilder.of("registrationName", "onPolylineClick"))
-      .put("onPolygonClick", MapBuilder.of("registrationName", "onPolygonClick"))
-      .put("onCircleClick", MapBuilder.of("registrationName", "onCircleClick"))
-      .put("onGroundOverlayClick", MapBuilder.of("registrationName", "onGroundOverlayClick"))
-      .put("onMarkerInfoWindowTapped", MapBuilder.of("registrationName", "onMarkerInfoWindowTapped"))
-      .build());
+    ((Map) eventTypeConstants)
+        .putAll(
+            MapBuilder.builder()
+                .put(
+                    "onRecenterButtonClick",
+                    MapBuilder.of("registrationName", "onRecenterButtonClick"))
+                .put("onMapReady", MapBuilder.of("registrationName", "onMapReady"))
+                .put("onMapClick", MapBuilder.of("registrationName", "onMapClick"))
+                .put("onMarkerClick", MapBuilder.of("registrationName", "onMarkerClick"))
+                .put("onPolylineClick", MapBuilder.of("registrationName", "onPolylineClick"))
+                .put("onPolygonClick", MapBuilder.of("registrationName", "onPolygonClick"))
+                .put("onCircleClick", MapBuilder.of("registrationName", "onCircleClick"))
+                .put(
+                    "onGroundOverlayClick",
+                    MapBuilder.of("registrationName", "onGroundOverlayClick"))
+                .put(
+                    "onMarkerInfoWindowTapped",
+                    MapBuilder.of("registrationName", "onMarkerInfoWindowTapped"))
+                .build());
     return (Map) eventTypeConstants;
   }
 
-  /**
-   * Replace your React Native view with a custom fragment
-   */
-  public void createFragment(
-    FrameLayout root, Map stylingOptions) {
+  /** Replace your React Native view with a custom fragment */
+  public void createFragment(FrameLayout root, Map stylingOptions) {
     setupLayout(root);
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
@@ -321,40 +323,40 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         fragment.setStylingOptions(stylingOptions);
       }
 
-      activity.getSupportFragmentManager()
-        .beginTransaction()
-        .replace(viewId, fragment, String.valueOf(viewId))
-        .commit();
+      activity
+          .getSupportFragmentManager()
+          .beginTransaction()
+          .replace(viewId, fragment, String.valueOf(viewId))
+          .commit();
     }
   }
 
   /**
-   * Set up the layout for each frame. This official RN way to do this, but a bit hacky,
-   * and should be changed when better solution is found.
+   * Set up the layout for each frame. This official RN way to do this, but a bit hacky, and should
+   * be changed when better solution is found.
    */
   public void setupLayout(FrameLayout view) {
-    Choreographer.getInstance().postFrameCallback(new Choreographer.FrameCallback() {
-      @Override
-      public void doFrame(long frameTimeNanos) {
-        manuallyLayoutChildren(view);
-        view.getViewTreeObserver().dispatchOnGlobalLayout();
-        Choreographer.getInstance().postFrameCallback(this);
-      }
-    });
+    Choreographer.getInstance()
+        .postFrameCallback(
+            new Choreographer.FrameCallback() {
+              @Override
+              public void doFrame(long frameTimeNanos) {
+                manuallyLayoutChildren(view);
+                view.getViewTreeObserver().dispatchOnGlobalLayout();
+                Choreographer.getInstance().postFrameCallback(this);
+              }
+            });
   }
 
-  /**
-   * Layout all children properly
-   */
+  /** Layout all children properly */
   public void manuallyLayoutChildren(FrameLayout view) {
     NavViewFragment fragment = getFragmentForRoot(view);
     if (fragment.isAdded()) {
       View childView = fragment.getView();
       if (childView != null) {
         childView.measure(
-          View.MeasureSpec.makeMeasureSpec(view.getMeasuredWidth(), View.MeasureSpec.EXACTLY),
-          View.MeasureSpec.makeMeasureSpec(view.getMeasuredHeight(), View.MeasureSpec.EXACTLY)
-        );
+            View.MeasureSpec.makeMeasureSpec(view.getMeasuredWidth(), View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(view.getMeasuredHeight(), View.MeasureSpec.EXACTLY));
         childView.layout(0, 0, childView.getMeasuredWidth(), childView.getMeasuredHeight());
       }
     }
@@ -367,5 +369,4 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
       return null;
     }
   }
-
 }

@@ -14,9 +14,7 @@
 package com.google.android.react.navsdk;
 
 import android.graphics.Color;
-
 import com.google.android.libraries.navigation.StylingOptions;
-
 import java.util.Map;
 
 public class StylingOptionsBuilder {

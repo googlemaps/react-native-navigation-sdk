@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
+#import <UIKit/UIKit.h>
 #import "INavigationViewCallback.h"
 #import "ObjectTranslationUtil.h"
-#import <UIKit/UIKit.h>
 @import GoogleNavigation;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface NavViewController
-    : UIViewController <GMSMapViewNavigationUIDelegate, GMSMapViewDelegate>
+@interface NavViewController : UIViewController <GMSMapViewNavigationUIDelegate, GMSMapViewDelegate>
 
 @property(weak, nonatomic) id<INavigationViewCallback> callbacks;
 typedef void (^RouteStatusCallback)(GMSRouteStatus routeStatus);
@@ -66,16 +65,11 @@ typedef void (^OnArrayResult)(NSArray *_Nullable result);
 - (void)setMapStyle:(GMSMapStyle *)mapStyle;
 - (void)setMapType:(GMSMapViewType)mapType;
 - (void)clearMapView;
-- (void)addGroundOverlay:(NSDictionary *)overlayOptions
-                  result:(OnDictionaryResult)completionBlock;
-- (void)addCircle:(NSDictionary *)circleOptions
-           result:(OnDictionaryResult)completionBlock;
-- (void)addMarker:(NSDictionary *)markerOptions
-           result:(OnDictionaryResult)completionBlock;
-- (void)addPolygon:(NSDictionary *)polygonOptions
-            result:(OnDictionaryResult)completionBlock;
-- (void)addPolyline:(NSDictionary *)options
-             result:(OnDictionaryResult)completionBlock;
+- (void)addGroundOverlay:(NSDictionary *)overlayOptions result:(OnDictionaryResult)completionBlock;
+- (void)addCircle:(NSDictionary *)circleOptions result:(OnDictionaryResult)completionBlock;
+- (void)addMarker:(NSDictionary *)markerOptions result:(OnDictionaryResult)completionBlock;
+- (void)addPolygon:(NSDictionary *)polygonOptions result:(OnDictionaryResult)completionBlock;
+- (void)addPolyline:(NSDictionary *)options result:(OnDictionaryResult)completionBlock;
 - (GMSMapView *)mapView;
 - (void)showRouteOverview;
 - (void)removeMarker:(NSString *)markerId;
