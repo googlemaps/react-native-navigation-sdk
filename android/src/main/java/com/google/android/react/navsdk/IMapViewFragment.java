@@ -25,7 +25,7 @@ import com.google.android.gms.maps.model.Polyline;
 import java.io.IOException;
 import java.util.Map;
 
-public interface IViewFragment {
+public interface IMapViewFragment {
   void setStylingOptions(Map stylingOptions);
   void applyStylingOptions();
   void setFollowingPerspective(int jsValue);
@@ -62,17 +62,6 @@ public interface IViewFragment {
   void setMapToolbarEnabled(boolean isOn);
   void setMyLocationButtonEnabled(boolean isOn);
   GoogleMap getGoogleMap();
-
-  // Navigation
-  void setNavigationUiEnabled(boolean enableNavigationUi);
-  void setTripProgressBarEnabled(boolean enabled);
-  void setSpeedometerEnabled(boolean enabled);
-  void setSpeedLimitIconEnabled(boolean enabled);
-  void setTrafficIncidentCardsEnabled(boolean enabled);
-  void setEtaCardEnabled(boolean enabled);
-  void setHeaderEnabled(boolean enabled);
-  void setRecenterButtonEnabled(boolean enabled);
-  void showRouteOverview();
 
   // Fragment
   boolean isAdded();

@@ -68,7 +68,7 @@ import java.util.concurrent.Executors;
  * This fragment's lifecycle is managed by NavViewManager.
  */
 @SuppressLint("ValidFragment")
-public class MapViewFragment extends SupportMapFragment implements IViewFragment {
+public class MapViewFragment extends SupportMapFragment implements IMapViewFragment {
   private static final String TAG = "MapViewFragment";
   private GoogleMap mGoogleMap;
   private StylingOptions mStylingOptions;

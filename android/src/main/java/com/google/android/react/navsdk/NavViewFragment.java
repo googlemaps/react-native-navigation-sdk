@@ -65,7 +65,7 @@ import java.util.concurrent.Executors;
  * A fragment that displays a navigation view with a Google Map using SupportNavigationFragment.
  * This fragment's lifecycle is managed by NavViewManager.
  */
-public class NavViewFragment extends SupportNavigationFragment implements IViewFragment {
+public class NavViewFragment extends SupportNavigationFragment implements INavViewFragment {
   private static final String TAG = "NavViewFragment";
   private GoogleMap mGoogleMap;
   private StylingOptions mStylingOptions;
