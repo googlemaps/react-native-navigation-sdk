@@ -26,6 +26,7 @@ import { getNavigationViewController } from './navigationViewController';
 import type { NavigationViewProps } from './types';
 import {
   getMapViewController,
+  FragmentType,
   type Circle,
   type GroundOverlay,
   type Marker,
@@ -61,14 +62,12 @@ export const NavigationView = (props: NavigationViewProps) => {
     if (viewId !== _viewId) {
       setViewId(_viewId);
 
-      const isNavigationEnabled = true;
-
       const stylingOptions =
         (Platform.OS === 'android'
           ? androidStylingOptions
           : iOSStylingOptions) || {};
 
-      const args = [stylingOptions, isNavigationEnabled];
+      const args = [stylingOptions, FragmentType.NAVIGATION];
 
       setTimeout(() => {
         sendCommand(_viewId, commands.createFragment, args);

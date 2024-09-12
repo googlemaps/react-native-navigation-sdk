@@ -24,6 +24,7 @@ import {
 } from '../../shared';
 import {
   getMapViewController,
+  FragmentType,
   type Circle,
   type GroundOverlay,
   type MapViewProps,
@@ -55,11 +56,9 @@ export const MapView = (props: MapViewProps) => {
     if (viewId !== _viewId) {
       setViewId(_viewId);
 
-      const isNavigationEnabled = false;
-
       const stylingOptions = {};
 
-      const args = [stylingOptions, isNavigationEnabled];
+      const args = [stylingOptions, FragmentType.MAP];
 
       setTimeout(() => {
         sendCommand(_viewId, commands.createFragment, args);

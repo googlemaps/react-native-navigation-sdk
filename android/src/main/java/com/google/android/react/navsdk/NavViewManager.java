@@ -156,8 +156,8 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     switch (Command.find(commandIdInt)) {
       case CREATE_FRAGMENT:
         Map<String, Object> stylingOptions = args.getMap(0).toHashMap();
-        Boolean isNavigationEnabled = args.getBoolean(1);
-        createFragment(root, stylingOptions, isNavigationEnabled);
+        int fragmentType = args.getInt(1);
+        createFragment(root, stylingOptions, fragmentType);
         break;
       case DELETE_FRAGMENT:
         try {
@@ -316,30 +316,31 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
    * Replace your React Native view with a custom fragment
    */
   public void createFragment(
-    FrameLayout root, Map stylingOptions, Boolean isNavigationEnabled) {
+    FrameLayout root, Map stylingOptions, int fragmentType) {
     setupLayout(root);
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
     if (activity != null) {
       int viewId = root.getId();
       Fragment fragment;
-      if (isNavigationEnabled) {
-        NavViewFragment navFragment = new NavViewFragment(reactContext, root.getId());
-        fragmentMap.put(viewId, new WeakReference<IViewFragment>(navFragment));
-        fragment = navFragment;
+      // FragmentType 0 = MAP, 1 = NAVIGATION.
+        if (fragmentType == 0) {
+            MapViewFragment mapFragment = new MapViewFragment(reactContext, root.getId());
+            fragmentMap.put(viewId, new WeakReference<IViewFragment>(mapFragment));
+            fragment = mapFragment;
 
-        if (stylingOptions != null) {
-          navFragment.setStylingOptions(stylingOptions);
-        }
-      } else {
-        MapViewFragment mapFragment = new MapViewFragment(reactContext, root.getId());
-        fragmentMap.put(viewId, new WeakReference<IViewFragment>(mapFragment));
-        fragment = mapFragment;
+            if (stylingOptions != null) {
+                mapFragment.setStylingOptions(stylingOptions);
+            }
+        } else {
+            NavViewFragment navFragment = new NavViewFragment(reactContext, root.getId());
+            fragmentMap.put(viewId, new WeakReference<IViewFragment>(navFragment));
+            fragment = navFragment;
 
-        if (stylingOptions != null) {
-          mapFragment.setStylingOptions(stylingOptions);
+            if (stylingOptions != null) {
+                navFragment.setStylingOptions(stylingOptions);
+            }
         }
-      }
       activity.getSupportFragmentManager()
         .beginTransaction()
         .replace(viewId, fragment, String.valueOf(viewId))
