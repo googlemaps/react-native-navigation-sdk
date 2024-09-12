@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+// NavViewManager is responsible for managing both the regular map fragment as well as the navigation map view fragment.
+//
 public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
   public static final String REACT_CLASS = "NavViewManager";

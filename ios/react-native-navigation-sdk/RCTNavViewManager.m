@@ -21,6 +21,8 @@
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
 
+// RCTNavViewManager is responsible for managing both the regular map fragment as well as the navigation map view fragment.
+//
 @implementation RCTNavViewManager
 static NSMutableDictionary<NSNumber *, NavViewController *> *_viewControllers;
 static NavViewModule *_navViewModule;
