@@ -26,7 +26,7 @@
 - (void)layoutSubviews {
   [super layoutSubviews];
   if (self.superview) {
-    self.translatesAutoresizingMaskIntoConstraints = NO; // Disable auto-resizing mask
+    self.translatesAutoresizingMaskIntoConstraints = NO;  // Disable auto-resizing mask
     [NSLayoutConstraint activateConstraints:@[
       [self.leadingAnchor constraintEqualToAnchor:self.superview.leadingAnchor],
       [self.trailingAnchor constraintEqualToAnchor:self.superview.trailingAnchor],
@@ -52,7 +52,7 @@
     [_viewController.view.topAnchor constraintEqualToAnchor:self.topAnchor],
     [_viewController.view.bottomAnchor constraintEqualToAnchor:self.bottomAnchor]
   ]];
-    
+
   return _viewController;
 }
 
@@ -80,43 +80,38 @@
 
 - (void)handleMarkerInfoWindowTapped:(GMSMarker *)marker {
   if (self.onMarkerInfoWindowTapped) {
-    self.onMarkerInfoWindowTapped(
-        [ObjectTranslationUtil transformMarkerToDictionary:marker]);
+    self.onMarkerInfoWindowTapped([ObjectTranslationUtil transformMarkerToDictionary:marker]);
   }
 }
 
 - (void)handleMarkerClick:(GMSMarker *)marker {
   if (self.onMarkerClick) {
-    self.onMarkerClick(
-        [ObjectTranslationUtil transformMarkerToDictionary:marker]);
+    self.onMarkerClick([ObjectTranslationUtil transformMarkerToDictionary:marker]);
   }
 }
 
 - (void)handlePolylineClick:(GMSPolyline *)polyline {
   if (self.onPolylineClick) {
-    self.onPolylineClick(
-        [ObjectTranslationUtil transformPolylineToDictionary:polyline]);
+    self.onPolylineClick([ObjectTranslationUtil transformPolylineToDictionary:polyline]);
   }
 }
 
 - (void)handlePolygonClick:(GMSPolygon *)polygon {
   if (self.onPolygonClick) {
-    self.onPolygonClick(
-        [ObjectTranslationUtil transformPolygonToDictionary:polygon]);
+    self.onPolygonClick([ObjectTranslationUtil transformPolygonToDictionary:polygon]);
   }
 }
 
 - (void)handleCircleClick:(GMSCircle *)circle {
   if (self.onCircleClick) {
-    self.onCircleClick(
-        [ObjectTranslationUtil transformCircleToDictionary:circle]);
+    self.onCircleClick([ObjectTranslationUtil transformCircleToDictionary:circle]);
   }
 }
 
 - (void)handleGroundOverlayClick:(GMSGroundOverlay *)groundOverlay {
   if (self.onGroundOverlayClick) {
-    self.onGroundOverlayClick([ObjectTranslationUtil
-        transformGroundOverlayToDictionary:groundOverlay]);
+    self.onGroundOverlayClick(
+        [ObjectTranslationUtil transformGroundOverlayToDictionary:groundOverlay]);
   }
 }
 

@@ -33,7 +33,8 @@ public enum Command {
   SET_MY_LOCATION_BUTTON_ENABLED(15, "setMyLocationButtonEnabled"),
   SET_ROTATE_GESTURES_ENABLED(16, "setRotateGesturesEnabled"),
   SET_SCROLL_GESTURES_ENABLED(17, "setScrollGesturesEnabled"),
-  SET_SCROLL_GESTURES_ENABLED_DURING_ROTATE_OR_ZOOM(18, "setScrollGesturesEnabledDuringRotateOrZoom"),
+  SET_SCROLL_GESTURES_ENABLED_DURING_ROTATE_OR_ZOOM(
+      18, "setScrollGesturesEnabledDuringRotateOrZoom"),
   SET_TILT_GESTURES_ENABLED(19, "setTiltGesturesEnabled"),
   SET_ZOOM_GESTURES_ENABLED(20, "setZoomGestures"),
   SET_BUILDINGS_ENABLED(21, "setBuildingsEnabled"),

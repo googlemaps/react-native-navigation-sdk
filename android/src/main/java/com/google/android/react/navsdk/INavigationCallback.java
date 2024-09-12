@@ -13,17 +13,6 @@
  */
 package com.google.android.react.navsdk;
 
-import android.location.Location;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.GroundOverlay;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.Polygon;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.libraries.mapsplatform.turnbyturn.model.NavInfo;
-import com.google.android.libraries.navigation.ArrivalEvent;
-import com.google.android.libraries.navigation.Navigator;
-
 public interface INavigationCallback {
   void logDebugInfo(String info);
 }

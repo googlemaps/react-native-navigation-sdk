@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-#import "NavViewController.h"
 #import <React/RCTBridgeModule.h>
+#import "NavViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface NavViewModule : NSObject <RCTBridgeModule>
-@property(nonatomic, strong)
-    NSMutableDictionary<NSNumber *, NavViewController *> *viewControllers;
+@property(nonatomic, strong) NSMutableDictionary<NSNumber *, NavViewController *> *viewControllers;
 
 - (void)attachViewsToNavigationSession:(GMSNavigationSession *)session;
 - (void)setTravelMode:(GMSNavigationTravelMode)travelMode;
