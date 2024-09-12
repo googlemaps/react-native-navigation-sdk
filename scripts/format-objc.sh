@@ -13,15 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-addlicense -f header_template.txt $@ \
-        --ignore "**/Pods/**" \
-        --ignore "**/node_modules/**" \
-        --ignore "**/android/**/build/**" \
-        --ignore "**/android/.gradle/**" \
-        --ignore "**/android/.idea/**" \
-        --ignore "**/ios/build/**" \
-        --ignore "example/vendor/**" \
-        --ignore "lib/**" \
-        --ignore "coverage/**" \
-        --ignore ".yarn/**" \
-        .
+# Script to format or check formatting for Objective-C files in /ios and /example/ios
+
+if [ "$1" = "--check" ]; then
+    find ios example/ios/SampleApp -name "*.m" -o -name "*.h" | xargs clang-format -style=Google --dry-run -Werror
+else
+    find ios example/ios/SampleApp -name "*.m" -o -name "*.h" | xargs clang-format -style=Google -i
+fi

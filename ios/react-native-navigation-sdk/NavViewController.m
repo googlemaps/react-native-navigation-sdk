@@ -31,6 +31,7 @@
   NSMutableArray<GMSPolygon *> *_polygonList;
   NSMutableArray<GMSCircle *> *_circleList;
   NSMutableArray<GMSGroundOverlay *> *_groundOverlayList;
+  NSDictionary *_stylingOptions;
 }
 
 @synthesize callbacks = _callbacks;
@@ -93,69 +94,76 @@
 }
 
 - (void)setStylingOptions:(nonnull NSDictionary *)stylingOptions {
-  if (stylingOptions[@"navigationHeaderPrimaryBackgroundColor"] != nil) {
-    NSString *hexString = stylingOptions[@"navigationHeaderPrimaryBackgroundColor"];
-    _mapView.settings.navigationHeaderPrimaryBackgroundColor =
-        [UIColor colorWithHexString:hexString];
-  }
+  _stylingOptions = stylingOptions;
+  [self applyStylingOptions];
+}
 
-  if (stylingOptions[@"navigationHeaderSecondaryBackgroundColor"] != nil) {
-    NSString *hexString = stylingOptions[@"navigationHeaderSecondaryBackgroundColor"];
-    _mapView.settings.navigationHeaderSecondaryBackgroundColor =
-        [UIColor colorWithHexString:hexString];
-  }
+- (void)applyStylingOptions {
+  if (_stylingOptions) {
+    if (_stylingOptions[@"navigationHeaderPrimaryBackgroundColor"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderPrimaryBackgroundColor"];
+      _mapView.settings.navigationHeaderPrimaryBackgroundColor =
+          [UIColor colorWithHexString:hexString];
+    }
 
-  if (stylingOptions[@"navigationHeaderPrimaryBackgroundColorNightMode"] != nil) {
-    NSString *hexString = stylingOptions[@"navigationHeaderPrimaryBackgroundColorNightMode"];
-    _mapView.settings.navigationHeaderPrimaryBackgroundColorNightMode =
-        [UIColor colorWithHexString:hexString];
-  }
+    if (_stylingOptions[@"navigationHeaderSecondaryBackgroundColor"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderSecondaryBackgroundColor"];
+      _mapView.settings.navigationHeaderSecondaryBackgroundColor =
+          [UIColor colorWithHexString:hexString];
+    }
 
-  if (stylingOptions[@"navigationHeaderSecondaryBackgroundColorNightMode"] != nil) {
-    NSString *hexString = stylingOptions[@"navigationHeaderSecondaryBackgroundColorNightMode"];
-    _mapView.settings.navigationHeaderSecondaryBackgroundColorNightMode =
-        [UIColor colorWithHexString:hexString];
-  }
+    if (_stylingOptions[@"navigationHeaderPrimaryBackgroundColorNightMode"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderPrimaryBackgroundColorNightMode"];
+      _mapView.settings.navigationHeaderPrimaryBackgroundColorNightMode =
+          [UIColor colorWithHexString:hexString];
+    }
 
-  if (stylingOptions[@"navigationHeaderLargeManeuverIconColor"] != nil) {
-    NSString *hexString = stylingOptions[@"navigationHeaderLargeManeuverIconColor"];
-    _mapView.settings.navigationHeaderLargeManeuverIconColor =
-        [UIColor colorWithHexString:hexString];
-  }
+    if (_stylingOptions[@"navigationHeaderSecondaryBackgroundColorNightMode"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderSecondaryBackgroundColorNightMode"];
+      _mapView.settings.navigationHeaderSecondaryBackgroundColorNightMode =
+          [UIColor colorWithHexString:hexString];
+    }
 
-  if (stylingOptions[@"navigationHeaderSmallManeuverIconColor"] != nil) {
-    NSString *hexString = stylingOptions[@"navigationHeaderSmallManeuverIconColor"];
-    _mapView.settings.navigationHeaderSmallManeuverIconColor =
-        [UIColor colorWithHexString:hexString];
-  }
+    if (_stylingOptions[@"navigationHeaderLargeManeuverIconColor"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderLargeManeuverIconColor"];
+      _mapView.settings.navigationHeaderLargeManeuverIconColor =
+          [UIColor colorWithHexString:hexString];
+    }
 
-  if (stylingOptions[@"navigationHeaderGuidanceRecommendedLaneColor"] != nil) {
-    NSString *hexString = stylingOptions[@"navigationHeaderGuidanceRecommendedLaneColor"];
-    _mapView.settings.navigationHeaderGuidanceRecommendedLaneColor =
-        [UIColor colorWithHexString:hexString];
-  }
+    if (_stylingOptions[@"navigationHeaderSmallManeuverIconColor"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderSmallManeuverIconColor"];
+      _mapView.settings.navigationHeaderSmallManeuverIconColor =
+          [UIColor colorWithHexString:hexString];
+    }
 
-  if (stylingOptions[@"navigationHeaderNextStepTextColor"] != nil) {
-    NSString *hexString = stylingOptions[@"navigationHeaderNextStepTextColor"];
-    _mapView.settings.navigationHeaderNextStepTextColor = [UIColor colorWithHexString:hexString];
-  }
+    if (_stylingOptions[@"navigationHeaderGuidanceRecommendedLaneColor"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderGuidanceRecommendedLaneColor"];
+      _mapView.settings.navigationHeaderGuidanceRecommendedLaneColor =
+          [UIColor colorWithHexString:hexString];
+    }
 
-  if (stylingOptions[@"navigationHeaderDistanceValueTextColor"] != nil) {
-    NSString *hexString = stylingOptions[@"navigationHeaderDistanceValueTextColor"];
-    _mapView.settings.navigationHeaderDistanceValueTextColor =
-        [UIColor colorWithHexString:hexString];
-  }
+    if (_stylingOptions[@"navigationHeaderNextStepTextColor"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderNextStepTextColor"];
+      _mapView.settings.navigationHeaderNextStepTextColor = [UIColor colorWithHexString:hexString];
+    }
 
-  if (stylingOptions[@"navigationHeaderDistanceUnitsTextColor"] != nil) {
-    NSString *hexString = stylingOptions[@"navigationHeaderDistanceUnitsTextColor"];
-    _mapView.settings.navigationHeaderDistanceUnitsTextColor =
-        [UIColor colorWithHexString:hexString];
-  }
+    if (_stylingOptions[@"navigationHeaderDistanceValueTextColor"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderDistanceValueTextColor"];
+      _mapView.settings.navigationHeaderDistanceValueTextColor =
+          [UIColor colorWithHexString:hexString];
+    }
 
-  if (stylingOptions[@"navigationHeaderInstructionsTextColor"] != nil) {
-    NSString *hexString = stylingOptions[@"navigationHeaderInstructionsTextColor"];
-    _mapView.settings.navigationHeaderInstructionsTextColor =
-        [UIColor colorWithHexString:hexString];
+    if (_stylingOptions[@"navigationHeaderDistanceUnitsTextColor"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderDistanceUnitsTextColor"];
+      _mapView.settings.navigationHeaderDistanceUnitsTextColor =
+          [UIColor colorWithHexString:hexString];
+    }
+
+    if (_stylingOptions[@"navigationHeaderInstructionsTextColor"] != nil) {
+      NSString *hexString = _stylingOptions[@"navigationHeaderInstructionsTextColor"];
+      _mapView.settings.navigationHeaderInstructionsTextColor =
+          [UIColor colorWithHexString:hexString];
+    }
   }
 }
 
@@ -274,6 +282,7 @@
 - (BOOL)attachToNavigationSession:(GMSNavigationSession *)session {
   BOOL result = [_mapView enableNavigationWithSession:session];
   _mapView.navigationUIDelegate = self;
+  [self applyStylingOptions];
   return result;
 }
 

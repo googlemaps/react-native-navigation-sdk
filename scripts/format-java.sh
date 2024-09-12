@@ -13,15 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-addlicense -f header_template.txt $@ \
-        --ignore "**/Pods/**" \
-        --ignore "**/node_modules/**" \
-        --ignore "**/android/**/build/**" \
-        --ignore "**/android/.gradle/**" \
-        --ignore "**/android/.idea/**" \
-        --ignore "**/ios/build/**" \
-        --ignore "example/vendor/**" \
-        --ignore "lib/**" \
-        --ignore "coverage/**" \
-        --ignore ".yarn/**" \
-        .
+# Script to format or check formatting for Java files in /android and /example/android
+
+if [ "$1" = "--check" ]; then
+    find android/src example/android/app/src -name "*.java" | xargs google-java-format --dry-run --set-exit-if-changed
+else
+    find android/src example/android/app/src -name "*.java" | xargs google-java-format -i
+fi

@@ -207,6 +207,9 @@ public class NavViewFragment extends SupportNavigationFragment
 
     @Override
     public WritableMap getEventData() {
+      if (eventData == null) {
+        return Arguments.createMap();
+      }
       return eventData;
     }
   }
