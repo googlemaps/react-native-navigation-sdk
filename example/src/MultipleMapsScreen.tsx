@@ -36,11 +36,11 @@ import {
   type LatLng,
   type NavigationCallbacks,
   useNavigation,
+  MapView,
+  NavigationView,
 } from '@googlemaps/react-native-navigation-sdk';
 import usePermissions from './checkPermissions';
 import OverlayModal from './overlayModal';
-import { NavigationView } from '../../src/navigation/navigationView/navigationView';
-import MapView from '../../src/maps/mapView/mapView';
 
 const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
   Snackbar.show({ text, duration });

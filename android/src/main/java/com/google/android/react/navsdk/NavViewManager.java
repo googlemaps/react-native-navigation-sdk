@@ -337,23 +337,23 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
       int viewId = root.getId();
       Fragment fragment;
       // FragmentType 0 = MAP, 1 = NAVIGATION.
-        if (fragmentType == 0) {
-            MapViewFragment mapFragment = new MapViewFragment(reactContext, root.getId());
-            fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(mapFragment));
-            fragment = mapFragment;
+      if (fragmentType == 0) {
+          MapViewFragment mapFragment = new MapViewFragment(reactContext, root.getId());
+          fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(mapFragment));
+          fragment = mapFragment;
 
-            if (stylingOptions != null) {
-                mapFragment.setStylingOptions(stylingOptions);
-            }
-        } else {
-            NavViewFragment navFragment = new NavViewFragment(reactContext, root.getId());
-            fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(navFragment));
-            fragment = navFragment;
+          if (stylingOptions != null) {
+              mapFragment.setStylingOptions(stylingOptions);
+          }
+      } else {
+          NavViewFragment navFragment = new NavViewFragment(reactContext, root.getId());
+          fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(navFragment));
+          fragment = navFragment;
 
-            if (stylingOptions != null) {
-                navFragment.setStylingOptions(stylingOptions);
-            }
-        }
+          if (stylingOptions != null) {
+              navFragment.setStylingOptions(stylingOptions);
+          }
+      }
       activity.getSupportFragmentManager()
         .beginTransaction()
         .replace(viewId, fragment, String.valueOf(viewId))
