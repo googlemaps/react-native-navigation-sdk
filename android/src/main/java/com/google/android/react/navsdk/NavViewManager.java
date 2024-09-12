@@ -34,7 +34,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-// NavViewManager is responsible for managing both the regular map fragment as well as the navigation map view fragment.
+// NavViewManager is responsible for managing both the regular map fragment as well as the
+// navigation map view fragment.
 //
 public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
@@ -178,10 +179,10 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
           FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
           IMapViewFragment fragment = Objects.requireNonNull(fragmentMap.remove(viewId)).get();
           activity
-            .getSupportFragmentManager()
-            .beginTransaction()
-            .remove((Fragment) fragment)
-            .commitNowAllowingStateLoss();
+              .getSupportFragmentManager()
+              .beginTransaction()
+              .remove((Fragment) fragment)
+              .commitNowAllowingStateLoss();
         } catch (Exception ignored) {
         }
         break;
@@ -325,11 +326,8 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     return (Map) eventTypeConstants;
   }
 
-  /**
-   * Replace your React Native view with a custom fragment
-   */
-  public void createFragment(
-    FrameLayout root, Map stylingOptions, int fragmentType) {
+  /** Replace your React Native view with a custom fragment */
+  public void createFragment(FrameLayout root, Map stylingOptions, int fragmentType) {
     setupLayout(root);
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
@@ -338,26 +336,27 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
       Fragment fragment;
       // FragmentType 0 = MAP, 1 = NAVIGATION.
       if (fragmentType == 0) {
-          MapViewFragment mapFragment = new MapViewFragment(reactContext, root.getId());
-          fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(mapFragment));
-          fragment = mapFragment;
+        MapViewFragment mapFragment = new MapViewFragment(reactContext, root.getId());
+        fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(mapFragment));
+        fragment = mapFragment;
 
-          if (stylingOptions != null) {
-              mapFragment.setStylingOptions(stylingOptions);
-          }
+        if (stylingOptions != null) {
+          mapFragment.setStylingOptions(stylingOptions);
+        }
       } else {
-          NavViewFragment navFragment = new NavViewFragment(reactContext, root.getId());
-          fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(navFragment));
-          fragment = navFragment;
+        NavViewFragment navFragment = new NavViewFragment(reactContext, root.getId());
+        fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(navFragment));
+        fragment = navFragment;
 
-          if (stylingOptions != null) {
-              navFragment.setStylingOptions(stylingOptions);
-          }
+        if (stylingOptions != null) {
+          navFragment.setStylingOptions(stylingOptions);
+        }
       }
-      activity.getSupportFragmentManager()
-        .beginTransaction()
-        .replace(viewId, fragment, String.valueOf(viewId))
-        .commit();
+      activity
+          .getSupportFragmentManager()
+          .beginTransaction()
+          .replace(viewId, fragment, String.valueOf(viewId))
+          .commit();
     }
   }
 

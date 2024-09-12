@@ -19,18 +19,16 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
-
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.UIManagerHelper;
-import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.uimanager.events.Event;
+import com.facebook.react.uimanager.events.EventDispatcher;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -51,7 +49,6 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.libraries.navigation.StylingOptions;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,8 +61,8 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 
 /**
- * A fragment that displays a view with a Google Map using MapFragment.
- * This fragment's lifecycle is managed by NavViewManager.
+ * A fragment that displays a view with a Google Map using MapFragment. This fragment's lifecycle is
+ * managed by NavViewManager.
  */
 @SuppressLint("ValidFragment")
 public class MapViewFragment extends SupportMapFragment implements IMapViewFragment {
@@ -84,7 +81,8 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
   public MapViewFragment(ReactApplicationContext reactContext, int viewTag) {
     this.reactContext = reactContext;
     this.viewTag = viewTag;
-  };
+  }
+  ;
 
   private String style = "";
 
@@ -93,59 +91,71 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    getMapAsync(new OnMapReadyCallback() {
-      public void onMapReady(GoogleMap googleMap) {
-        mGoogleMap = googleMap;
+    getMapAsync(
+        new OnMapReadyCallback() {
+          public void onMapReady(GoogleMap googleMap) {
+            mGoogleMap = googleMap;
 
-        emitEvent("onMapReady", null);
+            emitEvent("onMapReady", null);
 
-        mGoogleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-          @Override
-          public boolean onMarkerClick(Marker marker) {
-            emitEvent("onMarkerClick", ObjectTranslationUtil.getMapFromMarker(marker));
-            return false;
-          }
-        });
-        mGoogleMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
-          @Override
-          public void onPolylineClick(Polyline polyline) {
-            emitEvent("onPolylineClick", ObjectTranslationUtil.getMapFromPolyline(polyline));
-          }
-        });
-        mGoogleMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
-          @Override
-          public void onPolygonClick(Polygon polygon) {
-            emitEvent("onPolygonClick", ObjectTranslationUtil.getMapFromPolygon(polygon));
-          }
-        });
-        mGoogleMap.setOnCircleClickListener(new GoogleMap.OnCircleClickListener() {
-          @Override
-          public void onCircleClick(Circle circle) {
-            emitEvent("onCircleClick", ObjectTranslationUtil.getMapFromCircle(circle));
-          }
-        });
-        mGoogleMap.setOnGroundOverlayClickListener(new GoogleMap.OnGroundOverlayClickListener() {
-          @Override
-          public void onGroundOverlayClick(GroundOverlay groundOverlay) {
-            emitEvent("onGroundOverlayClick", ObjectTranslationUtil.getMapFromGroundOverlay(groundOverlay));
-          }
-        });
+            mGoogleMap.setOnMarkerClickListener(
+                new GoogleMap.OnMarkerClickListener() {
+                  @Override
+                  public boolean onMarkerClick(Marker marker) {
+                    emitEvent("onMarkerClick", ObjectTranslationUtil.getMapFromMarker(marker));
+                    return false;
+                  }
+                });
+            mGoogleMap.setOnPolylineClickListener(
+                new GoogleMap.OnPolylineClickListener() {
+                  @Override
+                  public void onPolylineClick(Polyline polyline) {
+                    emitEvent(
+                        "onPolylineClick", ObjectTranslationUtil.getMapFromPolyline(polyline));
+                  }
+                });
+            mGoogleMap.setOnPolygonClickListener(
+                new GoogleMap.OnPolygonClickListener() {
+                  @Override
+                  public void onPolygonClick(Polygon polygon) {
+                    emitEvent("onPolygonClick", ObjectTranslationUtil.getMapFromPolygon(polygon));
+                  }
+                });
+            mGoogleMap.setOnCircleClickListener(
+                new GoogleMap.OnCircleClickListener() {
+                  @Override
+                  public void onCircleClick(Circle circle) {
+                    emitEvent("onCircleClick", ObjectTranslationUtil.getMapFromCircle(circle));
+                  }
+                });
+            mGoogleMap.setOnGroundOverlayClickListener(
+                new GoogleMap.OnGroundOverlayClickListener() {
+                  @Override
+                  public void onGroundOverlayClick(GroundOverlay groundOverlay) {
+                    emitEvent(
+                        "onGroundOverlayClick",
+                        ObjectTranslationUtil.getMapFromGroundOverlay(groundOverlay));
+                  }
+                });
 
-        mGoogleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
-          @Override
-          public void onInfoWindowClick(Marker marker) {
-            emitEvent("onMarkerInfoWindowTapped", ObjectTranslationUtil.getMapFromMarker(marker));
-          }
-        });
+            mGoogleMap.setOnInfoWindowClickListener(
+                new GoogleMap.OnInfoWindowClickListener() {
+                  @Override
+                  public void onInfoWindowClick(Marker marker) {
+                    emitEvent(
+                        "onMarkerInfoWindowTapped", ObjectTranslationUtil.getMapFromMarker(marker));
+                  }
+                });
 
-        mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-          @Override
-          public void onMapClick(LatLng latLng) {
-            emitEvent("onMapClick", ObjectTranslationUtil.getMapFromLatLng(latLng));
+            mGoogleMap.setOnMapClickListener(
+                new GoogleMap.OnMapClickListener() {
+                  @Override
+                  public void onMapClick(LatLng latLng) {
+                    emitEvent("onMapClick", ObjectTranslationUtil.getMapFromLatLng(latLng));
+                  }
+                });
           }
         });
-      }
-    });
   }
 
   public void applyStylingOptions() {}
@@ -195,17 +205,17 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
       int animationDuration = CollectionUtil.getInt("duration", map, 0);
 
       CameraPosition cameraPosition =
-        new CameraPosition.Builder()
-          .target(
-            ObjectTranslationUtil.getLatLngFromMap(
-              (Map) map.get("target"))) // Set the target location
-          .zoom(zoom) // Set the desired zoom level
-          .tilt(tilt) // Set the desired tilt angle (0 for straight down, 90 for straight up)
-          .bearing(bearing) // Set the desired bearing (rotation angle in degrees)
-          .build();
+          new CameraPosition.Builder()
+              .target(
+                  ObjectTranslationUtil.getLatLngFromMap(
+                      (Map) map.get("target"))) // Set the target location
+              .zoom(zoom) // Set the desired zoom level
+              .tilt(tilt) // Set the desired tilt angle (0 for straight down, 90 for straight up)
+              .bearing(bearing) // Set the desired bearing (rotation angle in degrees)
+              .build();
 
       mGoogleMap.animateCamera(
-        CameraUpdateFactory.newCameraPosition(cameraPosition), animationDuration, null);
+          CameraUpdateFactory.newCameraPosition(cameraPosition), animationDuration, null);
     }
   }
 
@@ -216,7 +226,8 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
 
     CircleOptions options = new CircleOptions();
 
-    float strokeWidth = Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
+    float strokeWidth =
+        Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
     options.strokeWidth(strokeWidth);
 
     double radius = CollectionUtil.getDouble("radius", optionsMap, 0.0);
@@ -255,7 +266,8 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
     String title = CollectionUtil.getString("title", optionsMap);
     String snippet = CollectionUtil.getString("snippet", optionsMap);
     float alpha = Double.valueOf(CollectionUtil.getDouble("alpha", optionsMap, 1)).floatValue();
-    float rotation = Double.valueOf(CollectionUtil.getDouble("rotation", optionsMap, 0)).floatValue();
+    float rotation =
+        Double.valueOf(CollectionUtil.getDouble("rotation", optionsMap, 0)).floatValue();
     boolean draggable = CollectionUtil.getBool("draggable", optionsMap, false);
     boolean flat = CollectionUtil.getBool("flat", optionsMap, false);
     boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
@@ -329,7 +341,8 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
 
     String strokeColor = CollectionUtil.getString("strokeColor", optionsMap);
     String fillColor = CollectionUtil.getString("fillColor", optionsMap);
-    float strokeWidth = Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
+    float strokeWidth =
+        Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
     boolean clickable = CollectionUtil.getBool("clickable", optionsMap, false);
     boolean geodesic = CollectionUtil.getBool("geodesic", optionsMap, false);
     boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
@@ -380,15 +393,16 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
   }
 
   public void removeMarker(String id) {
-    UiThreadUtil.runOnUiThread(() -> {
-      for (Marker m : markerList) {
-        if (m.getId().equals(id)) {
-          m.remove();
-          markerList.remove(m);
-          return;
-        }
-      }
-    });
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          for (Marker m : markerList) {
+            if (m.getId().equals(id)) {
+              m.remove();
+              markerList.remove(m);
+              return;
+            }
+          }
+        });
   }
 
   public void removePolyline(String id) {
@@ -450,7 +464,8 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
     String imagePath = CollectionUtil.getString("imgPath", map);
     float width = Double.valueOf(CollectionUtil.getDouble("width", map, 0)).floatValue();
     float height = Double.valueOf(CollectionUtil.getDouble("height", map, 0)).floatValue();
-    float transparency = Double.valueOf(CollectionUtil.getDouble("transparency", map, 0)).floatValue();
+    float transparency =
+        Double.valueOf(CollectionUtil.getDouble("transparency", map, 0)).floatValue();
     boolean clickable = CollectionUtil.getBool("clickable", map, false);
     boolean visible = CollectionUtil.getBool("visible", map, true);
 
@@ -477,17 +492,22 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
   }
 
   public void setMapStyle(String url) {
-    Executors.newSingleThreadExecutor().execute(() -> {
-      try {
-        style = fetchJsonFromUrl(url);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      getActivity().runOnUiThread((Runnable) () -> {
-        MapStyleOptions options = new MapStyleOptions(style);
-        mGoogleMap.setMapStyle(options);
-      });
-    });
+    Executors.newSingleThreadExecutor()
+        .execute(
+            () -> {
+              try {
+                style = fetchJsonFromUrl(url);
+              } catch (IOException e) {
+                throw new RuntimeException(e);
+              }
+              getActivity()
+                  .runOnUiThread(
+                      (Runnable)
+                          () -> {
+                            MapStyleOptions options = new MapStyleOptions(style);
+                            mGoogleMap.setMapStyle(options);
+                          });
+            });
   }
 
   public String fetchJsonFromUrl(String urlString) throws IOException {
@@ -513,10 +533,7 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
     }
   }
 
-
-  /**
-   * Moves the position of the camera to hover over Melbourne.
-   */
+  /** Moves the position of the camera to hover over Melbourne. */
   public void moveCamera(Map map) {
     LatLng latLng = ObjectTranslationUtil.getLatLngFromMap((Map) map.get("target"));
 
@@ -524,7 +541,8 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
     float tilt = (float) CollectionUtil.getDouble("tilt", map, 0);
     float bearing = (float) CollectionUtil.getDouble("bearing", map, 0);
 
-    CameraPosition cameraPosition = CameraPosition.builder().target(latLng).zoom(zoom).tilt(tilt).bearing(bearing).build();
+    CameraPosition cameraPosition =
+        CameraPosition.builder().target(latLng).zoom(zoom).tilt(tilt).bearing(bearing).build();
 
     mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
   }
@@ -598,9 +616,9 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
   public void setMyLocationEnabled(boolean isOn) {
     if (mGoogleMap != null) {
       if (ActivityCompat.checkSelfPermission(getActivity(), permission.ACCESS_FINE_LOCATION)
-        == PackageManager.PERMISSION_GRANTED
-        && ActivityCompat.checkSelfPermission(getActivity(), permission.ACCESS_COARSE_LOCATION)
-        == PackageManager.PERMISSION_GRANTED) {
+              == PackageManager.PERMISSION_GRANTED
+          && ActivityCompat.checkSelfPermission(getActivity(), permission.ACCESS_COARSE_LOCATION)
+              == PackageManager.PERMISSION_GRANTED) {
         mGoogleMap.setMyLocationEnabled(isOn);
       }
     }
@@ -612,22 +630,22 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
     }
   }
 
-  /**
-   * Toggles whether the location marker is enabled.
-   */
+  /** Toggles whether the location marker is enabled. */
   public void setMyLocationButtonEnabled(boolean isOn) {
     if (mGoogleMap == null) {
       return;
     }
 
-    UiThreadUtil.runOnUiThread(() -> {
-      mGoogleMap.getUiSettings().setMyLocationButtonEnabled(isOn);
-    });
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          mGoogleMap.getUiSettings().setMyLocationButtonEnabled(isOn);
+        });
   }
 
   private void emitEvent(String eventName, @Nullable WritableMap data) {
     if (reactContext != null) {
-      EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, viewTag);
+      EventDispatcher dispatcher =
+          UIManagerHelper.getEventDispatcherForReactTag(reactContext, viewTag);
 
       if (dispatcher != null) {
         int surfaceId = UIManagerHelper.getSurfaceId(reactContext);
@@ -663,7 +681,8 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
     private String eventName;
     private @Nullable WritableMap eventData;
 
-    public NavViewEvent(int surfaceId, int viewTag, String eventName, @Nullable WritableMap eventData) {
+    public NavViewEvent(
+        int surfaceId, int viewTag, String eventName, @Nullable WritableMap eventData) {
       super(surfaceId, viewTag);
       this.eventName = eventName;
       this.eventData = eventData;
@@ -683,4 +702,3 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
     }
   }
 }
-

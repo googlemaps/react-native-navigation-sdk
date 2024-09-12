@@ -15,12 +15,20 @@ package com.google.android.react.navsdk;
 
 public interface INavViewFragment extends IMapViewFragment {
   void setNavigationUiEnabled(boolean enableNavigationUi);
+
   void setTripProgressBarEnabled(boolean enabled);
+
   void setSpeedometerEnabled(boolean enabled);
+
   void setSpeedLimitIconEnabled(boolean enabled);
+
   void setTrafficIncidentCardsEnabled(boolean enabled);
+
   void setEtaCardEnabled(boolean enabled);
+
   void setHeaderEnabled(boolean enabled);
+
   void setRecenterButtonEnabled(boolean enabled);
+
   void showRouteOverview();
 }

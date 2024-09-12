@@ -36,7 +36,8 @@
   }
 }
 
-- (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions fragmentType:(NSInteger)fragmentType {
+- (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions
+                                                     fragmentType:(NSInteger)fragmentType {
   _viewController = [[NavViewController alloc] init];
   // FragmentType 0 = MAP, 1 = NAVIGATION.
   _viewController.isNavigationEnabled = fragmentType == 1;
