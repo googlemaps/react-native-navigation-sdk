@@ -168,10 +168,7 @@
 }
 
 - (void)setZoomLevel:(nonnull NSNumber *)level {
-  _mapView.camera =
-      [GMSMutableCameraPosition cameraWithLatitude:_mapView.myLocation.coordinate.latitude
-                                         longitude:_mapView.myLocation.coordinate.longitude
-                                              zoom:[level floatValue]];
+  [_mapView animateToZoom:[level floatValue]];
 }
 
 - (void)setNavigationUIEnabled:(BOOL)isEnabled {
