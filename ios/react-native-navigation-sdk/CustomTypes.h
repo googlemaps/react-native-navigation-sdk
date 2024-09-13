@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef CustomTypes_h
+#define CustomTypes_h
 
-export * from './types';
-export * from './mapViewController';
-export * from './mapView';
+typedef NS_ENUM(NSInteger, FragmentType) {
+  MAP,
+  NAVIGATION,
+};
+
+#endif /* CustomTypes_h */

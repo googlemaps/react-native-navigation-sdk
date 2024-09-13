@@ -16,11 +16,15 @@
 
 #import "RCTNavViewManager.h"
 #import <React/RCTUIManager.h>
+#import "CustomTypes.h"
 #import "NavView.h"
 #import "NavViewController.h"
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
 
+// RCTNavViewManager is responsible for managing both the regular map fragment as well as the
+// navigation map view fragment.
+//
 @implementation RCTNavViewManager
 static NSMutableDictionary<NSNumber *, NavViewController *> *_viewControllers;
 static NavViewModule *_navViewModule;
@@ -72,20 +76,21 @@ RCT_EXPORT_VIEW_PROPERTY(onGroundOverlayClick, RCTDirectEventBlock);
 
 RCT_EXPORT_METHOD(createFragment
                   : (nonnull NSNumber *)reactTag stylingOptions
-                  : (NSDictionary *)stylingOptions) {
-  [self.bridge.uiManager
-      addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-        NavView *view = (NavView *)viewRegistry[reactTag];
-        if (!view || ![view isKindOfClass:[NavView class]]) {
-          RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
-          return;
-        }
+                  : (NSDictionary *)stylingOptions fragmentType
+                  : (NSInteger)fragmentType) {
+  [self.bridge.uiManager addUIBlock:^(RCTUIManager *uiManager,
+                                      NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    NavView *view = (NavView *)viewRegistry[reactTag];
+    if (!view || ![view isKindOfClass:[NavView class]]) {
+      RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
+      return;
+    }
 
-        NavViewController *viewController =
-            [view initializeViewControllerWithStylingOptions:stylingOptions];
+    NavViewController *viewController =
+        [view initializeViewControllerWithStylingOptions:stylingOptions fragmentType:fragmentType];
 
-        [self registerViewController:viewController forTag:reactTag];
-      }];
+    [self registerViewController:viewController forTag:reactTag];
+  }];
 }
 
 RCT_EXPORT_METHOD(deleteFragment : (nonnull NSNumber *)reactTag) {

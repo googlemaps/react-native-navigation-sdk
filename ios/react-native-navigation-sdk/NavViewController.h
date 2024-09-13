@@ -24,6 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NavViewController : UIViewController <GMSMapViewNavigationUIDelegate, GMSMapViewDelegate>
 
 @property(weak, nonatomic) id<INavigationViewCallback> callbacks;
+@property(nonatomic, assign) BOOL isNavigationEnabled;
 typedef void (^RouteStatusCallback)(GMSRouteStatus routeStatus);
 typedef void (^OnStringResult)(NSString *result);
 typedef void (^OnBooleanResult)(BOOL result);

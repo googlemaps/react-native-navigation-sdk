@@ -75,14 +75,14 @@ To set up, specify your API key in the application delegate `ios/Runner/AppDeleg
 
 ## Usage
 
+### Add a navigation view
+
 You can now add a `NavigationView` component to your application..
 
 The view can be controlled with the `ViewController` (Navigation and MapView) that are retrieved from the `onMapViewControllerCreated` and `onNavigationViewControllerCreated` (respectively).
 
 The `NavigationView` compoonent should be used within a View with a bounded size. Using it
 in an unbounded widget will cause the application to behave unexpectedly.
-
-### Add a navigation view
 
 ```tsx
     // Permissions must have been granted by this point.
@@ -103,6 +103,17 @@ in an unbounded widget will cause the application to behave unexpectedly.
         onNavigationViewControllerCreated={setNavigationViewController}
         termsAndConditionsDialogOptions={termsAndConditionsDialogOptions}
     />
+```
+
+### Add a map view
+
+You can also add a bare `MapView` that works as a normal map view without navigation functionality. `MapView` only need a `MapViewController` to be controlled.
+
+```tsx
+<MapView
+    mapViewCallbacks={mapViewCallbacks}
+    onMapViewControllerCreated={setMapViewController}
+/>
 ```
 
 See the [example](./example) directory for a complete navigation sample app.

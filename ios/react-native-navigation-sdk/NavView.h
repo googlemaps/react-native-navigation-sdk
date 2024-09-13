@@ -17,6 +17,7 @@
 #import <React/RCTBridge.h>
 #import <React/RCTComponent.h>
 #import <React/RCTViewManager.h>
+#import "CustomTypes.h"
 #import "INavigationViewCallback.h"
 
 @class NavViewController;
@@ -33,7 +34,8 @@
 @property(nonatomic, copy) RCTDirectEventBlock onCircleClick;
 @property(nonatomic, copy) RCTDirectEventBlock onGroundOverlayClick;
 
-- (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions;
+- (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions
+                                                     fragmentType:(FragmentType)fragmentType;
 - (NavViewController *)getViewController;
 
 @end

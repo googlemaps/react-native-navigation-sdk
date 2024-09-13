@@ -168,10 +168,7 @@
 }
 
 - (void)setZoomLevel:(nonnull NSNumber *)level {
-  _mapView.camera =
-      [GMSMutableCameraPosition cameraWithLatitude:_mapView.myLocation.coordinate.latitude
-                                         longitude:_mapView.myLocation.coordinate.longitude
-                                              zoom:[level floatValue]];
+  [_mapView animateToZoom:[level floatValue]];
 }
 
 - (void)setNavigationUIEnabled:(BOOL)isEnabled {
@@ -280,6 +277,9 @@
 #pragma mark - View Controller functions
 
 - (BOOL)attachToNavigationSession:(GMSNavigationSession *)session {
+  if (!_isNavigationEnabled) {
+    return NO;
+  }
   BOOL result = [_mapView enableNavigationWithSession:session];
   _mapView.navigationUIDelegate = self;
   [self applyStylingOptions];

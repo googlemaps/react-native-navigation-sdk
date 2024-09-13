@@ -36,8 +36,11 @@
   }
 }
 
-- (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions {
+- (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions
+                                                     fragmentType:(FragmentType)fragmentType {
   _viewController = [[NavViewController alloc] init];
+  // FragmentType 0 = MAP, 1 = NAVIGATION.
+  _viewController.isNavigationEnabled = fragmentType == NAVIGATION;
   // Test if styling options is not nil
   if (stylingOptions != nil && [stylingOptions count] > 0) {
     [_viewController setStylingOptions:stylingOptions];
