@@ -26,7 +26,6 @@ import type { LatLng } from '.';
 import type { Circle, GroundOverlay, Marker, Polygon, Polyline } from '../maps';
 
 // NavViewManager is responsible for managing both the regular map fragment as well as the navigation map view fragment.
-//
 export const viewManagerName =
   Platform.OS === 'android' ? 'NavViewManager' : 'RCTNavView';
 
