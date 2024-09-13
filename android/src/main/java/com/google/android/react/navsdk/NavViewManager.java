@@ -14,6 +14,7 @@
 package com.google.android.react.navsdk;
 
 import static com.google.android.react.navsdk.Command.*;
+import static com.google.android.react.navsdk.EnumTranslationUtil.getFragmentTypeFromJsValue;
 
 import android.view.Choreographer;
 import android.view.View;
@@ -170,7 +171,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     switch (Command.find(commandIdInt)) {
       case CREATE_FRAGMENT:
         Map<String, Object> stylingOptions = args.getMap(0).toHashMap();
-        int fragmentType = args.getInt(1);
+        CustomTypes.FragmentType fragmentType = getFragmentTypeFromJsValue(args.getInt(1));
         createFragment(root, stylingOptions, fragmentType);
         break;
       case DELETE_FRAGMENT:
@@ -327,7 +328,8 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
   }
 
   /** Replace your React Native view with a custom fragment */
-  public void createFragment(FrameLayout root, Map stylingOptions, int fragmentType) {
+  public void createFragment(
+      FrameLayout root, Map stylingOptions, CustomTypes.FragmentType fragmentType) {
     setupLayout(root);
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
@@ -335,7 +337,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
       int viewId = root.getId();
       Fragment fragment;
       // FragmentType 0 = MAP, 1 = NAVIGATION.
-      if (fragmentType == 0) {
+      if (fragmentType == CustomTypes.FragmentType.MAP) {
         MapViewFragment mapFragment = new MapViewFragment(reactContext, root.getId());
         fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(mapFragment));
         fragment = mapFragment;

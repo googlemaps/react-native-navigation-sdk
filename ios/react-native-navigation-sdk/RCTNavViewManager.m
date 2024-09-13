@@ -16,6 +16,7 @@
 
 #import "RCTNavViewManager.h"
 #import <React/RCTUIManager.h>
+#import "CustomTypes.h"
 #import "NavView.h"
 #import "NavViewController.h"
 #import "NavViewModule.h"

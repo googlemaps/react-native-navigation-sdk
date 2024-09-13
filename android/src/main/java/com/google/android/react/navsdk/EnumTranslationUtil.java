@@ -80,4 +80,14 @@ public class EnumTranslationUtil {
         return CameraPerspective.TILTED;
     }
   }
+
+  public static CustomTypes.FragmentType getFragmentTypeFromJsValue(int jsValue) {
+    switch (jsValue) {
+      case 0:
+      default:
+        return CustomTypes.FragmentType.MAP;
+      case 1:
+        return CustomTypes.FragmentType.NAVIGATION;
+    }
+  }
 }
