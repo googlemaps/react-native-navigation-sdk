@@ -41,7 +41,7 @@ import com.google.android.libraries.navigation.SupportNavigationFragment;
  * This fragment's lifecycle is managed by NavViewManager.
  */
 public class NavViewFragment extends SupportNavigationFragment
-    implements INavigationViewController, INavigationViewCallback {
+    implements INavViewFragment, INavigationViewCallback {
   private static final String TAG = "NavViewFragment";
   private MapViewController mMapViewController;
   private GoogleMap mGoogleMap;

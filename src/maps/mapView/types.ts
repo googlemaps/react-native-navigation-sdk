@@ -124,6 +124,16 @@ export enum MapType {
 }
 
 /**
+ * Defines the type of the map fragment.
+ */
+export enum FragmentType {
+  /** Regular Google map view without navigation */
+  MAP = 0,
+  /** Google map view with navigation */
+  NAVIGATION,
+}
+
+/**
  * `MapViewProps` interface provides a set of method definitions
  * for managing map events and debug information.
  */

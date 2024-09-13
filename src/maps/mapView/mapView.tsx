@@ -15,35 +15,29 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, View, findNodeHandle } from 'react-native';
+import { StyleSheet, View, findNodeHandle } from 'react-native';
 import {
   NavViewManager,
   sendCommand,
   commands,
   type LatLng,
 } from '../../shared';
-import { getNavigationViewController } from './navigationViewController';
-import type { NavigationViewProps } from './types';
 import {
   getMapViewController,
   FragmentType,
   type Circle,
   type GroundOverlay,
+  type MapViewProps,
   type Marker,
   type Polygon,
   type Polyline,
-} from '../../maps';
+} from '..';
 
-export const NavigationView = (props: NavigationViewProps) => {
+export const MapView = (props: MapViewProps) => {
   const mapViewRef = useRef<any>(null);
   const [viewId, setViewId] = useState<number | null>(null);
 
-  const {
-    androidStylingOptions,
-    iOSStylingOptions,
-    onNavigationViewControllerCreated,
-    onMapViewControllerCreated,
-  } = props;
+  const { onMapViewControllerCreated } = props;
 
   /**
    * @param {any} _ref - The reference to the NavViewManager component.
@@ -62,27 +56,17 @@ export const NavigationView = (props: NavigationViewProps) => {
     if (viewId !== _viewId) {
       setViewId(_viewId);
 
-      const stylingOptions =
-        (Platform.OS === 'android'
-          ? androidStylingOptions
-          : iOSStylingOptions) || {};
+      const stylingOptions = {};
 
-      const args = [stylingOptions, FragmentType.NAVIGATION];
+      const args = [stylingOptions, FragmentType.MAP];
 
       setTimeout(() => {
         sendCommand(_viewId, commands.createFragment, args);
       });
 
-      onNavigationViewControllerCreated(getNavigationViewController(_viewId));
       onMapViewControllerCreated(getMapViewController(_viewId));
     }
-  }, [
-    androidStylingOptions,
-    iOSStylingOptions,
-    onMapViewControllerCreated,
-    onNavigationViewControllerCreated,
-    viewId,
-  ]);
+  }, [onMapViewControllerCreated, viewId]);
 
   const onMapClick = useCallback(
     ({ nativeEvent: latlng }: { nativeEvent: LatLng }) => {
@@ -137,10 +121,6 @@ export const NavigationView = (props: NavigationViewProps) => {
     [props.mapViewCallbacks]
   );
 
-  const onRecenterButtonClick = useCallback(() => {
-    props.navigationViewCallbacks?.onRecenterButtonClick?.();
-  }, [props.navigationViewCallbacks]);
-
   return (
     <View style={props.style ?? styles.defaultStyle}>
       <NavViewManager
@@ -154,7 +134,6 @@ export const NavigationView = (props: NavigationViewProps) => {
         onCircleClick={onCircleClick}
         onGroundOverlayClick={onGroundOverlayClick}
         onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
-        onRecenterButtonClick={onRecenterButtonClick}
       />
     </View>
   );
@@ -166,4 +145,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NavigationView;
+export default MapView;

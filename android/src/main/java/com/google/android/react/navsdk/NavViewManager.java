@@ -14,6 +14,7 @@
 package com.google.android.react.navsdk;
 
 import static com.google.android.react.navsdk.Command.*;
+import static com.google.android.react.navsdk.EnumTranslationUtil.getFragmentTypeFromJsValue;
 
 import android.view.Choreographer;
 import android.view.View;
@@ -21,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
@@ -33,13 +35,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+// NavViewManager is responsible for managing both the regular map fragment as well as the
+// navigation map view fragment.
+//
 public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
   public static final String REACT_CLASS = "NavViewManager";
 
   private static NavViewManager instance;
 
-  private final HashMap<Integer, WeakReference<NavViewFragment>> fragmentMap = new HashMap<>();
+  private final HashMap<Integer, WeakReference<IMapViewFragment>> fragmentMap = new HashMap<>();
 
   private ReactApplicationContext reactContext;
 
@@ -117,20 +122,31 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     return map;
   }
 
-  public NavViewFragment getFragmentForRoot(ViewGroup root) {
+  public INavViewFragment getNavFragmentForRoot(ViewGroup root) {
+    IMapViewFragment fragment = getFragmentForRoot(root);
+
+    // Check if the fragment is an INavigationViewFragment
+    if (fragment instanceof INavViewFragment) {
+      return (INavViewFragment) fragment;
+    } else {
+      throw new IllegalStateException("The fragment is not a nav view fragment");
+    }
+  }
+
+  public IMapViewFragment getFragmentForRoot(ViewGroup root) {
     int viewId = root.getId();
     return getFragmentForViewId(viewId);
   }
 
-  public NavViewFragment getFragmentForViewId(int viewId) {
-    WeakReference<NavViewFragment> weakReference = fragmentMap.get(viewId);
+  public IMapViewFragment getFragmentForViewId(int viewId) {
+    WeakReference<IMapViewFragment> weakReference = fragmentMap.get(viewId);
     if (weakReference == null || weakReference.get() == null) {
       throw new IllegalStateException("Fragment not found for the provided viewId.");
     }
     return weakReference.get();
   }
 
-  public NavViewFragment getAnyFragment() {
+  public IMapViewFragment getAnyFragment() {
     if (fragmentMap.isEmpty()) {
       return null;
     }
@@ -139,7 +155,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
   }
 
   public void applyStylingOptions() {
-    for (WeakReference<NavViewFragment> weakReference : fragmentMap.values()) {
+    for (WeakReference<IMapViewFragment> weakReference : fragmentMap.values()) {
       if (weakReference.get() != null) {
         weakReference.get().applyStylingOptions();
       }
@@ -155,16 +171,18 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     switch (Command.find(commandIdInt)) {
       case CREATE_FRAGMENT:
         Map<String, Object> stylingOptions = args.getMap(0).toHashMap();
-        createFragment(root, stylingOptions);
+        CustomTypes.FragmentType fragmentType = getFragmentTypeFromJsValue(args.getInt(1));
+        createFragment(root, stylingOptions, fragmentType);
         break;
       case DELETE_FRAGMENT:
         try {
           int viewId = root.getId();
           FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
+          IMapViewFragment fragment = Objects.requireNonNull(fragmentMap.remove(viewId)).get();
           activity
               .getSupportFragmentManager()
               .beginTransaction()
-              .remove(Objects.requireNonNull(fragmentMap.remove(viewId)).get())
+              .remove((Fragment) fragment)
               .commitNowAllowingStateLoss();
         } catch (Exception ignored) {
         }
@@ -173,22 +191,22 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         getFragmentForRoot(root).getMapController().moveCamera(args.getMap(0).toHashMap());
         break;
       case SET_TRIP_PROGRESS_BAR_ENABLED:
-        getFragmentForRoot(root).setTripProgressBarEnabled(args.getBoolean(0));
+        getNavFragmentForRoot(root).setTripProgressBarEnabled(args.getBoolean(0));
         break;
       case SET_NAVIGATION_UI_ENABLED:
-        getFragmentForRoot(root).setNavigationUiEnabled(args.getBoolean(0));
+        getNavFragmentForRoot(root).setNavigationUiEnabled(args.getBoolean(0));
         break;
       case SET_FOLLOWING_PERSPECTIVE:
-        getFragmentForRoot(root).getMapController().setFollowingPerspective(args.getInt(0));
+        getNavFragmentForRoot(root).getMapController().setFollowingPerspective(args.getInt(0));
         break;
       case SET_NIGHT_MODE:
-        getFragmentForRoot(root).setNightModeOption(args.getInt(0));
+        getNavFragmentForRoot(root).setNightModeOption(args.getInt(0));
         break;
       case SET_SPEEDOMETER_ENABLED:
-        getFragmentForRoot(root).setSpeedometerEnabled(args.getBoolean(0));
+        getNavFragmentForRoot(root).setSpeedometerEnabled(args.getBoolean(0));
         break;
       case SET_SPEED_LIMIT_ICON_ENABLED:
-        getFragmentForRoot(root).setSpeedLimitIconEnabled(args.getBoolean(0));
+        getNavFragmentForRoot(root).setSpeedLimitIconEnabled(args.getBoolean(0));
         break;
       case SET_ZOOM_LEVEL:
         int level = args.getInt(0);
@@ -251,19 +269,19 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         getFragmentForRoot(root).getMapController().animateCamera(args.getMap(0).toHashMap());
         break;
       case SET_TRAFFIC_INCIDENT_CARDS_ENABLED:
-        getFragmentForRoot(root).setTrafficIncidentCardsEnabled(args.getBoolean(0));
+        getNavFragmentForRoot(root).setTrafficIncidentCardsEnabled(args.getBoolean(0));
         break;
       case SET_FOOTER_ENABLED:
-        getFragmentForRoot(root).setEtaCardEnabled(args.getBoolean(0));
+        getNavFragmentForRoot(root).setEtaCardEnabled(args.getBoolean(0));
         break;
       case SET_HEADER_ENABLED:
-        getFragmentForRoot(root).setHeaderEnabled(args.getBoolean(0));
+        getNavFragmentForRoot(root).setHeaderEnabled(args.getBoolean(0));
         break;
       case SET_RECENTER_BUTTON_ENABLED:
-        getFragmentForRoot(root).setRecenterButtonEnabled(args.getBoolean(0));
+        getNavFragmentForRoot(root).setRecenterButtonEnabled(args.getBoolean(0));
         break;
       case SHOW_ROUTE_OVERVIEW:
-        getFragmentForRoot(root).showRouteOverview();
+        getNavFragmentForRoot(root).showRouteOverview();
         break;
       case REMOVE_MARKER:
         getFragmentForRoot(root).getMapController().removeMarker(args.getString(0));
@@ -312,19 +330,32 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
   }
 
   /** Replace your React Native view with a custom fragment */
-  public void createFragment(FrameLayout root, Map stylingOptions) {
+  public void createFragment(
+      FrameLayout root, Map stylingOptions, CustomTypes.FragmentType fragmentType) {
     setupLayout(root);
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
     if (activity != null) {
       int viewId = root.getId();
-      NavViewFragment fragment = new NavViewFragment(reactContext, root.getId());
-      fragmentMap.put(viewId, new WeakReference<NavViewFragment>(fragment));
+      Fragment fragment;
+      // FragmentType 0 = MAP, 1 = NAVIGATION.
+      if (fragmentType == CustomTypes.FragmentType.MAP) {
+        MapViewFragment mapFragment = new MapViewFragment(reactContext, root.getId());
+        fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(mapFragment));
+        fragment = mapFragment;
 
-      if (stylingOptions != null) {
-        fragment.setStylingOptions(new StylingOptionsBuilder.Builder(stylingOptions).build());
+        if (stylingOptions != null) {
+          mapFragment.setStylingOptions(new StylingOptionsBuilder.Builder(stylingOptions).build());
+        }
+      } else {
+        NavViewFragment navFragment = new NavViewFragment(reactContext, root.getId());
+        fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(navFragment));
+        fragment = navFragment;
+
+        if (stylingOptions != null) {
+          navFragment.setStylingOptions(new StylingOptionsBuilder.Builder(stylingOptions).build());
+        }
       }
-
       activity
           .getSupportFragmentManager()
           .beginTransaction()
@@ -352,7 +383,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
   /** Layout all children properly */
   public void manuallyLayoutChildren(FrameLayout view) {
-    NavViewFragment fragment = getFragmentForRoot(view);
+    IMapViewFragment fragment = getFragmentForRoot(view);
     if (fragment.isAdded()) {
       View childView = fragment.getView();
       if (childView != null) {

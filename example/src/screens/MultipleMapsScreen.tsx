@@ -35,6 +35,7 @@ import {
   type Polygon,
   type Polyline,
   useNavigation,
+  MapView,
 } from '@googlemaps/react-native-navigation-sdk';
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
@@ -62,8 +63,6 @@ const MultipleMapsScreen = () => {
   const [mapViewController2, setMapViewController2] =
     useState<MapViewController | null>(null);
   const [navigationViewController1, setNavigationViewController1] =
-    useState<NavigationViewController | null>(null);
-  const [navigationViewController2, setNavigationViewController2] =
     useState<NavigationViewController | null>(null);
   const [navigationInitialized, setNavigationInitialized] = useState(false);
   const { navigationController, addListeners, removeListeners } =
@@ -94,22 +93,17 @@ const MultipleMapsScreen = () => {
   }, []);
 
   const onNavigationReady = useCallback(async () => {
-    if (
-      navigationViewController1 != null &&
-      navigationViewController2 != null
-    ) {
+    if (navigationViewController1 != null) {
       await navigationViewController1.setNavigationUIEnabled(true);
-      await navigationViewController2.setNavigationUIEnabled(true);
       console.log('onNavigationReady');
       setNavigationInitialized(true);
     }
-  }, [navigationViewController1, navigationViewController2]);
+  }, [navigationViewController1]);
 
   const onNavigationDispose = useCallback(async () => {
     await navigationViewController1?.setNavigationUIEnabled(false);
-    await navigationViewController2?.setNavigationUIEnabled(false);
     setNavigationInitialized(false);
-  }, [navigationViewController1, navigationViewController2]);
+  }, [navigationViewController1]);
 
   const onNavigationInitError = useCallback(
     (errorCode: NavigationInitErrorCode) => {
@@ -348,20 +342,9 @@ const MultipleMapsScreen = () => {
         onNavigationViewControllerCreated={setNavigationViewController1}
       />
 
-      <NavigationView
-        androidStylingOptions={{
-          primaryDayModeThemeColor: '#34eba8',
-          headerDistanceValueTextColor: '#76b5c5',
-          headerInstructionsFirstRowTextSize: '20f',
-        }}
-        iOSStylingOptions={{
-          navigationHeaderPrimaryBackgroundColor: '#34eba8',
-          navigationHeaderDistanceValueTextColor: '#76b5c5',
-        }}
-        navigationViewCallbacks={navigationViewCallbacks}
+      <MapView
         mapViewCallbacks={mapViewCallbacks2}
         onMapViewControllerCreated={setMapViewController2}
-        onNavigationViewControllerCreated={setNavigationViewController2}
       />
 
       {navigationViewController1 != null &&
