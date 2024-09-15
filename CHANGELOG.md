@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.5.1...v0.6.0) (2024-09-13)
+
+
+### Features
+
+* support map view without navigation ([#259](https://github.com/googlemaps/react-native-navigation-sdk/issues/259)) ([15fd94b](https://github.com/googlemaps/react-native-navigation-sdk/commit/15fd94bf61e232980144978be36e69a2cabe6e47))
+
 ## [0.5.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.5.0...v0.5.1) (2024-09-10)
 
 
