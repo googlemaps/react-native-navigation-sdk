@@ -14,13 +14,11 @@ This repository contains a React Native plugin that provides a [Google Navigatio
 | **Minimum mobile OS supported** | SDK 23+ | iOS 14.0+ |
 
 * A React Native project
-- A Google Cloud project with a Mobility solution enabled, such as On-Demand Rides and Deliveries or Last Mile Fleet Solution. This requires you to Contact Sales as described in the [Mobility services documentation](https://developers.google.com/maps/documentation/transportation-logistics/mobility).
-- In that Google Cloud project,  these four products also need to be enabled depending on the target(s) of your React Native app:
-  - [Maps SDK for Android](https://developers.google.com/maps/documentation/android-sdk/cloud-setup#enabling-apis)
-  - [Navigation SDK for Android](https://developers.google.com/maps/documentation/navigation/android-sdk/set-up-project)
-  - [Maps SDK for iOS](https://developers.google.com/maps/documentation/ios-sdk/cloud-setup#enabling-apis)
-  - [Navigation SDK for iOS](https://developers.google.com/maps/documentation/navigation/ios-sdk/config)
+* A Google Cloud project
+  *  If you are a Mobility Services developer, you must contact Sales as described in [Mobility services documentation](https://developers.google.com/maps/documentation/transportation-logistics/mobility).
+  *  If you are not a Mobility Services developer, refer to [Setup Google Cloud Project](https://developers.google.com/maps/documentation/navigation/android-sdk/cloud-setup) for instructions.
 * An [API key](https://console.cloud.google.com/google/maps-apis/credentials) from the project above
+  * The API key must be configured for both Android and iOS. Refer to [Android Using Api Keys](https://developers.google.com/maps/documentation/navigation/android-sdk/get-api-key) and [iOS Using Api Keys](https://developers.google.com/maps/documentation/navigation/ios-sdk/get-api-key) respectively for instructions.
 * If targeting Android, [Google Play Services](https://developers.google.com/android/guides/overview) installed and enabled
 * [Attributions and licensing text](https://developers.google.com/maps/documentation/navigation/android-sdk/set-up-project#include_the_required_attributions_in_your_app) added to your app
 
