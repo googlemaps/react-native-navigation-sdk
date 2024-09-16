@@ -45,7 +45,7 @@
     "navsdk"
   ],
   "publishConfig": {
-    "registry": "https://wombat-dressing-room.appspot.com"
+    "registry": "https://wombat-dressing-room.appspot.com/@googlemaps/react-native-navigation-sdk/_ns"
   },
   "scripts": {
     "example": "yarn workspace react-native-navigation-sdk-sample",
