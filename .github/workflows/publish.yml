@@ -48,10 +48,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: 'https://wombat-dressing-room.appspot.com/@googlemaps/react-native-navigation-sdk/_ns'
+          registry-url: 'https://wombat-dressing-room.appspot.com/'
 
       - name: Publish
         # npm publish will trigger the build via the prepack hook
-        run: npm publish --access public
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_WOMBOT_TOKEN }}
