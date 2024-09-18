@@ -79,7 +79,7 @@ const setMapType = (mapType: MapType) => {
 };
 ```
 
-For a more detailed example, refer to the `NavigationScreen.tsx` in the example app.
+For a more detailed example, refer to the `NavigationScreen.tsx` in the React Native example application.
 
 ## Example Project
 
