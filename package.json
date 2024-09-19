@@ -1,6 +1,6 @@
 {
   "name": "@googlemaps/react-native-navigation-sdk",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "author": "Google",
   "description": "A React Native library for Navigation SDK on Google Maps Platform",
   "main": "lib/commonjs/index",
@@ -45,7 +45,8 @@
     "navsdk"
   ],
   "publishConfig": {
-    "registry": "https://wombat-dressing-room.appspot.com"
+    "access": "public",
+    "registry": "https://wombat-dressing-room.appspot.com/"
   },
   "scripts": {
     "example": "yarn workspace react-native-navigation-sdk-sample",
