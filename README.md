@@ -161,6 +161,12 @@ By default, `NavigationView` uses all the available space provided to it. To adj
     />
 ```
 
+## Support for Android Auto and Apple CarPlay
+This plugin is compatible with both Android Auto and Apple CarPlay infotainment systems. For more details, please refer to the respective platform documentation:
+
+- [Android Auto documentation](./ANDROIDAUTO.md)
+- [CarPlay documentation](./CARPLAY.md)
+
 ## Contributing
 
 See the [Contributing guide](./CONTRIBUTING.md).
