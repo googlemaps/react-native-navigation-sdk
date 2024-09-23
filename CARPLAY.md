@@ -83,4 +83,4 @@ For a more detailed example, refer to the `NavigationScreen.tsx` in the React Na
 
 ## Example Project
 
-For a fully functional CarPlay implementation, check out the `SampleApp` Xcode project, which includes the `SampleAppCarPlay` build target. The sample already contains test entitlement so you don't need to request one from Apple to run it.
+For a fully functional CarPlay implementation, check out the [SampleApp](./example/ios/) Xcode project, which includes the `SampleAppCarPlay` build target. The sample already contains test entitlement so you don't need to request one from Apple to run it.

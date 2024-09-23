@@ -42,9 +42,18 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.libraries.navigation.NavigationViewForAuto;
 import com.google.android.libraries.navigation.StylingOptions;
 
+// This class streamlines the Android Auto setup process by managing initialization, teardown, and
+// map rendering on the Android Auto display. You can create your own Screen class by extending this
+// one
+// and overriding its functions as needed.
+//
+// For more information on using Android Auto with the Google Navigation SDK, refer to the official
+// documentation:
+// https://developers.google.com/maps/documentation/navigation/android-sdk/android-auto
+//
 public abstract class AndroidAutoBaseScreen extends Screen
     implements SurfaceCallback, INavigationViewController {
-  private static final String VIRTUAL_DISPLAY_NAME = "SampleAppNavScreen";
+  private static final String VIRTUAL_DISPLAY_NAME = "AndroidAutoNavScreen";
 
   private NavigationViewForAuto mNavigationView;
   private VirtualDisplay mVirtualDisplay;

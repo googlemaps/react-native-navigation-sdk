@@ -14,9 +14,9 @@ Refer to the [Android for Cars developer documentation](https://developer.androi
 - Installing Android for Cars App Library.
 - Configuring your app's manifest file to include Android Auto.
 - Declaring a minimum car-app level in your manifest.
-- Creating CarApService and session
+- Creating 'CarAppService' and session
 
-For all the steps above, you can refer to the Android example application. for guidance
+For all the steps above, you can refer to the Android example application for guidance.
 
 ### Screen for Android Auto
 
@@ -97,4 +97,4 @@ For a more detailed example, refer to the `NavigationScreen.tsx` in the React Na
 
 ## Example Project
 
-For a fully functional Android Auto implementation, check out the `SampleApp` Android Studio project.
+For a fully functional Android Auto implementation, check out the [SampleApp](./example/android/) Android Studio project.
