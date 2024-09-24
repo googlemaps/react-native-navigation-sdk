@@ -72,6 +72,14 @@ public class SampleAndroidAutoScreen extends AndroidAutoBaseScreen {
     invalidate();
   }
 
+  @Override
+  public void onNavigationReady(boolean ready) {
+    super.onNavigationReady(ready);
+    // Invalidate template layout because of conditional rendering in the
+    // onGetTemplate method.
+    invalidate();
+  }
+
   private Step buildStepFromStepInfo(StepInfo stepInfo) {
     Maneuver.Builder maneuverBuilder = new Maneuver.Builder(stepInfo.getManeuver());
     Step.Builder stepBuilder =

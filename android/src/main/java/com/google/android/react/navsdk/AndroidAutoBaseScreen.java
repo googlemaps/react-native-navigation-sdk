@@ -73,7 +73,6 @@ public abstract class AndroidAutoBaseScreen extends Screen
 
   public void onNavigationReady(boolean ready) {
     mNavigationInitialized = ready;
-    invalidate();
   }
 
   public AndroidAutoBaseScreen(@NonNull CarContext carContext) {
