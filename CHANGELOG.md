@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.6.0...v0.6.1) (2024-09-27)
+
+
+### Bug Fixes
+
+* enable remaining time distance listener on ios ([#276](https://github.com/googlemaps/react-native-navigation-sdk/issues/276)) ([9364d0e](https://github.com/googlemaps/react-native-navigation-sdk/commit/9364d0e5d390ba64de9caef151baf72bbab9522b))
+
 ## [0.6.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.5.1...v0.6.0) (2024-09-13)
 
 
