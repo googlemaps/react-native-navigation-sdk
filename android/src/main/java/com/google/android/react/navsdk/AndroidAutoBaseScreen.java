@@ -16,7 +16,6 @@
 
 package com.google.android.react.navsdk;
 
-import android.annotation.SuppressLint;
 import android.app.Presentation;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
@@ -44,13 +43,11 @@ import com.google.android.libraries.navigation.StylingOptions;
 
 // This class streamlines the Android Auto setup process by managing initialization, teardown, and
 // map rendering on the Android Auto display. You can create your own Screen class by extending this
-// one
-// and overriding its functions as needed.
+// one and overriding its functions as needed.
 //
 // For more information on using Android Auto with the Google Navigation SDK, refer to the official
 // documentation:
 // https://developers.google.com/maps/documentation/navigation/android-sdk/android-auto
-//
 public abstract class AndroidAutoBaseScreen extends Screen
     implements SurfaceCallback, INavigationViewController {
   private static final String VIRTUAL_DISPLAY_NAME = "AndroidAutoNavScreen";
@@ -201,7 +198,6 @@ public abstract class AndroidAutoBaseScreen extends Screen
 
   @NonNull
   @Override
-  @SuppressLint("MissingPermission")
   public Template onGetTemplate() {
     return new NavigationTemplate.Builder()
         .setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build())

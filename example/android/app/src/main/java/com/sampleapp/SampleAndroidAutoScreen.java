@@ -107,6 +107,9 @@ public class SampleAndroidAutoScreen extends AndroidAutoBaseScreen {
           .build();
     }
 
+    // Suppresses the missing permission check for the followMyLocation method, which requires
+    // "android.permission.ACCESS_COARSE_LOCATION" or "android.permission.ACCESS_FINE_LOCATION", as
+    // these permissions are already handled elsewhere.
     @SuppressLint("MissingPermission")
     NavigationTemplate.Builder navigationTemplateBuilder =
         new NavigationTemplate.Builder()
