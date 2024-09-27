@@ -99,8 +99,6 @@ RCT_EXPORT_MODULE(NavModule);
   if (self->_session.navigator) {
     [self->_session.navigator addListener:self];
     self->_session.navigator.stopGuidanceAtArrival = NO;
-    self->_session.navigator.timeUpdateThreshold = DBL_MAX;
-    self->_session.navigator.distanceUpdateThreshold = CLLocationDistanceMax;
   }
 
   [self->_session.roadSnappedLocationProvider addListener:self];
