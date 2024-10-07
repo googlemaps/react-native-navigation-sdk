@@ -194,16 +194,15 @@ export interface MapViewController {
    * style for the map.
    */
   setMapStyle(mapStyle: string): void;
+
   /**
-   * Toggle the map toolbar's enabled state.
+   * Enable or disable the map toolbar.
+   * Android only.
    *
-   * Sends a command to the native side to enable or disable the map toolbar,
-   * based on the provided index. Typically, a non-zero value enables the
-   * toolbar, while a value of 0 disables it.
-   *
-   * @param index - A number indicating the desired state of the map toolbar.
+   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
+   *               the the map toolbar.
    */
-  setMapToolbarEnabled(index: boolean): void;
+  setMapToolbarEnabled(isOn: boolean): void;
 
   /**
    * Clear all elements from the map view.

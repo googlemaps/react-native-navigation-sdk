@@ -19,7 +19,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Switch, Text, TextInput, View } from 'react-native';
 
 import SelectDropdown from 'react-native-select-dropdown';
-import styles from './styles';
+import styles from '../styles';
 import {
   type MapViewController,
   MapType,

@@ -17,31 +17,33 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Button, View } from 'react-native';
 import Snackbar from 'react-native-snackbar';
-import MapsControls from './mapsControls';
-import NavigationControls from './navigationControls';
-import styles from './styles';
+
 import {
-  type MapViewController,
-  type NavigationViewController,
-  type ArrivalEvent,
   NavigationInitErrorCode,
-  type Location,
+  NavigationView,
   RouteStatus,
-  type Marker,
-  type NavigationViewCallbacks,
-  type MapViewCallbacks,
-  type Polygon,
+  type ArrivalEvent,
   type Circle,
-  type Polyline,
   type LatLng,
+  type Location,
+  type MapViewCallbacks,
+  type MapViewController,
+  type Marker,
   type NavigationCallbacks,
+  type NavigationViewCallbacks,
+  type NavigationViewController,
+  type Polygon,
+  type Polyline,
   useNavigation,
   MapView,
-  NavigationView,
 } from '@googlemaps/react-native-navigation-sdk';
-import usePermissions from './checkPermissions';
-import OverlayModal from './overlayModal';
+import MapsControls from '../controls/mapsControls';
+import NavigationControls from '../controls/navigationControls';
+import OverlayModal from '../helpers/overlayModal';
+import styles from '../styles';
+import usePermissions from '../checkPermissions';
 
+// Utility function for showing Snackbar
 const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
   Snackbar.show({ text, duration });
 };

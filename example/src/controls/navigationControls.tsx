@@ -35,7 +35,7 @@ import {
 } from '@googlemaps/react-native-navigation-sdk';
 import SelectDropdown from 'react-native-select-dropdown';
 
-import styles from './styles';
+import styles from '../styles';
 
 export interface NavigationControlsProps {
   readonly navigationController: NavigationController;

@@ -31,4 +31,6 @@ public interface INavViewFragment extends IMapViewFragment {
   void setRecenterButtonEnabled(boolean enabled);
 
   void showRouteOverview();
+
+  void setNightModeOption(int jsValue);
 }
