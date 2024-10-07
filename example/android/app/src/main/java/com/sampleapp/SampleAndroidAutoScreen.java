@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.car.app.CarContext;
 import androidx.car.app.model.Action;
 import androidx.car.app.model.ActionStrip;
+import androidx.car.app.model.CarIcon;
 import androidx.car.app.model.Distance;
 import androidx.car.app.model.Pane;
 import androidx.car.app.model.PaneTemplate;
@@ -32,6 +33,7 @@ import androidx.car.app.navigation.model.Maneuver;
 import androidx.car.app.navigation.model.NavigationTemplate;
 import androidx.car.app.navigation.model.RoutingInfo;
 import androidx.car.app.navigation.model.Step;
+import androidx.core.graphics.drawable.IconCompat;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.google.android.gms.maps.GoogleMap;
@@ -50,9 +52,6 @@ public class SampleAndroidAutoScreen extends AndroidAutoBaseScreen {
     NavInfoReceivingService.getNavInfoLiveData().observe(this, this::buildNavInfo);
   }
 
-  /*
-   * This method is called when the Navigation data feed sends a new NavInfo object.
-   */
   private void buildNavInfo(NavInfo navInfo) {
     if (navInfo == null || navInfo.getCurrentStep() == null) {
       return;
@@ -60,7 +59,7 @@ public class SampleAndroidAutoScreen extends AndroidAutoBaseScreen {
 
     /**
      * Converts data received from the Navigation data feed into Android-Auto compatible data
-     * structures. For more information see the "Ensure correct maneuver types" below.
+     * structures.
      */
     Step currentStep = buildStepFromStepInfo(navInfo.getCurrentStep());
     Distance distanceToStep =
@@ -81,7 +80,11 @@ public class SampleAndroidAutoScreen extends AndroidAutoBaseScreen {
   }
 
   private Step buildStepFromStepInfo(StepInfo stepInfo) {
-    Maneuver.Builder maneuverBuilder = new Maneuver.Builder(stepInfo.getManeuver());
+    int maneuver = ManeuverConverter.getAndroidAutoManeuverType(stepInfo.getManeuver());
+    Maneuver.Builder maneuverBuilder = new Maneuver.Builder(maneuver);
+    IconCompat maneuverIcon = IconCompat.createWithBitmap(stepInfo.getManeuverBitmap());
+    CarIcon maneuverCarIcon = new CarIcon.Builder(maneuverIcon).build();
+    maneuverBuilder.setIcon(maneuverCarIcon);
     Step.Builder stepBuilder =
         new Step.Builder()
             .setRoad(stepInfo.getFullRoadName())
