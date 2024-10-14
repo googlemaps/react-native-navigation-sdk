@@ -162,7 +162,7 @@ export interface NavigationCallbacks {
   onReroutingRequestedByOffRoute?(): void;
 
   /**
-   * Callback function invoked when traffic data is updated.
+   * Callback function invoked when traffic data is updated (Android only).
    */
   onTrafficUpdated?(): void;
 
