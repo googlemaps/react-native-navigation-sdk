@@ -31,12 +31,16 @@ First, make sure you go through the setup from the main [README](../README.md).
 
 ## Running the app
 
-1. To run the sample app, go to the root folder of the sample app and run the command below according to platform using your preferred terminal.
+1. To run the sample app, navigate to the `example` folder in the root directory and use the following commands for your platform in the terminal.
 
-    * Running in Android:
-      `npx react-native run-android`
-    * Running in iOS:
-      `npx react-native run-ios`
+    1. Ensure all workspace dependencies are installed:
+      `yarn install`
+
+    2. Start the metro bundler:
+       * Android:
+         `npx react-native run-android`
+       * iOS:
+         `npx react-native run-ios`
 
 
 2. After the app initializes, accept the terms of services. You should see a map loaded in background if you have used the right API key.
@@ -44,4 +48,4 @@ First, make sure you go through the setup from the main [README](../README.md).
 ### Android 
 1. On your Emulator, go to App Info for the installed app, then Permissions > Location and allow location for the app.
 
-1. Restart the app, now the Navigation view should be displayed instead of the map.
+2. Restart the app, now the Navigation view should be displayed instead of the map.
