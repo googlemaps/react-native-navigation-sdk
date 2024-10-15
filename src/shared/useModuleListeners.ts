@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { NativeEventEmitter, Platform, type NativeModule } from 'react-native';
 
 type ListenerMap<T> = {
@@ -77,10 +77,8 @@ export const useModuleListeners = <
       const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
       BatchedBridge.registerCallableModule(androidBridge, wrappedListeners);
     } else if (Platform.OS === 'ios') {
-      eventTypes.forEach(eventType =>
-        getIOSEventEmitter().removeAllListeners(eventType as string)
-      );
       eventTypes.forEach(eventType => {
+        getIOSEventEmitter().removeAllListeners(eventType as string);
         getIOSEventEmitter().addListener(
           eventType as string,
           wrappedListeners[eventType]!
@@ -109,15 +107,16 @@ export const useModuleListeners = <
   };
 
   const removeAllListeners = useCallback(() => {
-    if (Platform.OS === 'android') {
-      const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
-      BatchedBridge.registerCallableModule(androidBridge, {});
-    } else if (Platform.OS === 'ios') {
-      eventTypes.forEach(eventType =>
-        getIOSEventEmitter().removeAllListeners(eventType as string)
-      );
-    }
-  }, [androidBridge, eventTypes, getIOSEventEmitter]);
+    listenersRef.current = {};
+    updateListeners();
+  }, [updateListeners]);
+
+  useEffect(() => {
+    updateListeners();
+    return () => {
+      removeAllListeners();
+    };
+  }, [updateListeners, removeAllListeners]);
 
   return {
     addListeners,
