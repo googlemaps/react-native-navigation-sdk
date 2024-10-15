@@ -17,29 +17,33 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Button, Switch, Text, View } from 'react-native';
 import Snackbar from 'react-native-snackbar';
-import styles from './styles';
+
 import {
-  type MapViewController,
-  type NavigationViewController,
-  type Marker,
-  type NavigationViewCallbacks,
-  type MapViewCallbacks,
-  type Polygon,
-  type Circle,
-  type Polyline,
-  type LatLng,
-  type NavigationCallbacks,
-  useNavigation,
   NavigationInitErrorCode,
+  NavigationView,
   RouteStatus,
   type ArrivalEvent,
+  type Circle,
+  type LatLng,
   type Location,
+  type MapViewCallbacks,
+  type MapViewController,
+  type Marker,
+  type NavigationAutoCallbacks,
+  type NavigationCallbacks,
+  type NavigationViewCallbacks,
+  type NavigationViewController,
+  type Polygon,
+  type Polyline,
+  useNavigation,
+  useNavigationAuto,
+  type CustomNavigationAutoEvent,
 } from '@googlemaps/react-native-navigation-sdk';
-import usePermissions from './checkPermissions';
-import MapsControls from './mapsControls';
-import NavigationControls from './navigationControls';
-import OverlayModal from './overlayModal';
-import { NavigationView } from '../../src/navigation/navigationView/navigationView';
+import MapsControls from '../controls/mapsControls';
+import NavigationControls from '../controls/navigationControls';
+import OverlayModal from '../helpers/overlayModal';
+import styles from '../styles';
+import usePermissions from '../checkPermissions';
 
 // Utility function for showing Snackbar
 const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
@@ -50,6 +54,7 @@ enum OverlayType {
   None = 'None',
   NavControls = 'NavControls',
   MapControls = 'MapControls',
+  AutoMapControls = 'AutoMapControls',
 }
 
 const marginAmount = 50;
@@ -61,6 +66,14 @@ const NavigationScreen = () => {
     useState<MapViewController | null>(null);
   const [navigationViewController, setNavigationViewController] =
     useState<NavigationViewController | null>(null);
+
+  const {
+    mapViewAutoController,
+    addListeners: addAutoListener,
+    removeListeners: removeAutoListeners,
+  } = useNavigationAuto();
+  const [mapViewAutoAvailable, setMapViewAutoAvailable] =
+    useState<boolean>(false);
 
   const { navigationController, addListeners, removeListeners } =
     useNavigation();
@@ -229,12 +242,40 @@ const NavigationScreen = () => {
     ]
   );
 
+  const navigationAutoCallbacks: NavigationAutoCallbacks = useMemo(
+    () => ({
+      onCustomNavigationAutoEvent: (event: CustomNavigationAutoEvent) => {
+        console.log('onCustomNavigationAutoEvent:', event);
+      },
+      onAutoScreenAvailabilityChanged: (available: boolean) => {
+        console.log('onAutoScreenAvailabilityChanged:', available);
+        setMapViewAutoAvailable(available);
+      },
+    }),
+    []
+  );
+
+  useEffect(() => {
+    (async () => {
+      const isAvailable = await mapViewAutoController.isAutoScreenAvailable();
+      console.log('isAutoScreenAvailable:', isAvailable);
+      setMapViewAutoAvailable(isAvailable);
+    })();
+  }, [mapViewAutoController]);
+
   useEffect(() => {
     addListeners(navigationCallbacks);
     return () => {
       removeListeners(navigationCallbacks);
     };
   }, [navigationCallbacks, addListeners, removeListeners]);
+
+  useEffect(() => {
+    addAutoListener(navigationAutoCallbacks);
+    return () => {
+      removeAutoListeners(navigationAutoCallbacks);
+    };
+  }, [navigationAutoCallbacks, addAutoListener, removeAutoListeners]);
 
   const onMapReady = useCallback(async () => {
     console.log('Map is ready, initializing navigator...');
@@ -256,6 +297,10 @@ const NavigationScreen = () => {
 
   const onShowMapsControlsClick = useCallback(() => {
     setOverlayType(OverlayType.MapControls);
+  }, [setOverlayType]);
+
+  const onShowAutoMapsControlsClick = useCallback(() => {
+    setOverlayType(OverlayType.AutoMapControls);
   }, [setOverlayType]);
 
   const navigationViewCallbacks: NavigationViewCallbacks = {
@@ -343,6 +388,15 @@ const NavigationScreen = () => {
         </OverlayModal>
       )}
 
+      {mapViewAutoAvailable && mapViewAutoController != null && (
+        <OverlayModal
+          visible={overlayType === OverlayType.AutoMapControls}
+          closeOverlay={closeOverlay}
+        >
+          <MapsControls mapViewController={mapViewAutoController} />
+        </OverlayModal>
+      )}
+
       <View style={styles.controlButtons}>
         <Button
           title="Navigation"
@@ -350,6 +404,9 @@ const NavigationScreen = () => {
           disabled={!navigationInitialized}
         />
         <Button title="Maps" onPress={onShowMapsControlsClick} />
+        {mapViewAutoAvailable && (
+          <Button title="Auto" onPress={onShowAutoMapsControlsClick} />
+        )}
         <View style={styles.rowContainer}>
           <Text>Margin</Text>
           <Switch

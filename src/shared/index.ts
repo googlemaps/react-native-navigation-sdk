@@ -16,3 +16,4 @@
 
 export * from './viewManager';
 export * from './types';
+export * from './useModuleListeners';

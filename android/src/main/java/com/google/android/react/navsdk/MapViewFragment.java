@@ -41,7 +41,6 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
@@ -49,25 +48,20 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.libraries.navigation.StylingOptions;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 
 /**
  * A fragment that displays a view with a Google Map using MapFragment. This fragment's lifecycle is
  * managed by NavViewManager.
  */
 @SuppressLint("ValidFragment")
-public class MapViewFragment extends SupportMapFragment implements IMapViewFragment {
+public class MapViewFragment extends SupportMapFragment
+    implements IMapViewFragment, INavigationViewCallback {
   private static final String TAG = "MapViewFragment";
   private GoogleMap mGoogleMap;
+  private MapViewController mMapViewController;
   private StylingOptions mStylingOptions;
 
   private List<Marker> markerList = new ArrayList<>();
@@ -96,82 +90,69 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
           public void onMapReady(GoogleMap googleMap) {
             mGoogleMap = googleMap;
 
+            mMapViewController = new MapViewController();
+            mMapViewController.initialize(googleMap, () -> requireActivity());
+
+            // Setup map listeners with the provided callback
+            mMapViewController.setupMapListeners(MapViewFragment.this);
+
             emitEvent("onMapReady", null);
-
-            mGoogleMap.setOnMarkerClickListener(
-                new GoogleMap.OnMarkerClickListener() {
-                  @Override
-                  public boolean onMarkerClick(Marker marker) {
-                    emitEvent("onMarkerClick", ObjectTranslationUtil.getMapFromMarker(marker));
-                    return false;
-                  }
-                });
-            mGoogleMap.setOnPolylineClickListener(
-                new GoogleMap.OnPolylineClickListener() {
-                  @Override
-                  public void onPolylineClick(Polyline polyline) {
-                    emitEvent(
-                        "onPolylineClick", ObjectTranslationUtil.getMapFromPolyline(polyline));
-                  }
-                });
-            mGoogleMap.setOnPolygonClickListener(
-                new GoogleMap.OnPolygonClickListener() {
-                  @Override
-                  public void onPolygonClick(Polygon polygon) {
-                    emitEvent("onPolygonClick", ObjectTranslationUtil.getMapFromPolygon(polygon));
-                  }
-                });
-            mGoogleMap.setOnCircleClickListener(
-                new GoogleMap.OnCircleClickListener() {
-                  @Override
-                  public void onCircleClick(Circle circle) {
-                    emitEvent("onCircleClick", ObjectTranslationUtil.getMapFromCircle(circle));
-                  }
-                });
-            mGoogleMap.setOnGroundOverlayClickListener(
-                new GoogleMap.OnGroundOverlayClickListener() {
-                  @Override
-                  public void onGroundOverlayClick(GroundOverlay groundOverlay) {
-                    emitEvent(
-                        "onGroundOverlayClick",
-                        ObjectTranslationUtil.getMapFromGroundOverlay(groundOverlay));
-                  }
-                });
-
-            mGoogleMap.setOnInfoWindowClickListener(
-                new GoogleMap.OnInfoWindowClickListener() {
-                  @Override
-                  public void onInfoWindowClick(Marker marker) {
-                    emitEvent(
-                        "onMarkerInfoWindowTapped", ObjectTranslationUtil.getMapFromMarker(marker));
-                  }
-                });
-
-            mGoogleMap.setOnMapClickListener(
-                new GoogleMap.OnMapClickListener() {
-                  @Override
-                  public void onMapClick(LatLng latLng) {
-                    emitEvent("onMapClick", ObjectTranslationUtil.getMapFromLatLng(latLng));
-                  }
-                });
           }
         });
   }
 
-  public void applyStylingOptions() {}
-
-  public void setStylingOptions(Map stylingOptions) {}
-
-  @SuppressLint("MissingPermission")
-  public void setFollowingPerspective(int jsValue) {
-    if (mGoogleMap == null) {
-      return;
-    }
-
-    mGoogleMap.followMyLocation(EnumTranslationUtil.getCameraPerspectiveFromJsValue(jsValue));
+  @Override
+  public void onMapReady() {
+    emitEvent("onMapReady", null);
   }
 
-  public void setNightModeOption(int jsValue) {}
+  @Override
+  public void onRecenterButtonClick() {
+    emitEvent("onRecenterButtonClick", null);
+  }
+
+  @Override
+  public void onMarkerClick(Marker marker) {
+    emitEvent("onMapReady", ObjectTranslationUtil.getMapFromMarker(marker));
+  }
+
+  @Override
+  public void onPolylineClick(Polyline polyline) {
+    emitEvent("onPolylineClick", ObjectTranslationUtil.getMapFromPolyline(polyline));
+  }
+
+  @Override
+  public void onPolygonClick(Polygon polygon) {
+    emitEvent("onPolygonClick", ObjectTranslationUtil.getMapFromPolygon(polygon));
+  }
+
+  @Override
+  public void onCircleClick(Circle circle) {
+    emitEvent("onCircleClick", ObjectTranslationUtil.getMapFromCircle(circle));
+  }
+
+  @Override
+  public void onGroundOverlayClick(GroundOverlay groundOverlay) {
+    emitEvent("onGroundOverlayClick", ObjectTranslationUtil.getMapFromGroundOverlay(groundOverlay));
+  }
+
+  @Override
+  public void onMarkerInfoWindowTapped(Marker marker) {
+    emitEvent("onInfoWindowClick", ObjectTranslationUtil.getMapFromMarker(marker));
+  }
+
+  @Override
+  public void onMapClick(LatLng latLng) {
+    emitEvent("onMapClick", ObjectTranslationUtil.getMapFromLatLng(latLng));
+  }
+
+  public MapViewController getMapController() {
+    return mMapViewController;
+  }
+
+  public void applyStylingOptions() {}
+
+  public void setStylingOptions(StylingOptions stylingOptions) {}
 
   public void setMapType(int jsValue) {
     if (mGoogleMap == null) {
@@ -492,45 +473,7 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
   }
 
   public void setMapStyle(String url) {
-    Executors.newSingleThreadExecutor()
-        .execute(
-            () -> {
-              try {
-                style = fetchJsonFromUrl(url);
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-              getActivity()
-                  .runOnUiThread(
-                      (Runnable)
-                          () -> {
-                            MapStyleOptions options = new MapStyleOptions(style);
-                            mGoogleMap.setMapStyle(options);
-                          });
-            });
-  }
-
-  public String fetchJsonFromUrl(String urlString) throws IOException {
-    URL url = new URL(urlString);
-    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    connection.setRequestMethod("GET");
-
-    int responseCode = connection.getResponseCode();
-    if (responseCode == HttpURLConnection.HTTP_OK) {
-      InputStream inputStream = connection.getInputStream();
-      BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-      StringBuilder stringBuilder = new StringBuilder();
-      String line;
-      while ((line = reader.readLine()) != null) {
-        stringBuilder.append(line);
-      }
-      reader.close();
-      inputStream.close();
-      return stringBuilder.toString();
-    } else {
-      // Handle error response
-      throw new IOException("Error response: " + responseCode);
-    }
+    mMapViewController.setMapStyle(url);
   }
 
   /** Moves the position of the camera to hover over Melbourne. */
@@ -657,25 +600,6 @@ public class MapViewFragment extends SupportMapFragment implements IMapViewFragm
   public GoogleMap getGoogleMap() {
     return mGoogleMap;
   }
-
-  // Navigation related function of the IViewFragment interface. Not used in this class.
-  public void setNavigationUiEnabled(boolean enableNavigationUi) {}
-
-  public void setTripProgressBarEnabled(boolean enabled) {}
-
-  public void setSpeedometerEnabled(boolean enabled) {}
-
-  public void setSpeedLimitIconEnabled(boolean enabled) {}
-
-  public void setTrafficIncidentCardsEnabled(boolean enabled) {}
-
-  public void setEtaCardEnabled(boolean enabled) {}
-
-  public void setHeaderEnabled(boolean enabled) {}
-
-  public void setRecenterButtonEnabled(boolean enabled) {}
-
-  public void showRouteOverview() {}
 
   public class NavViewEvent extends Event<NavViewEvent> {
     private String eventName;

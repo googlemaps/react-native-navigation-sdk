@@ -15,84 +15,16 @@ package com.google.android.react.navsdk;
 
 import android.view.View;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.GroundOverlay;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.Polygon;
-import com.google.android.gms.maps.model.Polyline;
-import java.io.IOException;
-import java.util.Map;
+import com.google.android.libraries.navigation.StylingOptions;
 
 public interface IMapViewFragment {
-  void setStylingOptions(Map stylingOptions);
+  MapViewController getMapController();
+
+  void setStylingOptions(StylingOptions stylingOptions);
 
   void applyStylingOptions();
 
-  void setFollowingPerspective(int jsValue);
-
-  void setNightModeOption(int jsValue);
-
-  void setMapType(int jsValue);
-
-  void clearMapView();
-
-  void resetMinMaxZoomLevel();
-
-  void animateCamera(Map map);
-
-  Circle addCircle(Map optionsMap);
-
-  Marker addMarker(Map optionsMap);
-
-  Polyline addPolyline(Map optionsMap);
-
-  Polygon addPolygon(Map optionsMap);
-
-  void removeMarker(String id);
-
-  void removePolyline(String id);
-
-  void removePolygon(String id);
-
-  void removeCircle(String id);
-
-  void removeGroundOverlay(String id);
-
-  GroundOverlay addGroundOverlay(Map map);
-
   void setMapStyle(String url);
-
-  String fetchJsonFromUrl(String urlString) throws IOException;
-
-  void moveCamera(Map map);
-
-  void setZoomLevel(int level);
-
-  void setIndoorEnabled(boolean isOn);
-
-  void setTrafficEnabled(boolean isOn);
-
-  void setCompassEnabled(boolean isOn);
-
-  void setRotateGesturesEnabled(boolean isOn);
-
-  void setScrollGesturesEnabled(boolean isOn);
-
-  void setScrollGesturesEnabledDuringRotateOrZoom(boolean isOn);
-
-  void setTiltGesturesEnabled(boolean isOn);
-
-  void setZoomControlsEnabled(boolean isOn);
-
-  void setZoomGesturesEnabled(boolean isOn);
-
-  void setBuildingsEnabled(boolean isOn);
-
-  void setMyLocationEnabled(boolean isOn);
-
-  void setMapToolbarEnabled(boolean isOn);
-
-  void setMyLocationButtonEnabled(boolean isOn);
 
   GoogleMap getGoogleMap();
 

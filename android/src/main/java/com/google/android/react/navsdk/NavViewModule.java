@@ -164,6 +164,7 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             Marker marker =
                 mNavViewManager
                     .getFragmentForViewId(viewId)
+                    .getMapController()
                     .addMarker(markerOptionsMap.toHashMap());
 
             promise.resolve(ObjectTranslationUtil.getMapFromMarker(marker));
@@ -182,6 +183,7 @@ public class NavViewModule extends ReactContextBaseJavaModule {
           Polyline polyline =
               mNavViewManager
                   .getFragmentForViewId(viewId)
+                  .getMapController()
                   .addPolyline(polylineOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromPolyline(polyline));
@@ -199,6 +201,7 @@ public class NavViewModule extends ReactContextBaseJavaModule {
           Polygon polygon =
               mNavViewManager
                   .getFragmentForViewId(viewId)
+                  .getMapController()
                   .addPolygon(polygonOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromPolygon(polygon));
@@ -214,7 +217,10 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             return;
           }
           Circle circle =
-              mNavViewManager.getFragmentForViewId(viewId).addCircle(circleOptionsMap.toHashMap());
+              mNavViewManager
+                  .getFragmentForViewId(viewId)
+                  .getMapController()
+                  .addCircle(circleOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromCircle(circle));
         });
@@ -231,6 +237,7 @@ public class NavViewModule extends ReactContextBaseJavaModule {
           GroundOverlay overlay =
               mNavViewManager
                   .getFragmentForViewId(viewId)
+                  .getMapController()
                   .addGroundOverlay(overlayOptionsMap.toHashMap());
 
           promise.resolve(ObjectTranslationUtil.getMapFromGroundOverlay(overlay));

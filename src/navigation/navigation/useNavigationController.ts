@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import { useRef, useCallback, useEffect } from 'react';
-import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
-import type { LatLng } from '../../shared';
+import { NativeModules, Platform } from 'react-native';
+import { useModuleListeners, type LatLng } from '../../shared';
 import type {
   Waypoint,
   AudioGuidance,
@@ -32,14 +31,12 @@ import type {
   LocationSimulationOptions,
 } from './types';
 import { getRouteStatusFromStringValue } from '../navigationView';
+import { useMemo } from 'react';
 
 const { NavModule, NavEventDispatcher } = NativeModules;
+const androidBridge: string = 'NavJavascriptBridge';
 
-type ListenerMap = {
-  [K in keyof NavigationCallbacks]?: Array<NonNullable<NavigationCallbacks[K]>>;
-};
-
-const useNavigationController = (
+export const useNavigationController = (
   termsAndConditionsDialogOptions: TermsAndConditionsDialogOptions
 ): {
   navigationController: NavigationController;
@@ -47,43 +44,20 @@ const useNavigationController = (
   removeListeners: (listeners: Partial<NavigationCallbacks>) => void;
   removeAllListeners: () => void;
 } => {
-  const listenersRef = useRef<ListenerMap>({});
-  const eventEmitterRef = useRef<NativeEventEmitter | null>(null);
-
-  const getEventEmitter = () => {
-    if (!eventEmitterRef.current) {
-      eventEmitterRef.current = new NativeEventEmitter(NavEventDispatcher);
-    }
-    return eventEmitterRef.current;
-  };
-
-  // Conversion function to handle different types of data transformation based on the event
-  const convert = (eventKey: keyof NavigationCallbacks, ...args: any[]) => {
+  const eventTransformer = <K extends keyof NavigationCallbacks>(
+    eventKey: K,
+    ...args: unknown[]
+  ) => {
     if (eventKey === 'onRouteStatusResult' && typeof args[0] === 'string') {
-      return [getRouteStatusFromStringValue(args[0])]; // Return as array for consistent callback application
+      return [getRouteStatusFromStringValue(args[0])];
     }
-    return args; // For all other events, pass through the arguments unchanged
+    return args;
   };
 
-  const updateListeners = useCallback(() => {
-    // Wrap the listeners in a single object to pass to the native module for event handling.
-    // Multiplexes the events to all registered listeners.
-    const wrappedListeners = Object.keys(listenersRef.current).reduce(
-      (acc, eventName) => {
-        const eventKey = eventName as keyof NavigationCallbacks;
-        acc[eventKey] = (...args: any[]) => {
-          listenersRef.current[eventKey]?.forEach((callback: any) =>
-            callback(...convert(eventKey, ...args))
-          );
-        };
-        return acc;
-      },
-      {} as {
-        [K in keyof NavigationCallbacks]?: (...args: any[]) => void;
-      }
-    );
-
-    const allEventTypes: Array<keyof NavigationCallbacks> = [
+  const moduleListenersHandler = useModuleListeners<NavigationCallbacks>(
+    NavEventDispatcher,
+    androidBridge,
+    [
       'onStartGuidance',
       'onArrival',
       'onLocationChanged',
@@ -97,226 +71,132 @@ const useNavigationController = (
       'onNavigationInitError',
       'onTurnByTurn',
       'logDebugInfo',
-    ];
+    ],
+    eventTransformer
+  );
 
-    allEventTypes.forEach(eventType => {
-      if (!wrappedListeners[eventType]) {
-        wrappedListeners[eventType] = () => {};
-      }
-    });
-
-    // Platform-specific event handling
-    if (Platform.OS === 'android') {
-      const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
-      BatchedBridge.registerCallableModule(
-        'NavJavascriptBridge',
-        wrappedListeners
-      );
-    } else if (Platform.OS === 'ios') {
-      allEventTypes.forEach(eventType => {
-        getEventEmitter().removeAllListeners(eventType);
-        getEventEmitter().addListener(eventType, wrappedListeners[eventType]!);
-      });
-
-      return () =>
-        allEventTypes.forEach(eventType =>
-          getEventEmitter().removeAllListeners(eventType)
+  const navigationController: NavigationController = useMemo(
+    () => ({
+      init: async () => {
+        return await NavModule.initializeNavigator(
+          termsAndConditionsDialogOptions
         );
-    }
+      },
 
-    return () => {};
-  }, []);
+      cleanup: async () => {
+        moduleListenersHandler.removeAllListeners();
+        await NavModule.cleanup();
+      },
 
-  const addListeners = useCallback(
-    (newListeners: Partial<NavigationCallbacks>) => {
-      const prevListeners = listenersRef.current;
-      const updatedListeners: ListenerMap = { ...prevListeners };
-      Object.keys(newListeners).forEach(eventName => {
-        const eventKey = eventName as keyof NavigationCallbacks;
-        (updatedListeners[eventKey] as Array<
-          NonNullable<NavigationCallbacks[typeof eventKey]>
-        >) = [
-          ...(updatedListeners[eventKey] || []),
-          newListeners[eventKey],
-        ].filter(Boolean) as Array<NonNullable<() => void>>;
-      });
-      listenersRef.current = updatedListeners;
-      updateListeners();
-    },
-    [updateListeners]
-  );
+      setDestination: async (
+        waypoint: Waypoint,
+        routingOptions?: RoutingOptions
+      ) => {
+        return await NavModule.setDestination(waypoint, routingOptions);
+      },
 
-  const removeListeners = useCallback(
-    (listenersToRemove: Partial<NavigationCallbacks>) => {
-      const prevListeners = listenersRef.current;
-      const updatedListeners: ListenerMap = { ...prevListeners };
-      Object.keys(listenersToRemove).forEach(eventName => {
-        const eventKey = eventName as keyof NavigationCallbacks;
-        if (updatedListeners[eventKey]) {
-          (updatedListeners[eventKey] as Array<
-            NonNullable<NavigationCallbacks[typeof eventKey]>
-          >) = updatedListeners[eventKey]!.filter(
-            listener => listener !== listenersToRemove[eventKey]
-          ) as Array<NonNullable<() => void>>;
-          if (updatedListeners[eventKey]!.length === 0) {
-            delete updatedListeners[eventKey];
-          }
-        }
-      });
-      listenersRef.current = updatedListeners;
-      updateListeners();
-    },
-    [updateListeners]
-  );
+      setDestinations: async (
+        waypoints: Waypoint[],
+        routingOptions?: RoutingOptions
+      ) => {
+        return await NavModule.setDestinations(waypoints, routingOptions);
+      },
 
-  const removeAllListeners = useCallback(() => {
-    Object.keys(listenersRef.current).forEach(eventName => {
-      const eventKey = eventName as keyof NavigationCallbacks;
-      if (listenersRef.current[eventKey]) {
-        listenersRef.current[eventKey] = [];
+      continueToNextDestination: async () => {
+        return await NavModule.continueToNextDestination();
+      },
+
+      clearDestinations: async () => {
+        return await NavModule.clearDestinations();
+      },
+
+      startGuidance: async () => {
+        return await NavModule.startGuidance();
+      },
+
+      stopGuidance: async () => {
+        return await NavModule.stopGuidance();
+      },
+
+      setSpeedAlertOptions: async (alertOptions: SpeedAlertOptions | null) => {
+        return await NavModule.setSpeedAlertOptions(alertOptions);
+      },
+
+      setAbnormalTerminatingReportingEnabled: (enabled: boolean) => {
+        return NavModule.setAbnormalTerminatingReportingEnabled(enabled);
+      },
+
+      setAudioGuidanceType: (index: AudioGuidance) => {
+        NavModule.setAudioGuidanceType(index);
+      },
+
+      setBackgroundLocationUpdatesEnabled: (isEnabled: boolean) => {
         if (Platform.OS === 'ios') {
-          getEventEmitter().removeAllListeners(eventKey);
+          NavModule.setBackgroundLocationUpdatesEnabled(isEnabled);
         }
-      }
-    });
-    if (Platform.OS === 'android') {
-      // Android might need special handling to unregister all events
-      const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
-      BatchedBridge.registerCallableModule('NavJavascriptBridge', {});
-    }
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      removeAllListeners();
-    };
-  }, [removeAllListeners]);
-
-  const navigationController: NavigationController = {
-    init: async () => {
-      updateListeners(); // Ensure listeners are up to date
-      return await NavModule.initializeNavigator(
-        termsAndConditionsDialogOptions
-      );
-    },
-
-    cleanup: async () => {
-      removeAllListeners();
-      await NavModule.cleanup();
-    },
-
-    setDestination: async (
-      waypoint: Waypoint,
-      routingOptions?: RoutingOptions
-    ) => {
-      return await NavModule.setDestination(waypoint, routingOptions);
-    },
-
-    setDestinations: async (
-      waypoints: Waypoint[],
-      routingOptions?: RoutingOptions
-    ) => {
-      return await NavModule.setDestinations(waypoints, routingOptions);
-    },
-
-    continueToNextDestination: async () => {
-      return await NavModule.continueToNextDestination();
-    },
-
-    clearDestinations: async () => {
-      return await NavModule.clearDestinations();
-    },
-
-    startGuidance: async () => {
-      return await NavModule.startGuidance();
-    },
-
-    stopGuidance: async () => {
-      return await NavModule.stopGuidance();
-    },
-
-    setSpeedAlertOptions: async (alertOptions: SpeedAlertOptions | null) => {
-      return await NavModule.setSpeedAlertOptions(alertOptions);
-    },
-
-    setAbnormalTerminatingReportingEnabled: (enabled: boolean) => {
-      return NavModule.setAbnormalTerminatingReportingEnabled(enabled);
-    },
-
-    setAudioGuidanceType: (index: AudioGuidance) => {
-      NavModule.setAudioGuidanceType(index);
-    },
-
-    setBackgroundLocationUpdatesEnabled: (isEnabled: boolean) => {
-      if (Platform.OS === 'ios') {
-        NavModule.setBackgroundLocationUpdatesEnabled(isEnabled);
-      }
-    },
-
-    setTurnByTurnLoggingEnabled: (isEnabled: boolean) => {
-      NavModule.setTurnByTurnLoggingEnabled(isEnabled);
-    },
-
-    areTermsAccepted: async (): Promise<boolean> => {
-      return await NavModule.areTermsAccepted();
-    },
-
-    getCurrentRouteSegment: async (): Promise<RouteSegment> => {
-      return await NavModule.getCurrentRouteSegment();
-    },
-
-    getRouteSegments: async (): Promise<RouteSegment[]> => {
-      return await NavModule.getRouteSegments();
-    },
-
-    getCurrentTimeAndDistance: async (): Promise<TimeAndDistance> => {
-      return await NavModule.getCurrentTimeAndDistance();
-    },
-
-    getTraveledPath: async (): Promise<LatLng[]> => {
-      return await NavModule.getTraveledPath();
-    },
-
-    getNavSDKVersion: async (): Promise<string> => {
-      return await NavModule.getNavSDKVersion();
-    },
-
-    stopUpdatingLocation: () => {
-      NavModule.stopUpdatingLocation();
-    },
-
-    startUpdatingLocation: () => {
-      NavModule.startUpdatingLocation();
-    },
-
-    simulator: {
-      simulateLocation: (location: LatLng) => {
-        NavModule.simulateLocation(location);
       },
-      resumeLocationSimulation: () => {
-        NavModule.resumeLocationSimulation();
+
+      setTurnByTurnLoggingEnabled: (isEnabled: boolean) => {
+        NavModule.setTurnByTurnLoggingEnabled(isEnabled);
       },
-      pauseLocationSimulation: () => {
-        NavModule.pauseLocationSimulation();
+
+      areTermsAccepted: async (): Promise<boolean> => {
+        return await NavModule.areTermsAccepted();
       },
-      simulateLocationsAlongExistingRoute: ({
-        speedMultiplier,
-      }: LocationSimulationOptions) => {
-        NavModule.simulateLocationsAlongExistingRoute(speedMultiplier);
+
+      getCurrentRouteSegment: async (): Promise<RouteSegment> => {
+        return await NavModule.getCurrentRouteSegment();
       },
-      stopLocationSimulation: () => {
-        NavModule.stopLocationSimulation();
+
+      getRouteSegments: async (): Promise<RouteSegment[]> => {
+        return await NavModule.getRouteSegments();
       },
-    },
-  };
+
+      getCurrentTimeAndDistance: async (): Promise<TimeAndDistance> => {
+        return await NavModule.getCurrentTimeAndDistance();
+      },
+
+      getTraveledPath: async (): Promise<LatLng[]> => {
+        return await NavModule.getTraveledPath();
+      },
+
+      getNavSDKVersion: async (): Promise<string> => {
+        return await NavModule.getNavSDKVersion();
+      },
+
+      stopUpdatingLocation: () => {
+        NavModule.stopUpdatingLocation();
+      },
+
+      startUpdatingLocation: () => {
+        NavModule.startUpdatingLocation();
+      },
+
+      simulator: {
+        simulateLocation: (location: LatLng) => {
+          NavModule.simulateLocation(location);
+        },
+        resumeLocationSimulation: () => {
+          NavModule.resumeLocationSimulation();
+        },
+        pauseLocationSimulation: () => {
+          NavModule.pauseLocationSimulation();
+        },
+        simulateLocationsAlongExistingRoute: ({
+          speedMultiplier,
+        }: LocationSimulationOptions) => {
+          NavModule.simulateLocationsAlongExistingRoute(speedMultiplier);
+        },
+        stopLocationSimulation: () => {
+          NavModule.stopLocationSimulation();
+        },
+      },
+    }),
+    [moduleListenersHandler, termsAndConditionsDialogOptions]
+  );
 
   return {
     navigationController,
-    addListeners,
-    removeListeners,
-    removeAllListeners,
+    ...moduleListenersHandler,
   };
 };
-
-export default useNavigationController;

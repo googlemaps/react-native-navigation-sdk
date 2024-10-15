@@ -28,10 +28,17 @@ NS_ASSUME_NONNULL_BEGIN
                                  GMSRoadSnappedLocationProviderListener,
                                  INavigationCallback>
 
+typedef void (^NavigationSessionReadyCallback)(void);
+typedef void (^NavigationSessionDisposedCallback)(void);
+
 @property BOOL enableUpdateInfo;
 
 - (BOOL)hasSession;
 - (GMSNavigationSession *)getSession;
++ (void)unregisterNavigationSessionReadyCallback;
++ (void)registerNavigationSessionReadyCallback:(NavigationSessionReadyCallback)callback;
++ (void)unregisterNavigationSessionDisposedCallback;
++ (void)registerNavigationSessionDisposedCallback:(NavigationSessionDisposedCallback)callback;
 
 // Class method to access the singleton instance
 + (instancetype)sharedInstance;

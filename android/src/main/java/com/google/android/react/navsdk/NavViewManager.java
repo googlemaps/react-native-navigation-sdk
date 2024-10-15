@@ -188,7 +188,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         }
         break;
       case MOVE_CAMERA:
-        getFragmentForRoot(root).moveCamera(args.getMap(0).toHashMap());
+        getFragmentForRoot(root).getMapController().moveCamera(args.getMap(0).toHashMap());
         break;
       case SET_TRIP_PROGRESS_BAR_ENABLED:
         getNavFragmentForRoot(root).setTripProgressBarEnabled(args.getBoolean(0));
@@ -197,10 +197,10 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         getNavFragmentForRoot(root).setNavigationUiEnabled(args.getBoolean(0));
         break;
       case SET_FOLLOWING_PERSPECTIVE:
-        getNavFragmentForRoot(root).setFollowingPerspective(args.getInt(0));
+        getNavFragmentForRoot(root).getMapController().setFollowingPerspective(args.getInt(0));
         break;
       case SET_NIGHT_MODE:
-        getFragmentForRoot(root).setNightModeOption(args.getInt(0));
+        getNavFragmentForRoot(root).setNightModeOption(args.getInt(0));
         break;
       case SET_SPEEDOMETER_ENABLED:
         getNavFragmentForRoot(root).setSpeedometerEnabled(args.getBoolean(0));
@@ -210,61 +210,63 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         break;
       case SET_ZOOM_LEVEL:
         int level = args.getInt(0);
-        getFragmentForRoot(root).setZoomLevel(level);
+        getFragmentForRoot(root).getMapController().setZoomLevel(level);
         break;
       case SET_INDOOR_ENABLED:
-        getFragmentForRoot(root).setIndoorEnabled(args.getBoolean(0));
+        getFragmentForRoot(root).getMapController().setIndoorEnabled(args.getBoolean(0));
         break;
       case SET_TRAFFIC_ENABLED:
-        getFragmentForRoot(root).setTrafficEnabled(args.getBoolean(0));
+        getFragmentForRoot(root).getMapController().setTrafficEnabled(args.getBoolean(0));
         break;
       case SET_COMPASS_ENABLED:
-        getFragmentForRoot(root).setCompassEnabled(args.getBoolean(0));
+        getFragmentForRoot(root).getMapController().setCompassEnabled(args.getBoolean(0));
         break;
       case SET_MY_LOCATION_BUTTON_ENABLED:
-        getFragmentForRoot(root).setMyLocationButtonEnabled(args.getBoolean(0));
+        getFragmentForRoot(root).getMapController().setCompassEnabled(args.getBoolean(0));
         break;
       case SET_MY_LOCATION_ENABLED:
-        getFragmentForRoot(root).setMyLocationEnabled(args.getBoolean(0));
+        getFragmentForRoot(root).getMapController().setMyLocationEnabled(args.getBoolean(0));
         break;
       case SET_ROTATE_GESTURES_ENABLED:
-        getFragmentForRoot(root).setRotateGesturesEnabled(args.getBoolean(0));
+        getFragmentForRoot(root).getMapController().setRotateGesturesEnabled(args.getBoolean(0));
         break;
       case SET_SCROLL_GESTURES_ENABLED:
-        getFragmentForRoot(root).setScrollGesturesEnabled(args.getBoolean(0));
+        getFragmentForRoot(root).getMapController().setScrollGesturesEnabled(args.getBoolean(0));
         break;
       case SET_SCROLL_GESTURES_ENABLED_DURING_ROTATE_OR_ZOOM:
-        getFragmentForRoot(root).setScrollGesturesEnabledDuringRotateOrZoom(args.getBoolean(0));
+        getFragmentForRoot(root)
+            .getMapController()
+            .setScrollGesturesEnabledDuringRotateOrZoom(args.getBoolean(0));
         break;
       case SET_TILT_GESTURES_ENABLED:
-        getFragmentForRoot(root).setTiltGesturesEnabled(args.getBoolean(0));
+        getFragmentForRoot(root).getMapController().setTiltGesturesEnabled(args.getBoolean(0));
         break;
       case SET_ZOOM_CONTROLS_ENABLED:
-        getFragmentForRoot(root).setZoomControlsEnabled(args.getBoolean(0));
+        getFragmentForRoot(root).getMapController().setZoomControlsEnabled(args.getBoolean(0));
         break;
       case SET_ZOOM_GESTURES_ENABLED:
-        getFragmentForRoot(root).setZoomGesturesEnabled(args.getBoolean(0));
+        getFragmentForRoot(root).getMapController().setZoomGesturesEnabled(args.getBoolean(0));
         break;
       case SET_BUILDINGS_ENABLED:
-        getFragmentForRoot(root).setBuildingsEnabled(args.getBoolean(0));
+        getFragmentForRoot(root).getMapController().setBuildingsEnabled(args.getBoolean(0));
         break;
       case SET_MAP_TYPE:
-        getFragmentForRoot(root).setMapType(args.getInt(0));
+        getFragmentForRoot(root).getMapController().setMapType(args.getInt(0));
         break;
       case SET_MAP_TOOLBAR_ENABLED:
-        getFragmentForRoot(root).setMapToolbarEnabled(args.getBoolean(0));
+        getFragmentForRoot(root).getMapController().setMapToolbarEnabled(args.getBoolean(0));
         break;
       case CLEAR_MAP_VIEW:
-        getFragmentForRoot(root).clearMapView();
+        getFragmentForRoot(root).getMapController().clearMapView();
         break;
       case RESET_MIN_MAX_ZOOM_LEVEL:
-        getFragmentForRoot(root).resetMinMaxZoomLevel();
+        getFragmentForRoot(root).getMapController().resetMinMaxZoomLevel();
         break;
       case SET_MAP_STYLE:
         getFragmentForRoot(root).setMapStyle(args.getString(0));
         break;
       case ANIMATE_CAMERA:
-        getFragmentForRoot(root).animateCamera(args.getMap(0).toHashMap());
+        getFragmentForRoot(root).getMapController().animateCamera(args.getMap(0).toHashMap());
         break;
       case SET_TRAFFIC_INCIDENT_CARDS_ENABLED:
         getNavFragmentForRoot(root).setTrafficIncidentCardsEnabled(args.getBoolean(0));
@@ -282,19 +284,19 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         getNavFragmentForRoot(root).showRouteOverview();
         break;
       case REMOVE_MARKER:
-        getFragmentForRoot(root).removeMarker(args.getString(0));
+        getFragmentForRoot(root).getMapController().removeMarker(args.getString(0));
         break;
       case REMOVE_POLYLINE:
-        getFragmentForRoot(root).removePolyline(args.getString(0));
+        getFragmentForRoot(root).getMapController().removePolyline(args.getString(0));
         break;
       case REMOVE_POLYGON:
-        getFragmentForRoot(root).removePolygon(args.getString(0));
+        getFragmentForRoot(root).getMapController().removePolygon(args.getString(0));
         break;
       case REMOVE_CIRCLE:
-        getFragmentForRoot(root).removeCircle(args.getString(0));
+        getFragmentForRoot(root).getMapController().removeCircle(args.getString(0));
         break;
       case REMOVE_GROUND_OVERLAY:
-        getFragmentForRoot(root).removeGroundOverlay(args.getString(0));
+        getFragmentForRoot(root).getMapController().removeGroundOverlay(args.getString(0));
         break;
     }
   }
@@ -343,7 +345,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         fragment = mapFragment;
 
         if (stylingOptions != null) {
-          mapFragment.setStylingOptions(stylingOptions);
+          mapFragment.setStylingOptions(new StylingOptionsBuilder.Builder(stylingOptions).build());
         }
       } else {
         NavViewFragment navFragment = new NavViewFragment(reactContext, root.getId());
@@ -351,7 +353,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         fragment = navFragment;
 
         if (stylingOptions != null) {
-          navFragment.setStylingOptions(stylingOptions);
+          navFragment.setStylingOptions(new StylingOptionsBuilder.Builder(stylingOptions).build());
         }
       }
       activity

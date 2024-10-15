@@ -15,6 +15,7 @@
  */
 
 #import "NavModule.h"
+#import "NavAutoModule.h"
 #import "NavEventDispatcher.h"
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
@@ -27,6 +28,8 @@
 
 @synthesize enableUpdateInfo = _enableUpdateInfo;
 static NavEventDispatcher *_eventDispatcher;
+static NavigationSessionReadyCallback _navigationSessionReadyCallback;
+static NavigationSessionDisposedCallback _navigationSessionDisposedCallback;
 
 // Static instance of the NavViewModule to allow access from another modules.
 static NavModule *sharedInstance = nil;
@@ -92,6 +95,9 @@ RCT_EXPORT_MODULE(NavModule);
                                    userInfo:nil];
     }
     self->_session = session;
+    if (_navigationSessionReadyCallback) {
+      _navigationSessionReadyCallback();
+    }
   }
 
   _session.started = YES;
@@ -107,6 +113,22 @@ RCT_EXPORT_MODULE(NavModule);
   [navViewModule attachViewsToNavigationSession:_session];
 
   [self onNavigationReady];
+}
+
++ (void)registerNavigationSessionReadyCallback:(NavigationSessionReadyCallback)callback {
+  _navigationSessionReadyCallback = [callback copy];
+}
+
++ (void)unregisterNavigationSessionReadyCallback {
+  _navigationSessionReadyCallback = nil;
+}
+
++ (void)registerNavigationSessionDisposedCallback:(NavigationSessionDisposedCallback)callback {
+  _navigationSessionDisposedCallback = [callback copy];
+}
+
++ (void)unregisterNavigationSessionDisposedCallback {
+  _navigationSessionDisposedCallback = nil;
 }
 
 - (void)showTermsAndConditionsDialog {
@@ -161,6 +183,9 @@ RCT_EXPORT_METHOD(cleanup
 
     self->_session.started = NO;
     self->_session = nil;
+    if (_navigationSessionDisposedCallback) {
+      _navigationSessionDisposedCallback();
+    }
     resolve(@(YES));
   });
 }
