@@ -34,7 +34,7 @@ public class Package implements ReactPackage {
   public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
     List<NativeModule> modules = new ArrayList<>();
     NavViewManager viewManager = NavViewManager.getInstance(reactContext);
-    modules.add(new NavModule(reactContext, viewManager));
+    modules.add(NavModule.getInstance(reactContext, viewManager));
     modules.add(new NavAutoModule(reactContext));
     modules.add(new NavViewModule(reactContext, viewManager));
 
