@@ -75,6 +75,7 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
   private boolean mIsListeningRoadSnappedLocation = false;
 
   private HashMap<String, Object> tocParamsMap;
+  private Navigator.TaskRemovedBehavior taskRemovedBehaviour;
 
   public interface ModuleReadyListener {
     void onModuleReady();
@@ -216,8 +217,10 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
   }
 
   @ReactMethod
-  public void initializeNavigator(@Nullable ReadableMap tocParams) {
+  public void initializeNavigator(@Nullable ReadableMap tocParams, int taskRemovedBehaviourJsValue) {
     this.tocParamsMap = tocParams.toHashMap();
+    this.taskRemovedBehaviour = EnumTranslationUtil.getTaskRemovedBehaviourFromJsValue(taskRemovedBehaviourJsValue);
+
     if (getTermsAccepted()) {
       initializeNavigationApi();
     } else {
@@ -270,6 +273,7 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
           public void onNavigatorReady(Navigator navigator) {
             // Keep a reference to the Navigator (used to configure and start nav)
             mNavigator = navigator;
+            mNavigator.setTaskRemovedBehavior(taskRemovedBehaviour);
             mRoadSnappedLocationProvider =
                 NavigationApi.getRoadSnappedLocationProvider(getCurrentActivity().getApplication());
             onNavigationReady();

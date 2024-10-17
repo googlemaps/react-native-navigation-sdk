@@ -22,13 +22,14 @@ import type {
   RouteSegment,
   TimeAndDistance,
 } from '../types';
-import type {
-  NavigationCallbacks,
-  TermsAndConditionsDialogOptions,
-  NavigationController,
-  RoutingOptions,
-  SpeedAlertOptions,
-  LocationSimulationOptions,
+import {
+  type NavigationCallbacks,
+  type TermsAndConditionsDialogOptions,
+  type NavigationController,
+  type RoutingOptions,
+  type SpeedAlertOptions,
+  type LocationSimulationOptions,
+  TaskRemovedBehavior,
 } from './types';
 import { getRouteStatusFromStringValue } from '../navigationView';
 import { useMemo } from 'react';
@@ -37,7 +38,8 @@ const { NavModule, NavEventDispatcher } = NativeModules;
 const androidBridge: string = 'NavJavascriptBridge';
 
 export const useNavigationController = (
-  termsAndConditionsDialogOptions: TermsAndConditionsDialogOptions
+  termsAndConditionsDialogOptions: TermsAndConditionsDialogOptions,
+  taskRemovedBehavior: TaskRemovedBehavior = TaskRemovedBehavior.CONTINUE_SERVICE
 ): {
   navigationController: NavigationController;
   addListeners: (listeners: Partial<NavigationCallbacks>) => void;
@@ -79,7 +81,8 @@ export const useNavigationController = (
     () => ({
       init: async () => {
         return await NavModule.initializeNavigator(
-          termsAndConditionsDialogOptions
+          termsAndConditionsDialogOptions,
+          taskRemovedBehavior
         );
       },
 

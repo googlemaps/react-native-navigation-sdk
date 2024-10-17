@@ -43,6 +43,17 @@ public class EnumTranslationUtil {
     }
   }
 
+  public static @Navigator.TaskRemovedBehavior int getTaskRemovedBehaviourFromJsValue(int jsValue) {
+    switch (jsValue) {
+      case 0:
+        return Navigator.TaskRemovedBehavior.CONTINUE_SERVICE;
+      case 1:
+        return Navigator.TaskRemovedBehavior.QUIT_SERVICE;
+      default:
+        return Navigator.TaskRemovedBehavior.CONTINUE_SERVICE;
+    }
+  }
+
   public static int getMapTypeFromJsValue(int jsValue) {
     switch (jsValue) {
       case 1:
