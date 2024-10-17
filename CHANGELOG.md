@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.6.1...v0.7.0) (2024-10-15)
+
+
+### Features
+
+* add carplay and android auto support ([#255](https://github.com/googlemaps/react-native-navigation-sdk/issues/255)) ([933209a](https://github.com/googlemaps/react-native-navigation-sdk/commit/933209a9c2fe97077b664aa3ee26b09e29d29d98))
+
 ## [0.6.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.6.0...v0.6.1) (2024-09-27)
 
 
