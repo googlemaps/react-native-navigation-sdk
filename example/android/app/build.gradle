@@ -131,7 +131,7 @@ dependencies {
     // For Android Auto Sample support
     implementation "androidx.car.app:app:1.4.0"
     implementation "androidx.car.app:app-projected:1.4.0"
-    implementation 'com.google.android.libraries.navigation:navigation:5.3.1'
+    implementation 'com.google.android.libraries.navigation:navigation:6.0.0'
 }
 
 secrets {
