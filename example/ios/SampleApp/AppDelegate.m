@@ -36,7 +36,6 @@
   NSString *api_key = [keysDictionary objectForKey:@"API_KEY"];
 
   [GMSServices provideAPIKey:api_key];
-  [GMSServices setMetalRendererEnabled:YES];
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
