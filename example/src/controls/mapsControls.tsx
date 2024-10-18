@@ -77,6 +77,7 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
       case 2:
         return MapType.SATELLITE;
       case 3:
+        /** MapType.TERRAIN does not work during navigation. */
         return MapType.TERRAIN;
       case 4:
         return MapType.HYBRID;
