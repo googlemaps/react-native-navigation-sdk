@@ -37,7 +37,6 @@
   NSString *api_key = [keysDictionary objectForKey:@"API_KEY"];
 
   [GMSServices provideAPIKey:api_key];
-  [GMSServices setMetalRendererEnabled:YES];
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
   self.rootView = [[RCTRootView alloc] initWithBridge:bridge
                                            moduleName:self.moduleName

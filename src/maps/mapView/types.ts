@@ -117,7 +117,7 @@ export enum MapType {
   NORMAL,
   /** Satellite maps with a transparent layer of major streets. */
   SATELLITE,
-  /** Shows the terrain of the map only */
+  /** Shows the terrain of the map only. This map type does not work during navigation. */
   TERRAIN,
   /** Satellite maps with a transparent layer of major streets. */
   HYBRID,
