@@ -195,7 +195,11 @@ export const useNavigationController = (
         },
       },
     }),
-    [moduleListenersHandler, termsAndConditionsDialogOptions]
+    [
+      moduleListenersHandler,
+      taskRemovedBehavior,
+      termsAndConditionsDialogOptions,
+    ]
   );
 
   return {
