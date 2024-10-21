@@ -75,7 +75,7 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
   private boolean mIsListeningRoadSnappedLocation = false;
 
   private HashMap<String, Object> tocParamsMap;
-  private Navigator.TaskRemovedBehavior taskRemovedBehaviour;
+  private @Navigator.TaskRemovedBehavior int taskRemovedBehaviour;
 
   public interface ModuleReadyListener {
     void onModuleReady();
@@ -217,9 +217,11 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
   }
 
   @ReactMethod
-  public void initializeNavigator(@Nullable ReadableMap tocParams, int taskRemovedBehaviourJsValue) {
+  public void initializeNavigator(
+      @Nullable ReadableMap tocParams, int taskRemovedBehaviourJsValue) {
     this.tocParamsMap = tocParams.toHashMap();
-    this.taskRemovedBehaviour = EnumTranslationUtil.getTaskRemovedBehaviourFromJsValue(taskRemovedBehaviourJsValue);
+    this.taskRemovedBehaviour =
+        EnumTranslationUtil.getTaskRemovedBehaviourFromJsValue(taskRemovedBehaviourJsValue);
 
     if (getTermsAccepted()) {
       initializeNavigationApi();
