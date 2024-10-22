@@ -19,6 +19,7 @@ import type {
   NavigationController,
   NavigationCallbacks,
   TermsAndConditionsDialogOptions,
+  TaskRemovedBehavior,
 } from './types';
 import { useNavigationController } from './useNavigationController';
 
@@ -34,15 +35,20 @@ const NavigationContext = createContext<NavigationContextProps | undefined>(
 
 interface NavigationProviderProps {
   termsAndConditionsDialogOptions: TermsAndConditionsDialogOptions;
+  taskRemovedBehavior?: TaskRemovedBehavior;
   children: ReactNode;
 }
 
 export const NavigationProvider = ({
   termsAndConditionsDialogOptions,
+  taskRemovedBehavior,
   children,
 }: NavigationProviderProps) => {
   const { navigationController, addListeners, removeListeners } =
-    useNavigationController(termsAndConditionsDialogOptions);
+    useNavigationController(
+      termsAndConditionsDialogOptions,
+      taskRemovedBehavior
+    );
   return (
     <NavigationContext.Provider
       value={{

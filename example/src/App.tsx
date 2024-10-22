@@ -26,6 +26,7 @@ import NavigationScreen from './screens/NavigationScreen';
 import MultipleMapsScreen from './screens/MultipleMapsScreen';
 import {
   NavigationProvider,
+  TaskRemovedBehavior,
   type TermsAndConditionsDialogOptions,
 } from '@googlemaps/react-native-navigation-sdk';
 
@@ -67,6 +68,7 @@ export default function App() {
   return (
     <NavigationProvider
       termsAndConditionsDialogOptions={termsAndConditionsDialogOptions}
+      taskRemovedBehavior={TaskRemovedBehavior.CONTINUE_SERVICE}
     >
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Home">

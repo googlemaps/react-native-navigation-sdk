@@ -393,6 +393,16 @@ export interface NavigationController {
 }
 
 /**
+ * Defines how application should behave when a application task is removed.
+ */
+export enum TaskRemovedBehavior {
+  /** The default state, indicating that navigation guidance, location updates, and notification should persist after user removes the application task. */
+  CONTINUE_SERVICE = 0,
+  /** Indicates that navigation guidance, location updates, and notification should shut down immediately when the user removes the application task. */
+  QUIT_SERVICE,
+}
+
+/**
  * Defines the turn-by-turn event data.
  */
 export interface TurnByTurnEvent {}
