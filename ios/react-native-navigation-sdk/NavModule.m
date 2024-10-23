@@ -151,7 +151,10 @@ RCT_EXPORT_MODULE(NavModule);
                                                               }];
 }
 
-RCT_EXPORT_METHOD(initializeNavigator : (NSDictionary *)options) {
+RCT_EXPORT_METHOD(initializeNavigator
+                  : (NSDictionary *)options
+                  // taskRemovedBehaviourValue is Android only value and not used on iOS.
+                  : (nonnull NSNumber *)taskRemovedBehaviourValue) {
   dispatch_async(dispatch_get_main_queue(), ^{
     self->_tosParams = options;
     [self showTermsAndConditionsDialog];
