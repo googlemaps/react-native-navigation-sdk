@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.7.0...v0.8.0) (2024-10-24)
+
+
+### Features
+
+* support navigation disposal on app exit on android ([#308](https://github.com/googlemaps/react-native-navigation-sdk/issues/308)) ([6c6123b](https://github.com/googlemaps/react-native-navigation-sdk/commit/6c6123b208ccbd7779aab1b7b8e0c9afd4da2d00))
+* update navigation sdk versions (iOS -&gt; 9.1.2, Android -> 6.0.0) and min iOS version to 15 ([#306](https://github.com/googlemaps/react-native-navigation-sdk/issues/306)) ([cdd7b68](https://github.com/googlemaps/react-native-navigation-sdk/commit/cdd7b686e630b85f7945aee2a4a5802d2045e96a))
+
+
+### Bug Fixes
+
+* enable navigation map on carplay ([#315](https://github.com/googlemaps/react-native-navigation-sdk/issues/315)) ([aa56cbe](https://github.com/googlemaps/react-native-navigation-sdk/commit/aa56cbe8ee8ee955fb11c05fe55be4d6415a536d))
+* handle navigation listeners on NavigationProvider mount and unmount ([#294](https://github.com/googlemaps/react-native-navigation-sdk/issues/294)) ([6674a4f](https://github.com/googlemaps/react-native-navigation-sdk/commit/6674a4fbf95f7939d7ebd5a99672fea9eeef5e22))
+* handle taskRemovedBehaviourValue on iOS ([#314](https://github.com/googlemaps/react-native-navigation-sdk/issues/314)) ([2e1137e](https://github.com/googlemaps/react-native-navigation-sdk/commit/2e1137e62bd94500de709cdaafab4169fedc49d8))
+
 ## [0.7.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.6.1...v0.7.0) (2024-10-15)
 
 
