@@ -830,6 +830,7 @@ public class NavModule extends ReactContextBaseJavaModule
 
   @Override
   public void onHostResume() {
+    // Re-register listeners on resume.
     if (mNavigator != null) {
       registerNavigationListeners();
       if (mIsListeningRoadSnappedLocation) {
@@ -839,10 +840,7 @@ public class NavModule extends ReactContextBaseJavaModule
   }
 
   @Override
-  public void onHostPause() {
-    removeLocationListener();
-    removeNavigationListeners();
-  }
+  public void onHostPause() {}
 
   @Override
   public void onHostDestroy() {}
