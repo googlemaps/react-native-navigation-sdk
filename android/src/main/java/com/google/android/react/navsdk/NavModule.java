@@ -19,6 +19,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.CatalystInstance;
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.NativeArray;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -58,7 +59,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * This exposes a series of methods that can be called diretly from the React Native code. They have
  * been implemented using promises as it's not recommended for them to be synchronous.
  */
-public class NavModule extends ReactContextBaseJavaModule implements INavigationCallback {
+public class NavModule extends ReactContextBaseJavaModule
+    implements INavigationCallback, LifecycleEventListener {
   public static final String REACT_CLASS = "NavModule";
   private static final String TAG = "NavModule";
   private static NavModule instance;
@@ -73,6 +75,12 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
   private final CopyOnWriteArrayList<NavigationReadyListener> mNavigationReadyListeners =
       new CopyOnWriteArrayList<>();
   private boolean mIsListeningRoadSnappedLocation = false;
+  private LocationListener mLocationListener;
+  private Navigator.ArrivalListener mArrivalListener;
+  private Navigator.RouteChangedListener mRouteChangedListener;
+  private Navigator.TrafficUpdatedListener mTrafficUpdatedListener;
+  private Navigator.ReroutingListener mReroutingListener;
+  private Navigator.RemainingTimeOrDistanceChangedListener mRemainingTimeOrDistanceChangedListener;
 
   private HashMap<String, Object> tocParamsMap;
   private @Navigator.TaskRemovedBehavior int taskRemovedBehaviour;
@@ -87,19 +95,22 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
 
   public NavModule(ReactApplicationContext reactContext, NavViewManager navViewManager) {
     super(reactContext);
-    this.reactContext = reactContext;
-    mNavViewManager = navViewManager;
-    instance = this;
+    setReactContext(reactContext);
+    setViewManager(navViewManager);
     if (moduleReadyListener != null) {
       moduleReadyListener.onModuleReady();
     }
   }
 
-  public static void setModuleReadyListener(ModuleReadyListener listener) {
-    moduleReadyListener = listener;
-    if (instance != null && moduleReadyListener != null) {
-      moduleReadyListener.onModuleReady();
+  public static synchronized NavModule getInstance(
+      ReactApplicationContext reactContext, NavViewManager navViewManager) {
+    if (instance == null) {
+      instance = new NavModule(reactContext, navViewManager);
+    } else {
+      instance.setReactContext(reactContext);
+      instance.setViewManager(navViewManager);
     }
+    return instance;
   }
 
   public static synchronized NavModule getInstance() {
@@ -107,6 +118,22 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
       throw new IllegalStateException(REACT_CLASS + " instance is null");
     }
     return instance;
+  }
+
+  public void setReactContext(ReactApplicationContext reactContext) {
+    this.reactContext = reactContext;
+    this.reactContext.addLifecycleEventListener(this);
+  }
+
+  public void setViewManager(NavViewManager navViewManager) {
+    mNavViewManager = navViewManager;
+  }
+
+  public static void setModuleReadyListener(ModuleReadyListener listener) {
+    moduleReadyListener = listener;
+    if (instance != null && moduleReadyListener != null) {
+      moduleReadyListener.onModuleReady();
+    }
   }
 
   public Navigator getNavigator() {
@@ -124,85 +151,10 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
     return constants;
   }
 
-  private Navigator.ArrivalListener mArrivalListener =
-      new Navigator.ArrivalListener() {
-        @Override
-        public void onArrival(ArrivalEvent arrivalEvent) {
-          WritableMap map = Arguments.createMap();
-          map.putMap(
-              "waypoint", ObjectTranslationUtil.getMapFromWaypoint(arrivalEvent.getWaypoint()));
-          map.putBoolean("isFinalDestination", arrivalEvent.isFinalDestination());
-
-          WritableNativeArray params = new WritableNativeArray();
-          params.pushMap(map);
-
-          sendCommandToReactNative("onArrival", params);
-        }
-      };
-
-  private LocationListener mLocationListener =
-      new LocationListener() {
-        @Override
-        public void onLocationChanged(final Location location) {
-          WritableNativeArray params = new WritableNativeArray();
-          params.pushMap(ObjectTranslationUtil.getMapFromLocation(location));
-
-          sendCommandToReactNative("onLocationChanged", params);
-        }
-
-        @Override
-        public void onRawLocationUpdate(final Location location) {
-          WritableNativeArray params = new WritableNativeArray();
-          params.pushMap(ObjectTranslationUtil.getMapFromLocation(location));
-
-          sendCommandToReactNative("onRawLocationChanged", params);
-        }
-      };
-
-  private Navigator.RouteChangedListener mRouteChangedListener =
-      new Navigator.RouteChangedListener() {
-        @Override
-        public void onRouteChanged() {
-          sendCommandToReactNative("onRouteChanged", (NativeArray) null);
-        }
-      };
-
-  private Navigator.TrafficUpdatedListener mTrafficUpdatedListener =
-      new Navigator.TrafficUpdatedListener() {
-        @Override
-        public void onTrafficUpdated() {
-          sendCommandToReactNative("onTrafficUpdated", (NativeArray) null);
-        }
-      };
-
-  private Navigator.ReroutingListener mReroutingListener =
-      new Navigator.ReroutingListener() {
-        @Override
-        public void onReroutingRequestedByOffRoute() {
-          sendCommandToReactNative("onReroutingRequestedByOffRoute", (NativeArray) null);
-        }
-      };
-
-  private Navigator.RemainingTimeOrDistanceChangedListener mRemainingTimeOrDistanceChangedListener =
-      new Navigator.RemainingTimeOrDistanceChangedListener() {
-        @Override
-        public void onRemainingTimeOrDistanceChanged() {
-          sendCommandToReactNative("onRemainingTimeOrDistanceChanged", (NativeArray) null);
-        }
-      };
-
   @ReactMethod
   private void cleanup() {
-    if (mIsListeningRoadSnappedLocation) {
-      mRoadSnappedLocationProvider.removeLocationListener(mLocationListener);
-    }
-    mNavigator.unregisterServiceForNavUpdates();
-    mNavigator.removeArrivalListener(mArrivalListener);
-    mNavigator.removeReroutingListener(mReroutingListener);
-    mNavigator.removeRouteChangedListener(mRouteChangedListener);
-    mNavigator.removeTrafficUpdatedListener(mTrafficUpdatedListener);
-    mNavigator.removeRemainingTimeOrDistanceChangedListener(
-        mRemainingTimeOrDistanceChangedListener);
+    stopUpdatingLocation();
+    removeNavigationListeners();
     mWaypoints.clear();
 
     for (NavigationReadyListener listener : mNavigationReadyListeners) {
@@ -276,8 +228,12 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
             // Keep a reference to the Navigator (used to configure and start nav)
             mNavigator = navigator;
             mNavigator.setTaskRemovedBehavior(taskRemovedBehaviour);
-            mRoadSnappedLocationProvider =
-                NavigationApi.getRoadSnappedLocationProvider(getCurrentActivity().getApplication());
+            if (mRoadSnappedLocationProvider == null) {
+              mRoadSnappedLocationProvider =
+                  NavigationApi.getRoadSnappedLocationProvider(
+                      getCurrentActivity().getApplication());
+            }
+            registerNavigationListeners();
             onNavigationReady();
           }
 
@@ -330,21 +286,80 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
    * navigation events occur (e.g. the driver's route changes or the destination is reached).
    */
   private void registerNavigationListeners() {
+    removeNavigationListeners();
+
+    mArrivalListener =
+        new Navigator.ArrivalListener() {
+          @Override
+          public void onArrival(ArrivalEvent arrivalEvent) {
+            WritableMap map = Arguments.createMap();
+            map.putMap(
+                "waypoint", ObjectTranslationUtil.getMapFromWaypoint(arrivalEvent.getWaypoint()));
+            map.putBoolean("isFinalDestination", arrivalEvent.isFinalDestination());
+
+            WritableNativeArray params = new WritableNativeArray();
+            params.pushMap(map);
+
+            sendCommandToReactNative("onArrival", params);
+          }
+        };
     mNavigator.addArrivalListener(mArrivalListener);
+
+    mRouteChangedListener =
+        new Navigator.RouteChangedListener() {
+          @Override
+          public void onRouteChanged() {
+            sendCommandToReactNative("onRouteChanged", (NativeArray) null);
+          }
+        };
     mNavigator.addRouteChangedListener(mRouteChangedListener);
+
+    mTrafficUpdatedListener =
+        new Navigator.TrafficUpdatedListener() {
+          @Override
+          public void onTrafficUpdated() {
+            sendCommandToReactNative("onTrafficUpdated", (NativeArray) null);
+          }
+        };
     mNavigator.addTrafficUpdatedListener(mTrafficUpdatedListener);
+
+    mReroutingListener =
+        new Navigator.ReroutingListener() {
+          @Override
+          public void onReroutingRequestedByOffRoute() {
+            sendCommandToReactNative("onReroutingRequestedByOffRoute", (NativeArray) null);
+          }
+        };
     mNavigator.addReroutingListener(mReroutingListener);
+
+    mRemainingTimeOrDistanceChangedListener =
+        new Navigator.RemainingTimeOrDistanceChangedListener() {
+          @Override
+          public void onRemainingTimeOrDistanceChanged() {
+            sendCommandToReactNative("onRemainingTimeOrDistanceChanged", (NativeArray) null);
+          }
+        };
     mNavigator.addRemainingTimeOrDistanceChangedListener(
         0, 0, mRemainingTimeOrDistanceChangedListener);
   }
 
   private void removeNavigationListeners() {
-    mNavigator.removeArrivalListener(mArrivalListener);
-    mNavigator.removeRouteChangedListener(mRouteChangedListener);
-    mNavigator.removeTrafficUpdatedListener(mTrafficUpdatedListener);
-    mNavigator.removeReroutingListener(mReroutingListener);
-    mNavigator.removeRemainingTimeOrDistanceChangedListener(
-        mRemainingTimeOrDistanceChangedListener);
+    if (mArrivalListener != null) {
+      mNavigator.removeArrivalListener(mArrivalListener);
+    }
+    if (mRouteChangedListener != null) {
+      mNavigator.removeRouteChangedListener(mRouteChangedListener);
+    }
+    if (mTrafficUpdatedListener != null) {
+      mNavigator.removeTrafficUpdatedListener(mTrafficUpdatedListener);
+    }
+    if (mReroutingListener != null) {
+      mNavigator.removeReroutingListener(mReroutingListener);
+    }
+    if (mRemainingTimeOrDistanceChangedListener != null) {
+      mNavigator.removeRemainingTimeOrDistanceChangedListener(
+          mRemainingTimeOrDistanceChangedListener);
+    }
   }
 
   private void createWaypoint(Map map) {
@@ -468,14 +483,6 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
             @Override
             public void onResult(Navigator.RouteStatus code) {
               listener.onResult(code);
-              switch (code) {
-                case OK:
-                  removeNavigationListeners();
-                  registerNavigationListeners();
-                  break;
-                default:
-                  break;
-              }
             }
           });
   }
@@ -725,14 +732,54 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
 
   @ReactMethod
   public void startUpdatingLocation() {
-    mRoadSnappedLocationProvider.addLocationListener(mLocationListener);
+    registerLocationListener();
     mIsListeningRoadSnappedLocation = true;
   }
 
   @ReactMethod
   public void stopUpdatingLocation() {
     mIsListeningRoadSnappedLocation = false;
-    mRoadSnappedLocationProvider.removeLocationListener(mLocationListener);
+    removeLocationListener();
+  }
+
+  private void registerLocationListener() {
+    // Unregister existing location listener if available.
+    removeLocationListener();
+
+    if (mRoadSnappedLocationProvider != null) {
+      mLocationListener =
+          new LocationListener() {
+            @Override
+            public void onLocationChanged(final Location location) {
+              if (mIsListeningRoadSnappedLocation) {
+                WritableNativeArray params = new WritableNativeArray();
+                params.pushMap(ObjectTranslationUtil.getMapFromLocation(location));
+
+                sendCommandToReactNative("onLocationChanged", params);
+              }
+            }
+
+            @Override
+            public void onRawLocationUpdate(final Location location) {
+              if (mIsListeningRoadSnappedLocation) {
+                WritableNativeArray params = new WritableNativeArray();
+                params.pushMap(ObjectTranslationUtil.getMapFromLocation(location));
+
+                sendCommandToReactNative("onRawLocationChanged", params);
+              }
+            }
+          };
+
+      mRoadSnappedLocationProvider.resetFreeNav();
+      mRoadSnappedLocationProvider.addLocationListener(mLocationListener);
+    }
+  }
+
+  private void removeLocationListener() {
+    if (mRoadSnappedLocationProvider != null && mLocationListener != null) {
+      mRoadSnappedLocationProvider.removeLocationListener(mLocationListener);
+      mLocationListener = null;
+    }
   }
 
   private void showNavInfo(NavInfo navInfo) {
@@ -780,6 +827,23 @@ public class NavModule extends ReactContextBaseJavaModule implements INavigation
   public boolean canOverrideExistingModule() {
     return true;
   }
+
+  @Override
+  public void onHostResume() {
+    // Re-register listeners on resume.
+    if (mNavigator != null) {
+      registerNavigationListeners();
+      if (mIsListeningRoadSnappedLocation) {
+        registerLocationListener();
+      }
+    }
+  }
+
+  @Override
+  public void onHostPause() {}
+
+  @Override
+  public void onHostDestroy() {}
 
   private interface IRouteStatusResult {
     void onResult(Navigator.RouteStatus code);
