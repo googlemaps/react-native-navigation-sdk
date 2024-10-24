@@ -4,7 +4,7 @@ This guide explains how to enable and integrate Apple CarPlay with the React Nat
 
 ## Requirements
 
-- iOS device or iOS simulator (iOS 14.0+)
+- iOS device or iOS simulator (iOS 15.0+)
 - CarPlay Simulator
 - CarPlay entitlement for your application (provided by Apple)
 

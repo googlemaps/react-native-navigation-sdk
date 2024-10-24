@@ -15,13 +15,15 @@
 import groovy.json.JsonSlurper
 
 buildscript {
+    ext.kotlin_version = '2.0.0'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:7.2.1")
+        classpath("com.android.tools.build:gradle:8.4.0")
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
@@ -76,6 +78,6 @@ dependencies {
     implementation 'com.facebook.react:react-native:+'
     implementation 'com.android.support:multidex:1.0.3'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation "com.google.android.libraries.navigation:navigation:5.3.1"
+    implementation "com.google.android.libraries.navigation:navigation:6.0.0"
     api 'com.google.guava:guava:31.0.1-android'
 }
