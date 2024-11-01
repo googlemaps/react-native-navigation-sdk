@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.8.0...v0.8.1) (2024-11-01)
+
+
+### Bug Fixes
+
+* onMarkerClick and onMarkerInfoWindowTapped on Android ([#322](https://github.com/googlemaps/react-native-navigation-sdk/issues/322)) ([1c461be](https://github.com/googlemaps/react-native-navigation-sdk/commit/1c461becf544837cb6ecc20d435125b017a248ec))
+
 ## [0.8.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.7.0...v0.8.0) (2024-10-24)
 
 
