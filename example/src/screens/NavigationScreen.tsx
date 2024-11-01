@@ -258,7 +258,6 @@ const NavigationScreen = () => {
   useEffect(() => {
     (async () => {
       const isAvailable = await mapViewAutoController.isAutoScreenAvailable();
-      console.log('isAutoScreenAvailable:', isAvailable);
       setMapViewAutoAvailable(isAvailable);
     })();
   }, [mapViewAutoController]);
@@ -312,7 +311,10 @@ const NavigationScreen = () => {
       onMapReady,
       onMarkerClick: (marker: Marker) => {
         console.log('onMarkerClick:', marker);
-        mapViewController?.removeMarker(marker.id);
+        showSnackbar('Removing marker in 5 seconds');
+        setTimeout(() => {
+          mapViewController?.removeMarker(marker.id);
+        }, 5000);
       },
       onPolygonClick: (polygon: Polygon) => {
         console.log('onPolygonClick:', polygon);

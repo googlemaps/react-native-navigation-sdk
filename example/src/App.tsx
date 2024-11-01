@@ -17,6 +17,7 @@
 import * as React from 'react';
 import {
   NavigationContainer,
+  useIsFocused,
   useNavigation,
   type NavigationProp,
 } from '@react-navigation/native';
@@ -37,15 +38,20 @@ export type StackNavigation = NavigationProp<RootStackParamList>;
 
 const HomeScreen = () => {
   const { navigate } = useNavigation<StackNavigation>();
+  const isFocused = useIsFocused();
+
   return (
     <View style={styles.container}>
       <View style={styles.buttonContainer}>
-        <Button title="Navigation" onPress={() => navigate('Navigation')} />
+        <Button
+          title="Navigation"
+          onPress={() => isFocused && navigate('Navigation')}
+        />
       </View>
       <View style={styles.buttonContainer}>
         <Button
           title="Multiple Maps"
-          onPress={() => navigate('Multiple maps')}
+          onPress={() => isFocused && navigate('Multiple maps')}
         />
       </View>
     </View>
