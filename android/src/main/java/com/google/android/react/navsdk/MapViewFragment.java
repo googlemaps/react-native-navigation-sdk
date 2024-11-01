@@ -113,7 +113,7 @@ public class MapViewFragment extends SupportMapFragment
 
   @Override
   public void onMarkerClick(Marker marker) {
-    emitEvent("onMapReady", ObjectTranslationUtil.getMapFromMarker(marker));
+    emitEvent("onMarkerClick", ObjectTranslationUtil.getMapFromMarker(marker));
   }
 
   @Override
@@ -138,7 +138,7 @@ public class MapViewFragment extends SupportMapFragment
 
   @Override
   public void onMarkerInfoWindowTapped(Marker marker) {
-    emitEvent("onInfoWindowClick", ObjectTranslationUtil.getMapFromMarker(marker));
+    emitEvent("onMarkerInfoWindowTapped", ObjectTranslationUtil.getMapFromMarker(marker));
   }
 
   @Override
