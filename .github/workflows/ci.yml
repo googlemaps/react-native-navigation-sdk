@@ -171,7 +171,7 @@ jobs:
 
   build-ios:
     runs-on: macos-14
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       TURBO_CACHE_DIR: .turbo/ios
     steps:
