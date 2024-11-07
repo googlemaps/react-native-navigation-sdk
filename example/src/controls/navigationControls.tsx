@@ -127,7 +127,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       placeId: 'ChIJkXCsHWSAhYARsGBBQYcj-V0', // 1 Market st, SF
     };
 
-    const map = [wp1, wp2];
+    const waypoints = [wp1, wp2];
 
     const routingOptions: RoutingOptions = {
       travelMode: TravelMode.DRIVING,
@@ -135,7 +135,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       avoidTolls: false,
     };
 
-    navigationController.setDestinations(map, routingOptions);
+    navigationController.setDestinations(waypoints, routingOptions);
   };
 
   const setFollowingPerspective = (index: CameraPerspective) => {

@@ -65,13 +65,137 @@ To set up, specify your API key in the application delegate `ios/Runner/AppDeleg
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   [GMSServices provideAPIKey:@"API_KEY"];
-  [GMSServices setMetalRendererEnabled:YES];
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
 ```
 
 ## Usage
+
+### Initializing Navigation
+Wrap application with the `NavigationProvider` component. This will provide the necessary context for navigation throughout your app.
+
+```tsx
+import React from 'react';
+import {
+  NavigationProvider,
+  TaskRemovedBehavior,
+  type TermsAndConditionsDialogOptions,
+} from '@googlemaps/react-native-navigation-sdk';
+
+const termsAndConditionsDialogOptions: TermsAndConditionsDialogOptions = {
+  title: 'Terms and Conditions Title',
+  companyName: 'Your Company Name',
+  showOnlyDisclaimer: true,
+};
+
+const App = () => {
+  return (
+    <NavigationProvider
+      termsAndConditionsDialogOptions={termsAndConditionsDialogOptions}
+      taskRemovedBehavior={TaskRemovedBehavior.CONTINUE_SERVICE}
+    >
+      {/* Add your application components here */}
+    </NavigationProvider>
+  );
+};
+
+export default App;
+```
+
+#### Task Removed Behavior
+
+The `taskRemovedBehavior` prop defines how the navigation should behave when a task is removed from the recent apps list on Android. It can either:
+
+- `CONTINUE_SERVICE`: Continue running in the background. (default)
+- `QUIT_SERVICE`: Shut down immediately.
+
+This prop has only an effect on Android.
+
+### Using NavigationController
+
+You can use the `useNavigation` hook to access the `NavigationController` and control navigation within your components. The `useNavigation` hook also provides methods to add and remove listeners.
+
+#### Initializing Navigation
+
+```tsx
+...
+const { navigationController } = useNavigation();
+
+const initializeNavigation = useCallback(async () => {
+  try {
+    await navigationController.init();
+    console.log('Navigation initialized');
+  } catch (error) {
+    console.error('Error initializing navigation', error);
+  }
+}, [navigationController]);
+```
+
+> [!NOTE]
+> Navigation can be controlled separately from the navigation views allowing navigation to be started and stopped independently.
+
+
+#### Starting Navigation
+To start navigation, set a destination and start guidance:
+
+```tsx
+try {
+  const waypoint = {
+    title: 'Destination',
+    position: {
+      lat: 37.4220679,
+      lng: -122.0859545,
+    },
+  };
+
+  const routingOptions = {
+    travelMode: TravelMode.DRIVING,
+    avoidFerries: false,
+    avoidTolls: false,
+  };
+
+  await navigationController.setDestinations([waypoint], routingOptions);
+  await navigationController.startGuidance();
+} catch (error) {
+  console.error('Error starting navigation', error);
+}
+
+```
+
+
+#### Adding navigation listeners
+
+```tsx
+const { navigationController, addListeners, removeListeners } = useNavigation();
+
+const onArrival = useCallback((event: ArrivalEvent) => {
+    if (event.isFinalDestination) {
+        console.log('Final destination reached');
+        navigationController.stopGuidance();
+    } else {
+        console.log('Continuing to the next destination');
+        navigationController.continueToNextDestination();
+        navigationController.startGuidance();
+    }
+}, [navigationController]);
+
+const navigationCallbacks = useMemo(() => ({
+    onArrival,
+    // Add other callbacks here
+}), [onArrival]);
+
+useEffect(() => {
+    addListeners(navigationCallbacks);
+    return () => {
+        removeListeners(navigationCallbacks);
+    };
+}, [navigationCallbacks, addListeners, removeListeners]);
+```
+
+See `NavigationCallbacks` interface for a list of available callbacks. 
+
+When removing listeners, ensure you pass the same object that was used when adding them, as multiple listeners can be registered for the same event.
 
 ### Add a navigation view
 
@@ -83,24 +207,24 @@ The `NavigationView` compoonent should be used within a View with a bounded size
 in an unbounded widget will cause the application to behave unexpectedly.
 
 ```tsx
-    // Permissions must have been granted by this point.
+// Permissions must have been granted by this point.
 
-    <NavigationView
-        androidStylingOptions={{
-            primaryDayModeThemeColor: '#34eba8',
-            headerDistanceValueTextColor: '#76b5c5',
-            headerInstructionsFirstRowTextSize: '20f',
-        }}
-        iOSStylingOptions={{
-            navigationHeaderPrimaryBackgroundColor: '#34eba8',
-            navigationHeaderDistanceValueTextColor: '#76b5c5',
-        }}
-        navigationViewCallbacks={navigationViewCallbacks}
-        mapViewCallbacks={mapViewCallbacks}
-        onMapViewControllerCreated={setMapViewController}
-        onNavigationViewControllerCreated={setNavigationViewController}
-        termsAndConditionsDialogOptions={termsAndConditionsDialogOptions}
-    />
+<NavigationView
+    androidStylingOptions={{
+        primaryDayModeThemeColor: '#34eba8',
+        headerDistanceValueTextColor: '#76b5c5',
+        headerInstructionsFirstRowTextSize: '20f',
+    }}
+    iOSStylingOptions={{
+        navigationHeaderPrimaryBackgroundColor: '#34eba8',
+        navigationHeaderDistanceValueTextColor: '#76b5c5',
+    }}
+    navigationViewCallbacks={navigationViewCallbacks}
+    mapViewCallbacks={mapViewCallbacks}
+    onMapViewControllerCreated={setMapViewController}
+    onNavigationViewControllerCreated={setNavigationViewController}
+    termsAndConditionsDialogOptions={termsAndConditionsDialogOptions}
+/>
 ```
 
 ### Add a map view
@@ -113,8 +237,6 @@ You can also add a bare `MapView` that works as a normal map view without naviga
     onMapViewControllerCreated={setMapViewController}
 />
 ```
-
-See the [example](./example) directory for a complete navigation sample app.
 
 ### Requesting and handling permissions
 
@@ -158,6 +280,10 @@ By default, `NavigationView` uses all the available space provided to it. To adj
         ...
     />
 ```
+
+### Sample application
+
+See the [example](./example) directory for a complete navigation sample app.
 
 ## Support for Android Auto and Apple CarPlay
 This plugin is compatible with both Android Auto and Apple CarPlay infotainment systems. For more details, please refer to the respective platform documentation:
