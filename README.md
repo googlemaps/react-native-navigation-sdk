@@ -122,7 +122,7 @@ You can use the `useNavigation` hook to access the `NavigationController` and co
 ...
 const { navigationController } = useNavigation();
 
-const initializeNavigation = useCallback(() => {
+const initializeNavigation = useCallback(async () => {
   try {
     await navigationController.init();
     console.log('Navigation initialized');
@@ -151,7 +151,7 @@ try {
 
   const routingOptions = {
     travelMode: TravelMode.DRIVING,
-    avoidFerries: true,
+    avoidFerries: false,
     avoidTolls: false,
   };
 
@@ -169,7 +169,7 @@ try {
 ```tsx
 const { navigationController, addListeners, removeListeners } = useNavigation();
 
-const onArrival = useCallback((event) => {
+const onArrival = useCallback((event: ArrivalEvent) => {
     if (event.isFinalDestination) {
         console.log('Final destination reached');
         navigationController.stopGuidance();
@@ -183,7 +183,7 @@ const onArrival = useCallback((event) => {
 const navigationCallbacks = useMemo(() => ({
     onArrival,
     // Add other callbacks here
-}), [onRouteChanged, onArrival]);
+}), [onArrival]);
 
 useEffect(() => {
     addListeners(navigationCallbacks);

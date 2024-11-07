@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as React from 'react';
+import React from 'react';
 import {
   NavigationContainer,
   useIsFocused,
@@ -68,7 +68,7 @@ const Stack = createStackNavigator();
 
 /**
  * Root component of the application.
- * @return {NavigationContainer} The NavigationContainer as a root component.
+ * @return {NavigationProvider} The NavigationProvider as a root component.
  */
 export default function App() {
   return (
