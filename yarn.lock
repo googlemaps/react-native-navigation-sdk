@@ -1983,7 +1983,7 @@ __metadata:
     typescript: ">=4.3.5 <5.4.0"
   peerDependencies:
     react: "*"
-    react-native: ">=0.74.1 <0.76.0"
+    react-native: <0.75.0
   languageName: unknown
   linkType: soft
 

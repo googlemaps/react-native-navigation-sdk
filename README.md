@@ -13,7 +13,7 @@ This repository contains a React Native plugin that provides a [Google Navigatio
 | ------------------------------- | ------- | --------- |
 | **Minimum mobile OS supported** | SDK 23+ | iOS 15.0+ |
 
-* A React Native project with supported versions `>=0.74.1 <0.76.0`
+* A React Native project with supported version `<0.75.0`
 * A Google Cloud project
   *  If you are a Mobility Services developer, you must contact Sales as described in [Mobility services documentation](https://developers.google.com/maps/documentation/transportation-logistics/mobility).
   *  If you are not a Mobility Services developer, refer to [Setup Google Cloud Project](https://developers.google.com/maps/documentation/navigation/android-sdk/cloud-setup) for instructions.
