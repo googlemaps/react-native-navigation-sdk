@@ -33,7 +33,8 @@
     "@react-native/babel-preset": "0.76.2",
     "@react-native/metro-config": "0.76.2",
     "@react-native/typescript-config": "0.76.2",
-    "babel-plugin-module-resolver": "^5.0.0"
+    "babel-plugin-module-resolver": "^5.0.0",
+    "detox": "^20.27.6"
   },
   "engines": {
     "node": ">=18"
