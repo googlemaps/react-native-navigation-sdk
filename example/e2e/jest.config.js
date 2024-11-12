@@ -25,4 +25,9 @@ module.exports = {
   reporters: ['detox/runners/jest/reporter'],
   testEnvironment: 'detox/runners/jest/testEnvironment',
   verbose: true,
+  globals: {
+    detox: {
+      configuration: process.env.DETOX_CONFIGURATION || 'ios.sim.debug',
+    },
+  },
 };
