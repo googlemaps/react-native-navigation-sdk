@@ -31,7 +31,7 @@ pre-commit:
       glob: '*.{js,ts, jsx, tsx}'
       run: npx tsc --noEmit
     test:
-      run: npx jest --passWithNoTests
+      run: yarn run example test:ios
 commit-msg:
   parallel: true
   commands:
