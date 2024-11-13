@@ -52,3 +52,4 @@ jobs:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_ready }}
     uses: ./.github/workflows/publish.yml
+    secrets: inherit
