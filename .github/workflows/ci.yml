@@ -195,6 +195,8 @@ jobs:
 
           if [[ $TURBO_CACHE_STATUS == "HIT" ]]; then
             echo "turbo_cache_hit=1" >> $GITHUB_ENV
+          else
+            echo "turbo_cache_hit=0" >> $GITHUB_ENV
           fi
 
       - name: Cache cocoapods
@@ -212,7 +214,7 @@ jobs:
         if: env.turbo_cache_hit != 1 || steps.cocoapods-cache.outputs.cache-hit != 'true'
         run: |
           cd example/ios
-          pod install
+          RCT_NEW_ARCH_ENABLED=0 pod install
         env:
           NO_FLIPPER: 1
 

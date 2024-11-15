@@ -36,8 +36,10 @@
 		</dict>
 	</dict>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>[Enter any description related to the key]</string>
+	<string>[Add your description here]</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>[Add your description here]</string>
+	<key>NSLocationAlwaysUsageDescription</key>
 	<string>[Add your description here]</string>
 	<key>UIBackgroundModes</key>
 	<array>
@@ -60,9 +62,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>[NSLocationAlwaysUsageDescription]</key>
-	<string>Enter any description related to the key</string>
-	<key>[NSLocationWhenInUseUsageDescription]</key>
-	<string>Enter any description related to the key</string>
 </dict>
 </plist>

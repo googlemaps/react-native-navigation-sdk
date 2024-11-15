@@ -1,3 +1,6 @@
+# Disable new arch as it is not supported by the current version of package
+ENV['RCT_NEW_ARCH_ENABLED'] = '0'
+
 def node_require(script)
   # Resolve script with node to allow for hoisting
   require Pod::Executable.execute_command('node', ['-p',
@@ -10,7 +13,7 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
-platform :ios, "15.0"
+platform :ios, "15.1"
 prepare_react_native_project!
 
 setup_permissions([
