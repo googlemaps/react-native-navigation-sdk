@@ -30,8 +30,14 @@ import {
   TaskRemovedBehavior,
   type TermsAndConditionsDialogOptions,
 } from '@googlemaps/react-native-navigation-sdk';
+import IntegrationTestsScreen from './screens/IntegrationTestsScreen';
 
-export type ScreenNames = ['Home', 'Navigation', 'Multiple maps'];
+export type ScreenNames = [
+  'Home',
+  'Navigation',
+  'Multiple maps',
+  'Integration tests',
+];
 
 export type RootStackParamList = Record<ScreenNames[number], undefined>;
 export type StackNavigation = NavigationProp<RootStackParamList>;
@@ -41,7 +47,7 @@ const HomeScreen = () => {
   const isFocused = useIsFocused();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container]}>
       <View style={styles.buttonContainer}>
         <Button
           title="Navigation"
@@ -52,6 +58,12 @@ const HomeScreen = () => {
         <Button
           title="Multiple Maps"
           onPress={() => isFocused && navigate('Multiple maps')}
+        />
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Integration Tests"
+          onPress={() => isFocused && navigate('Integration tests')}
         />
       </View>
     </View>
@@ -81,6 +93,10 @@ export default function App() {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Navigation" component={NavigationScreen} />
           <Stack.Screen name="Multiple maps" component={MultipleMapsScreen} />
+          <Stack.Screen
+            name="Integration tests"
+            component={IntegrationTestsScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationProvider>
