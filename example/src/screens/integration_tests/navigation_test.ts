@@ -1,0 +1,72 @@
+/**
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import type {
+  NavigationCallbacks,
+  NavigationController,
+  NavigationInitErrorCode,
+} from '@googlemaps/react-native-navigation-sdk';
+
+interface TestTools {
+  navigationController: NavigationController;
+  addListeners: (listeners: Partial<NavigationCallbacks>) => void;
+  removeListeners: (listeners: Partial<NavigationCallbacks>) => void;
+  passTest: () => void;
+  failTest: () => void;
+  setDetoxStep: (stepNumber: number) => void;
+}
+
+export const testNavigationSessionInitialization = async (
+  testTools: TestTools
+) => {
+  const {
+    navigationController,
+    addListeners,
+    passTest,
+    failTest,
+    setDetoxStep,
+  } = testTools;
+
+  const checkDefaults = async () => {
+    if (!(await navigationController.areTermsAccepted())) {
+      failTest();
+      return;
+    }
+    passTest();
+  };
+
+  addListeners({
+    onNavigationReady: () => {
+      checkDefaults();
+    },
+    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
+      console.log(errorCode);
+      failTest();
+    },
+  });
+  try {
+    await navigationController.init();
+  } catch (error) {
+    console.error('Error initializing navigator', error);
+    failTest();
+  }
+  // Tell detox to prepare to execute step 1: (confirm t&c dialog)
+  setDetoxStep(1);
+};
+
+export const runTest2 = async () => {};
+
+export const runTest3 = async () => {};
