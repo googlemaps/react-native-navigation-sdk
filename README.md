@@ -41,7 +41,26 @@ import { NavigationView } from '@googlemaps/react-native-navigation-sdk';
 
 ### Android
 
-1. Set the `minSdkVersion` in `android/app/build.gradle`:
+#### Disable new architecture
+
+This package does not yet support new architecture. Make sure new architecture is disabled in your `android/gradle.properties` file:
+
+```groovy
+newArchEnabled=false
+```
+
+#### Enable Jetifier
+
+To ensure compatibility with AndroidX, enable Jetifier in your `android/gradle.properties` file:
+
+```groovy
+# Automatically convert third-party libraries to use AndroidX
+android.enableJetifier=true
+```
+
+#### Minimum SDK Requirements for Android
+
+The `minSdkVersion` for your Android project must be set to 23 or higher in `android/app/build.gradle`:
 
 ```groovy
 android {
@@ -51,11 +70,41 @@ android {
 }
 ```
 
+If `minSdkVersion` is set to less than 34 (API 34), you need to configure desugaring for your Android app.
+To enable desugaring, add the following configurations to `android/app/build.gradle` file:
+```groovy
+android {
+    ...
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        ...
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.0.4'
+}
+```
+
+You may also need to upgrade to Gradle 8.4 and the Android Gradle plugin version 8.3.0
+
+#### Set Google Maps API Key
+
 To securely store your API key, it is recommended to use the [Google Maps Secrets Gradle Plugin](https://developers.google.com/maps/documentation/android-sdk/secrets-gradle-plugin). This plugin helps manage API keys without exposing them in your app's source code.
 
 See example configuration for secrets plugin at example applications [build.gradle](./example/android/app/build.gradle) file.
 
 ### iOS
+
+#### Disable new architecture
+
+This package does not yet support new architecture. Make sure new architecture is disabled in your `ios/Podfile`:
+
+```ruby
+ENV['RCT_NEW_ARCH_ENABLED'] = '0'
+```
+
+#### Set Google Maps API Key
 
 To set up, specify your API key in the application delegate `ios/Runner/AppDelegate.m`:
 
