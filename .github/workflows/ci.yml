@@ -164,7 +164,7 @@ jobs:
 
       - name: Build example for Android
         env:
-          JAVA_OPTS: '-XX:MaxHeapSize=6g'
+          JAVA_OPTS: '-Xmx4g -XX:MaxMetaspaceSize=1g'
         run: |
           echo "MAPS_API_KEY=FAKE_API_KEY" > example/android/local.properties
           yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}"
