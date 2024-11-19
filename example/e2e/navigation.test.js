@@ -23,7 +23,7 @@ import {
 } from './shared.js';
 import { element, by } from 'detox';
 
-describe('Initialization tests', () => {
+describe('Navigation tests', () => {
   beforeEach(async () => {
     await initializeIntegrationTestsPage();
   });

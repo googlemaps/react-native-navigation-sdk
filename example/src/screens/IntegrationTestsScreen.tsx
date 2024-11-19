@@ -33,10 +33,10 @@ import {
 import styles from '../styles';
 import OverlayModal from '../helpers/overlayModal';
 import {
-  runTest2,
+  testMapInitialization,
   runTest3,
   testNavigationSessionInitialization,
-} from './integration_tests/navigation_test';
+} from './integration_tests/integration_test';
 
 // Utility function for showing Snackbar
 const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
@@ -68,6 +68,7 @@ const IntegrationTestsScreen = () => {
   const { navigationController, addListeners, removeListeners } =
     useNavigation();
   const [detoxStepNumber, setDetoxStepNumber] = useState(0);
+  const [failureMessage, setFailuremessage] = useState('');
 
   const onMapReady = useCallback(async () => {
     console.log('Map is ready, initializing navigator...');
@@ -113,9 +114,10 @@ const IntegrationTestsScreen = () => {
     setTestResult(TestResult.Success);
   };
 
-  const failTest = () => {
+  const failTest = (message: string) => {
     setTestStatus(TestRunStatus.Finished);
     setTestResult(TestResult.Failure);
+    setFailuremessage(message);
   };
 
   const setDetoxStep = (stepNumber: number) => {
@@ -128,16 +130,28 @@ const IntegrationTestsScreen = () => {
     setTestResult(TestResult.None);
     setTestStatus(TestRunStatus.NotRunning);
     setDetoxStepNumber(0);
+    setFailuremessage('');
+  };
+
+  const expectFalseError = (expectation: string) => {
+    failTest(`Expected ${expectation} to be false but it was true`);
+  };
+
+  const expectTrueError = (expectation: string) => {
+    failTest(`Expected ${expectation} to be true but it was false`);
   };
 
   const getTestTools = () => {
     return {
       navigationController,
+      mapViewController,
       addListeners,
       removeListeners,
       passTest,
       failTest,
       setDetoxStep,
+      expectFalseError,
+      expectTrueError,
     };
   };
 
@@ -149,8 +163,8 @@ const IntegrationTestsScreen = () => {
       case 'testNavigationSessionInitialization':
         await testNavigationSessionInitialization(getTestTools());
         break;
-      case 'test2':
-        await runTest2();
+      case 'testMapInitialization':
+        await testMapInitialization(getTestTools());
         break;
       case 'test3':
         await runTest3();
@@ -180,6 +194,7 @@ const IntegrationTestsScreen = () => {
         <Text>Selected testId: {activeTestId}</Text>
         <Text testID="test_status_label">Test status: {testStatusString}</Text>
         <Text testID="test_result_label">Test result: {testResult}</Text>
+        <Text testID="failure_message_label">{failureMessage}</Text>
         <Button
           title="Reset"
           onPress={() => {
@@ -190,6 +205,7 @@ const IntegrationTestsScreen = () => {
       <View style={styles.controlButtons}>
         <Button
           title="Tests"
+          testID="tests_menu_button"
           onPress={() => {
             setIsOverlayOpen(true);
           }}
@@ -203,18 +219,21 @@ const IntegrationTestsScreen = () => {
       >
         <Button
           title="testNavigationSessionInitialization"
+          testID="testNavigationSessionInitialization"
           onPress={() => {
             runTest('testNavigationSessionInitialization');
           }}
         />
         <Button
-          title="Test2"
+          title="testMapInitialization"
+          testID="testMapInitialization"
           onPress={() => {
-            runTest('test2');
+            runTest('testMapInitialization');
           }}
         />
         <Button
           title="Test3"
+          testID="Test3"
           onPress={() => {
             runTest('test3');
           }}

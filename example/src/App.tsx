@@ -63,6 +63,7 @@ const HomeScreen = () => {
       <View style={styles.buttonContainer}>
         <Button
           title="Integration Tests"
+          testID="integration_tests_button"
           onPress={() => isFocused && navigate('Integration tests')}
         />
       </View>
