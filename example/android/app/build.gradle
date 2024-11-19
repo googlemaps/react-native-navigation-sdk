@@ -22,14 +22,14 @@ apply plugin: 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
  */
 react {
     /* Folders */
-    //   The root of your project, i.e. where "package.json" lives. Default is '..'
-    // root = file("../")
-    //   The folder where the react-native NPM package is. Default is ../node_modules/react-native
-    // reactNativeDir = file("../node_modules/react-native")
-    //   The folder where the react-native Codegen package is. Default is ../node_modules/@react-native/codegen
-    // codegenDir = file("../node_modules/@react-native/codegen")
-    //   The cli.js file which is the React Native CLI entrypoint. Default is ../node_modules/react-native/cli.js
-    // cliFile = file("../node_modules/react-native/cli.js")
+    //   The root of your project, i.e. where "package.json" lives. Default is '../..'
+    // root = file("../../")
+    //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
+    // reactNativeDir = file("../../node_modules/react-native")
+    //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
+    // codegenDir = file("../../node_modules/@react-native/codegen")
+    //   The cli.js file which is the React Native CLI entrypoint. Default is ../../node_modules/react-native/cli.js
+    // cliFile = file("../../node_modules/react-native/cli.js")
 
     /* Variants */
     //   The list of variants to that are debuggable. For those we're going to
@@ -63,6 +63,12 @@ react {
     //
     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
     // hermesFlags = ["-O", "-output-source-map"]
+ 
+    /* This example app uses typescript index file, so we need to specify the entry file */
+    entryFile = file("index.ts")
+ 
+    /* Autolinking */
+    autolinkLibrariesWithApp()
 }
 
 /**
@@ -116,6 +122,11 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
 }
 
 dependencies {
@@ -128,10 +139,15 @@ dependencies {
         implementation jscFlavor
     }
 
-    // For Android Auto Sample support
+    // Include packages for the Android Auto support.
     implementation "androidx.car.app:app:1.4.0"
     implementation "androidx.car.app:app-projected:1.4.0"
+
+    // Include the Google Navigation SDK.
     implementation 'com.google.android.libraries.navigation:navigation:6.0.0'
+
+    // Desugar Java 8+ APIs
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.0.4'
 }
 
 secrets {
@@ -149,5 +165,3 @@ secrets {
     // Ignore all keys matching the regexp "sdk.*"
     ignoreList.add("sdk.*")
 }
-
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)

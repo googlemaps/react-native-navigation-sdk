@@ -30,11 +30,8 @@ const usePermissions = () => {
     const check = async () => {
       const toRequestPermissions =
         Platform.OS === 'android'
-          ? [
-              PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-              PERMISSIONS.ANDROID.READ_MEDIA_IMAGES,
-            ]
-          : [PERMISSIONS.IOS.LOCATION_ALWAYS, PERMISSIONS.IOS.PHOTO_LIBRARY];
+          ? [PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION]
+          : [PERMISSIONS.IOS.LOCATION_ALWAYS];
 
       try {
         const permissionStatuses = await requestMultiple(toRequestPermissions);
