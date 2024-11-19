@@ -61,10 +61,10 @@ export const waitForTestToFinish = async () => {
 
 export const initializeIntegrationTestsPage = async () => {
   await device.launchApp({ newInstance: true });
-  await element(by.text('Integration Tests')).tap();
+  await element(by.id('integration_tests_button')).tap();
 };
 
 export const selectTestByName = async name => {
-  await element(by.text('Tests')).tap();
-  await element(by.text(name)).tap();
+  await element(by.id('tests_menu_button')).tap();
+  await element(by.id(name)).tap();
 };
