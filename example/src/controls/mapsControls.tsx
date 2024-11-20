@@ -106,7 +106,7 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
     console.log(result);
   };
 
-  const addMarker = async () => {
+  const addMarker = async (imgPath?: string) => {
     const cameraPosition = await mapViewController.getCameraPosition();
 
     const marker: Marker = await mapViewController.addMarker({
@@ -115,12 +115,17 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
       title: 'Marker test',
       snippet: 'Marker test',
       alpha: 0.8,
-      rotation: 20,
+      rotation: 0,
       flat: false,
       draggable: true,
+      imgPath: imgPath,
     });
 
     console.log(marker);
+  };
+
+  const addCustomMarker = async () => {
+    addMarker('circle.png');
   };
 
   const addCircle = async () => {
@@ -221,7 +226,8 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
           setZoom((zoom ?? defaultZoom) - 1);
         }}
       />
-      <Button title="Add marker" onPress={addMarker} />
+      <Button title="Add marker" onPress={() => addMarker()} />
+      <Button title="Add custom marker" onPress={() => addCustomMarker()} />
       <Button title="Add circle" onPress={addCircle} />
       <Button title="Add polyline" onPress={addPolyline} />
       <Button title="Add polygon" onPress={addPolygon} />

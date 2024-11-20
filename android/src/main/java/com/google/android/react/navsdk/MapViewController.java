@@ -144,7 +144,7 @@ public class MapViewController {
 
     MarkerOptions options = new MarkerOptions();
     if (imagePath != null && !imagePath.isEmpty()) {
-      BitmapDescriptor icon = BitmapDescriptorFactory.fromPath(imagePath);
+      BitmapDescriptor icon = BitmapDescriptorFactory.fromAsset(imagePath);
       options.icon(icon);
     }
 
@@ -290,7 +290,7 @@ public class MapViewController {
 
     GroundOverlayOptions options = new GroundOverlayOptions();
     if (imagePath != null && !imagePath.isEmpty()) {
-      BitmapDescriptor bitmapDescriptor = BitmapDescriptorFactory.fromPath(imagePath);
+      BitmapDescriptor bitmapDescriptor = BitmapDescriptorFactory.fromAsset(imagePath);
       options.image(bitmapDescriptor);
     }
     options.position(new LatLng(lat, lng), width, height);
