@@ -51,7 +51,7 @@ export interface CircleOptions {
 export interface MarkerOptions {
   /** The LatLng value for the marker's position on the map. You can change this value at any time if you want to move the marker. */
   position: LatLng;
-  /** URL that represents the image that should be displayed in the marker instead of using the default marker pin. */
+  /** Path to a local image asset that should be displayed in the marker instead of using the default marker pin. */
   imgPath?: string;
   /** A text string that's displayed in an info window when the user taps the marker. You can change this value at any time. */
   title?: string;
