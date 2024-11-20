@@ -65,7 +65,7 @@ react {
     // hermesFlags = ["-O", "-output-source-map"]
  
     /* This example app uses typescript index file, so we need to specify the entry file */
-    entryFile = file("index.ts")
+    entryFile = file("../../index.ts")
  
     /* Autolinking */
     autolinkLibrariesWithApp()
