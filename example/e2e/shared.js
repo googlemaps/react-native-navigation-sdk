@@ -35,10 +35,10 @@ export const initializeNavigationPage = async () => {
 
 export const agreeToTermsAndConditions = async () => {
   if (device.getPlatform() === 'ios') {
-    await waitFor(element(by.text("YES, I'M IN")))
+    await waitFor(element(by.text('OK')))
       .toBeVisible()
       .withTimeout(10000);
-    await element(by.text("YES, I'M IN")).tap();
+    await element(by.text('OK')).tap();
   } else if (device.getPlatform() === 'android') {
     await waitFor(element(by.text('GOT IT')))
       .toBeVisible()
