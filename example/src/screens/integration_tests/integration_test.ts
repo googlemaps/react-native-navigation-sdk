@@ -20,6 +20,7 @@ import type {
   NavigationController,
   NavigationInitErrorCode,
 } from '@googlemaps/react-native-navigation-sdk';
+import { Platform } from 'react-native';
 
 interface TestTools {
   navigationController: NavigationController;
@@ -76,32 +77,47 @@ const expectFalseMessage = (expectation: string) => {
 };
 
 export const testMapInitialization = async (testTools: TestTools) => {
-  const { mapViewController, passTest, failTest, expectFalseError } = testTools;
+  const {
+    mapViewController,
+    passTest,
+    failTest,
+    expectFalseError,
+    expectTrueError,
+  } = testTools;
   if (!mapViewController) {
     return failTest('mapViewController was expected to exist');
   }
-  if ((await mapViewController.getUiSettings()).isCompassEnabled) {
-    return expectFalseError(
-      'mapViewController.getUiSettings()).isCompassEnabled'
-    );
+  if (Platform.OS === 'ios') {
+    if ((await mapViewController.getUiSettings()).isCompassEnabled) {
+      return expectFalseError(
+        'mapViewController.getUiSettings()).isCompassEnabled'
+      );
+    }
+  } else {
+    if (!(await mapViewController.getUiSettings()).isCompassEnabled) {
+      return expectTrueError(
+        'mapViewController.getUiSettings()).isCompassEnabled'
+      );
+    }
   }
-  if ((await mapViewController.getUiSettings()).isMapToolbarEnabled) {
-    return failTest(
-      expectFalseMessage(
+  if (Platform.OS === 'ios') {
+    if ((await mapViewController.getUiSettings()).isMapToolbarEnabled) {
+      return expectFalseError(
         'mapViewController.getUiSettings()).isMapToolbarEnabled'
-      )
-    );
+      );
+    }
+  } else {
+    if (!(await mapViewController.getUiSettings()).isMapToolbarEnabled) {
+      return expectTrueError(
+        'mapViewController.getUiSettings()).isMapToolbarEnabled'
+      );
+    }
   }
   if (!(await mapViewController.getUiSettings()).isIndoorLevelPickerEnabled) {
     return failTest(
       expectFalseMessage(
         'mapViewController.getUiSettings()).isIndoorLevelPickerEnabled'
       )
-    );
-  }
-  if ((await mapViewController.getUiSettings()).isMapToolbarEnabled) {
-    return expectFalseError(
-      'mapViewController.getUiSettings()).isMapToolbarEnabled'
     );
   }
   if (!(await mapViewController.getUiSettings()).isRotateGesturesEnabled) {
@@ -136,6 +152,15 @@ export const testMapInitialization = async (testTools: TestTools) => {
     return expectFalseError(
       'mapViewController.getUiSettings()).isZoomGesturesEnabled'
     );
+  }
+  if (Platform.OS === 'ios') {
+    if (!(await mapViewController.isMyLocationEnabled())) {
+      return expectFalseError('await mapViewController.isMyLocationEnabled()');
+    }
+  } else {
+    if (await mapViewController.isMyLocationEnabled()) {
+      return expectTrueError('await mapViewController.isMyLocationEnabled()');
+    }
   }
 
   passTest();

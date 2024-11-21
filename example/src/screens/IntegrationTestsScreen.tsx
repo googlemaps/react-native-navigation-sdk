@@ -156,6 +156,7 @@ const IntegrationTestsScreen = () => {
   };
 
   const runTest = async (testId: string) => {
+    setIsOverlayOpen(false);
     setActiveTestId(testId);
     setTestResult(TestResult.None);
     setTestStatus(TestRunStatus.TestRunning);

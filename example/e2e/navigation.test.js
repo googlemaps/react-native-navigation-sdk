@@ -17,7 +17,6 @@
 import {
   initializeIntegrationTestsPage,
   agreeToTermsAndConditions,
-  waitForStepNumber,
   selectTestByName,
   waitForTestToFinish,
 } from './shared.js';
@@ -30,7 +29,6 @@ describe('Navigation tests', () => {
 
   it('T01 - initialize navigation controller and test terms and conditions (TOS) dialog acceptance', async () => {
     await selectTestByName('testNavigationSessionInitialization');
-    await waitForStepNumber(1);
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
     await expect(element(by.id('test_result_label'))).toHaveText(
