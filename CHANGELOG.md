@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.8.1...v0.9.0) (2024-11-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* create bitmapdescriptor from asset on android ([#347](https://github.com/googlemaps/react-native-navigation-sdk/issues/347))
+
+### Bug Fixes
+
+* create bitmapdescriptor from asset on android ([#347](https://github.com/googlemaps/react-native-navigation-sdk/issues/347)) ([fb9da83](https://github.com/googlemaps/react-native-navigation-sdk/commit/fb9da83b03fa8cd57c89fe917bd351dbf8c1a4d9))
+* documentation for MarkerOptions imgPath parameter ([#352](https://github.com/googlemaps/react-native-navigation-sdk/issues/352)) ([20c83d6](https://github.com/googlemaps/react-native-navigation-sdk/commit/20c83d6f732cad94c53ddba1384f058eada972c5))
+
 ## [0.8.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.8.0...v0.8.1) (2024-11-01)
 
 
