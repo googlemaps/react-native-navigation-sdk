@@ -49,16 +49,16 @@ public class SampleAndroidAutoSession extends Session {
         @Override
         public void onCreate(@NonNull LifecycleOwner lifecycleOwner) {
           Log.i(TAG, "In onCreate()");
-        }
-
-        @Override
-        public void onStart(@NonNull LifecycleOwner lifecycleOwner) {
-          Log.i(TAG, "In onStart()");
           getCarContext()
               .bindService(
                   new Intent(getCarContext(), SampleAndroidAutoService.class),
                   mServiceConnection,
                   Context.BIND_AUTO_CREATE);
+        }
+
+        @Override
+        public void onStart(@NonNull LifecycleOwner lifecycleOwner) {
+          Log.i(TAG, "In onStart()");
         }
 
         @Override
@@ -74,12 +74,12 @@ public class SampleAndroidAutoSession extends Session {
         @Override
         public void onStop(@NonNull LifecycleOwner lifecycleOwner) {
           Log.i(TAG, "In onStop()");
-          getCarContext().unbindService(mServiceConnection);
         }
 
         @Override
         public void onDestroy(@NonNull LifecycleOwner lifecycleOwner) {
           Log.i(TAG, "In onDestroy()");
+          getCarContext().unbindService(mServiceConnection);
         }
       };
 
