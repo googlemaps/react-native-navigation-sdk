@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-import type {
-  MapViewController,
-  NavigationCallbacks,
-  NavigationController,
-  NavigationInitErrorCode,
+import {
+  TravelMode,
+  type MapViewController,
+  type NavigationCallbacks,
+  type NavigationController,
+  type NavigationInitErrorCode,
+  type NavigationViewController,
 } from '@googlemaps/react-native-navigation-sdk';
 import { Platform } from 'react-native';
 
 interface TestTools {
   navigationController: NavigationController;
   mapViewController: MapViewController | null;
+  navigationViewController: NavigationViewController | null;
   addListeners: (listeners: Partial<NavigationCallbacks>) => void;
   removeListeners: (listeners: Partial<NavigationCallbacks>) => void;
   passTest: () => void;
@@ -166,4 +169,52 @@ export const testMapInitialization = async (testTools: TestTools) => {
   passTest();
 };
 
-export const runTest3 = async () => {};
+export const testNavigationToSingleDestination = async (
+  testTools: TestTools
+) => {
+  const { navigationController, addListeners, passTest, failTest } = testTools;
+  addListeners({
+    onNavigationReady: async () => {
+      await navigationController.simulator.simulateLocation({
+        lat: 37.4195823,
+        lng: -122.0799018,
+      });
+      await navigationController.setDestinations(
+        [
+          {
+            position: {
+              lat: 37.4152112,
+              lng: -122.0813741,
+            },
+          },
+        ],
+        {
+          travelMode: TravelMode.DRIVING,
+          avoidFerries: true,
+          avoidTolls: false,
+        }
+      );
+      await navigationController.startGuidance();
+
+      // Timeout here is used to avoid issues on Android.
+      setTimeout(() => {
+        navigationController.simulator.simulateLocationsAlongExistingRoute({
+          speedMultiplier: 5,
+        });
+      }, 3000);
+    },
+    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
+      console.log(errorCode);
+      failTest('onNavigatonInitError');
+    },
+    onArrival() {
+      passTest();
+    },
+  });
+  try {
+    await navigationController.init();
+  } catch (error) {
+    console.error('Error initializing navigator', error);
+    failTest('navigationController.init() exception');
+  }
+};
