@@ -25,16 +25,17 @@ import {
   type MapViewCallbacks,
   type MapViewController,
   type Marker,
+  type NavigationViewController,
   type Polygon,
   type Polyline,
-  MapView,
+  NavigationView,
   useNavigation,
 } from '@googlemaps/react-native-navigation-sdk';
 import styles from '../styles';
 import OverlayModal from '../helpers/overlayModal';
 import {
   testMapInitialization,
-  runTest3,
+  testNavigationToSingleDestination,
   testNavigationSessionInitialization,
 } from './integration_tests/integration_test';
 
@@ -69,6 +70,8 @@ const IntegrationTestsScreen = () => {
     useNavigation();
   const [detoxStepNumber, setDetoxStepNumber] = useState(0);
   const [failureMessage, setFailuremessage] = useState('');
+  const [navigationViewController, setNavigationViewController] =
+    useState<NavigationViewController | null>(null);
 
   const onMapReady = useCallback(async () => {
     console.log('Map is ready, initializing navigator...');
@@ -145,6 +148,7 @@ const IntegrationTestsScreen = () => {
     return {
       navigationController,
       mapViewController,
+      navigationViewController,
       addListeners,
       removeListeners,
       passTest,
@@ -167,8 +171,8 @@ const IntegrationTestsScreen = () => {
       case 'testMapInitialization':
         await testMapInitialization(getTestTools());
         break;
-      case 'test3':
-        await runTest3();
+      case 'testNavigationToSingleDestination':
+        await testNavigationToSingleDestination(getTestTools());
         break;
       default:
         resetTestState();
@@ -185,13 +189,14 @@ const IntegrationTestsScreen = () => {
 
   return (
     <View style={[styles.container]}>
-      <View style={{ flex: 1, margin: 5 }}>
-        <MapView
+      <View style={{ flex: 3, margin: 5 }}>
+        <NavigationView
           mapViewCallbacks={mapViewCallbacks}
           onMapViewControllerCreated={setMapViewController}
+          onNavigationViewControllerCreated={setNavigationViewController}
         />
       </View>
-      <View style={{ flex: 3 }}>
+      <View style={{ flex: 4 }}>
         <Text>Selected testId: {activeTestId}</Text>
         <Text testID="test_status_label">Test status: {testStatusString}</Text>
         <Text testID="test_result_label">Test result: {testResult}</Text>
@@ -233,10 +238,10 @@ const IntegrationTestsScreen = () => {
           }}
         />
         <Button
-          title="Test3"
-          testID="Test3"
+          title="testNavigationToSingleDestination"
+          testID="testNavigationToSingleDestination"
           onPress={() => {
-            runTest('test3');
+            runTest('testNavigationToSingleDestination');
           }}
         />
       </OverlayModal>

@@ -36,20 +36,12 @@ describe('Navigation tests', () => {
     );
   });
 
-  /**
-  it('T01 - check navigation controller defaults', async () => {
-    await element(by.text('Tests')).tap();
-    await element(by.text('testNavigationSessionInitialization')).tap();
-    // await waitFor(element(by.text('Test status: Step #1')))
-    //  .toBeVisible()
-    //  .withTimeout(10000);
-    await waitFor(element(by.id('test_status_label')))
-      .toHaveText('Test status: Step #1')
-      .withTimeout(10000);
-    await agreeToTC();
-    await waitFor(element(by.text('Test status: Success')))
-      .toBeVisible()
-      .withTimeout(10000);
+  it('T02 - initialize navigation controller and navigate to single destination', async () => {
+    await selectTestByName('testNavigationToSingleDestination');
+    await agreeToTermsAndConditions();
+    await waitForTestToFinish();
+    await expect(element(by.id('test_result_label'))).toHaveText(
+      'Test result: Success'
+    );
   });
-  */
 });
