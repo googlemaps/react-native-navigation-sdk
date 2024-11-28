@@ -66,4 +66,17 @@ describe('Navigation tests', () => {
       'Test result: Success'
     );
   });
+
+  it('T05 - initialize navigation controller and test remaining time and distance', async () => {
+    await selectTestByName('testGetCurrentTimeAndDistance');
+    await agreeToTermsAndConditions();
+    const failureMessageLabel = element(by.id('failure_message_label'));
+    const attributes = await failureMessageLabel.getAttributes();
+    log.error(attributes.text);
+    await expect(element(by.id('failure_message_label'))).toHaveText('');
+    await waitForTestToFinish();
+    await expect(element(by.id('test_result_label'))).toHaveText(
+      'Test result: Success'
+    );
+  });
 });
