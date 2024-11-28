@@ -37,6 +37,8 @@ import {
   testMapInitialization,
   testNavigationToSingleDestination,
   testNavigationSessionInitialization,
+  testNavigationToMultipleDestination,
+  testRouteSegments,
 } from './integration_tests/integration_test';
 
 // Utility function for showing Snackbar
@@ -174,6 +176,12 @@ const IntegrationTestsScreen = () => {
       case 'testNavigationToSingleDestination':
         await testNavigationToSingleDestination(getTestTools());
         break;
+      case 'testNavigationToMultipleDestination':
+        await testNavigationToMultipleDestination(getTestTools());
+        break;
+      case 'testRouteSegments':
+        await testRouteSegments(getTestTools());
+        break;
       default:
         resetTestState();
         break;
@@ -242,6 +250,20 @@ const IntegrationTestsScreen = () => {
           testID="testNavigationToSingleDestination"
           onPress={() => {
             runTest('testNavigationToSingleDestination');
+          }}
+        />
+        <Button
+          title="testNavigationToMultipleDestination"
+          testID="testNavigationToMultipleDestination"
+          onPress={() => {
+            runTest('testNavigationToMultipleDestination');
+          }}
+        />
+        <Button
+          title="testRouteSegments"
+          testID="testRouteSegments"
+          onPress={() => {
+            runTest('testRouteSegments');
           }}
         />
       </OverlayModal>

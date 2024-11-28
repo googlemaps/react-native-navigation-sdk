@@ -20,7 +20,7 @@ import {
   selectTestByName,
   waitForTestToFinish,
 } from './shared.js';
-import { element, by } from 'detox';
+import { element, by, log } from 'detox';
 
 describe('Navigation tests', () => {
   beforeEach(async () => {
@@ -39,6 +39,28 @@ describe('Navigation tests', () => {
   it('T02 - initialize navigation controller and navigate to single destination', async () => {
     await selectTestByName('testNavigationToSingleDestination');
     await agreeToTermsAndConditions();
+    await waitForTestToFinish();
+    await expect(element(by.id('test_result_label'))).toHaveText(
+      'Test result: Success'
+    );
+  });
+
+  it('T03 - initialize navigation controller and navigate to multiple destinations', async () => {
+    await selectTestByName('testNavigationToMultipleDestination');
+    await agreeToTermsAndConditions();
+    await waitForTestToFinish();
+    await expect(element(by.id('test_result_label'))).toHaveText(
+      'Test result: Success'
+    );
+  });
+
+  it('T04 - initialize navigation controller and test route segments', async () => {
+    await selectTestByName('testRouteSegments');
+    await agreeToTermsAndConditions();
+    const failureMessageLabel = element(by.id('failure_message_label'));
+    const attributes = await failureMessageLabel.getAttributes();
+    log.error(attributes.text);
+    await expect(element(by.id('failure_message_label'))).toHaveText('');
     await waitForTestToFinish();
     await expect(element(by.id('test_result_label'))).toHaveText(
       'Test result: Success'
