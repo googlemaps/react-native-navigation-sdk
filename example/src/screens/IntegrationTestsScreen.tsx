@@ -39,6 +39,7 @@ import {
   testNavigationSessionInitialization,
   testNavigationToMultipleDestination,
   testRouteSegments,
+  testGetCurrentTimeAndDistance,
 } from './integration_tests/integration_test';
 
 // Utility function for showing Snackbar
@@ -182,6 +183,9 @@ const IntegrationTestsScreen = () => {
       case 'testRouteSegments':
         await testRouteSegments(getTestTools());
         break;
+      case 'testGetCurrentTimeAndDistance':
+        await testGetCurrentTimeAndDistance(getTestTools());
+        break;
       default:
         resetTestState();
         break;
@@ -264,6 +268,13 @@ const IntegrationTestsScreen = () => {
           testID="testRouteSegments"
           onPress={() => {
             runTest('testRouteSegments');
+          }}
+        />
+        <Button
+          title="testGetCurrentTimeAndDistance"
+          testID="testGetCurrentTimeAndDistance"
+          onPress={() => {
+            runTest('testGetCurrentTimeAndDistance');
           }}
         />
       </OverlayModal>

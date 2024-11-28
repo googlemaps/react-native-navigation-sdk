@@ -21,6 +21,7 @@ import {
   type NavigationController,
   type NavigationInitErrorCode,
   type NavigationViewController,
+  type TimeAndDistance,
 } from '@googlemaps/react-native-navigation-sdk';
 import { Platform } from 'react-native';
 
@@ -333,6 +334,75 @@ export const testRouteSegments = async (testTools: TestTools) => {
       if (endTraveledPath.length <= beginTraveledPath.length) {
         return expectFalseError(
           'endTraveledPath.length <= beginTraveledPath.length'
+        );
+      }
+      passTest();
+    },
+  });
+  try {
+    await navigationController.init();
+  } catch (error) {
+    console.error('Error initializing navigator', error);
+    failTest('navigationController.init() exception');
+  }
+};
+
+export const testGetCurrentTimeAndDistance = async (testTools: TestTools) => {
+  const {
+    navigationController,
+    addListeners,
+    passTest,
+    failTest,
+    expectFalseError,
+  } = testTools;
+  let beginTimeAndDistance: TimeAndDistance;
+  addListeners({
+    onNavigationReady: async () => {
+      await navigationController.simulator.simulateLocation({
+        lat: 37.79136614772824,
+        lng: -122.41565900473043,
+      });
+      await navigationController.setDestination({
+        title: 'Grace Cathedral',
+        position: {
+          lat: 37.791957,
+          lng: -122.412529,
+        },
+      });
+      await navigationController.startGuidance();
+
+      // Timeout here is used to avoid issues on Android.
+      setTimeout(async () => {
+        beginTimeAndDistance =
+          await navigationController.getCurrentTimeAndDistance();
+        if (beginTimeAndDistance.seconds <= 0) {
+          return expectFalseError('beginTimeAndDistance.seconds <= 0');
+        }
+        if (beginTimeAndDistance.meters <= 0) {
+          return expectFalseError('beginTimeAndDistance.meters <= 0');
+        }
+        await navigationController.simulator.simulateLocationsAlongExistingRoute(
+          {
+            speedMultiplier: 5,
+          }
+        );
+      }, 3000);
+    },
+    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
+      console.log(errorCode);
+      failTest('onNavigatonInitError');
+    },
+    onArrival: async () => {
+      const endTimeAndDistance =
+        await navigationController.getCurrentTimeAndDistance();
+      if (endTimeAndDistance.meters >= beginTimeAndDistance.meters) {
+        return expectFalseError(
+          'endTimeAndDistance.meters >= beginTimeAndDistance.meters'
+        );
+      }
+      if (endTimeAndDistance.seconds >= beginTimeAndDistance.seconds) {
+        return expectFalseError(
+          'endTimeAndDistance.seconds >= beginTimeAndDistance.seconds'
         );
       }
       passTest();
