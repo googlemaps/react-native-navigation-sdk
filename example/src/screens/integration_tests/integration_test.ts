@@ -24,6 +24,7 @@ import {
   type TimeAndDistance,
 } from '@googlemaps/react-native-navigation-sdk';
 import { Platform } from 'react-native';
+import { delay, roundDown } from './utils';
 
 interface TestTools {
   navigationController: NavigationController;
@@ -414,4 +415,86 @@ export const testGetCurrentTimeAndDistance = async (testTools: TestTools) => {
     console.error('Error initializing navigator', error);
     failTest('navigationController.init() exception');
   }
+};
+
+export const testMoveCamera = async (testTools: TestTools) => {
+  const { mapViewController, passTest, failTest, expectFalseError } = testTools;
+  if (!mapViewController) {
+    return failTest('mapViewController was expected to exist');
+  }
+
+  // Move camera to Hong Kong
+  mapViewController.moveCamera({
+    target: {
+      lat: 22.2987849,
+      lng: 114.1719271,
+    },
+  });
+
+  await delay(3000);
+  const hongKongPosition = await mapViewController.getCameraPosition();
+
+  if (
+    roundDown(hongKongPosition.target.lat) !== 22 ||
+    roundDown(hongKongPosition.target.lng) !== 114
+  ) {
+    expectFalseError(
+      'roundDown(hongKongPosition.target.lat) !== 22 || roundDown(hongKongPosition.target.lng) !== 114'
+    );
+  }
+
+  // Move camera to Tokyo
+  mapViewController.moveCamera({
+    target: {
+      lat: 35.6805707,
+      lng: 139.7658596,
+    },
+  });
+
+  await delay(3000);
+  const tokyoPosition = await mapViewController.getCameraPosition();
+
+  if (
+    roundDown(tokyoPosition.target.lat) !== 35 ||
+    roundDown(tokyoPosition.target.lng) !== 139
+  ) {
+    expectFalseError(
+      'roundDown(hongKongPosition.target.lat) !== 22 || roundDown(hongKongPosition.target.lng) !== 114'
+    );
+  }
+
+  passTest();
+};
+
+export const testTiltZoomBearingCamera = async (testTools: TestTools) => {
+  const { mapViewController, passTest, failTest, expectFalseError } = testTools;
+  if (!mapViewController) {
+    return failTest('mapViewController was expected to exist');
+  }
+
+  // Move camera to Hong Kong and set bearing, tilt and zoom.
+  mapViewController.moveCamera({
+    target: {
+      lat: 22.2987849,
+      lng: 114.1719271,
+    },
+    bearing: 270,
+    tilt: 20,
+    zoom: 6,
+  });
+
+  await delay(3000);
+  const hongKongPosition = await mapViewController.getCameraPosition();
+
+  if (
+    hongKongPosition.bearing !== 270 ||
+    hongKongPosition.tilt !== 20 ||
+    hongKongPosition.zoom !== 6
+  ) {
+    expectFalseError(
+      'hongKongPosition.bearing !== 270 || hongKongPosition.tilt !== 20 || hongKongPosition.zoom !== 6'
+    );
+  }
+
+  passTest();
 };
