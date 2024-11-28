@@ -28,8 +28,6 @@ describe('Initialization tests', () => {
 
   it('T01 - initialize map and test default values', async () => {
     await selectTestByName('testMapInitialization');
-    // await waitForStepNumber(1);
-    // await agreeToTermsAndConditions();
     await waitForTestToFinish();
     const failureMessageLabel = element(by.id('failure_message_label'));
     const attributes = await failureMessageLabel.getAttributes();
