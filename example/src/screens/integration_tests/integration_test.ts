@@ -77,62 +77,99 @@ export const testNavigationSessionInitialization = async (
   setDetoxStep(1);
 };
 
-const expectFalseMessage = (expectation: string) => {
-  return `Expected ${expectation} to be false but it was true`;
-};
-
 export const testMapInitialization = async (testTools: TestTools) => {
-  const {
-    mapViewController,
-    passTest,
-    failTest,
-    expectFalseError,
-    expectTrueError,
-  } = testTools;
+  const { mapViewController, passTest, failTest, expectFalseError } = testTools;
   if (!mapViewController) {
     return failTest('mapViewController was expected to exist');
   }
-  if (Platform.OS === 'ios') {
-    if ((await mapViewController.getUiSettings()).isCompassEnabled) {
-      return expectFalseError(
-        'mapViewController.getUiSettings()).isCompassEnabled'
-      );
-    }
-  } else {
-    if (!(await mapViewController.getUiSettings()).isCompassEnabled) {
-      return expectTrueError(
-        'mapViewController.getUiSettings()).isCompassEnabled'
-      );
-    }
+  mapViewController.setCompassEnabled(false);
+  mapViewController.setRotateGesturesEnabled(false);
+  mapViewController.setScrollGesturesEnabled(false);
+  mapViewController.setScrollGesturesEnabledDuringRotateOrZoom(false);
+  mapViewController.setTiltGesturesEnabled(false);
+  mapViewController.setZoomGesturesEnabled(false);
+
+  if (Platform.OS === 'android') {
+    mapViewController.setZoomControlsEnabled(false);
+    mapViewController.setMapToolbarEnabled(false);
   }
-  if (Platform.OS === 'ios') {
+  // Timeout here is used to avoid issues on Android.
+  await delay(3000);
+
+  if ((await mapViewController.getUiSettings()).isCompassEnabled) {
+    return expectFalseError(
+      'mapViewController.getUiSettings()).isCompassEnabled'
+    );
+  }
+  if ((await mapViewController.getUiSettings()).isRotateGesturesEnabled) {
+    return expectFalseError(
+      'mapViewController.getUiSettings()).isRotateGesturesEnabled'
+    );
+  }
+  if ((await mapViewController.getUiSettings()).isScrollGesturesEnabled) {
+    return expectFalseError(
+      'mapViewController.getUiSettings()).isScrollGesturesEnabled'
+    );
+  }
+  if (
+    (await mapViewController.getUiSettings())
+      .isScrollGesturesEnabledDuringRotateOrZoom
+  ) {
+    return expectFalseError(
+      'mapViewController.getUiSettings()).isScrollGesturesEnabledDuringRotateOrZoom'
+    );
+  }
+  if ((await mapViewController.getUiSettings()).isTiltGesturesEnabled) {
+    return expectFalseError(
+      'mapViewController.getUiSettings()).isTiltGesturesEnabled'
+    );
+  }
+  if ((await mapViewController.getUiSettings()).isZoomGesturesEnabled) {
+    return expectFalseError(
+      'mapViewController.getUiSettings()).isZoomGesturesEnabled'
+    );
+  }
+
+  if (Platform.OS === 'android') {
+    if ((await mapViewController.getUiSettings()).isZoomControlsEnabled) {
+      return expectFalseError(
+        'mapViewController.getUiSettings()).isZoomControlsEnabled'
+      );
+    }
     if ((await mapViewController.getUiSettings()).isMapToolbarEnabled) {
       return expectFalseError(
         'mapViewController.getUiSettings()).isMapToolbarEnabled'
       );
     }
-  } else {
-    if (!(await mapViewController.getUiSettings()).isMapToolbarEnabled) {
-      return expectTrueError(
-        'mapViewController.getUiSettings()).isMapToolbarEnabled'
-      );
-    }
   }
-  if (!(await mapViewController.getUiSettings()).isIndoorLevelPickerEnabled) {
-    return failTest(
-      expectFalseMessage(
-        'mapViewController.getUiSettings()).isIndoorLevelPickerEnabled'
-      )
+
+  mapViewController.setCompassEnabled(true);
+  mapViewController.setRotateGesturesEnabled(true);
+  mapViewController.setScrollGesturesEnabled(true);
+  mapViewController.setScrollGesturesEnabledDuringRotateOrZoom(true);
+  mapViewController.setTiltGesturesEnabled(true);
+  mapViewController.setZoomGesturesEnabled(true);
+
+  if (Platform.OS === 'android') {
+    mapViewController.setZoomControlsEnabled(true);
+    mapViewController.setMapToolbarEnabled(true);
+  }
+  // Timeout here is used to avoid issues on Android.
+  await delay(3000);
+
+  if (!(await mapViewController.getUiSettings()).isCompassEnabled) {
+    return expectFalseError(
+      '!mapViewController.getUiSettings()).isCompassEnabled'
     );
   }
   if (!(await mapViewController.getUiSettings()).isRotateGesturesEnabled) {
     return expectFalseError(
-      'mapViewController.getUiSettings()).isRotateGesturesEnabled'
+      '!mapViewController.getUiSettings()).isRotateGesturesEnabled'
     );
   }
   if (!(await mapViewController.getUiSettings()).isScrollGesturesEnabled) {
     return expectFalseError(
-      'mapViewController.getUiSettings()).isScrollGesturesEnabled'
+      '!mapViewController.getUiSettings()).isScrollGesturesEnabled'
     );
   }
   if (
@@ -140,31 +177,30 @@ export const testMapInitialization = async (testTools: TestTools) => {
       .isScrollGesturesEnabledDuringRotateOrZoom
   ) {
     return expectFalseError(
-      'mapViewController.getUiSettings()).isScrollGesturesEnabledDuringRotateOrZoom'
+      '!mapViewController.getUiSettings()).isScrollGesturesEnabledDuringRotateOrZoom'
     );
   }
   if (!(await mapViewController.getUiSettings()).isTiltGesturesEnabled) {
     return expectFalseError(
-      'mapViewController.getUiSettings()).isTiltGesturesEnabled'
-    );
-  }
-  if ((await mapViewController.getUiSettings()).isZoomControlsEnabled) {
-    return expectFalseError(
-      'mapViewController.getUiSettings()).isZoomControlsEnabled'
+      '!mapViewController.getUiSettings()).isTiltGesturesEnabled'
     );
   }
   if (!(await mapViewController.getUiSettings()).isZoomGesturesEnabled) {
     return expectFalseError(
-      'mapViewController.getUiSettings()).isZoomGesturesEnabled'
+      '!mapViewController.getUiSettings()).isZoomGesturesEnabled'
     );
   }
-  if (Platform.OS === 'ios') {
-    if (!(await mapViewController.isMyLocationEnabled())) {
-      return expectFalseError('await mapViewController.isMyLocationEnabled()');
+
+  if (Platform.OS === 'android') {
+    if (!(await mapViewController.getUiSettings()).isZoomControlsEnabled) {
+      return expectFalseError(
+        '!mapViewController.getUiSettings()).isZoomControlsEnabled'
+      );
     }
-  } else {
-    if (await mapViewController.isMyLocationEnabled()) {
-      return expectTrueError('await mapViewController.isMyLocationEnabled()');
+    if (!(await mapViewController.getUiSettings()).isMapToolbarEnabled) {
+      return expectFalseError(
+        '!mapViewController.getUiSettings()).isMapToolbarEnabled'
+      );
     }
   }
 
@@ -431,6 +467,7 @@ export const testMoveCamera = async (testTools: TestTools) => {
     },
   });
 
+  // Timeout here is used to avoid issues on Android.
   await delay(3000);
   const hongKongPosition = await mapViewController.getCameraPosition();
 
@@ -451,6 +488,7 @@ export const testMoveCamera = async (testTools: TestTools) => {
     },
   });
 
+  // Timeout here is used to avoid issues on Android.
   await delay(3000);
   const tokyoPosition = await mapViewController.getCameraPosition();
 
@@ -483,6 +521,7 @@ export const testTiltZoomBearingCamera = async (testTools: TestTools) => {
     zoom: 6,
   });
 
+  // Timeout here is used to avoid issues on Android.
   await delay(3000);
   const hongKongPosition = await mapViewController.getCameraPosition();
 
