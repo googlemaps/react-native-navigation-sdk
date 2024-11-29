@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.9.0...v0.9.1) (2024-11-29)
+
+
+### Bug Fixes
+
+* android auto service binding fix ([#360](https://github.com/googlemaps/react-native-navigation-sdk/issues/360)) ([5f0b2a8](https://github.com/googlemaps/react-native-navigation-sdk/commit/5f0b2a82103ccb2f2a8901c2a7fa5ac324b19a8c))
+* fix android set zoom gestures function ([#367](https://github.com/googlemaps/react-native-navigation-sdk/issues/367)) ([7b836d6](https://github.com/googlemaps/react-native-navigation-sdk/commit/7b836d6562dc202fd1e65093d438cb17345cb6d7))
+
 ## [0.9.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.8.1...v0.9.0) (2024-11-22)
 
 
