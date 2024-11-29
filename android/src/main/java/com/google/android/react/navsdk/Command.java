@@ -36,7 +36,7 @@ public enum Command {
   SET_SCROLL_GESTURES_ENABLED_DURING_ROTATE_OR_ZOOM(
       18, "setScrollGesturesEnabledDuringRotateOrZoom"),
   SET_TILT_GESTURES_ENABLED(19, "setTiltGesturesEnabled"),
-  SET_ZOOM_GESTURES_ENABLED(20, "setZoomGestures"),
+  SET_ZOOM_GESTURES_ENABLED(20, "setZoomGesturesEnabled"),
   SET_BUILDINGS_ENABLED(21, "setBuildingsEnabled"),
   SET_MAP_TYPE(22, "setMapType"),
   SET_MAP_TOOLBAR_ENABLED(23, "setMapToolbarEnabled"),
