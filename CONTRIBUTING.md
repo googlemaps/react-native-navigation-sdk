@@ -109,3 +109,39 @@ Please peruse the
 [Typescript style guide](https://google.github.io/styleguide/tsguide.html), [Java style guide](https://google.github.io/styleguide/javaguide.html), and [Objective-C style guide](https://google.github.io/styleguide/objcguide.html) before
 working on anything non-trivial. These guidelines are intended to
 keep the code consistent and avoid common pitfalls.
+
+## 6. Running tests
+
+Google Maps React Native Navigation package has integration tests.
+
+### Integration tests
+
+Integration tests are responsible for ensuring that the plugin works against the native Navigation SDK for both Android and iOS platforms. Detox along with example application is used for the integration tests. "Integration tests must accompany the implementation of all new features.
+To run the test you must first install and setup detox. Please follow the guide here:
+https://wix.github.io/Detox/docs/introduction/environment-setup
+
+Build the tests using detox-cli:
+
+iOS:
+```bash
+detox build --configuration ios.sim.debug
+```
+
+Android:
+```bash
+detox build --configuration android.emu.debug
+```
+
+Google Maps React Native Navigation SDK integration tests can be run with the following command:
+
+iOS
+```bash
+yarn run example test:ios
+```
+
+Android:
+```bash
+yarn run example test:android
+```
+
+When adding new tests, you need to first add the detox part in the [e2e folder](./example/e2e) and then the actual logical part of the test in the [integration tests page](./example/src/screens/IntegrationTestsScreen.tsx) of the example app.
