@@ -272,14 +272,14 @@ export const testNavigationToMultipleDestination = async (
         [
           {
             position: {
-              lat: 37.4152112,
-              lng: -122.0813741,
+              lat: 37.4178065,
+              lng: -122.0812455,
             },
           },
           {
             position: {
-              lat: 37.4155112,
-              lng: -122.0806959,
+              lat: 37.4177952,
+              lng: -122.0817198,
             },
           },
         ],
@@ -599,6 +599,8 @@ export const testOnArrival = async (testTools: TestTools) => {
         },
       });
       await navigationController.startGuidance();
+      // Timeout here is used to avoid issues on Android.
+      await delay(3000);
       await navigationController.simulator.simulateLocationsAlongExistingRoute({
         speedMultiplier: 5,
       });

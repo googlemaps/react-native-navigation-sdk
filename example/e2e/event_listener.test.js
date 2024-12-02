@@ -27,21 +27,21 @@ describe('Even listener tests', () => {
     await initializeIntegrationTestsPage();
   });
 
-  it('T01 - test navigation onRemainingTimeOrDistanceChanged event listener', async () => {
+  it('T01 - test onRemainingTimeOrDistanceChanged event listener', async () => {
     await selectTestByName('testOnRemainingTimeOrDistanceChanged');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
     await expectSuccess();
   });
 
-  it('T02 - test navigation onArrival event listener', async () => {
+  it('T02 - test onArrival event listener', async () => {
     await selectTestByName('testOnArrival');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
     await expectSuccess();
   });
 
-  it('T03 - test navigation OnRouteChanged event listener', async () => {
+  it('T03 - test onRouteChanged event listener', async () => {
     await selectTestByName('testOnRouteChanged');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
