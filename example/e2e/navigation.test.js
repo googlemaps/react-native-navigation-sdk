@@ -19,6 +19,7 @@ import {
   agreeToTermsAndConditions,
   selectTestByName,
   waitForTestToFinish,
+  expectSuccess,
 } from './shared.js';
 import { element, by, log } from 'detox';
 
@@ -31,27 +32,21 @@ describe('Navigation tests', () => {
     await selectTestByName('testNavigationSessionInitialization');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
-    await expect(element(by.id('test_result_label'))).toHaveText(
-      'Test result: Success'
-    );
+    await expectSuccess();
   });
 
   it('T02 - initialize navigation controller and navigate to single destination', async () => {
     await selectTestByName('testNavigationToSingleDestination');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
-    await expect(element(by.id('test_result_label'))).toHaveText(
-      'Test result: Success'
-    );
+    await expectSuccess();
   });
 
   it('T03 - initialize navigation controller and navigate to multiple destinations', async () => {
     await selectTestByName('testNavigationToMultipleDestination');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
-    await expect(element(by.id('test_result_label'))).toHaveText(
-      'Test result: Success'
-    );
+    await expectSuccess();
   });
 
   it('T04 - initialize navigation controller and test route segments', async () => {
@@ -62,9 +57,7 @@ describe('Navigation tests', () => {
     log.error(attributes.text);
     await expect(element(by.id('failure_message_label'))).toHaveText('');
     await waitForTestToFinish();
-    await expect(element(by.id('test_result_label'))).toHaveText(
-      'Test result: Success'
-    );
+    await expectSuccess();
   });
 
   it('T05 - initialize navigation controller and test remaining time and distance', async () => {
@@ -75,8 +68,6 @@ describe('Navigation tests', () => {
     log.error(attributes.text);
     await expect(element(by.id('failure_message_label'))).toHaveText('');
     await waitForTestToFinish();
-    await expect(element(by.id('test_result_label'))).toHaveText(
-      'Test result: Success'
-    );
+    await expectSuccess();
   });
 });

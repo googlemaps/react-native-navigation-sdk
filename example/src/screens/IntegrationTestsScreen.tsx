@@ -42,6 +42,9 @@ import {
   testGetCurrentTimeAndDistance,
   testMoveCamera,
   testTiltZoomBearingCamera,
+  testOnRemainingTimeOrDistanceChanged,
+  testOnArrival,
+  testOnRouteChanged,
 } from './integration_tests/integration_test';
 
 // Utility function for showing Snackbar
@@ -194,6 +197,15 @@ const IntegrationTestsScreen = () => {
       case 'testTiltZoomBearingCamera':
         await testTiltZoomBearingCamera(getTestTools());
         break;
+      case 'testOnRemainingTimeOrDistanceChanged':
+        await testOnRemainingTimeOrDistanceChanged(getTestTools());
+        break;
+      case 'testOnArrival':
+        await testOnArrival(getTestTools());
+        break;
+      case 'testOnRouteChanged':
+        await testOnRouteChanged(getTestTools());
+        break;
       default:
         resetTestState();
         break;
@@ -297,6 +309,27 @@ const IntegrationTestsScreen = () => {
           testID="testTiltZoomBearingCamera"
           onPress={() => {
             runTest('testTiltZoomBearingCamera');
+          }}
+        />
+        <Button
+          title="testOnRemainingTimeOrDistanceChanged"
+          testID="testOnRemainingTimeOrDistanceChanged"
+          onPress={() => {
+            runTest('testOnRemainingTimeOrDistanceChanged');
+          }}
+        />
+        <Button
+          title="testOnArrival"
+          testID="testOnArrival"
+          onPress={() => {
+            runTest('testOnArrival');
+          }}
+        />
+        <Button
+          title="testOnRouteChanged"
+          testID="testOnRouteChanged"
+          onPress={() => {
+            runTest('testOnRouteChanged');
           }}
         />
       </OverlayModal>

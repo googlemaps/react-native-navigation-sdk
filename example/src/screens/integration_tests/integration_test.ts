@@ -537,3 +537,117 @@ export const testTiltZoomBearingCamera = async (testTools: TestTools) => {
 
   passTest();
 };
+
+export const testOnRemainingTimeOrDistanceChanged = async (
+  testTools: TestTools
+) => {
+  const { navigationController, addListeners, passTest, failTest } = testTools;
+  addListeners({
+    onRemainingTimeOrDistanceChanged: async () => {
+      const timeAndDistance =
+        await navigationController.getCurrentTimeAndDistance();
+      if (timeAndDistance.meters > 0 && timeAndDistance.seconds > 0) {
+        return passTest();
+      }
+    },
+    onNavigationReady: async () => {
+      await navigationController.simulator.simulateLocation({
+        lat: 37.79136614772824,
+        lng: -122.41565900473043,
+      });
+      await navigationController.setDestination({
+        title: 'Grace Cathedral',
+        position: {
+          lat: 37.791957,
+          lng: -122.412529,
+        },
+      });
+      await navigationController.startGuidance();
+      await navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: 5,
+      });
+    },
+    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
+      console.log(errorCode);
+      failTest('onNavigatonInitError');
+    },
+  });
+  try {
+    await navigationController.init();
+  } catch (error) {
+    console.error('Error initializing navigator', error);
+    failTest('navigationController.init() exception');
+  }
+};
+
+export const testOnArrival = async (testTools: TestTools) => {
+  const { navigationController, addListeners, passTest, failTest } = testTools;
+  addListeners({
+    onArrival: async () => {
+      passTest();
+    },
+    onNavigationReady: async () => {
+      await navigationController.simulator.simulateLocation({
+        lat: 37.79136614772824,
+        lng: -122.41565900473043,
+      });
+      await navigationController.setDestination({
+        title: 'Grace Cathedral',
+        position: {
+          lat: 37.791957,
+          lng: -122.412529,
+        },
+      });
+      await navigationController.startGuidance();
+      await navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: 5,
+      });
+    },
+    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
+      console.log(errorCode);
+      failTest('onNavigatonInitError');
+    },
+  });
+  try {
+    await navigationController.init();
+  } catch (error) {
+    console.error('Error initializing navigator', error);
+    failTest('navigationController.init() exception');
+  }
+};
+
+export const testOnRouteChanged = async (testTools: TestTools) => {
+  const { navigationController, addListeners, passTest, failTest } = testTools;
+  addListeners({
+    onRouteChanged: async () => {
+      passTest();
+    },
+    onNavigationReady: async () => {
+      await navigationController.simulator.simulateLocation({
+        lat: 37.79136614772824,
+        lng: -122.41565900473043,
+      });
+      await navigationController.setDestination({
+        title: 'Grace Cathedral',
+        position: {
+          lat: 37.791957,
+          lng: -122.412529,
+        },
+      });
+      await navigationController.startGuidance();
+      await navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: 5,
+      });
+    },
+    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
+      console.log(errorCode);
+      failTest('onNavigatonInitError');
+    },
+  });
+  try {
+    await navigationController.init();
+  } catch (error) {
+    console.error('Error initializing navigator', error);
+    failTest('navigationController.init() exception');
+  }
+};
