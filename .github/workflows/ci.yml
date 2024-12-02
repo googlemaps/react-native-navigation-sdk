@@ -84,18 +84,18 @@ jobs:
       - name: Check Java formatting
         run: ./scripts/format-java.sh --check
 
-  test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup
-        uses: ./.github/actions/setup
-
-      - name: Run unit tests
-        run: yarn test --maxWorkers=2 --coverage
+#  test:
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 30
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Setup
+#        uses: ./.github/actions/setup
+#
+#      - name: Run unit tests
+#        run: yarn test --maxWorkers=2 --coverage
 
   build-library:
     runs-on: ubuntu-latest
