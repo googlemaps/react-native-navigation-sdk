@@ -18,6 +18,7 @@ import {
   initializeIntegrationTestsPage,
   selectTestByName,
   waitForTestToFinish,
+  expectSuccess,
 } from './shared.js';
 import { element, by, log } from 'detox';
 
@@ -33,9 +34,7 @@ describe('Map view tests', () => {
     const attributes = await failureMessageLabel.getAttributes();
     log.error(attributes.text);
     await expect(element(by.id('failure_message_label'))).toHaveText('');
-    await expect(element(by.id('test_result_label'))).toHaveText(
-      'Test result: Success'
-    );
+    await expectSuccess();
   });
 
   it('T02 - initialize map and test move camera', async () => {
@@ -45,9 +44,7 @@ describe('Map view tests', () => {
     const attributes = await failureMessageLabel.getAttributes();
     log.error(attributes.text);
     await expect(element(by.id('failure_message_label'))).toHaveText('');
-    await expect(element(by.id('test_result_label'))).toHaveText(
-      'Test result: Success'
-    );
+    await expectSuccess();
   });
 
   it('T03 - initialize map and test camera tilt bearing zoom', async () => {
@@ -57,8 +54,6 @@ describe('Map view tests', () => {
     const attributes = await failureMessageLabel.getAttributes();
     log.error(attributes.text);
     await expect(element(by.id('failure_message_label'))).toHaveText('');
-    await expect(element(by.id('test_result_label'))).toHaveText(
-      'Test result: Success'
-    );
+    await expectSuccess();
   });
 });

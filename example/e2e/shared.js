@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { device, element, waitFor, by } from 'detox';
+import { device, element, waitFor, by, expect } from 'detox';
 
 export const agreeToTermsAndConditions = async () => {
   if (device.getPlatform() === 'ios') {
@@ -40,6 +40,12 @@ export const waitForTestToFinish = async (timeInMs = 60000) => {
   await waitFor(element(by.id('test_status_label')))
     .toHaveText(`Test status: Finished`)
     .withTimeout(timeInMs);
+};
+
+export const expectSuccess = async () => {
+  await expect(element(by.id('test_result_label'))).toHaveText(
+    'Test result: Success'
+  );
 };
 
 export const initializeIntegrationTestsPage = async () => {
