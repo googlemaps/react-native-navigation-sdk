@@ -3135,7 +3135,6 @@ __metadata:
     "@evilmartians/lefthook": ^1.5.0
     "@react-native/eslint-config": ^0.74.83
     "@testing-library/react-native": ^12.5.0
-    "@types/jest": ^29.5.5
     "@types/react": 18.2.6
     commitlint: ^19.3.0
     del-cli: ^5.1.0
@@ -3144,7 +3143,6 @@ __metadata:
     eslint-config-prettier: ^9.0.0
     eslint-plugin-prettier: ^5.2.1
     eslint-plugin-testing-library: ^6.2.2
-    jest: ^29.7.0
     prettier: ^3.3.3
     react: 18.2.0
     react-native: 0.74.1
@@ -4655,7 +4653,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:^29.5.14, @types/jest@npm:^29.5.5":
+"@types/jest@npm:^29.5.14":
   version: 29.5.14
   resolution: "@types/jest@npm:29.5.14"
   dependencies:
@@ -12134,6 +12132,7 @@ __metadata:
     "@types/node": ^22.9.0
     babel-plugin-module-resolver: ^5.0.0
     detox: ^20.27.6
+    jest: ^29.7.0
     react: 18.3.1
     react-native: 0.76.2
     react-native-gesture-handler: ^2.21.0
