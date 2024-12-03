@@ -32,6 +32,7 @@ import {
   type Waypoint,
   type CameraPosition,
   type NavigationController,
+  type DisplayOptions,
 } from '@googlemaps/react-native-navigation-sdk';
 import SelectDropdown from 'react-native-select-dropdown';
 
@@ -103,7 +104,17 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       avoidTolls: false,
     };
 
-    navigationController.setDestination(waypoint, routingOptions);
+    const displayOptions: DisplayOptions = {
+      showDestinationMarkers: true,
+      showStopSigns: true,
+      showTrafficLights: true,
+    };
+
+    navigationController.setDestination(
+      waypoint,
+      routingOptions,
+      displayOptions
+    );
   };
 
   const initWaypointToCameraLocation = async () => {
@@ -135,7 +146,17 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       avoidTolls: false,
     };
 
-    navigationController.setDestinations(waypoints, routingOptions);
+    const displayOptions: DisplayOptions = {
+      showDestinationMarkers: true,
+      showStopSigns: true,
+      showTrafficLights: true,
+    };
+
+    navigationController.setDestinations(
+      waypoints,
+      routingOptions,
+      displayOptions
+    );
   };
 
   const setFollowingPerspective = (index: CameraPerspective) => {

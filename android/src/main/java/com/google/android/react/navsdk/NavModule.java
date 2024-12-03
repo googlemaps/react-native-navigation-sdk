@@ -403,16 +403,27 @@ public class NavModule extends ReactContextBaseJavaModule
   }
 
   @ReactMethod
-  public void setDestination(ReadableMap waypoint, @Nullable ReadableMap routingOptions) {
+  public void setDestination(
+      ReadableMap waypoint,
+      @Nullable ReadableMap routingOptions,
+      @Nullable ReadableMap displayOptions) {
     pendingRoute = null; // reset pendingRoute.
     mWaypoints.clear(); // reset waypoints
     createWaypoint(waypoint.toHashMap());
 
     if (routingOptions != null) {
-      pendingRoute =
-          mNavigator.setDestination(
-              mWaypoints.get(0),
-              ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap()));
+      if (displayOptions != null) {
+        pendingRoute =
+            mNavigator.setDestination(
+                mWaypoints.get(0),
+                ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap()),
+                ObjectTranslationUtil.getDisplayOptionsFromMap(displayOptions.toHashMap()));
+      } else {
+        pendingRoute =
+            mNavigator.setDestination(
+                mWaypoints.get(0),
+                ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap()));
+      }
     } else {
       pendingRoute = mNavigator.setDestination(mWaypoints.get(0));
     }
@@ -427,7 +438,10 @@ public class NavModule extends ReactContextBaseJavaModule
   }
 
   @ReactMethod
-  public void setDestinations(ReadableArray waypoints, @Nullable ReadableMap routingOptions) {
+  public void setDestinations(
+      ReadableArray waypoints,
+      @Nullable ReadableMap routingOptions,
+      @Nullable ReadableMap displayOptions) {
     if (mNavigator == null) {
       // TODO: HANDLE THIS
       return;
@@ -443,10 +457,18 @@ public class NavModule extends ReactContextBaseJavaModule
     }
 
     if (routingOptions != null) {
-      pendingRoute =
-          mNavigator.setDestinations(
-              mWaypoints,
-              ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap()));
+      if (displayOptions != null) {
+        pendingRoute =
+            mNavigator.setDestinations(
+                mWaypoints,
+                ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap()),
+                ObjectTranslationUtil.getDisplayOptionsFromMap(displayOptions.toHashMap()));
+      } else {
+        pendingRoute =
+            mNavigator.setDestinations(
+                mWaypoints,
+                ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap()));
+      }
     } else {
       pendingRoute = mNavigator.setDestinations(mWaypoints);
     }

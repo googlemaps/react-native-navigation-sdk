@@ -251,6 +251,18 @@
   [_mapView.settings setMyLocationButton:isEnabled];
 }
 
+- (void)setShowDestinationMarkersEnabled:(BOOL)isEnabled {
+  [_mapView.settings setShowsDestinationMarkers:isEnabled];
+}
+
+- (void)setShowTrafficLightsEnabled:(BOOL)isEnabled {
+  [_mapView.settings setShowsTrafficLights:isEnabled];
+}
+
+- (void)setShowStopSignsEnabled:(BOOL)isEnabled {
+  [_mapView.settings setShowsStopSigns:isEnabled];
+}
+
 - (void)setMyLocationEnabled:(BOOL)isEnabled {
   _mapView.myLocationEnabled = isEnabled;
 }

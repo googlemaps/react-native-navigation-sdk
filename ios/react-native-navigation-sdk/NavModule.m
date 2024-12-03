@@ -325,16 +325,22 @@ RCT_EXPORT_METHOD(continueToNextDestination
 
 RCT_EXPORT_METHOD(setDestination
                   : (nonnull NSDictionary *)waypoint routingOptions
-                  : (NSDictionary *)routingOptions resolve
+                  : (NSDictionary *)routingOptions displayOptions
+                  : (NSDictionary *)displayOptions resolve
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
   NSArray *waypoints = @[ waypoint ];
-  [self setDestinations:waypoints routingOptions:routingOptions resolve:resolve rejecter:reject];
+  [self setDestinations:waypoints
+         routingOptions:routingOptions
+         displayOptions:displayOptions
+                resolve:resolve
+               rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(setDestinations
                   : (nonnull NSArray *)waypoints routingOptions
-                  : (NSDictionary *)routingOptions resolve
+                  : (NSDictionary *)routingOptions displayOptions
+                  : (NSDictionary *)displayOptions resolve
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
   __weak typeof(self) weakSelf = self;
@@ -348,6 +354,10 @@ RCT_EXPORT_METHOD(setDestinations
     GMSNavigator *navigator = nil;
     if (![strongSelf checkNavigatorWithError:reject navigator:&navigator]) {
       return;
+    }
+
+    if (displayOptions != NULL) {
+      [self setDisplayOptionsToViews:displayOptions];
     }
 
     strongSelf->_destinations = [[NSMutableArray alloc] init];
@@ -398,6 +408,22 @@ RCT_EXPORT_METHOD(setDestinations
       [navigator setDestinations:strongSelf->_destinations callback:routeStatusCallback];
     }
   });
+}
+
+- (void)setDisplayOptionsToViews:(NSDictionary *)options {
+  for (NavViewController *viewController in [NavViewModule sharedInstance]
+           .viewControllers.allValues) {
+    if (options[@"showDestinationMarkers"] != nil) {
+      [viewController
+          setShowDestinationMarkersEnabled:[options[@"showDestinationMarkers"] boolValue]];
+    }
+    if (options[@"showStopSigns"] != nil) {
+      [viewController setShowStopSignsEnabled:[options[@"showStopSigns"] boolValue]];
+    }
+    if (options[@"showTrafficLights"] != nil) {
+      [viewController setShowTrafficLightsEnabled:[options[@"showTrafficLights"] boolValue]];
+    }
+  }
 }
 
 + (GMSNavigationRoutingOptions *)getRoutingOptions:(NSDictionary *)options {

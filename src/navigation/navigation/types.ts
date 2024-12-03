@@ -61,6 +61,28 @@ export interface RoutingOptions {
    */
   avoidHighways?: boolean;
 }
+
+/**
+ * Defines the options used by the Navigator for dislaying different elements.
+ */
+export interface DisplayOptions {
+  /**
+   * Configures whether destination markers are shown during navigation.
+   * If true, destination markers are shown.
+   */
+  showDestinationMarkers?: boolean;
+  /**
+   * Configures whether stop signs are shown during navigation.
+   * If true, stop signs are shown.
+   */
+  showStopSigns?: boolean;
+  /**
+   * Configures whether traffic lights are shown during navigation.
+   * If true, traffic lights are shown.
+   */
+  showTrafficLights?: boolean;
+}
+
 /**
  * Defines triggering thresholds for different severity levels of speed alerts, represented by
  * SpeedAlertSeverity.
@@ -292,7 +314,8 @@ export interface NavigationController {
    */
   setDestination(
     waypoint: Waypoint,
-    routingOptions?: RoutingOptions
+    routingOptions?: RoutingOptions,
+    displayOptions?: DisplayOptions
   ): Promise<void>;
 
   /**
@@ -303,7 +326,8 @@ export interface NavigationController {
    */
   setDestinations(
     waypoints: Waypoint[],
-    routingOptions?: RoutingOptions
+    routingOptions?: RoutingOptions,
+    displayOptions?: DisplayOptions
   ): Promise<void>;
 
   /**
