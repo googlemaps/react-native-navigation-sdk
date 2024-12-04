@@ -10,8 +10,16 @@
     "test": "jest",
     "build:android": "cd android && ./gradlew assembleDebug --no-daemon --console=plain -PreactNativeArchitectures=arm64-v8a",
     "build:ios": "cd ios && xcodebuild -workspace SampleApp.xcworkspace -scheme SampleApp -configuration Debug -sdk iphonesimulator CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ GCC_OPTIMIZATION_LEVEL=0 GCC_PRECOMPILE_PREFIX_HEADER=YES ASSETCATALOG_COMPILER_OPTIMIZATION=time DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO",
-    "test:android": "DETOX_CONFIGURATION=android.emu.debug npx jest --config e2e/jest.config.js",
-    "test:ios": "DETOX_CONFIGURATION=ios.sim.debug npx jest --config e2e/jest.config.js --verbose"
+    "build:ios-debug": "detox build --configuration ios.sim.debug",
+    "build:ios-release": "detox build --configuration ios.sim.release",
+    "build:android-debug": "detox build --configuration android.emu.debug",
+    "build:android-release": "detox build --configuration android.emu.release",
+    "test:ios": "detox test --configuration ios.sim.release",
+    "test:ios-debug": "detox test --configuration ios.sim.debug",
+    "test:ios-release": "detox test --configuration ios.sim.release",
+    "test:android": "detox test --configuration android.emu.release",
+    "test:android-debug": "detox test --configuration android.emu.debug",
+    "test:android-release": "detox test --configuration android.emu.release"
   },
   "dependencies": {
     "@react-navigation/native": "^6.1.18",
