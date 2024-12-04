@@ -30,6 +30,7 @@ import {
   type SpeedAlertOptions,
   type LocationSimulationOptions,
   TaskRemovedBehavior,
+  type DisplayOptions,
 } from './types';
 import { getRouteStatusFromStringValue } from '../navigationView';
 import { useMemo } from 'react';
@@ -93,16 +94,26 @@ export const useNavigationController = (
 
       setDestination: async (
         waypoint: Waypoint,
-        routingOptions?: RoutingOptions
+        routingOptions?: RoutingOptions,
+        displayOptions?: DisplayOptions
       ) => {
-        return await NavModule.setDestination(waypoint, routingOptions);
+        return await NavModule.setDestination(
+          waypoint,
+          routingOptions,
+          displayOptions
+        );
       },
 
       setDestinations: async (
         waypoints: Waypoint[],
-        routingOptions?: RoutingOptions
+        routingOptions?: RoutingOptions,
+        displayOptions?: DisplayOptions
       ) => {
-        return await NavModule.setDestinations(waypoints, routingOptions);
+        return await NavModule.setDestinations(
+          waypoints,
+          routingOptions,
+          displayOptions
+        );
       },
 
       continueToNextDestination: async () => {

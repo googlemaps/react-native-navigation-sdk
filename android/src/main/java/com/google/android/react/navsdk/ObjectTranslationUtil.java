@@ -26,6 +26,7 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
 import com.google.android.libraries.navigation.AlternateRoutesStrategy;
+import com.google.android.libraries.navigation.DisplayOptions;
 import com.google.android.libraries.navigation.NavigationRoadStretchRenderingData;
 import com.google.android.libraries.navigation.RouteSegment;
 import com.google.android.libraries.navigation.RoutingOptions;
@@ -103,6 +104,24 @@ public class ObjectTranslationUtil {
     map.putString("fullRoadName", stepInfo.getFullRoadName());
     map.putString("instruction", stepInfo.getFullInstructionText());
     return map;
+  }
+
+  public static DisplayOptions getDisplayOptionsFromMap(Map map) {
+    DisplayOptions options = new DisplayOptions();
+
+    if (map.containsKey("showDestinationMarkers")) {
+      options.hideDestinationMarkers(!CollectionUtil.getBool("showDestinationMarkers", map, true));
+    }
+
+    if (map.containsKey("showStopSigns")) {
+      options.showStopSigns(CollectionUtil.getBool("showStopSigns", map, false));
+    }
+
+    if (map.containsKey("showTrafficLights")) {
+      options.showTrafficLights(CollectionUtil.getBool("showTrafficLights", map, false));
+    }
+
+    return options;
   }
 
   public static RoutingOptions getRoutingOptionsFromMap(Map map) {

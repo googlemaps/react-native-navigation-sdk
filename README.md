@@ -204,7 +204,13 @@ try {
     avoidTolls: false,
   };
 
-  await navigationController.setDestinations([waypoint], routingOptions);
+  const displayOptions: DisplayOptions = {
+    showDestinationMarkers: true,
+    showStopSigns: true,
+    showTrafficLights: true,
+  };
+
+  await navigationController.setDestinations([waypoint], routingOptions, displayOptions);
   await navigationController.startGuidance();
 } catch (error) {
   console.error('Error starting navigation', error);
