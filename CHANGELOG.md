@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.9.1...v0.9.2) (2024-12-04)
+
+
+### Features
+
+* add display options to navigation ([#370](https://github.com/googlemaps/react-native-navigation-sdk/issues/370)) ([a6fa22e](https://github.com/googlemaps/react-native-navigation-sdk/commit/a6fa22e7c5514fc25aa25ca95f625bf08bd31731))
+
+
+### Miscellaneous Chores
+
+* small logic improvements to example app ([#371](https://github.com/googlemaps/react-native-navigation-sdk/issues/371)) ([17f5458](https://github.com/googlemaps/react-native-navigation-sdk/commit/17f545832cfce5c512ddd11828f7a1e4ce1eb140))
+
 ## [0.9.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.9.0...v0.9.1) (2024-11-29)
 
 
