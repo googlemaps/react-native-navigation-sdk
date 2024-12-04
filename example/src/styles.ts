@@ -70,6 +70,9 @@ const styles = StyleSheet.create({
     margin: 10,
     justifyContent: 'space-evenly',
   },
+  controlButtonGap: {
+    height: 15,
+  },
   dropdownButtonStyle: {
     marginLeft: 12,
     width: '50%',

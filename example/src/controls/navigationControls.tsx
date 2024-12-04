@@ -87,7 +87,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   // single destination:
   const initWaypoint = async () => {
     if (!latitude.trim() || !longitude.trim()) {
-      Alert.alert('Invalid destination');
+      Alert.alert('Set lat lng values first');
       return;
     }
     const waypoint: Waypoint = {
@@ -117,19 +117,16 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     );
   };
 
-  const initWaypointToCameraLocation = async () => {
+  const setLocationFromCameraLocation = async () => {
     if (getCameraPosition) {
       const cameraPosition = await getCameraPosition();
       if (cameraPosition) {
         onLatChanged(cameraPosition.target.lat.toString());
         onLngChanged(cameraPosition.target.lng.toString());
       }
-      await initWaypoint();
     }
   };
 
-  // multi destination:
-  // set your device (emulator) location to new new york timesquare
   const initWaypoints = async () => {
     const wp1 = {
       placeId: 'ChIJw____96GhYARCVVwg5cT7c0', // Golden gate, SF
@@ -199,7 +196,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
 
   const simulateLocation = () => {
     if (!latitude.trim() || !longitude.trim()) {
-      Alert.alert('Invalid destination');
+      Alert.alert('Set lat lng values first');
       return;
     }
 
@@ -330,6 +327,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
 
   return (
     <View>
+      <Text>Target</Text>
       <TextInput
         style={styles.input}
         onChangeText={onLatChanged}
@@ -346,13 +344,18 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         placeholderTextColor="#000"
         keyboardType="numeric"
       />
-      <Button title="Dispose navigation" onPress={disposeNavigation} />
-      <Button title="Single Destination" onPress={initWaypoint} />
-      <Button title="Multiple Destination" onPress={initWaypoints} />
       <Button
-        title="Set destination from Camera Location"
-        onPress={initWaypointToCameraLocation}
+        title="Set target from Camera Location"
+        onPress={setLocationFromCameraLocation}
       />
+      <Button
+        title="Simulate location from target"
+        onPress={simulateLocation}
+      />
+      <Button title="Set target as Destination" onPress={initWaypoint} />
+      <View style={styles.controlButtonGap} />
+      <Button title="Multiple Destination" onPress={initWaypoints} />
+      <Button title="Dispose navigation" onPress={disposeNavigation} />
       <Button
         title="Continue to next destination"
         onPress={continueToNextDestination}
@@ -362,7 +365,6 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       <Button title="Stop guidance" onPress={stopGuidance} />
       <Button title="Start updating location" onPress={startUpdatingLocation} />
       <Button title="Stop updating location" onPress={stopUpdatingLocation} />
-      <Button title="Simulate location" onPress={simulateLocation} />
       <Button title="Start simulation" onPress={startSimulation} />
       <Button title="Stop simulation" onPress={stopSimulation} />
       <Button title="Pause simulation" onPress={pauseSimulation} />
