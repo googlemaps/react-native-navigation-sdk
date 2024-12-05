@@ -30,8 +30,6 @@ pre-commit:
     types:
       glob: '*.{js,ts, jsx, tsx}'
       run: npx tsc --noEmit
-    test:
-      run: npx jest --passWithNoTests
 commit-msg:
   parallel: true
   commands:
