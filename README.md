@@ -109,6 +109,8 @@ ENV['RCT_NEW_ARCH_ENABLED'] = '0'
 To set up, specify your API key in the application delegate `ios/Runner/AppDelegate.m`:
 
 ```objective-c
+#import <GoogleMaps/GoogleMaps.h>
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -118,6 +120,8 @@ To set up, specify your API key in the application delegate `ios/Runner/AppDeleg
 }
 
 ```
+
+
 
 ## Usage
 
