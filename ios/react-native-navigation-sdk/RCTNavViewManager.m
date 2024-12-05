@@ -426,4 +426,17 @@ RCT_EXPORT_METHOD(clearMapView : (nonnull NSNumber *)reactTag) {
   });
 }
 
+RCT_EXPORT_METHOD(setPadding
+                  : (nonnull NSNumber *)reactTag top
+                  : (nonnull NSNumber *)top left
+                  : (nonnull NSNumber *)left bottom
+                  : (nonnull NSNumber *)bottom right
+                  : (nonnull NSNumber *)right) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NavViewController *viewController = [self getViewControllerForTag:reactTag];
+    [viewController setPadding:UIEdgeInsetsMake(top.floatValue, left.floatValue, bottom.floatValue,
+                                                right.floatValue)];
+  });
+}
+
 @end

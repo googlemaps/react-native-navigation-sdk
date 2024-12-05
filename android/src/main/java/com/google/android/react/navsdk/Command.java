@@ -54,7 +54,8 @@ public enum Command {
   REMOVE_CIRCLE(35, "removeCircle"),
   REMOVE_GROUND_OVERLAY(36, "removeGroundOverlay"),
   SET_ZOOM_CONTROLS_ENABLED(37, "setZoomControlsEnabled"),
-  SET_RECENTER_BUTTON_ENABLED(38, "setRecenterButtonEnabled");
+  SET_RECENTER_BUTTON_ENABLED(38, "setRecenterButtonEnabled"),
+  SET_PADDING(39, "setPadding");
 
   private final int value;
   private final String name;

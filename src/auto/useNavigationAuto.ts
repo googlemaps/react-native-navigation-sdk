@@ -188,6 +188,15 @@ export const useNavigationAuto = (): {
       moveCamera: (cameraPosition: CameraPosition) => {
         return NavAutoModule.moveCamera(cameraPosition);
       },
+
+      setPadding: (
+        top: number,
+        left: number,
+        bottom: number,
+        right: number
+      ) => {
+        return NavAutoModule.setPadding(top, left, bottom, right);
+      },
     }),
     [moduleListenersHandler]
   );

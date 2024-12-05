@@ -41,6 +41,8 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
   const [enableLocationMarker, setEnableLocationMarker] = useState(true);
   const [latitude, onLatChanged] = useState('');
   const [longitude, onLngChanged] = useState('');
+  const [horizontalPadding, setHorizontalPadding] = useState('');
+  const [verticalPadding, setVerticalPadding] = useState('');
 
   useEffect(() => {
     if (zoom !== null) {
@@ -195,6 +197,26 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
     mapViewController.clearMapView();
   };
 
+  const onHorizontalPaddingChanged = (padding: string) => {
+    mapViewController.setPadding(
+      Number(verticalPadding),
+      Number(padding),
+      Number(verticalPadding),
+      Number(padding)
+    );
+    setHorizontalPadding(padding);
+  };
+
+  const onVerticalPaddingChanged = (padding: string) => {
+    mapViewController.setPadding(
+      Number(padding),
+      Number(horizontalPadding),
+      Number(padding),
+      Number(horizontalPadding)
+    );
+    setVerticalPadding(padding);
+  };
+
   return (
     <View>
       <TextInput
@@ -280,6 +302,22 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
           dropdownStyle={styles.dropdownMenuStyle}
         />
       </View>
+      <TextInput
+        style={styles.input}
+        onChangeText={onHorizontalPaddingChanged}
+        value={horizontalPadding}
+        placeholder="Horizontal padding"
+        placeholderTextColor="#000"
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={styles.input}
+        onChangeText={onVerticalPaddingChanged}
+        value={verticalPadding}
+        placeholder="Vertical padding"
+        placeholderTextColor="#000"
+        keyboardType="numeric"
+      />
     </View>
   );
 };
