@@ -34,6 +34,7 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
+import com.facebook.proguard.annotations.DoNotStrip;
 import com.facebook.react.bridge.ReadableMap;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -48,6 +49,7 @@ import com.google.android.libraries.navigation.StylingOptions;
 // For more information on using Android Auto with the Google Navigation SDK, refer to the official
 // documentation:
 // https://developers.google.com/maps/documentation/navigation/android-sdk/android-auto
+@DoNotStrip
 public abstract class AndroidAutoBaseScreen extends Screen
     implements SurfaceCallback, INavigationViewController {
   private static final String VIRTUAL_DISPLAY_NAME = "AndroidAutoNavScreen";
