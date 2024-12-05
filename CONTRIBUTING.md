@@ -120,28 +120,28 @@ Integration tests are responsible for ensuring that the plugin works against the
 To run the test you must first install and setup detox. Please follow the guide here:
 https://wix.github.io/Detox/docs/introduction/environment-setup
 
-Build the tests using detox-cli:
+Build the tests using detox-cli in the example folder:
 
 iOS:
 ```bash
-detox build --configuration ios.sim.debug
+detox build --configuration ios.sim.release
 ```
 
 Android:
 ```bash
-detox build --configuration android.emu.debug
+detox build --configuration android.emu.release
 ```
 
 Google Maps React Native Navigation SDK integration tests can be run with the following command:
 
 iOS
 ```bash
-yarn run example test:ios
+yarn run example test:ios-release
 ```
 
 Android:
 ```bash
-yarn run example test:android
+yarn run example detox:test:android-release
 ```
 
 When adding new tests, you need to first add the detox part in the [e2e folder](./example/e2e) and then the actual logical part of the test in the [integration tests page](./example/src/screens/IntegrationTestsScreen.tsx) of the example app.
