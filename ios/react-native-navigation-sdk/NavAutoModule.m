@@ -387,6 +387,19 @@ RCT_EXPORT_METHOD(isAutoScreenAvailable
   });
 }
 
+RCT_EXPORT_METHOD(setPadding
+                  : (nonnull NSNumber *)top left
+                  : (nonnull NSNumber *)left bottom
+                  : (nonnull NSNumber *)bottom right
+                  : (nonnull NSNumber *)right) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (self->_viewController) {
+      [self->_viewController setPadding:UIEdgeInsetsMake(top.floatValue, left.floatValue,
+                                                         bottom.floatValue, right.floatValue)];
+    }
+  });
+}
+
 - (void)onScreenStateChange:(BOOL)available {
   [self sendCommandToReactNative:@"onAutoScreenAvailabilityChanged"
                             args:[NSNumber numberWithBool:available]];

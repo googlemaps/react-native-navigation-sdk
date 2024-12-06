@@ -83,6 +83,7 @@ typedef void (^OnArrayResult)(NSArray *_Nullable result);
 - (void)removeGroundOverlay:(NSString *)overlayId;
 - (BOOL)attachToNavigationSession:(GMSNavigationSession *)session;
 - (void)setTravelMode:(GMSNavigationTravelMode)travelMode;
+- (void)setPadding:(UIEdgeInsets)insets;
 //- (void)removeNavigationListeners;
 @end
 

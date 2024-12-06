@@ -536,6 +536,12 @@ public class MapViewController {
     mGoogleMap.followMyLocation(EnumTranslationUtil.getCameraPerspectiveFromJsValue(jsValue));
   }
 
+  public void setPadding(int top, int left, int bottom, int right) {
+    if (mGoogleMap != null) {
+      mGoogleMap.setPadding(left, top, right, bottom);
+    }
+  }
+
   private String fetchJsonFromUrl(String urlString) throws IOException {
     URL url = new URL(urlString);
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();

@@ -412,4 +412,14 @@ export interface MapViewController {
    * @param cameraPosition - Defines the position the camera will take with the move.
    */
   moveCamera(cameraPosition: CameraPosition): void;
+
+  /**
+   * Sets padding to the map.
+   *
+   * @param top - Top padding.
+   * @param left - Left padding.
+   * @param bottom - Bottom padding.
+   * @param right - Right padding.
+   */
+  setPadding(top: number, left: number, bottom: number, right: number): void;
 }

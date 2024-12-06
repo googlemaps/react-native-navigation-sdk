@@ -661,4 +661,8 @@
   return [userData[0] isEqualToString:elementId];
 }
 
+- (void)setPadding:(UIEdgeInsets)insets {
+  _mapView.padding = insets;
+}
+
 @end

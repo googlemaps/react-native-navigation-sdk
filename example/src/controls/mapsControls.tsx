@@ -41,6 +41,12 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
   const [enableLocationMarker, setEnableLocationMarker] = useState(true);
   const [latitude, onLatChanged] = useState('');
   const [longitude, onLngChanged] = useState('');
+  const [padding, setPadding] = useState({
+    top: '',
+    bottom: '',
+    left: '',
+    right: '',
+  });
 
   useEffect(() => {
     if (zoom !== null) {
@@ -195,6 +201,17 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
     mapViewController.clearMapView();
   };
 
+  const onPaddingChanged = (edge: keyof typeof padding, value: string) => {
+    const updatedPadding = { ...padding, [edge]: value };
+    setPadding(updatedPadding);
+    mapViewController.setPadding(
+      Number(updatedPadding.top),
+      Number(updatedPadding.left),
+      Number(updatedPadding.bottom),
+      Number(updatedPadding.right)
+    );
+  };
+
   return (
     <View>
       <TextInput
@@ -280,6 +297,38 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
           dropdownStyle={styles.dropdownMenuStyle}
         />
       </View>
+      <TextInput
+        style={styles.input}
+        onChangeText={value => onPaddingChanged('top', value)}
+        value={padding.top}
+        placeholder="Top padding"
+        placeholderTextColor="#000"
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={styles.input}
+        onChangeText={value => onPaddingChanged('bottom', value)}
+        value={padding.bottom}
+        placeholder="Bottom padding"
+        placeholderTextColor="#000"
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={styles.input}
+        onChangeText={value => onPaddingChanged('left', value)}
+        value={padding.left}
+        placeholder="Left padding"
+        placeholderTextColor="#000"
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={styles.input}
+        onChangeText={value => onPaddingChanged('right', value)}
+        value={padding.right}
+        placeholder="Right padding"
+        placeholderTextColor="#000"
+        keyboardType="numeric"
+      />
     </View>
   );
 };

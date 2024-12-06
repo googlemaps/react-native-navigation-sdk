@@ -164,5 +164,9 @@ export const getMapViewController = (viewId: number): MapViewController => {
     moveCamera: (cameraPosition: CameraPosition) => {
       sendCommand(viewId, commands.moveCamera, [cameraPosition]);
     },
+
+    setPadding: (top: number, left: number, bottom: number, right: number) => {
+      sendCommand(viewId, commands.setPadding, [top, left, bottom, right]);
+    },
   };
 };
