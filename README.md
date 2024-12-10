@@ -121,8 +121,6 @@ To set up, specify your API key in the application delegate `ios/Runner/AppDeleg
 
 ```
 
-
-
 ## Usage
 
 ### Initializing Navigation
