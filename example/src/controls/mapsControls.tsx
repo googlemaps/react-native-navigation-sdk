@@ -27,6 +27,7 @@ import {
   type Circle,
   type Polyline,
   type Polygon,
+  type Padding,
 } from '@googlemaps/react-native-navigation-sdk';
 
 export interface MapControlsProps {
@@ -41,11 +42,11 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
   const [enableLocationMarker, setEnableLocationMarker] = useState(true);
   const [latitude, onLatChanged] = useState('');
   const [longitude, onLngChanged] = useState('');
-  const [padding, setPadding] = useState({
-    top: '',
-    bottom: '',
-    left: '',
-    right: '',
+  const [padding, setPadding] = useState<Padding>({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
   });
 
   useEffect(() => {
@@ -202,14 +203,9 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
   };
 
   const onPaddingChanged = (edge: keyof typeof padding, value: string) => {
-    const updatedPadding = { ...padding, [edge]: value };
+    const updatedPadding: Padding = { ...padding, [edge]: Number(value) };
     setPadding(updatedPadding);
-    mapViewController.setPadding(
-      Number(updatedPadding.top),
-      Number(updatedPadding.left),
-      Number(updatedPadding.bottom),
-      Number(updatedPadding.right)
-    );
+    mapViewController.setPadding(updatedPadding);
   };
 
   return (
@@ -297,38 +293,47 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
           dropdownStyle={styles.dropdownMenuStyle}
         />
       </View>
-      <TextInput
-        style={styles.input}
-        onChangeText={value => onPaddingChanged('top', value)}
-        value={padding.top}
-        placeholder="Top padding"
-        placeholderTextColor="#000"
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={styles.input}
-        onChangeText={value => onPaddingChanged('bottom', value)}
-        value={padding.bottom}
-        placeholder="Bottom padding"
-        placeholderTextColor="#000"
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={styles.input}
-        onChangeText={value => onPaddingChanged('left', value)}
-        value={padding.left}
-        placeholder="Left padding"
-        placeholderTextColor="#000"
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={styles.input}
-        onChangeText={value => onPaddingChanged('right', value)}
-        value={padding.right}
-        placeholder="Right padding"
-        placeholderTextColor="#000"
-        keyboardType="numeric"
-      />
+      <View style={styles.controlButtonGap} />
+      <View style={styles.rowContainer}>
+        <Text>Top padding</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={value => onPaddingChanged('top', value)}
+          value={padding.top?.toFixed(0)}
+          keyboardType="numeric"
+          inputMode="numeric"
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Bottom padding</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={value => onPaddingChanged('bottom', value)}
+          value={padding.bottom?.toFixed(0)}
+          keyboardType="numeric"
+          inputMode="numeric"
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Left padding</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={value => onPaddingChanged('left', value)}
+          value={padding.left?.toFixed(0)}
+          keyboardType="numeric"
+          inputMode="numeric"
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Right padding</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={value => onPaddingChanged('right', value)}
+          value={padding.right?.toFixed(0)}
+          keyboardType="numeric"
+          inputMode="numeric"
+        />
+      </View>
     </View>
   );
 };

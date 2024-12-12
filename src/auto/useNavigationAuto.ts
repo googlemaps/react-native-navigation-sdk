@@ -29,6 +29,7 @@ import type {
   Polygon,
   CameraPosition,
   UISettings,
+  Padding,
 } from '../maps';
 import { useMemo } from 'react';
 
@@ -189,12 +190,8 @@ export const useNavigationAuto = (): {
         return NavAutoModule.moveCamera(cameraPosition);
       },
 
-      setPadding: (
-        top: number,
-        left: number,
-        bottom: number,
-        right: number
-      ) => {
+      setPadding: (padding: Padding) => {
+        const { top = 0, left = 0, bottom = 0, right = 0 } = padding;
         return NavAutoModule.setPadding(top, left, bottom, right);
       },
     }),

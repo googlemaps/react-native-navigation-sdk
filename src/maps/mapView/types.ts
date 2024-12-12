@@ -124,6 +124,20 @@ export enum MapType {
 }
 
 /**
+ * Defines the padding options for a map.
+ */
+export interface Padding {
+  /** Top padding in pixels. */
+  top?: number;
+  /** Left padding in pixels. */
+  left?: number;
+  /** Bottom padding in pixels. */
+  bottom?: number;
+  /** Right padding in pixels. */
+  right?: number;
+}
+
+/**
  * Defines the type of the map fragment.
  */
 export enum FragmentType {
@@ -416,10 +430,8 @@ export interface MapViewController {
   /**
    * Sets padding to the map.
    *
-   * @param top - Top padding.
-   * @param left - Left padding.
-   * @param bottom - Bottom padding.
-   * @param right - Right padding.
+   * @param padding - An object defining padding for each side.
+   *                  Example: { top: 10, left: 5, bottom: 15, right: 10 }
    */
-  setPadding(top: number, left: number, bottom: number, right: number): void;
+  setPadding(padding: Padding): void;
 }

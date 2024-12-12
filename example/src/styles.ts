@@ -27,28 +27,13 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: '#2196f3',
   },
-  center: {
-    alignItems: 'center',
-  },
-  toggleControl: {
-    backgroundColor: '#9ee2ff',
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'baseline',
-    position: 'absolute',
-    right: 0,
-    padding: 6,
-    marginTop: 150,
-  },
   input: {
     backgroundColor: '#ffffff',
     height: 40,
     margin: 12,
     borderWidth: 1,
     padding: 10,
-  },
-  zoomBtn: {
-    color: '#fff',
+    flexGrow: 1,
   },
   rowContainer: {
     margin: 5,
@@ -56,12 +41,8 @@ const styles = StyleSheet.create({
     marginRight: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     color: 'white',
-  },
-  rowBtnContainer: {
-    flexDirection: 'row',
-    alignSelf: 'center',
-    justifyContent: 'space-between',
   },
   controlButtons: {
     alignSelf: 'stretch',
