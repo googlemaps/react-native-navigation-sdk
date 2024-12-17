@@ -15,7 +15,10 @@
 buildscript {
     ext {
         buildToolsVersion = "35.0.0"
-        minSdkVersion = 24
+        // If minSDKVersion is set below 34, make sure to enable desugaring
+        // to use certain Java 8+ APIs on lower API levels
+        // by setting enableDesugaring true in app/build.gradle file.
+        minSdkVersion = 34
         compileSdkVersion = 35
         targetSdkVersion = 34
         ndkVersion = "26.1.10909125"
@@ -30,5 +33,13 @@ buildscript {
         classpath("com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:2.0.1")
     }
 }
+
+allprojects {
+   repositories {
+    maven {
+      url("$rootDir/../node_modules/detox/Detox-android")
+    }
+   }
+ }
 
 apply plugin: "com.facebook.react.rootproject"
