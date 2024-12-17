@@ -342,7 +342,7 @@ const NavigationScreen = () => {
   };
 
   return arePermissionsApproved ? (
-    <View style={[styles.container]}>
+    <View style={styles.container}>
       <NavigationView
         style={[
           {

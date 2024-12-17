@@ -220,8 +220,9 @@ const IntegrationTestsScreen = () => {
   }, [testStatus, detoxStepNumber]);
 
   return (
-    <View style={[styles.container]}>
-      <View style={{ flex: 3, margin: 5 }}>
+    <View style={styles.container}>
+      <Text>See CONTRIBUTING.md to see how to run integration tests.</Text>
+      <View style={{ flex: 6, margin: 5 }}>
         <NavigationView
           mapViewCallbacks={mapViewCallbacks}
           onMapViewControllerCreated={setMapViewController}
