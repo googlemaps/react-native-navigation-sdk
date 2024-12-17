@@ -325,7 +325,7 @@ const MultipleMapsScreen = () => {
   };
 
   return arePermissionsApproved ? (
-    <View style={[styles.container]}>
+    <View style={styles.container}>
       <NavigationView
         androidStylingOptions={{
           primaryDayModeThemeColor: '#34eba8',
