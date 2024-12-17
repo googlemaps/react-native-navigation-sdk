@@ -47,7 +47,9 @@ const HomeScreen = () => {
   const isFocused = useIsFocused();
 
   return (
-    <View style={[styles.container]}>
+    <View style={styles.container}>
+      {/* Spacer */}
+      <View style={styles.container} />
       <View style={styles.buttonContainer}>
         <Button
           title="Navigation"
@@ -60,8 +62,11 @@ const HomeScreen = () => {
           onPress={() => isFocused && navigate('Multiple maps')}
         />
       </View>
+      {/* Spacer */}
+      <View style={styles.container} />
       <View style={styles.buttonContainer}>
         <Button
+          color="grey"
           title="Integration Tests"
           testID="integration_tests_button"
           onPress={() => isFocused && navigate('Integration tests')}
