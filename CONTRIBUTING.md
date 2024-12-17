@@ -124,12 +124,12 @@ Build the tests using detox-cli in the example folder:
 
 iOS:
 ```bash
-detox build --configuration ios.sim.release
+yarn run example detox:build:ios-release
 ```
 
 Android:
 ```bash
-detox build --configuration android.emu.release
+yarn run example detox:build:android-release
 ```
 
 Google Maps React Native Navigation SDK integration tests can be run with the following command:
