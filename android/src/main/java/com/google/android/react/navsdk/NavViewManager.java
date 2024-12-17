@@ -119,6 +119,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     map.put(REMOVE_GROUND_OVERLAY.toString(), REMOVE_GROUND_OVERLAY.getValue());
     map.put(SET_HEADER_ENABLED.toString(), SET_HEADER_ENABLED.getValue());
     map.put(SET_FOOTER_ENABLED.toString(), SET_FOOTER_ENABLED.getValue());
+    map.put(SET_PADDING.toString(), SET_PADDING.getValue());
     return map;
   }
 
@@ -298,6 +299,10 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
       case REMOVE_GROUND_OVERLAY:
         getFragmentForRoot(root).getMapController().removeGroundOverlay(args.getString(0));
         break;
+      case SET_PADDING:
+        getFragmentForRoot(root)
+            .getMapController()
+            .setPadding(args.getInt(0), args.getInt(1), args.getInt(2), args.getInt(3));
     }
   }
 

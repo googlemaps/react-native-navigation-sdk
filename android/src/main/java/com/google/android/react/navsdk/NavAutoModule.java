@@ -506,6 +506,19 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
     promise.resolve(mMapViewController != null);
   }
 
+  @ReactMethod
+  public void setPadding(
+      final Integer top, final Integer left, final Integer bottom, final Integer right) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+
+          mMapViewController.setPadding(top, left, bottom, right);
+        });
+  }
+
   public void sendScreenState(boolean available) {
     WritableNativeArray params = new WritableNativeArray();
     params.pushBoolean(available);

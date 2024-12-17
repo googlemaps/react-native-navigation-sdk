@@ -30,6 +30,7 @@ import type {
   MapType,
   MapViewController,
   MarkerOptions,
+  Padding,
   PolygonOptions,
   PolylineOptions,
 } from './types';
@@ -163,6 +164,11 @@ export const getMapViewController = (viewId: number): MapViewController => {
 
     moveCamera: (cameraPosition: CameraPosition) => {
       sendCommand(viewId, commands.moveCamera, [cameraPosition]);
+    },
+
+    setPadding: (padding: Padding) => {
+      const { top = 0, left = 0, bottom = 0, right = 0 } = padding;
+      sendCommand(viewId, commands.setPadding, [top, left, bottom, right]);
     },
   };
 };

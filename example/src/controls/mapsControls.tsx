@@ -27,6 +27,7 @@ import {
   type Circle,
   type Polyline,
   type Polygon,
+  type Padding,
 } from '@googlemaps/react-native-navigation-sdk';
 
 export interface MapControlsProps {
@@ -41,6 +42,12 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
   const [enableLocationMarker, setEnableLocationMarker] = useState(true);
   const [latitude, onLatChanged] = useState('');
   const [longitude, onLngChanged] = useState('');
+  const [padding, setPadding] = useState<Padding>({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  });
 
   useEffect(() => {
     if (zoom !== null) {
@@ -195,6 +202,12 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
     mapViewController.clearMapView();
   };
 
+  const onPaddingChanged = (edge: keyof typeof padding, value: string) => {
+    const updatedPadding: Padding = { ...padding, [edge]: Number(value) };
+    setPadding(updatedPadding);
+    mapViewController.setPadding(updatedPadding);
+  };
+
   return (
     <View>
       <TextInput
@@ -278,6 +291,47 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
             );
           }}
           dropdownStyle={styles.dropdownMenuStyle}
+        />
+      </View>
+      <View style={styles.controlButtonGap} />
+      <View style={styles.rowContainer}>
+        <Text>Top padding</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={value => onPaddingChanged('top', value)}
+          value={padding.top?.toFixed(0)}
+          keyboardType="numeric"
+          inputMode="numeric"
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Bottom padding</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={value => onPaddingChanged('bottom', value)}
+          value={padding.bottom?.toFixed(0)}
+          keyboardType="numeric"
+          inputMode="numeric"
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Left padding</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={value => onPaddingChanged('left', value)}
+          value={padding.left?.toFixed(0)}
+          keyboardType="numeric"
+          inputMode="numeric"
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Right padding</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={value => onPaddingChanged('right', value)}
+          value={padding.right?.toFixed(0)}
+          keyboardType="numeric"
+          inputMode="numeric"
         />
       </View>
     </View>
