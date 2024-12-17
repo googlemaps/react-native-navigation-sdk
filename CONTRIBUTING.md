@@ -136,7 +136,7 @@ Google Maps React Native Navigation SDK integration tests can be run with the fo
 
 iOS
 ```bash
-yarn run example test:ios-release
+yarn run example detox:test:ios-release
 ```
 
 Android:
