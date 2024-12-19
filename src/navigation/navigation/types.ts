@@ -315,7 +315,8 @@ export interface NavigationController {
   setDestination(
     waypoint: Waypoint,
     routingOptions?: RoutingOptions,
-    displayOptions?: DisplayOptions
+    displayOptions?: DisplayOptions,
+    routeToken?: string
   ): Promise<void>;
 
   /**
@@ -327,7 +328,8 @@ export interface NavigationController {
   setDestinations(
     waypoints: Waypoint[],
     routingOptions?: RoutingOptions,
-    displayOptions?: DisplayOptions
+    displayOptions?: DisplayOptions,
+    routeToken?: string
   ): Promise<void>;
 
   /**
