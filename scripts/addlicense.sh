@@ -24,4 +24,5 @@ addlicense -f header_template.txt $@ \
         --ignore "lib/**" \
         --ignore "coverage/**" \
         --ignore ".yarn/**" \
+        --ignore ".github/ISSUE_TEMPLATE/**" \
         .

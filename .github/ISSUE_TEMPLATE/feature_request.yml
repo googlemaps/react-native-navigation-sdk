@@ -1,0 +1,44 @@
+name: Feature request
+description: Suggest a feature or improvement for this package
+title: '[Feature request]: '
+labels: 'type: feature request, triage me'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting an improvement for googlemaps/react-native-navigation-sdk!
+
+        If you have a support contract with Google, please create an issue in the [support console](https://cloud.google.com/support/). This will ensure a timely response.
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please ensure your feature request is not already covered in [existing issues](https://github.com/googlemaps/react-native-navigation-sdk/issues).
+      options:
+        - label: I have searched the existing issues
+          required: true
+  - type: textarea
+    attributes:
+      label: Use case
+      description: |
+        Please tell us the problem you are running into that led to you wanting
+        a new feature.
+
+        Is your feature request related to a problem? Please give a clear and
+        concise description of what the problem is.
+
+        Describe the alternative solutions you've considered. Is there a package
+        existing that already solves this?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposal
+      description: |
+        Briefly but precisely describe what you would like the package to be able to do.
+
+        Consider attaching something showing what you are imagining:
+         * images
+         * videos
+         * code samples
+    validations:
+      required: true
