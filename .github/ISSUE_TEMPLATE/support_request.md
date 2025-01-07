@@ -10,7 +10,11 @@ assignees: ''
 
 **PLEASE READ**
 
-If you have a support contract with Google, please create an issue in the [support console](https://cloud.google.com/support/). This will ensure a timely response.
+If you have a support contract with Google and questions related to how Navigation SDK works and its features should be used, please create an issue in the [support console](https://cloud.google.com/support/). This will ensure a timely response.
+
+Links to the official native SDKs:
+- [Android](https://developers.google.com/maps/documentation/navigation/android-sdk)
+- [iOS](https://developers.google.com/maps/documentation/navigation/ios-sdk)
 
 Discover additional support services for the Google Maps Platform, including developer communities, technical guidance, and expert support at the Google Maps Platform [support resources page](https://developers.google.com/maps/support/).
 
