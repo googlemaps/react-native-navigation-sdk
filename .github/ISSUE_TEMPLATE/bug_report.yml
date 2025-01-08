@@ -8,7 +8,12 @@ body:
       value: |
         Thank you for using googlemaps/react-native-navigation-sdk!
 
-        If you have a support contract with Google, please create an issue in the [support console](https://cloud.google.com/support/). This will ensure a timely response.
+        If you believe this bug is related to a feature in our native SDKs or you have question about how features should be used, please create an issue in the [support console](https://cloud.google.com/support/). 
+        This will ensure a timely response.
+
+        Links to the official native SDKs supported by Google Support:
+        - [Android](https://developers.google.com/maps/documentation/navigation/android-sdk)
+        - [iOS](https://developers.google.com/maps/documentation/navigation/ios-sdk)
 
         Discover additional support services for the Google Maps Platform, including developer communities, technical guidance, and expert support at the Google Maps Platform [support resources page](https://developers.google.com/maps/support/).
 
@@ -44,6 +49,13 @@ body:
       description: Provide the version of googlemaps/react-native-navigation-sdk.
     validations:
       required: true
+  - type: checkboxes
+    attributes:
+      label: Native SDK versions
+      description: Confirm that you have not changed the version of the native SDKs.
+      options:
+        - label: I haven't changed the version of the native SDKs
+          required: true
   - type: textarea
     attributes:
       label: React Native Doctor Output
