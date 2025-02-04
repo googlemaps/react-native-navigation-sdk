@@ -1,0 +1,107 @@
+name: Bug report
+description: Report an issue, including all necessary details for reproduction and debugging.
+title: '[Bug]: '
+labels: 'type: bug, triage me'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for using googlemaps/react-native-navigation-sdk!
+
+        If you believe this bug is related to a feature in our native SDKs or you have question about how features should be used, please create an issue in the [support console](https://cloud.google.com/support/). 
+        This will ensure a timely response.
+
+        Links to the official native SDKs supported by Google Support:
+        - [Android](https://developers.google.com/maps/documentation/navigation/android-sdk)
+        - [iOS](https://developers.google.com/maps/documentation/navigation/ios-sdk)
+
+        Discover additional support services for the Google Maps Platform, including developer communities, technical guidance, and expert support at the Google Maps Platform [support resources page](https://developers.google.com/maps/support/).
+
+        If your bug or feature request is not related to this particular react native library, please visit the Google Maps Platform [issue trackers](https://developers.google.com/maps/support/#issue_tracker).
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please ensure your bug is not already reported in [existing issues](https://github.com/googlemaps/react-native-navigation-sdk/issues).
+      options:
+        - label: I have searched the existing issues
+          required: true
+  - type: textarea
+    attributes:
+      label: Description of the bug
+      description: Provide a clear and concise description of the bug.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: React Native version
+      description: Provide the React Native version used in your project.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: React version
+      description: Provide the React version used in your project.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Package version
+      description: Provide the version of googlemaps/react-native-navigation-sdk.
+    validations:
+      required: true
+  - type: checkboxes
+    attributes:
+      label: Native SDK versions
+      description: Confirm that you have not changed the version of the native SDKs.
+      options:
+        - label: I haven't changed the version of the native SDKs
+          required: true
+  - type: textarea
+    attributes:
+      label: React Native Doctor Output
+      description: |
+        Run `npx react-native doctor` in your projectq and paste the output below.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      description: |
+        Provide a step-by-step description of how to reproduce the issue.
+        Use bullet points or numbers for clarity.
+        If you are not able to reproduce the issue, please provide as much context as possible.
+      placeholder: |
+        1. In this environment...
+        2. With this config...
+        3. Run '...'
+        4. See error...
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected vs Actual Behavior
+      description: |
+        Describe what you expected to happen and what actually happened.
+
+        Also provide any error messages or logs that you see. Also check Android logcat and/or iOS console logs for any relevant information.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Code Sample
+      description: |
+        Provide a minimal reproducible example that shows the problem.
+        Use a code block for formatting.
+
+        Without this we will unlikely be able to progress on the issue, 
+        as we need to be able to reproduce the problem locally.
+      value: |
+        ```javascript
+        // Example code here
+        ```
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Additional Context
+      description: Provide any other context, logs, or screenshots that might be relevant.
