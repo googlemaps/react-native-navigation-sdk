@@ -10,7 +10,7 @@ assignees: ''
 
 **PLEASE READ**
 
-If you have a support contract with Google and questions related to how Navigation SDK works and its features should be used, please create an issue in the [support console](https://cloud.google.com/support/). This will ensure a timely response.
+If you have a support contract with Google and questions related to how Navigation SDK works and its features should be used, please create an issue in the [support console](https://console.cloud.google.com/google/maps-apis/support/createcase). This will ensure a timely response.
 
 Links to the official native SDKs:
 - [Android](https://developers.google.com/maps/documentation/navigation/android-sdk)
