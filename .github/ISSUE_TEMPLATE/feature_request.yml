@@ -8,7 +8,7 @@ body:
       value: |
         Thank you for suggesting an improvement for googlemaps/react-native-navigation-sdk!
 
-        If you have a support contract with Google, please create an issue in the [support console](https://cloud.google.com/support/). This will ensure a timely response.
+        If you have a support contract with Google, please create an issue in the [support console](https://console.cloud.google.com/google/maps-apis/support/createcase). This will ensure a timely response.
   - type: checkboxes
     attributes:
       label: Is there an existing issue for this?

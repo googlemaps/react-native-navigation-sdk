@@ -8,7 +8,7 @@ body:
       value: |
         Thank you for using googlemaps/react-native-navigation-sdk!
 
-        If you believe this bug is related to a feature in our native SDKs or you have question about how features should be used, please create an issue in the [support console](https://cloud.google.com/support/). 
+        If you believe this bug is related to a feature in our native SDKs or you have question about how features should be used, please create an issue in the [support console](https://console.cloud.google.com/google/maps-apis/support/createcase). 
         This will ensure a timely response.
 
         Links to the official native SDKs supported by Google Support:
