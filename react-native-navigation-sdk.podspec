@@ -33,7 +33,7 @@ Pod::Spec.new do |s|
   s.source_files = "ios/react-native-navigation-sdk/*.{h,m,mm}"
 
   s.dependency "React-Core"
-  s.dependency "GoogleNavigation", "9.1.2"
+  s.dependency "GoogleNavigation", "9.3.0"
 
   # Don't install the dependencies when we run `pod install` in the old architecture.
   if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
