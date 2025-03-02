@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.9.2...v0.9.3) (2025-03-02)
+
+
+### Features
+
+* update ios nav sdk to 9.3.0 and android to 6.0.2 ([#403](https://github.com/googlemaps/react-native-navigation-sdk/issues/403)) ([18ce410](https://github.com/googlemaps/react-native-navigation-sdk/commit/18ce410f32738fb233c89658810aecd5e17b0be9))
+
 ## [0.9.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.9.1...v0.9.2) (2024-12-17)
 
 
