@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import React from 'react';
+import {
+  NavigationProvider,
+  TaskRemovedBehavior,
+  type TermsAndConditionsDialogOptions,
+} from '@googlemaps/react-native-navigation-sdk';
 import {
   NavigationContainer,
   useIsFocused,
@@ -22,21 +26,19 @@ import {
   type NavigationProp,
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { View, Button, StyleSheet } from 'react-native';
-import NavigationScreen from './screens/NavigationScreen';
-import MultipleMapsScreen from './screens/MultipleMapsScreen';
-import {
-  NavigationProvider,
-  TaskRemovedBehavior,
-  type TermsAndConditionsDialogOptions,
-} from '@googlemaps/react-native-navigation-sdk';
+import React from 'react';
+import { Button, StyleSheet, View } from 'react-native';
+import GoogleAutocompleteScreen from './screens/GoogleAutocompleteScreen/GoogleAutocompleteScreen';
 import IntegrationTestsScreen from './screens/IntegrationTestsScreen';
+import MultipleMapsScreen from './screens/MultipleMapsScreen';
+import NavigationScreen from './screens/NavigationScreen';
 
 export type ScreenNames = [
   'Home',
   'Navigation',
   'Multiple maps',
   'Integration tests',
+  'GoogleAutocomplete',
 ];
 
 export type RootStackParamList = Record<ScreenNames[number], undefined>;
@@ -60,6 +62,13 @@ const HomeScreen = () => {
         <Button
           title="Multiple Maps"
           onPress={() => isFocused && navigate('Multiple maps')}
+        />
+      </View>
+      {/* Google Autocomplete */}
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Google Autocomplete"
+          onPress={() => isFocused && navigate('GoogleAutocomplete')}
         />
       </View>
       {/* Spacer */}
@@ -102,6 +111,10 @@ export default function App() {
           <Stack.Screen
             name="Integration tests"
             component={IntegrationTestsScreen}
+          />
+          <Stack.Screen
+            name="GoogleAutocomplete"
+            component={GoogleAutocompleteScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

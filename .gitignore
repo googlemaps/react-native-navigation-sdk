@@ -83,3 +83,6 @@ lib/
 
 # tests
 coverage/
+
+# secrets
+.env
