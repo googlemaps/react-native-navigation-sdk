@@ -1,6 +1,6 @@
 {
   "name": "@googlemaps/react-native-navigation-sdk",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "author": "Google",
   "description": "A React Native library for Navigation SDK on Google Maps Platform",
   "main": "lib/commonjs/index",
