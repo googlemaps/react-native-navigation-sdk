@@ -155,7 +155,7 @@ dependencies {
     implementation "androidx.car.app:app-projected:1.4.0"
 
     // Include the Google Navigation SDK.
-    implementation 'com.google.android.libraries.navigation:navigation:6.1.0'
+    implementation 'com.google.android.libraries.navigation:navigation:6.0.2'
 
     // Desugar Java 8+ APIs
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.3'
