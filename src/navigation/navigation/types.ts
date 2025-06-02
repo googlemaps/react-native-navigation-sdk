@@ -18,7 +18,7 @@ import type { LatLng, Location } from '../../shared/types';
 import type {
   AlternateRoutingStrategy,
   AudioGuidance,
-  NavigationInitErrorCode,
+  NavigationInitializationStatus,
   RouteSegment,
   RouteStatus,
   RoutingStrategy,
@@ -130,89 +130,93 @@ export interface LocationSimulationOptions {
   readonly speedMultiplier: number;
 }
 
-/** Defines all callbacks to be emitted during navigation. */
-export interface NavigationCallbacks {
+/** Defines all callbacks listeners setters for events emitted during navigation. */
+export interface NavigationCallbackListenerSetters {
   /**
-   * Callback function invoked when guidance is started.
+   * Callback setter function for events invoked when guidance is started.
    */
-  onStartGuidance?(): void;
+  setOnStartGuidanceListener: (callback: (() => void) | null) => void;
 
   /**
-   * Callback function invoked when the destination is reached.
+   * Callback setter function for events invoked when the destination is reached.
    *
    * @param {ArrivalEvent} arrivalEvent - An object containing the arrival event data.
    */
-  onArrival?(arrivalEvent: ArrivalEvent): void;
+  setOnArrivalListener: (
+    callback: ((arrivalEvent: ArrivalEvent) => void) | null
+  ) => void;
 
   /**
-   * Callback function invoked when the location is changed.
+   * Callback setter function for events invoked when the location is changed.
    *
    * @param {Location} location - An object containing the location.
    */
-  onLocationChanged?(location: Location): void;
+  setOnLocationChangedListener: (
+    callback: ((location: Location) => void) | null
+  ) => void;
 
   /**
-   * A callback function that gets invoked when navigation information is ready.
+   * Callback setter function for events that gets invoked when navigation information is ready.
    *
    */
-  onNavigationReady?(): void;
+  setOnNavigationReadyListener: (callback: (() => void) | null) => void;
 
   /**
-   * Callback function invoked when receiving a route status result.
-   *
-   * @param routeStatus - The arguments received related to the route status.
-   */
-  onRouteStatusResult?(routeStatus: RouteStatus): void;
-
-  /**
-   * Handles changes to raw location data and triggers a callback with the
-   * changed data.
+   * Callback setter function for events of raw location data.
    *
    * @param location - An object containing the raw location data that has changed.
    */
-  onRawLocationChanged?(location: Location): void;
+  setOnRawLocationChangedListener: (
+    callback: ((location: Location) => void) | null
+  ) => void;
 
   /**
-   * Callback function invoked when the route is changed.
+   * Callback setter function for events invoked when the route is changed.
    */
-  onRouteChanged?(): void;
+  setOnRouteChangedListener: (callback: (() => void) | null) => void;
 
   /**
-   * Callback function invoked when rerouting is requested due to an
+   * Callback setter function for events invoked when rerouting is requested due to an
    * off-route event.
    */
-  onReroutingRequestedByOffRoute?(): void;
+  setOnReroutingRequestedByOffRouteListener: (
+    callback: (() => void) | null
+  ) => void;
 
   /**
-   * Callback function invoked when traffic data is updated (Android only).
+   * Callback setter function for events invoked when traffic data is updated (Android only).
    */
-  onTrafficUpdated?(): void;
+  setOnTrafficUpdatedListener: (callback: (() => void) | null) => void;
 
   /**
-   * Callback function when the remaining time or distance changes.
+   * Callback setter function for events invoked when the remaining time or distance changes.
    */
-  onRemainingTimeOrDistanceChanged?(): void;
+  setOnRemainingTimeOrDistanceChangedListener: (
+    callback: (() => void) | null
+  ) => void;
 
   /**
-   * Callback that gets triggered when the navigation failed to initilize.
-   *
-   * @param errorCode - indicates the reason why navigation failed to initialize.
-   */
-  onNavigationInitError?(errorCode: NavigationInitErrorCode): void;
-
-  /**
-   * Callback function invoked when a turn-by-turn event occurs.
+   * Callback setter function for events invoked when a turn-by-turn event occurs.
    *
    * @param turnByTurnEvent - An object containing the turn-by-turn event data.
    */
-  onTurnByTurn?(turnByTurnEvents: TurnByTurnEvent[]): void;
+  setOnTurnByTurnListener: (
+    callback: ((turnByTurnEvents: TurnByTurnEvent[]) => void) | null
+  ) => void;
 
   /**
    * Allows developers to listen for relevant debug logs (Android only).
    *
    * @param message relevant log message
    */
-  logDebugInfo?(message: string): void;
+  setLogDebugInfoListener: (
+    callback: ((message: string) => void) | null
+  ) => void;
+
+  /**
+   * Removes all listeners for the navigation events.
+   */
+  removeAllListeners: () => void;
 }
 
 /**
@@ -224,24 +228,26 @@ export interface Simulator {
    * Initiates a simulation of the navigation with a specified speed multiplier.
    * @param speedMultiplier - Multiplier to speed up the simulation.
    */
-  simulateLocationsAlongExistingRoute(options: LocationSimulationOptions): void;
+  simulateLocationsAlongExistingRoute(
+    options: LocationSimulationOptions
+  ): Promise<void>;
 
   /**
    * Ends the currently running navigation simulation.
    */
-  stopLocationSimulation(): void;
+  stopLocationSimulation(): Promise<void>;
 
   /**
    * Resumes the location simulation in case it's been paused.
    *
    */
-  resumeLocationSimulation(): void;
+  resumeLocationSimulation(): Promise<void>;
 
   /**
    * Pauses the location simulation if there's one running.
    *
    */
-  pauseLocationSimulation(): void;
+  pauseLocationSimulation(): Promise<void>;
 
   /**
    * Sets the user's location on the map, provided a latitude and longitude.
@@ -249,17 +255,20 @@ export interface Simulator {
    * @param {LatLng} latLng - The geographic coordinates to set as the user's
    *                          location, containing latitude and longitude values.
    */
-  simulateLocation(location: LatLng): void;
+  simulateLocation(location: LatLng): Promise<void>;
 }
 
 /**
  * Allows you to access Navigator methods.
  */
-export interface NavigationController {
+export interface NavigationController
+  extends NavigationCallbackListenerSetters {
   /**
    * Initializes the navigation module.
+   *
+   * @returns {NavigationInitializationStatus} - The status of the navigation initialization.
    */
-  init(): Promise<void>;
+  init(): Promise<NavigationInitializationStatus>;
 
   /**
    * Cleans up the navigation module, releasing any resources that were allocated.
@@ -316,21 +325,26 @@ export interface NavigationController {
     waypoint: Waypoint,
     routingOptions?: RoutingOptions,
     displayOptions?: DisplayOptions
-  ): Promise<void>;
+  ): Promise<RouteStatus>;
 
   /**
    * Set the destinations on the map using the provided waypoints.
    *
    * @param waypoints - A list of Waypoint objects, each defining a destination
    *                    or stopover point with specific attributes.
+   *
+   * @returns A promise that resolves to a routeStatus.
    */
   setDestinations(
     waypoints: Waypoint[],
     routingOptions?: RoutingOptions,
     displayOptions?: DisplayOptions
-  ): Promise<void>;
+  ): Promise<RouteStatus>;
 
   /**
+   * @deprecated Use `setDestinations(...)` with the updated list of waypoints
+   * instead.
+   *
    * Proceeds to the next destination or waypoint within a predefined route.
    * Assumes that there is an ongoing route with multiple waypoints.
    */
@@ -425,8 +439,87 @@ export enum TaskRemovedBehavior {
   /** Indicates that navigation guidance, location updates, and notification should shut down immediately when the user removes the application task. */
   QUIT_SERVICE,
 }
-
 /**
  * Defines the turn-by-turn event data.
  */
-export interface TurnByTurnEvent {}
+export interface TurnByTurnEvent {
+  /**
+   * The current navigation state.
+   */
+  navState: number;
+
+  /**
+   * Indicates whether the route has changed.
+   */
+  routeChanged: boolean;
+
+  /**
+   * The distance to the current step in meters, if available.
+   */
+  distanceToCurrentStepMeters?: number;
+
+  /**
+   * The distance to the final destination in meters, if available.
+   */
+  distanceToFinalDestinationMeters?: number;
+
+  /**
+   * The time to the current step in seconds, if available.
+   */
+  timeToCurrentStepSeconds?: number;
+
+  /**
+   * The distance to the next destination in meters, if available.
+   */
+  distanceToNextDestinationMeters?: number;
+
+  /**
+   * The time to the next destination in seconds, if available.
+   */
+  timeToNextDestinationSeconds?: number;
+
+  /**
+   * The time to the final destination in seconds, if available.
+   */
+  timeToFinalDestinationSeconds?: number;
+
+  /**
+   * Information about the current step, if available.
+   */
+  currentStep?: StepInfo;
+
+  /**
+   * The remaining steps in the route.
+   */
+  getRemainingSteps: StepInfo[];
+}
+
+/**
+ * Defines the information for a navigation step.
+ */
+export interface StepInfo {
+  /**
+   * The instruction for the step.
+   */
+  instruction: string;
+
+  /**
+   * The distance for the step in meters.
+   */
+  distanceMeters: number;
+
+  /**
+   * The duration for the step in seconds.
+   */
+  durationSeconds: number;
+
+  /**
+   * The maneuver type for the step.
+   */
+  maneuver: string;
+
+  /**
+   * The position of the step as latitude and longitude.
+   */
+  position: LatLng;
+}

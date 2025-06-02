@@ -12,58 +12,90 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import groovy.json.JsonSlurper
-
 buildscript {
-    ext.kotlin_version = '2.0.0'
-    repositories {
-        google()
-        mavenCentral()
-    }
+  ext.getExtOrDefault = {name ->
+    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['react_native_navigation_sdk_' + name]
+  }
 
-    dependencies {
-        classpath("com.android.tools.build:gradle:8.4.0")
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
+  repositories {
+    google()
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath "com.android.tools.build:gradle:8.7.2"
+    // noinspection DifferentKotlinGradleVersion
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${getExtOrDefault('kotlinVersion')}"
+  }
 }
 
 def isNewArchitectureEnabled() {
   return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
 }
 
-apply plugin: 'com.android.library'
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
 
 if (isNewArchitectureEnabled()) {
   apply plugin: "com.facebook.react"
 }
 
+def getExtOrIntegerDefault(name) {
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["react_native_navigation_sdk_" + name]).toInteger()
+}
+
+def supportsNamespace() {
+  def parsed = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')
+  def major = parsed[0].toInteger()
+  def minor = parsed[1].toInteger()
+
+  // Namespace support was added in 7.3.0
+  return (major == 7 && minor >= 3) || major >= 8
+}
+
 android {
-    namespace "com.google.android.react.navsdk"
-    compileSdkVersion 34
+  if (supportsNamespace()) {
+    namespace "com.google.maps.android.rn.navsdk"
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+    sourceSets {
+      main {
+        manifest.srcFile "src/main/AndroidManifestNew.xml"
+      }
     }
+  }
 
-    defaultConfig {
-        minSdkVersion 24
-        targetSdkVersion 34
-        versionCode 1
-        // get version name from package.json version
-        versionName "1.0"
-    }
+  compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
-    buildTypes {
-        release {
-        minifyEnabled true
-        }
-    }
+  defaultConfig {
+    minSdkVersion getExtOrIntegerDefault("minSdkVersion")
+    targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+    buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+  }
 
-    lintOptions {
-        abortOnError false
-        disable "GradleCompatible"
+  buildFeatures {
+    buildConfig true
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
     }
+  }
+
+  lintOptions {
+    disable "GradleCompatible"
+  }
+
+  sourceSets {
+    main {
+      if (isNewArchitectureEnabled()) {
+          java.srcDirs += [
+            "generated/java",
+            "generated/jni"
+          ]
+      }
+    }
+  }
 }
 
 repositories {
@@ -71,11 +103,29 @@ repositories {
     mavenCentral()
 }
 
+def kotlin_version = getExtOrDefault("kotlinVersion")
+def nav_sdk_version = getExtOrDefault("navSdkVersion")
+
 dependencies {
-    implementation "androidx.car.app:app:1.4.0"
-    implementation "androidx.car.app:app-projected:1.4.0"
-    implementation 'com.facebook.react:react-native:+'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation "com.google.android.libraries.navigation:navigation:6.1.0"
-    api 'com.google.guava:guava:31.0.1-android'
+  implementation "com.facebook.react:react-android"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+  // Android Auto libraries
+  implementation 'androidx.car.app:app:1.4.0'
+  implementation 'androidx.car.app:app-projected:1.4.0'
+
+  // Navigation SDK library
+  implementation "com.google.android.libraries.navigation:navigation:$nav_sdk_version"
+
+  // Support libraries
+  implementation 'com.google.code.gson:gson:2.12.1'
+  api 'com.google.guava:guava:31.0.1-android'
+}
+
+if (isNewArchitectureEnabled()) {
+  react {
+    jsRootDir = file("../src/")
+    libraryName = "ReactNativeNavigationSdk"
+    codegenJavaPackageName = "com.google.maps.android.rn.navsdk"
+  }
 }

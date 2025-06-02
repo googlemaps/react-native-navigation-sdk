@@ -1,11 +1,11 @@
 /**
- * Copyright 2023 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,162 +13,89 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { NativeModules } from 'react-native';
-import type { Location } from '../../shared/types';
-import { commands, sendCommand } from '../../shared/viewManager';
 import type {
-  CameraPosition,
   Circle,
   Marker,
-  Polygon,
   Polyline,
+  Polygon,
+  CameraPosition,
   UISettings,
+  GroundOverlay,
 } from '../types';
 import type {
   CircleOptions,
-  MapType,
+  GroundOverlayOptions,
   MapViewController,
   MarkerOptions,
-  Padding,
   PolygonOptions,
   PolylineOptions,
 } from './types';
-const { NavViewModule } = NativeModules;
+import type { Location } from '../../shared';
 
-export const getMapViewController = (viewId: number): MapViewController => {
+import { NavViewModule } from '../../native';
+
+export const getMapViewController = (nativeID: number): MapViewController => {
   return {
-    setMapType: (mapType: MapType) => {
-      sendCommand(viewId, commands.setMapType, [mapType]);
+    clearMapView: async () => {
+      console.log('clearMapView', nativeID);
+      return await NavViewModule.clearMapView(nativeID);
     },
-    setMapStyle: (mapStyle: string) => {
-      sendCommand(viewId, commands.setMapStyle, [mapStyle]);
+    addCircle: async (options: CircleOptions): Promise<Circle> => {
+      return await NavViewModule.addCircle(nativeID, options);
     },
-    setMapToolbarEnabled: (index: boolean) => {
-      sendCommand(viewId, commands.setMapToolbarEnabled, [index]);
+    addMarker: async (options: MarkerOptions): Promise<Marker> => {
+      return await NavViewModule.addMarker(nativeID, options);
     },
-    clearMapView: () => {
-      sendCommand(viewId, commands.clearMapView, []);
-    },
-
-    addCircle: async (circleOptions: CircleOptions): Promise<Circle> => {
-      return await NavViewModule.addCircle(viewId, circleOptions);
-    },
-
-    addMarker: async (markerOptions: MarkerOptions): Promise<Marker> => {
-      return await NavViewModule.addMarker(viewId, markerOptions);
-    },
-
-    addPolyline: async (
-      polylineOptions: PolylineOptions
-    ): Promise<Polyline> => {
-      return await NavViewModule.addPolyline(viewId, {
-        ...polylineOptions,
-        points: polylineOptions.points || [],
+    addPolyline: async (options: PolylineOptions): Promise<Polyline> => {
+      return await NavViewModule.addPolyline(nativeID, {
+        ...options,
+        points: options.points || [],
       });
     },
-
-    addPolygon: async (polygonOptions: PolygonOptions): Promise<Polygon> => {
-      return await NavViewModule.addPolygon(viewId, {
-        ...polygonOptions,
-        holes: polygonOptions.holes || [],
-        points: polygonOptions.points || [],
+    addPolygon: async (options: PolygonOptions): Promise<Polygon> => {
+      return await NavViewModule.addPolygon(nativeID, {
+        ...options,
+        holes: options.holes || [],
+        points: options.points || [],
       });
     },
-
-    removeMarker: (id: string) => {
-      sendCommand(viewId, commands.removeMarker, [id]);
+    addGroundOverlay: async (
+      options: GroundOverlayOptions
+    ): Promise<GroundOverlay> => {
+      return await NavViewModule.addGroundOverlay(nativeID, options);
     },
-
-    removePolyline: (id: string) => {
-      sendCommand(viewId, commands.removePolyline, [id]);
+    removeMarker: async (id: string) => {
+      return await NavViewModule.removeMarker(nativeID, id);
     },
-
-    removePolygon: (id: string) => {
-      sendCommand(viewId, commands.removePolygon, [id]);
+    removePolyline: async (id: string) => {
+      return await NavViewModule.removePolyline(nativeID, id);
     },
-
-    removeCircle: (id: string) => {
-      sendCommand(viewId, commands.removeCircle, [id]);
+    removePolygon: async (id: string) => {
+      return await NavViewModule.removePolygon(nativeID, id);
     },
-
-    setIndoorEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setIndoorEnabled, [isOn]);
+    removeCircle: async (id: string) => {
+      return await NavViewModule.removeCircle(nativeID, id);
     },
-
-    setTrafficEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setTrafficEnabled, [isOn]);
+    removeGroundOverlay: async (id: string) => {
+      return await NavViewModule.removeGroundOverlay(nativeID, id);
     },
-
-    setCompassEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setCompassEnabled, [isOn]);
+    setZoomLevel: async (level: number) => {
+      return await NavViewModule.setZoomLevel(nativeID, level);
     },
-
-    setMyLocationButtonEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setMyLocationButtonEnabled, [isOn]);
-    },
-
-    setMyLocationEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setMyLocationEnabled, [isOn]);
-    },
-
-    setRotateGesturesEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setRotateGesturesEnabled, [isOn]);
-    },
-
-    setScrollGesturesEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setScrollGesturesEnabled, [isOn]);
-    },
-
-    setScrollGesturesEnabledDuringRotateOrZoom: (isOn: boolean) => {
-      sendCommand(viewId, commands.setScrollGesturesEnabledDuringRotateOrZoom, [
-        isOn,
-      ]);
-    },
-
-    setZoomControlsEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setZoomControlsEnabled, [isOn]);
-    },
-
-    setZoomLevel: (level: number) => {
-      sendCommand(viewId, commands.setZoomLevel, [level]);
-    },
-
-    setTiltGesturesEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setTiltGesturesEnabled, [isOn]);
-    },
-
-    setZoomGesturesEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setZoomGesturesEnabled, [isOn]);
-    },
-
-    setBuildingsEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setBuildingsEnabled, [isOn]);
-    },
-
     getCameraPosition: async (): Promise<CameraPosition> => {
-      return await NavViewModule.getCameraPosition(viewId);
+      return await NavViewModule.getCameraPosition(nativeID);
     },
-
     getMyLocation: async (): Promise<Location> => {
-      return await NavViewModule.getMyLocation(viewId);
+      return await NavViewModule.getMyLocation(nativeID);
     },
-
     getUiSettings: async (): Promise<UISettings> => {
-      return await NavViewModule.getUiSettings(viewId);
+      return await NavViewModule.getUiSettings(nativeID);
     },
-
     isMyLocationEnabled: async (): Promise<boolean> => {
-      return await NavViewModule.isMyLocationEnabled(viewId);
+      return await NavViewModule.isMyLocationEnabled(nativeID);
     },
-
-    moveCamera: (cameraPosition: CameraPosition) => {
-      sendCommand(viewId, commands.moveCamera, [cameraPosition]);
-    },
-
-    setPadding: (padding: Padding) => {
-      const { top = 0, left = 0, bottom = 0, right = 0 } = padding;
-      sendCommand(viewId, commands.setPadding, [top, left, bottom, right]);
+    moveCamera: async (cameraPosition: CameraPosition) => {
+      return await NavViewModule.moveCamera(nativeID, cameraPosition);
     },
   };
 };

@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import type { StyleProp, ViewStyle } from 'react-native';
-import type { LatLng } from '../shared/types';
-import type { MapViewCallbacks, MapViewController } from './mapView/types';
+import type { LatLng } from '../shared';
 
 /**
  * An immutable class that aggregates all camera position parameters such as
@@ -55,17 +53,17 @@ export interface Polygon {
   /** Id of the polygon. The id will be unique amongst all polygons on a map. */
   id: string;
   /** The fill color of the polygon. The color in hex format (ie. #RRGGBB). */
-  fillColor?: number;
+  fillColor?: string;
   /** Sets the width of the stroke of the polygon. The width is defined in pixels. */
   strokeWidth?: number;
   /** Sets the stroke color of this polygon. The color in hex format (ie. #RRGGBB). */
-  strokeColor?: number;
+  strokeColor?: string;
   /** The joint type for all vertices of the polygon's outline. Mitered join (default): 0, Bevel: 1, Round: 2. */
   strokeJointType?: number;
   /** The zIndex of the polygon. */
   zIndex?: number;
   /** Indicates whether the segments of the polygon should be drawn as geodesics, as opposed to straight lines on the Mercator projection. A geodesic is the shortest path between two points on the Earth's surface. The geodesic curve is constructed assuming the Earth is a sphere. */
-  isGeodesic?: boolean;
+  geodesic?: boolean;
 }
 
 /**
@@ -74,18 +72,34 @@ export interface Polygon {
 export interface Circle {
   /** The center of the Circle is specified as a LatLng. */
   center: LatLng;
+
   /** Id of the circle. The id will be unique amongst all circles on a map. */
   id: string;
+
   /** The fill color of the circle. The color in hex format (ie. #RRGGBB). */
-  fillColor?: number;
-  /** The width of the stroke of the circle. The width is defined in pixels. */
+  fillColor?: string;
+
+  /**
+   * The width of the stroke of the circle. The width is defined in pixels.
+   *
+   * Defaults to 0;
+   */
   strokeWidth?: number;
+
   /** The stroke color of this circle. The color in hex format (ie. #RRGGBB). */
-  strokeColor?: number;
+  strokeColor?: string;
+
   /** The radius of the circle, specified in meters. It should be zero or greater. */
   radius?: number;
+
   /** The zIndex of the circle. */
   zIndex?: number;
+  /**
+   * Indicates whether the circle is clickable.
+   *
+   * Defaults to true.
+   */
+  clickable?: boolean;
 }
 
 /**
@@ -127,7 +141,7 @@ export interface Polyline {
   /** Id of the polyline. The id will be unique amongst all polylines on a map. */
   id: string;
   /** The color of this polyline. The color in hex format (ie. #RRGGBB). */
-  color?: number;
+  color?: string;
   /** The width of the stroke of the polyline. The width is defined in pixels. */
   width?: number;
   /** The joint type for all vertices of the polyline. Mitered join (default): 0, Bevel: 1, Round: 2. */
@@ -158,15 +172,4 @@ export interface UISettings {
   isZoomControlsEnabled: boolean;
   /** Defines zoom gestures are enabled/disabled on the GoogleMap. */
   isZoomGesturesEnabled: boolean;
-}
-
-/**
- * `MapViewProps` interface provides methods focused on managing map events and state changes.
- */
-export interface MapViewProps {
-  readonly mapViewCallbacks?: MapViewCallbacks;
-
-  readonly style?: StyleProp<ViewStyle> | undefined;
-
-  onMapViewControllerCreated(mapViewController: MapViewController): void;
 }

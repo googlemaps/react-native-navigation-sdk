@@ -31,6 +31,7 @@ This project follows
 - [addlicense](https://github.com/google/addlicense)
 - [google-java-format Version 1.23.0](https://github.com/google/google-java-format) (used to format Java code).
 - [clang-format](https://clang.llvm.org/docs/ClangFormat.html) (used to format Objective-C code).
+- [ktfmt](https://facebook.github.io/ktfmt/) (used to format Kotlin code).
 
 ## 2. Forking & cloning the repository
 
@@ -97,6 +98,18 @@ This script will format all Objective-C files under the /ios and /example/ios di
 ```
 This script will format all Java files under the /android and /example/android directories according to Google's Java style guide.
 
+**Kotlin:**
+```bash
+./scripts/format-kotlin.sh
+```
+This script will format all Kotlin files under the /android and /example/android directories according to Google's Kotlin style guide.
+
+**All:**
+```bash
+./scripts/format.sh
+```
+This script run all above formatters.
+
 
 ## 5. Code reviews
 
@@ -140,6 +153,7 @@ yarn run example detox:test:ios-release
 ```
 
 Android:
+Create AVD emulator with the name "Pixel_9_Pro_API_35" and run the command below.
 ```bash
 yarn run example detox:test:android-release
 ```

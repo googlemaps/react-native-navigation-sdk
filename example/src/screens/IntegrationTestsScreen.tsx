@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useReducer } from 'react';
 import { Button, Text, View } from 'react-native';
-import Snackbar from 'react-native-snackbar';
 
 import {
   type Circle,
+  type GroundOverlay,
   type LatLng,
-  type MapViewCallbacks,
   type MapViewController,
   type Marker,
   type NavigationViewController,
@@ -45,12 +44,12 @@ import {
   testOnRemainingTimeOrDistanceChanged,
   testOnArrival,
   testOnRouteChanged,
+  type TestTools,
 } from './integration_tests/integration_test';
-
-// Utility function for showing Snackbar
-const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
-  Snackbar.show({ text, duration });
-};
+import {
+  initialMapNavControlsState,
+  mapNavControlsReducer,
+} from '../controls/mapNavControlsReducer';
 
 enum TestRunStatus {
   NotRunning = 'Not running',
@@ -74,50 +73,14 @@ const IntegrationTestsScreen = () => {
     TestRunStatus.NotRunning
   );
   const [testResult, setTestResult] = useState<TestResult>(TestResult.None);
-  const { navigationController, addListeners, removeListeners } =
-    useNavigation();
+  const { navigationController } = useNavigation();
   const [detoxStepNumber, setDetoxStepNumber] = useState(0);
   const [failureMessage, setFailuremessage] = useState('');
   const [navigationViewController, setNavigationViewController] =
     useState<NavigationViewController | null>(null);
-
-  const onMapReady = useCallback(async () => {
-    console.log('Map is ready, initializing navigator...');
-    try {
-      // await navigationController.init();
-    } catch (error) {
-      console.error('Error initializing navigator', error);
-      showSnackbar('Error initializing navigator');
-    }
-  }, []);
-
-  const mapViewCallbacks: MapViewCallbacks = useMemo(
-    () => ({
-      onMapReady: onMapReady,
-      onMarkerClick: (marker: Marker) => {
-        console.log('Map 1, onMarkerClick:', marker);
-        mapViewController?.removeMarker(marker.id);
-      },
-      onPolygonClick: (polygon: Polygon) => {
-        console.log('Map 1, onPolygonClick:', polygon);
-        mapViewController?.removePolygon(polygon.id);
-      },
-      onCircleClick: (circle: Circle) => {
-        console.log('Map 1, onCircleClick:', circle);
-        mapViewController?.removeCircle(circle.id);
-      },
-      onPolylineClick: (polyline: Polyline) => {
-        console.log('Map 1, onPolylineClick:', polyline);
-        mapViewController?.removePolyline(polyline.id);
-      },
-      onMarkerInfoWindowTapped: (marker: Marker) => {
-        console.log('Map 1, onMarkerInfoWindowTapped:', marker);
-      },
-      onMapClick: (latLng: LatLng) => {
-        console.log('Map 1, onMapClick:', latLng);
-      },
-    }),
-    [mapViewController, onMapReady]
+  const [mapNavControlsState, dispatchMapNavControls] = useReducer(
+    mapNavControlsReducer,
+    initialMapNavControlsState
   );
 
   const passTest = () => {
@@ -136,12 +99,19 @@ const IntegrationTestsScreen = () => {
     setTestStatus(TestRunStatus.WaitForDetox);
   };
 
-  const resetTestState = () => {
+  const resetTestState = async () => {
+    try {
+      navigationController.removeAllListeners();
+      await navigationController.cleanup();
+    } catch (e) {}
     setActiveTestId('');
     setTestResult(TestResult.None);
     setTestStatus(TestRunStatus.NotRunning);
     setDetoxStepNumber(0);
     setFailuremessage('');
+    dispatchMapNavControls({
+      type: 'reset',
+    });
   };
 
   const expectFalseError = (expectation: string) => {
@@ -152,22 +122,23 @@ const IntegrationTestsScreen = () => {
     failTest(`Expected ${expectation} to be true but it was false`);
   };
 
-  const getTestTools = () => {
+  const getTestTools = (): TestTools => {
     return {
       navigationController,
       mapViewController,
       navigationViewController,
-      addListeners,
-      removeListeners,
       passTest,
       failTest,
       setDetoxStep,
       expectFalseError,
       expectTrueError,
+      dispatchMapNavControls,
+      mapNavControlsState,
     };
   };
 
   const runTest = async (testId: string) => {
+    navigationController.removeAllListeners();
     setIsOverlayOpen(false);
     setActiveTestId(testId);
     setTestResult(TestResult.None);
@@ -224,9 +195,67 @@ const IntegrationTestsScreen = () => {
       <Text>See CONTRIBUTING.md to see how to run integration tests.</Text>
       <View style={{ flex: 6, margin: 5 }}>
         <NavigationView
-          mapViewCallbacks={mapViewCallbacks}
+          onMarkerClick={(marker: Marker) => {
+            console.log('Map, onMarkerClick:', marker);
+          }}
+          onPolygonClick={(polygon: Polygon) => {
+            console.log('Map, onPolygonClick:', polygon);
+          }}
+          onCircleClick={(circle: Circle) => {
+            console.log('Map, onCircleClick:', circle);
+          }}
+          onPolylineClick={(polyline: Polyline) => {
+            console.log('Map, onPolylineClick:', polyline);
+          }}
+          onMarkerInfoWindowTapped={(marker: Marker) => {
+            console.log('Map, onMarkerInfoWindowTapped:', marker);
+          }}
+          onMapClick={(latLng: LatLng) => {
+            console.log('Map, onMapClick:', latLng);
+          }}
+          onGroundOverlayClick={(groundOverlay: GroundOverlay) => {
+            console.log('Map, onGroundOverlayClick:', groundOverlay);
+          }}
+          onMapReady={() => {
+            console.log('Map, onMapReady');
+          }}
+          onRecenterButtonClick={() => {
+            console.log('Map, onRecenterButtonClick');
+          }}
           onMapViewControllerCreated={setMapViewController}
           onNavigationViewControllerCreated={setNavigationViewController}
+          mapType={mapNavControlsState.mapType}
+          mapPadding={mapNavControlsState.padding}
+          mapToolbarEnabled={mapNavControlsState.mapToolbarEnabled}
+          indoorEnabled={mapNavControlsState.indoorEnabled}
+          myLocationEnabled={mapNavControlsState.myLocationEnabled}
+          trafficEnabled={mapNavControlsState.trafficEnabled}
+          compassEnabled={mapNavControlsState.compassEnabled}
+          myLocationButtonEnabled={mapNavControlsState.myLocationButtonEnabled}
+          buildingsEnabled={mapNavControlsState.buildingsEnabled}
+          rotateGesturesEnabled={mapNavControlsState.rotateGesturesEnabled}
+          scrollGesturesEnabled={mapNavControlsState.scrollGesturesEnabled}
+          scrollGesturesEnabledDuringRotateOrZoom={
+            mapNavControlsState.scrollGesturesEnabledDuringRotateOrZoom
+          }
+          tiltGesturesEnabled={mapNavControlsState.tiltGesturesEnabled}
+          zoomControlsEnabled={mapNavControlsState.zoomControlsEnabled}
+          zoomGesturesEnabled={mapNavControlsState.zoomGesturesEnabled}
+          followingPerspective={mapNavControlsState.followingPerspective}
+          nightMode={mapNavControlsState.nightMode}
+          navigationUIEnabled={mapNavControlsState.navigationUIEnabled}
+          tripProgressBarEnabled={mapNavControlsState.tripProgressBarEnabled}
+          speedLimitIconEnabled={mapNavControlsState.speedLimitIconEnabled}
+          speedometerEnabled={mapNavControlsState.speedometerEnabled}
+          trafficIncidentsCardEnabled={
+            mapNavControlsState.trafficIncidentsCardEnabled
+          }
+          reportIncidentButtonEnabled={
+            mapNavControlsState.reportIncidentButtonEnabled
+          }
+          recenterButtonEnabled={mapNavControlsState.recenterButtonEnabled}
+          headerEnabled={mapNavControlsState.headerEnabled}
+          footerEnabled={mapNavControlsState.footerEnabled}
         />
       </View>
       <View style={{ flex: 4 }}>

@@ -14,13 +14,50 @@
  * limitations under the License.
  */
 
+import { type LatLng } from '@googlemaps/react-native-navigation-sdk';
+import type { TestTools } from './integration_test';
+
 // Delay function execution by given time in ms.
 export const delay = (timeInMs: number): Promise<void> => {
-  return new Promise(resolve => setTimeout(resolve, timeInMs));
+  return new Promise((resolve) => setTimeout(resolve, timeInMs));
 };
 
 // Remove decimals from any floating point number.
 export const roundDown = (value: number) => {
   const factor = Math.pow(10, 0);
   return Math.floor(value * factor) / factor;
+};
+
+/**
+ * Simulate user location and wait until mapViewController.getMyLocation() matches it within tolerance.
+ */
+export const simulateAndWaitForLocation = async (
+  testTools: TestTools,
+  simulateLocation: LatLng,
+  tolerance = 0.0001,
+  timeoutMs = 30000
+): Promise<boolean> => {
+  const { navigationController, mapViewController, failTest } = testTools;
+  await navigationController.simulator.simulateLocation(simulateLocation);
+
+  const start = Date.now();
+  while (true) {
+    const currentLocation = await mapViewController?.getMyLocation();
+    if (
+      currentLocation &&
+      Math.abs(currentLocation.lat - simulateLocation.lat) <= tolerance &&
+      Math.abs(currentLocation.lng - simulateLocation.lng) <= tolerance
+    ) {
+      return true;
+    }
+    if (Date.now() - start > timeoutMs) {
+      failTest(
+        `Timeout: getMyLocation() did not match simulated location ${JSON.stringify(
+          simulateLocation
+        )} within ${timeoutMs}ms`
+      );
+      return false;
+    }
+    await delay(250);
+  }
 };

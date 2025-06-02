@@ -16,17 +16,26 @@
 
 import type { MapViewController } from '../maps';
 
-/** Defines all callbacks to be emitted by NavViewAuto support. */
-export interface NavigationAutoCallbacks {
+/** Defines all callbacks listeners setters for events emitted by auto support. */
+export interface NavigationAutoCallbackListenerSetters {
   /**
-   * Callback function invoked when the screen availability changes.
+   * Callback setter function for events invoked when the screen availability changes.
    */
-  onAutoScreenAvailabilityChanged?(available: boolean): void;
+  setOnAutoScreenAvailabilityChangedListener: (
+    callback: ((available: boolean) => void) | null
+  ) => void;
 
   /**
-   * Callback function invoked when a custom navigation auto event is received.
+   * Callback setter function for events invoked when a custom navigation auto event is received.
    */
-  onCustomNavigationAutoEvent?(event: CustomNavigationAutoEvent): void;
+  setOnCustomNavigationAutoEventListener: (
+    callback: ((event: CustomNavigationAutoEvent) => void) | null
+  ) => void;
+
+  /**
+   * Removes all listeners for the naviation auto support events.
+   */
+  removeAllListeners: () => void;
 }
 
 /**
@@ -46,7 +55,9 @@ export interface CustomNavigationAutoEvent {
   data?: Record<string, unknown>;
 }
 
-export interface MapViewAutoController extends MapViewController {
+export interface MapViewAutoController
+  extends MapViewController,
+    NavigationAutoCallbackListenerSetters {
   /**
    * Cleans up the navigation module, releasing any resources that were allocated.
    */

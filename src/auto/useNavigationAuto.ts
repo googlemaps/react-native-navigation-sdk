@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-import { NativeModules } from 'react-native';
-import type { MapViewAutoController, NavigationAutoCallbacks } from './types';
-import { useModuleListeners, type Location } from '../shared';
+import { type EventSubscription } from 'react-native';
 import type {
-  MapType,
+  CustomNavigationAutoEvent,
+  MapViewAutoController,
+  NavigationAutoCallbackListenerSetters,
+} from './types';
+import { MapType, type Location } from '../shared';
+import type {
   CircleOptions,
   Circle,
   MarkerOptions,
@@ -29,177 +32,171 @@ import type {
   Polygon,
   CameraPosition,
   UISettings,
+  GroundOverlayOptions,
+  GroundOverlay,
   Padding,
 } from '../maps';
-import { useMemo } from 'react';
-
-const { NavAutoEventDispatcher, NavAutoModule } = NativeModules;
-
-const androidBridge: string = 'NavAutoJavascriptBridge';
+import { useRef } from 'react';
+import { NavAutoModule } from '../native';
 
 export const useNavigationAuto = (): {
   mapViewAutoController: MapViewAutoController;
-  addListeners: (listeners: Partial<NavigationAutoCallbacks>) => void;
-  removeListeners: (listeners: Partial<NavigationAutoCallbacks>) => void;
-  removeAllListeners: () => void;
 } => {
-  const moduleListenersHandler = useModuleListeners<NavigationAutoCallbacks>(
-    NavAutoEventDispatcher,
-    androidBridge,
-    ['onAutoScreenAvailabilityChanged', 'onCustomNavigationAutoEvent']
-  );
+  const subscriptions = useRef<Record<string, EventSubscription | null>>({});
+  const createSetter =
+    <T extends (...args: any[]) => void>(eventName: string) =>
+    (callback: T | null) => {
+      subscriptions.current[eventName]?.remove();
+      subscriptions.current[eventName] = null;
 
-  const mapViewAutoController = useMemo(
-    () => ({
-      cleanup: async () => {
-        moduleListenersHandler.removeAllListeners();
-      },
+      if (callback && (NavAutoModule as any)[eventName] != null) {
+        // Fix me
+        subscriptions.current[eventName] = (NavAutoModule as any)[eventName](
+          callback
+        );
+      }
+    };
 
-      isAutoScreenAvailable: async () => {
-        return await NavAutoModule.isAutoScreenAvailable();
-      },
+  const eventListenerControllers: NavigationAutoCallbackListenerSetters = {
+    setOnAutoScreenAvailabilityChangedListener: createSetter<
+      (available: boolean) => void
+    >('onAutoScreenAvailabilityChanged'),
+    setOnCustomNavigationAutoEventListener: createSetter<
+      (event: CustomNavigationAutoEvent) => void
+    >('onAutoScreenAvailabilityChanged'),
 
-      setMapType: (mapType: MapType) => {
-        NavAutoModule.setMapType(mapType);
-      },
+    removeAllListeners: () => {
+      Object.keys(subscriptions.current).forEach((key) => {
+        subscriptions.current[key]?.remove();
+        subscriptions.current[key] = null;
+      });
+    },
+  };
 
-      setMapStyle: (mapStyle: string) => {
-        NavAutoModule.setMapStyle(mapStyle);
-      },
+  const mapViewAutoController = {
+    ...eventListenerControllers,
+    cleanup: async () => {
+      eventListenerControllers.removeAllListeners();
+    },
 
-      // Android only.
-      setMapToolbarEnabled: (enabled: boolean) => {
-        NavAutoModule.setMapToolbarEnabled(enabled);
-      },
+    isAutoScreenAvailable: async () => {
+      return await NavAutoModule.isAutoScreenAvailable();
+    },
 
-      clearMapView: () => {
-        NavAutoModule.clearMapView();
-      },
+    setMapType: (mapType: MapType) => {
+      NavAutoModule.setMapType(mapType);
+    },
 
-      addCircle: async (circleOptions: CircleOptions): Promise<Circle> => {
-        return await NavAutoModule.addCircle(circleOptions);
-      },
+    setMapStyle: (mapStyle: string) => {
+      NavAutoModule.setMapStyle(mapStyle);
+    },
 
-      addMarker: async (markerOptions: MarkerOptions): Promise<Marker> => {
-        return await NavAutoModule.addMarker(markerOptions);
-      },
+    clearMapView: () => {
+      NavAutoModule.clearMapView();
+    },
 
-      addPolyline: async (
-        polylineOptions: PolylineOptions
-      ): Promise<Polyline> => {
-        return await NavAutoModule.addPolyline({
-          ...polylineOptions,
-          points: polylineOptions.points || [],
-        });
-      },
+    addCircle: async (circleOptions: CircleOptions): Promise<Circle> => {
+      return await NavAutoModule.addCircle(circleOptions);
+    },
 
-      addPolygon: async (polygonOptions: PolygonOptions): Promise<Polygon> => {
-        return await NavAutoModule.addPolygon({
-          ...polygonOptions,
-          holes: polygonOptions.holes || [],
-          points: polygonOptions.points || [],
-        });
-      },
+    addMarker: async (markerOptions: MarkerOptions): Promise<Marker> => {
+      return await NavAutoModule.addMarker(markerOptions);
+    },
 
-      removeMarker: (id: string) => {
-        return NavAutoModule.removeMarker(id);
-      },
+    addPolyline: async (
+      polylineOptions: PolylineOptions
+    ): Promise<Polyline> => {
+      return await NavAutoModule.addPolyline({
+        ...polylineOptions,
+        points: polylineOptions.points || [],
+      });
+    },
 
-      removePolyline: (id: string) => {
-        return NavAutoModule.removePolyline(id);
-      },
+    addPolygon: async (polygonOptions: PolygonOptions): Promise<Polygon> => {
+      return await NavAutoModule.addPolygon({
+        ...polygonOptions,
+        holes: polygonOptions.holes || [],
+        points: polygonOptions.points || [],
+      });
+    },
 
-      removePolygon: (id: string) => {
-        return NavAutoModule.removePolygon(id);
-      },
+    addGroundOverlay: async (
+      groundOverlayOptions: GroundOverlayOptions
+    ): Promise<GroundOverlay> => {
+      return await NavAutoModule.addGroundOverlay(groundOverlayOptions);
+    },
 
-      removeCircle: (id: string) => {
-        return NavAutoModule.removeCircle(id);
-      },
+    removeMarker: (id: string) => {
+      return NavAutoModule.removeMarker(id);
+    },
 
-      setIndoorEnabled: (isOn: boolean) => {
-        return NavAutoModule.setIndoorEnabled(isOn);
-      },
+    removePolyline: (id: string) => {
+      return NavAutoModule.removePolyline(id);
+    },
 
-      setTrafficEnabled: (isOn: boolean) => {
-        return NavAutoModule.setTrafficEnabled(isOn);
-      },
+    removePolygon: (id: string) => {
+      return NavAutoModule.removePolygon(id);
+    },
 
-      setCompassEnabled: (isOn: boolean) => {
-        return NavAutoModule.setCompassEnabled(isOn);
-      },
+    removeCircle: (id: string) => {
+      return NavAutoModule.removeCircle(id);
+    },
 
-      setMyLocationButtonEnabled: (isOn: boolean) => {
-        return NavAutoModule.setMyLocationButtonEnabled(isOn);
-      },
+    removeGroundOverlay: (id: string) => {
+      return NavAutoModule.removeGroundOverlay(id);
+    },
 
-      setMyLocationEnabled: (isOn: boolean) => {
-        return NavAutoModule.setMyLocationEnabled(isOn);
-      },
+    setIndoorEnabled: (isOn: boolean) => {
+      return NavAutoModule.setIndoorEnabled(isOn);
+    },
 
-      setRotateGesturesEnabled: (isOn: boolean) => {
-        return NavAutoModule.setRotateGesturesEnabled(isOn);
-      },
+    setTrafficEnabled: (isOn: boolean) => {
+      return NavAutoModule.setTrafficEnabled(isOn);
+    },
 
-      setScrollGesturesEnabled: (isOn: boolean) => {
-        return NavAutoModule.setScrollGesturesEnabled(isOn);
-      },
+    setCompassEnabled: (isOn: boolean) => {
+      return NavAutoModule.setCompassEnabled(isOn);
+    },
 
-      setScrollGesturesEnabledDuringRotateOrZoom: (isOn: boolean) => {
-        return NavAutoModule.setScrollGesturesEnabledDuringRotateOrZoom(isOn);
-      },
+    setMyLocationEnabled: (isOn: boolean) => {
+      return NavAutoModule.setMyLocationEnabled(isOn);
+    },
 
-      // Android only.
-      setZoomControlsEnabled: (isOn: boolean) => {
-        return NavAutoModule.setZoomControlsEnabled(isOn);
-      },
+    setZoomLevel: async (level: number) => {
+      return NavAutoModule.setZoomLevel(level);
+    },
 
-      setZoomLevel: async (level: number) => {
-        return NavAutoModule.setZoomLevel(level);
-      },
+    setBuildingsEnabled: (isOn: boolean) => {
+      return NavAutoModule.setBuildingsEnabled(isOn);
+    },
 
-      setTiltGesturesEnabled: (isOn: boolean) => {
-        return NavAutoModule.setTiltGesturesEnabled(isOn);
-      },
+    getCameraPosition: async (): Promise<CameraPosition> => {
+      return await NavAutoModule.getCameraPosition();
+    },
 
-      setZoomGesturesEnabled: (isOn: boolean) => {
-        return NavAutoModule.setZoomGesturesEnabled(isOn);
-      },
+    getMyLocation: async (): Promise<Location> => {
+      return await NavAutoModule.getMyLocation();
+    },
 
-      setBuildingsEnabled: (isOn: boolean) => {
-        return NavAutoModule.setBuildingsEnabled(isOn);
-      },
+    getUiSettings: async (): Promise<UISettings> => {
+      return await NavAutoModule.getUiSettings();
+    },
 
-      getCameraPosition: async (): Promise<CameraPosition> => {
-        return await NavAutoModule.getCameraPosition();
-      },
+    isMyLocationEnabled: async (): Promise<boolean> => {
+      return await NavAutoModule.isMyLocationEnabled();
+    },
 
-      getMyLocation: async (): Promise<Location> => {
-        return await NavAutoModule.getMyLocation();
-      },
+    moveCamera: (cameraPosition: CameraPosition) => {
+      return NavAutoModule.moveCamera(cameraPosition);
+    },
 
-      getUiSettings: async (): Promise<UISettings> => {
-        return await NavAutoModule.getUiSettings();
-      },
-
-      isMyLocationEnabled: async (): Promise<boolean> => {
-        return await NavAutoModule.isMyLocationEnabled();
-      },
-
-      moveCamera: (cameraPosition: CameraPosition) => {
-        return NavAutoModule.moveCamera(cameraPosition);
-      },
-
-      setPadding: (padding: Padding) => {
-        const { top = 0, left = 0, bottom = 0, right = 0 } = padding;
-        return NavAutoModule.setPadding(top, left, bottom, right);
-      },
-    }),
-    [moduleListenersHandler]
-  );
+    setPadding: (padding: Padding) => {
+      const { top = 0, left = 0, bottom = 0, right = 0 } = padding;
+      return NavAutoModule.setMapPadding(top, left, bottom, right);
+    },
+  };
 
   return {
     mapViewAutoController,
-    ...moduleListenersHandler,
   };
 };

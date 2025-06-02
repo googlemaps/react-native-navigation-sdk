@@ -1,0 +1,42 @@
+/**
+ * Copyright 2023 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef INavigationViewCallback_h
+#define INavigationViewCallback_h
+
+#import <GoogleNavigation/GoogleNavigation.h>
+
+NS_ASSUME_NONNULL_BEGIN
+
+@protocol INavigationViewCallback
+
+@required
+
+- (void)handleMapReady;
+- (void)handleMapClick:(double)lat lng:(double)lng;
+- (void)handleRecenterButtonClick;
+- (void)handlePromptVisibilityChanged:(BOOL)visible;
+- (void)handleMarkerInfoWindowTapped:(GMSMarker *)marker;
+- (void)handleMarkerClick:(GMSMarker *)marker;
+- (void)handlePolylineClick:(GMSPolyline *)polyline;
+- (void)handlePolygonClick:(GMSPolygon *)polygon;
+- (void)handleCircleClick:(GMSCircle *)circle;
+- (void)handleGroundOverlayClick:(GMSGroundOverlay *)groundOverlay;
+@end
+
+NS_ASSUME_NONNULL_END
+
+#endif /* INavigationViewCallback_h */

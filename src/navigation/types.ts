@@ -211,13 +211,15 @@ export enum RouteStatus {
  * An ErrorCode is a status code returned by when trying to retrieve the Navigator
  * but that could not be successfully obtained.
  */
-export enum NavigationInitErrorCode {
+export enum NavigationInitializationStatus {
+  /** The Navigation API is initialized and ready to use. */
+  OK = 0,
   /**
    * The API key you supplied is not authorized to use the Navigation API. You may need to request
    * provisioning of the Navigation SDK through your Google Maps APIs representative. Your app
    * should fall back to another navigation mechanism if this code is received.
    */
-  NOT_AUTHORIZED = 1,
+  NOT_AUTHORIZED,
   /** The user has not accepted Google's Navigation terms. */
   TERMS_NOT_ACCEPTED,
   /** The Navigation API is unable to access the internet. */

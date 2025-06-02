@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import React from 'react';
 import {
   NavigationContainer,
   useIsFocused,
@@ -92,7 +91,7 @@ export default function App() {
   return (
     <NavigationProvider
       termsAndConditionsDialogOptions={termsAndConditionsDialogOptions}
-      taskRemovedBehavior={TaskRemovedBehavior.CONTINUE_SERVICE}
+      taskRemovedBehavior={TaskRemovedBehavior.QUIT_SERVICE}
     >
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Home">

@@ -60,7 +60,16 @@ body:
     attributes:
       label: React Native Doctor Output
       description: |
-        Run `npx react-native doctor` in your projectq and paste the output below.
+        Run `npx react-native doctor` in your project folder and paste the output below.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: React Native Info Output
+      description: |
+        Run `npx react-native info` in your project folder and paste the output below.
+      render: shell
     validations:
       required: true
   - type: textarea
@@ -96,9 +105,13 @@ body:
         Without this we will unlikely be able to progress on the issue, 
         as we need to be able to reproduce the problem locally.
       value: |
+        <details open><summary>Code sample</summary>
+
         ```javascript
         // Example code here
         ```
+
+        </details>
     validations:
       required: true
   - type: textarea

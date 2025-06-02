@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { LatLng, Location } from '../../shared/types';
+import type { LatLng, Location, CommonMapViewProps } from '../../shared/types';
 import type {
   CameraPosition,
   Circle,
@@ -31,18 +31,35 @@ import type {
 export interface CircleOptions {
   /** The center of the circle defined as a LatLng. */
   center: LatLng;
+
+  /** Custom unique identifier for the marker.
+   *
+   * If identifier is not provided, a default identifier will be generated.
+   * The identifier should be unique across all markers on the map.
+   * If you have multiple markers with the same identifier, it may lead to unexpected behavior.
+   */
+  id?: string;
+
   /** The radius of the circle in pixels. */
   radius: number;
+
   /** The width of the stroke of the circle. The width is defined in pixels. */
   strokeWidth?: number;
+
   /** Sets the stroke color of this circle. The color in hex format (ie. #RRGGBB). */
   strokeColor?: string;
+
   /** The fill color of this circle. The color in hex format (ie. #RRGGBB). */
   fillColor?: string;
+
   /** Defines whether the circle should receive click events */
   clickable?: boolean;
+
   /** Defines whether the circle should be rendered (displayed) in GoogleMap */
   visible?: boolean;
+
+  /* * The zIndex of the marker. */
+  zIndex?: number;
 }
 
 /**
@@ -51,22 +68,41 @@ export interface CircleOptions {
 export interface MarkerOptions {
   /** The LatLng value for the marker's position on the map. You can change this value at any time if you want to move the marker. */
   position: LatLng;
+
+  /** Custom unique identifier for the marker.
+   *
+   * If identifier is not provided, a default identifier will be generated.
+   * The identifier should be unique across all markers on the map.
+   * If you have multiple markers with the same identifier, it may lead to unexpected behavior.
+   */
+  id?: string;
+
   /** Path to a local image asset that should be displayed in the marker instead of using the default marker pin. */
   imgPath?: string;
+
   /** A text string that's displayed in an info window when the user taps the marker. You can change this value at any time. */
   title?: string;
+
   /** Additional text that's displayed below the title. You can change this value at any time. */
   snippet?: string;
+
   /** Sets the opacity of the marker. Defaults to 1.0. */
   alpha?: number;
+
   /** The rotation of the marker in degrees clockwise about the marker's anchor point. The axis of rotation is perpendicular to the marker. A rotation of 0 corresponds to the default position of the marker. When the marker is flat on the map, the default position is North aligned and the rotation is such that the marker always remains flat on the map. When the marker is a billboard, the default position is pointing up and the rotation is such that the marker is always facing the camera. The default value is 0. */
   rotation?: number;
+
   /** Indicates whether this marker is draggable. False by default. */
   draggable?: boolean;
+
   /** Indicates whether this marker should be flat against the map true or a billboard facing the camera false. */
   flat?: boolean;
-  /** Indicates the visibility of the polygon. True by default. */
+
+  /** Indicates the visibility of the marker. True by default. */
   visible?: boolean;
+
+  /* * The zIndex of the marker. */
+  zIndex?: number;
 }
 
 /**
@@ -75,20 +111,38 @@ export interface MarkerOptions {
 export interface PolygonOptions {
   /** An array of LatLngs that are the vertices of the polygon. */
   points: LatLng[];
+
+  /** Custom unique identifier for the polygon.
+   *
+   * If identifier is not provided, a default identifier will be generated.
+   * The identifier should be unique across all polygons on the map.
+   * If you have multiple polygons with the same identifier, it may lead to unexpected behavior.
+   */
+  id?: string;
+
   /** An array of holes, where a hole is an array of LatLngs. */
   holes?: LatLng[][];
+
   /** Sets the width of the stroke of the polygon. The width is defined in pixels. */
   strokeWidth?: number;
+
   /** Sets the stroke color of this polygon. The color in hex format (ie. #RRGGBB). */
   strokeColor?: string;
+
   /** The fill color of the polygon. The color in hex format (ie. #RRGGBB). */
   fillColor?: string;
+
   /** Indicates whether the segments of the polygon should be drawn as geodesics, as opposed to straight lines on the Mercator projection. A geodesic is the shortest path between two points on the Earth's surface. The geodesic curve is constructed assuming the Earth is a sphere. */
   geodesic?: boolean;
+
   /** Indicates the clickability of the polygon. False by default. */
   clickable?: boolean;
+
   /** Indicates the visibility of the polygon. True by default. */
   visible?: boolean;
+
+  /* * The zIndex of the marker. */
+  zIndex?: number;
 }
 
 /**
@@ -97,30 +151,63 @@ export interface PolygonOptions {
 export interface PolylineOptions {
   /** An array of LatLngs that are the vertices of the polyline. */
   points: LatLng[];
+
+  /** Custom unique identifier for the polygon.
+   *
+   * If identifier is not provided, a default identifier will be generated.
+   * The identifier should be unique across all polygons on the map.
+   * If you have multiple polygons with the same identifier, it may lead to unexpected behavior.
+   */
+  id?: string;
+
   /** The color of this polyline. The color in hex format (ie. #RRGGBB). */
   color?: string;
+
   /** The width of the stroke of the polyline. The width is defined in pixels. */
   width?: number;
+
   /** Indicates the clickability of the polyline. False by default. */
   clickable?: boolean;
+
   /** Indicates the visibility of the polyline. True by default. */
   visible?: boolean;
+
+  /* * The zIndex of the marker. */
+  zIndex?: number;
 }
 
 /**
- * Defines the styling of the base map.
+ * Defines GroundOverlayOptions for a GroundOverlay.
  */
-export enum MapType {
-  /** No base map tiles. */
-  NONE = 0,
-  /** Default GoogleMap style - Basic maps. */
-  NORMAL,
-  /** Satellite maps with a transparent layer of major streets. */
-  SATELLITE,
-  /** Shows the terrain of the map only. This map type does not work during navigation. */
-  TERRAIN,
-  /** Satellite maps with a transparent layer of major streets. */
-  HYBRID,
+export interface GroundOverlayOptions {
+  /** Path to a local image asset that should be displayed as ground overlay. */
+  imgPath: string;
+
+  /** Custom unique identifier for the polygon.
+   *
+   * If identifier is not provided, a default identifier will be generated.
+   * The identifier should be unique across all polygons on the map.
+   * If you have multiple polygons with the same identifier, it may lead to unexpected behavior.
+   */
+  id?: string;
+
+  /** Position of the ground overlay. */
+  location: LatLng;
+
+  /** The width of the ground overlay on the map. */
+  width?: number;
+
+  /** The height of the ground overlay on the map. */
+  height?: number;
+
+  /** Sets the opacity of the marker. Defaults to 1.0. */
+  alpha?: number;
+
+  /** Indicates the clickability of the ground overlay. False by default. */
+  clickable?: boolean;
+
+  /** Indicates the visibility of the ground overlay. True by default. */
+  visible?: boolean;
 }
 
 /**
@@ -138,9 +225,9 @@ export interface Padding {
 }
 
 /**
- * Defines the type of the map fragment.
+ * Defines the type of the map.
  */
-export enum FragmentType {
+export enum MapViewType {
   /** Regular Google map view without navigation */
   MAP = 0,
   /** Google map view with navigation */
@@ -196,29 +283,6 @@ export interface MapViewCallbacks {
 
 export interface MapViewController {
   /**
-   * Set the type of the map.
-   * @param mapType - A `MapType` enumeration representing
-   * the desired map type.
-   */
-  setMapType(mapType: MapType): void;
-
-  /**
-   * Set the visual style of the map.
-   * @param mapStyle - A string representing the desired visual
-   * style for the map.
-   */
-  setMapStyle(mapStyle: string): void;
-
-  /**
-   * Enable or disable the map toolbar.
-   * Android only.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               the the map toolbar.
-   */
-  setMapToolbarEnabled(isOn: boolean): void;
-
-  /**
    * Clear all elements from the map view.
    */
   clearMapView(): void;
@@ -238,6 +302,7 @@ export interface MapViewController {
    *                        rotation, and various flags for other properties.
    */
   addMarker(markerOptions: MarkerOptions): Promise<Marker>;
+
   /**
    * Add a polyline to the map.
    *
@@ -253,8 +318,16 @@ export interface MapViewController {
    *                         including coordinates, stroke color, fill color,
    *                         and visibility.
    */
-
   addPolygon(polygonOptions: PolygonOptions): Promise<Polygon>;
+
+  /**
+   * Add a polyline to the map.
+   *
+   * @param groundOverlayOptions - Object specifying properties of the ground overlay.
+   */
+  addGroundOverlay(
+    groundOverlayOptions: GroundOverlayOptions
+  ): Promise<GroundOverlay>;
 
   /**
    * Removes a marker from the map.
@@ -285,76 +358,11 @@ export interface MapViewController {
   removeCircle(id: string): void;
 
   /**
-   * Enable or disable the indoor map layer.
+   * Removes a ground overlay from the map.
    *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               the indoor map layer.
+   * @param id - String specifying the id property of the ground overlay
    */
-  setIndoorEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable the traffic layer.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               the traffic layer on the map.
-   */
-
-  setTrafficEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable the compass.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               the compass on the map.
-   */
-  setCompassEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable user location
-   *
-   * @param isOn - Boolean indicating whether to display (true) or hide (false)
-   *               the user's location.
-   */
-  setMyLocationButtonEnabled(isOn: boolean): void;
-  /**
-   * Show or hide a location marker on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false) the
-   *               location marker.
-   */
-  setMyLocationEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable rotate gestures.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               rotate gestures on the map.
-   */
-  setRotateGesturesEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable scroll gestures on the map.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               scroll gestures.
-   */
-  setScrollGesturesEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable scroll gestures during rotate or zoom actions.
-   *
-   * @param isOn - Boolean indicating whether to allow (true) or disallow (false)
-   *               scroll gestures while rotating or zooming the map.
-   */
-  setScrollGesturesEnabledDuringRotateOrZoom(isOn: boolean): void;
-
-  /**
-   * Enable or disable zoom control.
-   * Only available for Android
-   * @param isOn - Boolean indicating whether to allow (true) or disallow (false)
-   *               of zoom control.
-   */
-  setZoomControlsEnabled(isOn: boolean): void;
+  removeGroundOverlay(id: string): void;
 
   /**
    * Sets the zoom level of the map.
@@ -362,30 +370,6 @@ export interface MapViewController {
    * @param level - The desired zoom level.
    */
   setZoomLevel(level: number): void;
-
-  /**
-   * Enable or disable tilt gestures on the map.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               tilt gestures.
-   */
-  setTiltGesturesEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable zoom gestures on the map.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               zoom gestures.
-   */
-  setZoomGesturesEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable the buildings layer on the map.
-   *
-   * @param isOn - Boolean indicating whether to display (true) or hide (false)
-   *               the buildings layer.
-   */
-  setBuildingsEnabled(isOn: boolean): void;
 
   /**
    * Getter trigger functions for MapsSDK
@@ -396,6 +380,7 @@ export interface MapViewController {
    * tilt (float) and bearing (float)
    */
   getCameraPosition(): Promise<CameraPosition>;
+
   /**
    *
    * @returns the current user location. If map instance is null
@@ -413,6 +398,7 @@ export interface MapViewController {
    * isZoomGesturesEnabled
    */
   getUiSettings(): Promise<UISettings>;
+
   /**
    * Check if user location is enabled on the map.
    *
@@ -420,18 +406,21 @@ export interface MapViewController {
    *          location is enabled (true) or disabled (false).
    */
   isMyLocationEnabled(): Promise<boolean>;
+
   /**
    * Move the camera to a new position based on the object given.
    *
    * @param cameraPosition - Defines the position the camera will take with the move.
    */
   moveCamera(cameraPosition: CameraPosition): void;
+}
 
+/**
+ * `MapViewProps` interface provides methods focused on managing map events and state changes.
+ */
+export interface MapViewProps extends CommonMapViewProps, MapViewCallbacks {
   /**
-   * Sets padding to the map.
-   *
-   * @param padding - An object defining padding for each side.
-   *                  Example: { top: 10, left: 5, bottom: 15, right: 10 }
+   * Callback invoked when the map view controller is created.
    */
-  setPadding(padding: Padding): void;
+  onMapViewControllerCreated(mapViewController: MapViewController): void;
 }

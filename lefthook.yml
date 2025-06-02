@@ -21,6 +21,9 @@ pre-commit:
     format-java:
       runner: sh
       run: ./scripts/format-java.sh --check
+    format-kotlin:
+      runner: sh
+      run: ./scripts/format-kotlin.sh --check
     license-check:
       runner: sh
       run: ./scripts/addlicense.sh --check

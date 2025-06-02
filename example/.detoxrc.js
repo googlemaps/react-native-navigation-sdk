@@ -29,16 +29,16 @@ module.exports = {
     'ios.debug': {
       type: 'ios.app',
       binaryPath:
-        'ios/build/Build/Products/Debug-iphonesimulator/SampleApp.app',
+        'ios/build/Build/Products/Debug-iphonesimulator/ReactNativeNavigationSdkExample.app',
       build:
-        'xcodebuild -workspace ios/SampleApp.xcworkspace -scheme SampleApp -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
+        'xcodebuild -workspace ios/ReactNativeNavigationSdkExample.xcworkspace -scheme ReactNativeNavigationSdkExample -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
     },
     'ios.release': {
       type: 'ios.app',
       binaryPath:
-        'ios/build/Build/Products/Release-iphonesimulator/SampleApp.app',
+        'ios/build/Build/Products/Release-iphonesimulator/ReactNativeNavigationSdkExample.app',
       build:
-        'xcodebuild -workspace ios/SampleApp.xcworkspace -scheme SampleApp -configuration Release -sdk iphonesimulator -derivedDataPath ios/build',
+        'xcodebuild -workspace ios/ReactNativeNavigationSdkExample.xcworkspace -scheme ReactNativeNavigationSdkExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build',
     },
     'android.debug': {
       type: 'android.apk',
@@ -59,6 +59,7 @@ module.exports = {
       type: 'ios.simulator',
       device: {
         type: 'iPhone 16 Pro',
+        os: 'iOS 18.4',
       },
     },
     attached: {
@@ -70,7 +71,7 @@ module.exports = {
     emulator: {
       type: 'android.emulator',
       device: {
-        avdName: 'Pixel_8_API_35',
+        avdName: 'Pixel_9_Pro_API_35',
       },
     },
   },

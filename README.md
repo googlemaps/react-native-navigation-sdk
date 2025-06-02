@@ -15,12 +15,13 @@ This repository contains a React Native plugin that provides a [Google Navigatio
 
 |                                 | Android | iOS       |
 | ------------------------------- | ------- | --------- |
-| **Minimum mobile OS supported** | SDK 23+ | iOS 15.0+ |
+| **Minimum mobile OS supported** | SDK 23+ | iOS 16.0+ |
 
-* A React Native project
+* Supported React Native version: **0.78+**
+  * See [React Native Support](#react-native-support) below for version and architecture requirements
 * A Google Cloud project
-  *  If you are a Mobility Services developer, you must contact Sales as described in [Mobility services documentation](https://developers.google.com/maps/documentation/transportation-logistics/mobility).
-  *  If you are not a Mobility Services developer, refer to [Setup Google Cloud Project](https://developers.google.com/maps/documentation/navigation/android-sdk/cloud-setup) for instructions.
+  * If you are a Mobility Services developer, you must contact Sales as described in [Mobility services documentation](https://developers.google.com/maps/documentation/transportation-logistics/mobility).
+  * If you are not a Mobility Services developer, refer to [Setup Google Cloud Project](https://developers.google.com/maps/documentation/navigation/android-sdk/cloud-setup) for instructions.
 * An [API key](https://console.cloud.google.com/google/maps-apis/credentials) from the project above
   * The API key must be configured for both Android and iOS. Refer to [Android Using Api Keys](https://developers.google.com/maps/documentation/navigation/android-sdk/get-api-key) and [iOS Using Api Keys](https://developers.google.com/maps/documentation/navigation/ios-sdk/get-api-key) respectively for instructions.
 * If targeting Android, [Google Play Services](https://developers.google.com/android/guides/overview) installed and enabled
@@ -44,14 +45,6 @@ import { NavigationView } from '@googlemaps/react-native-navigation-sdk';
 ```
 
 ### Android
-
-#### Disable new architecture
-
-This package does not yet support new architecture. Make sure new architecture is disabled in your `android/gradle.properties` file:
-
-```groovy
-newArchEnabled=false
-```
 
 #### Enable Jetifier
 
@@ -99,14 +92,6 @@ To securely store your API key, it is recommended to use the [Google Maps Secret
 See example configuration for secrets plugin at example applications [build.gradle](./example/android/app/build.gradle) file.
 
 ### iOS
-
-#### Disable new architecture
-
-This package does not yet support new architecture. Make sure new architecture is disabled in your `ios/Podfile`:
-
-```ruby
-ENV['RCT_NEW_ARCH_ENABLED'] = '0'
-```
 
 #### Set Google Maps API Key
 
@@ -179,7 +164,7 @@ const { navigationController } = useNavigation();
 
 const initializeNavigation = useCallback(async () => {
   try {
-    await navigationController.init();
+    const status: NavigationInitializationStatus = await navigationController.init();
     console.log('Navigation initialized');
   } catch (error) {
     console.error('Error initializing navigation', error);
@@ -360,6 +345,34 @@ This package uses the Google Maps [Navigation SDK](https://mapsplatform.google.c
 
 > [!NOTE]
 > This package provides a `MapView` component, which can be used as a classic Google Maps view without navigation. See [Add a map view](#add-a-map-view) for details.
+
+## React Native Support
+
+> [!IMPORTANT]
+> **This package is tested and supported only with React Native versions 0.78 and above, and requires the New Architecture (Fabric and TurboModules) to be enabled.**
+>
+> If you are using an older version of React Native (below 0.78) or cannot have the New Architecture enabled, you must use version `0.9.3` or earlier of this package.
+
+The New Architecture is enabled by default from React Native 0.76 onwards, but you should verify it is enabled in your project. See below for instructions.
+
+#### Enabling New Architecture
+
+**Android:**  
+Add the following to your `android/gradle.properties` file:
+```groovy
+newArchEnabled=true
+```
+
+**iOS:**  
+Add the following to your `ios/Podfile` file:
+```ruby
+ENV['RCT_NEW_ARCH_ENABLED'] = '1'
+```
+
+If you need to use the legacy React Native architecture or an older React Native version, install version `0.9.3` or earlier:
+```shell
+npm i @googlemaps/react-native-navigation-sdk@0.9.3
+```
 
 ## Contributing
 

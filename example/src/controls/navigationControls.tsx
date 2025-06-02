@@ -15,15 +15,7 @@
  */
 
 import React, { useState } from 'react';
-import {
-  Alert,
-  Button,
-  Platform,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, Button, Switch, Text, TextInput, View } from 'react-native';
 import {
   CameraPerspective,
   type NavigationViewController,
@@ -33,9 +25,14 @@ import {
   type CameraPosition,
   type NavigationController,
   type DisplayOptions,
+  RouteStatus,
 } from '@googlemaps/react-native-navigation-sdk';
 import SelectDropdown from 'react-native-select-dropdown';
 
+import {
+  type MapNavControlsState,
+  type MapNavControlsAction,
+} from './mapNavControlsReducer';
 import styles from '../styles';
 
 export interface NavigationControlsProps {
@@ -43,6 +40,9 @@ export interface NavigationControlsProps {
   readonly navigationViewController: NavigationViewController;
   readonly onNavigationDispose?: () => void;
   readonly getCameraPosition: undefined | (() => Promise<CameraPosition>);
+  readonly state: MapNavControlsState;
+  readonly dispatch: React.Dispatch<MapNavControlsAction>;
+  readonly onRouteStatusResult: (status: RouteStatus) => void;
 }
 
 const NavigationControls: React.FC<NavigationControlsProps> = ({
@@ -50,26 +50,25 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   navigationViewController,
   onNavigationDispose,
   getCameraPosition,
+  state: {
+    navigationUIEnabled,
+    tripProgressBarEnabled,
+    speedLimitIconEnabled,
+    speedometerEnabled,
+    trafficIncidentsCardEnabled,
+    reportIncidentButtonEnabled,
+    recenterButtonEnabled,
+    headerEnabled,
+    footerEnabled,
+    followingPerspective,
+    nightMode,
+  },
+  dispatch,
+  onRouteStatusResult,
 }) => {
   const perspectiveOptions = ['Tilted', 'North up', 'Heading up'];
   const nightModeOptions = ['Auto', 'Force Day', 'Force Night'];
   const audioGuidanceOptions = ['Silent', 'Alerts only', 'Alerts and guidance'];
-  const [tripProgressBarEnabled, setTripProgressBarEnabled] = useState(false);
-  const [navigationUiEnabled, setNavigationUIEnabled] = useState(true);
-  const [turnByTurnLoggingEnabled, setTurnByTurnLoggingEnabled] =
-    useState(false);
-  const [speedLimitIconEnabled, setSpeedLimitIconEnabled] = useState(false);
-  const [speedometerEnabled, setSpeedometerEnabled] = useState(false);
-  const [trafficIncidentsCardEnabled, setTrafficIncidentsCardEnabled] =
-    useState(false);
-  const [recenterButtonEnabled, setRecenterButtonEnabled] = useState(true);
-  const [
-    backgroundLocationUpdatesEnabled,
-    setBackgroundLocationUpdatesEnabled,
-  ] = useState(false);
-  const [footerEnabled, setFooterEnabled] = useState(true);
-  const [headerEnabled, setHeaderEnabled] = useState(true);
-
   const [latitude, onLatChanged] = useState('');
   const [longitude, onLngChanged] = useState('');
 
@@ -149,131 +148,64 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       showTrafficLights: true,
     };
 
-    navigationController.setDestinations(
+    const routeStatus = await navigationController.setDestinations(
       waypoints,
       routingOptions,
       displayOptions
     );
-  };
-
-  const setFollowingPerspective = (index: CameraPerspective) => {
-    navigationViewController.setFollowingPerspective(index);
+    console.log('Route status: ', routeStatus);
+    onRouteStatusResult(routeStatus);
   };
 
   const continueToNextDestination = () => {
     navigationController.continueToNextDestination();
   };
 
-  const startGuidance = () => {
-    navigationController.startGuidance();
+  const startGuidance = async () => {
+    return navigationController.startGuidance();
   };
 
-  const stopGuidance = () => {
-    navigationController.stopGuidance();
+  const stopGuidance = async () => {
+    return navigationController.stopGuidance();
   };
 
-  const clearDestinations = () => {
-    navigationController.clearDestinations();
+  const clearDestinations = async () => {
+    return navigationController.clearDestinations();
   };
 
-  const startSimulation = () => {
-    navigationController.simulator.simulateLocationsAlongExistingRoute({
+  const startSimulation = async () => {
+    return navigationController.simulator.simulateLocationsAlongExistingRoute({
       speedMultiplier: 5,
     });
   };
 
-  const stopSimulation = () => {
-    navigationController.simulator.stopLocationSimulation();
+  const stopSimulation = async () => {
+    return navigationController.simulator.stopLocationSimulation();
   };
 
-  const pauseSimulation = () => {
-    navigationController.simulator.pauseLocationSimulation();
+  const pauseSimulation = async () => {
+    return navigationController.simulator.pauseLocationSimulation();
   };
 
-  const resumeSimulation = () => {
-    navigationController.simulator.resumeLocationSimulation();
+  const resumeSimulation = async () => {
+    return navigationController.simulator.resumeLocationSimulation();
   };
 
-  const simulateLocation = () => {
+  const simulateLocation = async () => {
     if (!latitude.trim() || !longitude.trim()) {
       Alert.alert('Set lat lng values first');
       return;
     }
 
-    navigationController.simulator.simulateLocation({
+    return navigationController.simulator.simulateLocation({
       lat: Number(latitude),
       lng: Number(longitude),
     });
   };
 
-  const toggleTripProgressBarEnabled = (isOn: boolean) => {
-    console.log('setTripProgressBarEnabled', isOn);
-    setTripProgressBarEnabled(isOn);
-    navigationViewController.setTripProgressBarEnabled(isOn);
-  };
-
-  const toggleSpeedLimitIconEnabled = (isOn: boolean) => {
-    console.log('setSpeedLimitIconEnabled', isOn);
-    setSpeedLimitIconEnabled(isOn);
-    navigationViewController.setSpeedLimitIconEnabled(isOn);
-  };
-
-  const toggleSpeedometerEnabled = (isOn: boolean) => {
-    console.log('setSpeedometerEnabled', isOn);
-    setSpeedometerEnabled(isOn);
-    navigationViewController.setSpeedometerEnabled(isOn);
-  };
-
-  const toggleNavigationUiEnabled = (isOn: boolean) => {
-    console.log('setNavigationUIEnabled', isOn);
-    setNavigationUIEnabled(isOn);
-    navigationViewController.setNavigationUIEnabled(isOn);
-  };
-
-  const toggleTurnByTurnLoggingEnabled = (isOn: boolean) => {
-    console.log('setTurnByTurnLoggingEnabled', isOn);
-    setTurnByTurnLoggingEnabled(isOn);
-    navigationController.setTurnByTurnLoggingEnabled(isOn);
-  };
-
-  const toggleTrafficIncidentsCardEnabled = (isOn: boolean) => {
-    console.log('toggleTrafficIncidentsCardEnabled:', isOn);
-    setTrafficIncidentsCardEnabled(isOn);
-    navigationViewController.setTrafficIncidentCardsEnabled(isOn);
-  };
-
-  const toggleBackgroundLocationUpdatesEnabled = (isOn: boolean) => {
-    console.log('toggleBackgroundLocationUpdatesEnabled:', isOn);
-    setBackgroundLocationUpdatesEnabled(isOn);
-    navigationController.setBackgroundLocationUpdatesEnabled(isOn);
-  };
-
-  const toggleRecenterButtonEnabled = (isOn: boolean) => {
-    console.log('toggleRecenterButtonEnabled:', isOn);
-    setRecenterButtonEnabled(isOn);
-    navigationViewController.setRecenterButtonEnabled(isOn);
-  };
-
-  const toggleHeaderEnabled = (isOn: boolean) => {
-    console.log('toggleHeaderEnabled:', isOn);
-    setHeaderEnabled(isOn);
-    navigationViewController.setHeaderEnabled(isOn);
-  };
-
-  const toggleFooterEnabled = (isOn: boolean) => {
-    console.log('toggleFooterEnabled:', isOn);
-    setFooterEnabled(isOn);
-    navigationViewController.setFooterEnabled(isOn);
-  };
-
   const showRouteOverview = () => {
     console.log('showRouteOverview');
     navigationViewController.showRouteOverview();
-  };
-
-  const setNightMode = (index: number) => {
-    console.log('setNightMode: ', index);
-    navigationViewController.setNightMode(index);
   };
 
   const setAudioGuidanceType = (index: number) => {
@@ -301,12 +233,12 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     console.log(result);
   };
 
-  const startUpdatingLocation = () => {
-    navigationController.startUpdatingLocation();
+  const startUpdatingLocation = async () => {
+    return navigationController.startUpdatingLocation();
   };
 
-  const stopUpdatingLocation = () => {
-    navigationController.stopUpdatingLocation();
+  const stopUpdatingLocation = async () => {
+    return navigationController.stopUpdatingLocation();
   };
 
   const getNavSDKVersion = async () => {
@@ -384,105 +316,93 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       <Button title="Get route segments" onPress={getRouteSegments} />
       <Button title="Get traveled path" onPress={getTraveledPath} />
       <View style={styles.rowContainer}>
+        <Text>Navigation UI</Text>
+        <Switch
+          value={navigationUIEnabled}
+          onValueChange={(v) =>
+            dispatch({ type: 'setNavigationUIEnabled', value: v })
+          }
+        />
+      </View>
+      <View style={styles.rowContainer}>
         <Text>Trip progress</Text>
         <Switch
           value={tripProgressBarEnabled}
-          onValueChange={() => {
-            toggleTripProgressBarEnabled(!tripProgressBarEnabled);
-          }}
+          onValueChange={(v) =>
+            dispatch({ type: 'setTripProgressBarEnabled', value: v })
+          }
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Speed limit icon</Text>
         <Switch
           value={speedLimitIconEnabled}
-          onValueChange={() => {
-            toggleSpeedLimitIconEnabled(!speedLimitIconEnabled);
-          }}
+          onValueChange={(v) =>
+            dispatch({ type: 'setSpeedLimitIconEnabled', value: v })
+          }
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Speedometer</Text>
         <Switch
           value={speedometerEnabled}
-          onValueChange={() => {
-            toggleSpeedometerEnabled(!speedometerEnabled);
-          }}
+          onValueChange={(v) =>
+            dispatch({ type: 'setSpeedometerEnabled', value: v })
+          }
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Traffic incidents card</Text>
         <Switch
           value={trafficIncidentsCardEnabled}
-          onValueChange={() => {
-            toggleTrafficIncidentsCardEnabled(!trafficIncidentsCardEnabled);
-          }}
+          onValueChange={(v) =>
+            dispatch({ type: 'setTrafficIncidentsCardEnabled', value: v })
+          }
         />
       </View>
       <View style={styles.rowContainer}>
-        <Text>Navigation UI</Text>
+        <Text>Report incident button</Text>
         <Switch
-          value={navigationUiEnabled}
-          onValueChange={() => {
-            toggleNavigationUiEnabled(!navigationUiEnabled);
-          }}
+          value={reportIncidentButtonEnabled}
+          onValueChange={(v) =>
+            dispatch({ type: 'setReportIncidentButtonEnabled', value: v })
+          }
         />
       </View>
-      <View style={styles.rowContainer}>
-        <Text>Turn-by-turn logging</Text>
-        <Switch
-          value={turnByTurnLoggingEnabled}
-          onValueChange={() => {
-            toggleTurnByTurnLoggingEnabled(!turnByTurnLoggingEnabled);
-          }}
-        />
-      </View>
-      {Platform.OS === 'ios' ? (
-        <View style={styles.rowContainer}>
-          <Text>Background location updates</Text>
-          <Switch
-            value={backgroundLocationUpdatesEnabled}
-            onValueChange={() => {
-              toggleBackgroundLocationUpdatesEnabled(
-                !backgroundLocationUpdatesEnabled
-              );
-            }}
-          />
-        </View>
-      ) : null}
       <View style={styles.rowContainer}>
         <Text>Recenter button</Text>
         <Switch
           value={recenterButtonEnabled}
-          onValueChange={() => {
-            toggleRecenterButtonEnabled(!recenterButtonEnabled);
-          }}
+          onValueChange={(v) =>
+            dispatch({ type: 'setRecenterButtonEnabled', value: v })
+          }
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Header enabled</Text>
         <Switch
           value={headerEnabled}
-          onValueChange={() => {
-            toggleHeaderEnabled(!headerEnabled);
-          }}
+          onValueChange={(v) =>
+            dispatch({ type: 'setHeaderEnabled', value: v })
+          }
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Footer enabled</Text>
         <Switch
           value={footerEnabled}
-          onValueChange={() => {
-            toggleFooterEnabled(!footerEnabled);
-          }}
+          onValueChange={(v) =>
+            dispatch({ type: 'setFooterEnabled', value: v })
+          }
         />
       </View>
       <View style={styles.rowContainer}>
-        <Text>Night mode </Text>
+        <Text>Night mode</Text>
         <SelectDropdown
           data={nightModeOptions}
+          defaultValue={nightModeOptions[nightMode]}
           onSelect={(_selectedItem, index) => {
-            setNightMode(index);
+            dispatch({ type: 'setNightMode', value: index });
           }}
           renderButton={(selectedItem, _isOpened) => {
             return (
@@ -509,7 +429,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         />
       </View>
       <View style={styles.rowContainer}>
-        <Text>Audio guidance type </Text>
+        <Text>Audio guidance type</Text>
         <SelectDropdown
           data={audioGuidanceOptions}
           onSelect={(_selectedItem, index) => {
@@ -543,6 +463,11 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         <Text>Camera perspective</Text>
         <SelectDropdown
           data={perspectiveOptions}
+          defaultValue={
+            !followingPerspective
+              ? null
+              : perspectiveOptions[followingPerspective]
+          }
           onSelect={(_selectedItem, index) => {
             let perspective: CameraPerspective;
             if (index === 0) {
@@ -552,7 +477,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
             } else {
               perspective = CameraPerspective.TOP_DOWN_HEADING_UP;
             }
-            setFollowingPerspective(perspective);
+            dispatch({ type: 'setFollowingPerspective', value: perspective });
           }}
           renderButton={(selectedItem, _isOpened) => {
             return (

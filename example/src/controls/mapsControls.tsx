@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { Button, Switch, Text, TextInput, View } from 'react-native';
 
@@ -27,41 +27,52 @@ import {
   type Circle,
   type Polyline,
   type Polygon,
-  type Padding,
 } from '@googlemaps/react-native-navigation-sdk';
+import {
+  type MapNavControlsState,
+  type MapNavControlsAction,
+} from './mapNavControlsReducer';
 
 export interface MapControlsProps {
   readonly mapViewController: MapViewController;
+  readonly state: MapNavControlsState;
+  readonly dispatch: React.Dispatch<MapNavControlsAction>;
 }
 
 export const defaultZoom: number = 15;
 
-const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
+const MapsControls: React.FC<MapControlsProps> = ({
+  mapViewController,
+  state: {
+    mapType,
+    tripProgressBarEnabled,
+    padding,
+    mapId,
+    mapToolbarEnabled,
+    indoorEnabled,
+    trafficEnabled,
+    compassEnabled,
+    myLocationButtonEnabled,
+    buildingsEnabled,
+    rotateGesturesEnabled,
+    scrollGesturesEnabled,
+    scrollGesturesEnabledDuringRotateOrZoom,
+    tiltGesturesEnabled,
+    zoomControlsEnabled,
+    zoomGesturesEnabled,
+  },
+  dispatch,
+}) => {
   const mapTypeOptions = ['None', 'Normal', 'Satellite', 'Terrain', 'Hybrid'];
-  const [zoom, setZoom] = useState<number | null>(null);
-  const [enableLocationMarker, setEnableLocationMarker] = useState(true);
-  const [latitude, onLatChanged] = useState('');
-  const [longitude, onLngChanged] = useState('');
-  const [padding, setPadding] = useState<Padding>({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  });
 
-  useEffect(() => {
-    if (zoom !== null) {
-      mapViewController.setZoomLevel(zoom);
-    }
-  }, [mapViewController, zoom]);
-
-  const setMyLocationButtonEnabled = (isOn: boolean) => {
-    console.log('setMyLocationButtonEnabled', isOn);
-    mapViewController.setMyLocationEnabled(isOn);
-    mapViewController.setMyLocationButtonEnabled(isOn);
-  };
+  const [latitude, onLatChanged] = useState<string>('');
+  const [longitude, onLngChanged] = useState<string>('');
+  const [localMapId, setLocalMapId] = useState<string | null>(mapId || null);
 
   const moveCamera = () => {
+    if (!latitude || !longitude) {
+      return;
+    }
     mapViewController.moveCamera({
       target: { lat: Number(latitude), lng: Number(longitude) },
       zoom: 1,
@@ -70,15 +81,22 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
     });
   };
 
-  const setMapType = (mapType: MapType) => {
-    console.log('setMapType', mapType);
-    mapViewController.setMapType(mapType);
+  const zoomIn = () => {
+    mapViewController.getCameraPosition().then((cameraPosition) => {
+      const newZoom = (cameraPosition.zoom ?? defaultZoom) + 1;
+      mapViewController.setZoomLevel(newZoom);
+    });
+  };
+
+  const zoomOut = () => {
+    mapViewController.getCameraPosition().then((cameraPosition) => {
+      const newZoom = (cameraPosition.zoom ?? defaultZoom) - 1;
+      mapViewController.setZoomLevel(newZoom);
+    });
   };
 
   const getDropdownIndexToMapType = (index: number) => {
     switch (index) {
-      case 0:
-        return MapType.NONE;
       case 1:
         return MapType.NORMAL;
       case 2:
@@ -114,21 +132,27 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
   };
 
   const addMarker = async (imgPath?: string) => {
-    const cameraPosition = await mapViewController.getCameraPosition();
+    try {
+      const cameraPosition = await mapViewController.getCameraPosition();
 
-    const marker: Marker = await mapViewController.addMarker({
-      position: cameraPosition.target,
-      visible: true,
-      title: 'Marker test',
-      snippet: 'Marker test',
-      alpha: 0.8,
-      rotation: 0,
-      flat: false,
-      draggable: true,
-      imgPath: imgPath,
-    });
+      const marker: Marker = await mapViewController.addMarker({
+        position: cameraPosition.target,
+        visible: true,
+        title: 'Marker test',
+        snippet: 'Marker test',
+        alpha: 0.8,
+        rotation: 0,
+        flat: false,
+        draggable: true,
+        imgPath: imgPath,
+        id: getNextMarkerId(),
+        zIndex: 1,
+      });
 
-    console.log(marker);
+      console.log('Marker added', marker);
+    } catch (e) {
+      console.error('Error adding marker:', e);
+    }
   };
 
   const addCustomMarker = async () => {
@@ -136,76 +160,90 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
   };
 
   const addCircle = async () => {
-    const cameraPosition = await mapViewController.getCameraPosition();
+    try {
+      const cameraPosition = await mapViewController.getCameraPosition();
 
-    const circle: Circle = await mapViewController.addCircle({
-      center: cameraPosition.target,
-      radius: 100,
-      fillColor: '#FFFFFF',
-      strokeColor: '#000000',
-      strokeWidth: 5,
-      visible: true,
-      clickable: true,
-    });
+      const circle: Circle = await mapViewController.addCircle({
+        center: cameraPosition.target,
+        radius: 100,
+        fillColor: '#55E5', // #RGBA
+        strokeColor: '#000', // #RGB
+        strokeWidth: 5,
+        visible: true,
+        clickable: true,
+        id: getNextCircleId(),
+        zIndex: 1,
+      });
 
-    console.log(circle);
+      console.log('Circle added', circle);
+    } catch (e) {
+      console.error('Error adding circle:', e);
+    }
   };
 
   const addPolyline = async () => {
-    const cameraPosition = await mapViewController.getCameraPosition();
+    try {
+      const cameraPosition = await mapViewController.getCameraPosition();
 
-    const latLngs = [];
+      const latLngs = [];
 
-    for (let idx = 0; idx < 100; idx++) {
-      latLngs.push({
-        lat: cameraPosition.target.lat + idx / 10000,
-        lng: cameraPosition.target.lng + idx / 10000,
+      for (let idx = 0; idx < 100; idx++) {
+        latLngs.push({
+          lat: cameraPosition.target.lat + idx / 10000,
+          lng: cameraPosition.target.lng + idx / 10000,
+        });
+      }
+
+      const polyline: Polyline = await mapViewController.addPolyline({
+        points: latLngs,
+        width: 10,
+        color: '#f52525ee', // #RRGGBBAA
+        visible: true,
+        clickable: true,
+        id: getNextPolylineId(),
       });
+
+      console.log('Polyline added', polyline);
+    } catch (e) {
+      console.error('Error adding polyline:', e);
     }
-
-    const polyline: Polyline = await mapViewController.addPolyline({
-      points: latLngs,
-      width: 10,
-      color: '#f52525',
-      visible: true,
-      clickable: true,
-    });
-
-    console.log(polyline);
   };
 
   const addPolygon = async () => {
-    const cameraPosition = await mapViewController.getCameraPosition();
-    const cameraLat = cameraPosition.target.lat;
-    const cameraLng = cameraPosition.target.lng;
-    const delta = 0.05;
-    const bermudaTriangle = [
-      { lat: cameraLat - delta, lng: cameraLng - delta },
-      { lat: cameraLat - delta, lng: cameraLng + delta },
-      { lat: cameraLat + delta, lng: cameraLng + delta },
-      { lat: cameraLat - delta, lng: cameraLng - delta },
-    ];
+    try {
+      const cameraPosition = await mapViewController.getCameraPosition();
+      const cameraLat = cameraPosition.target.lat;
+      const cameraLng = cameraPosition.target.lng;
+      const delta = 0.05;
+      const bermudaTriangle = [
+        { lat: cameraLat - delta, lng: cameraLng - delta },
+        { lat: cameraLat - delta, lng: cameraLng + delta },
+        { lat: cameraLat + delta, lng: cameraLng + delta },
+        { lat: cameraLat - delta, lng: cameraLng - delta },
+      ];
 
-    const polygon: Polygon = await mapViewController.addPolygon({
-      strokeColor: '#FF00FF',
-      fillColor: '#f52525',
-      strokeWidth: 10,
-      visible: true,
-      points: bermudaTriangle,
-      clickable: true,
-    });
+      const polygon: Polygon = await mapViewController.addPolygon({
+        strokeColor: '#F8F',
+        fillColor: '#f52525aa', // #RRGGBBAA
+        strokeWidth: 10,
+        visible: true,
+        points: bermudaTriangle,
+        clickable: true,
+        id: getNextPolygonId(),
+      });
 
-    console.log(polygon);
+      console.log('Polygon added', polygon);
+    } catch (e) {
+      console.error('Error adding polygon:', e);
+    }
   };
 
   const clearMapView = () => {
-    mapViewController.clearMapView();
-  };
-
-  const onPaddingChanged = (edge: keyof typeof padding, value: string) => {
-    const updatedPadding: Padding = { ...padding, [edge]: Number(value) };
-    setPadding(updatedPadding);
-    mapViewController.setPadding(updatedPadding);
+    try {
+      mapViewController.clearMapView();
+    } catch (e) {
+      console.error('Error while clearing map view', e);
+    }
   };
 
   return (
@@ -226,17 +264,21 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
         placeholderTextColor="#000"
         keyboardType="numeric"
       />
-      <Button title="Move camera" onPress={moveCamera} />
+      <Button
+        title="Move camera"
+        onPress={moveCamera}
+        disabled={!latitude || !longitude}
+      />
       <Button
         title="Zoom in"
         onPress={() => {
-          setZoom((zoom ?? defaultZoom) + 1);
+          zoomIn();
         }}
       />
       <Button
         title="Zoom Out"
         onPress={() => {
-          setZoom((zoom ?? defaultZoom) - 1);
+          zoomOut();
         }}
       />
       <Button title="Add marker" onPress={() => addMarker()} />
@@ -255,19 +297,34 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
       <View style={styles.rowContainer}>
         <Text>Location marker</Text>
         <Switch
-          value={enableLocationMarker}
-          onValueChange={() => {
-            setEnableLocationMarker(!enableLocationMarker);
-            setMyLocationButtonEnabled(!enableLocationMarker);
+          value={tripProgressBarEnabled}
+          onValueChange={(value: boolean) => {
+            dispatch({ type: 'setMyLocationEnabled', value });
+            dispatch({ type: 'setTripProgressBarEnabled', value });
           }}
         />
       </View>
+      <Button
+        title="Toggle padding"
+        onPress={() =>
+          dispatch({
+            type: 'setPadding',
+            value: padding
+              ? null
+              : { top: 100, bottom: 100, left: 0, right: 0 },
+          })
+        }
+      />
       <View style={styles.rowContainer}>
         <Text>Map type</Text>
         <SelectDropdown
           data={mapTypeOptions}
+          defaultValue={mapTypeOptions[mapType]}
           onSelect={(_selectedItem, index) => {
-            setMapType(getDropdownIndexToMapType(index));
+            dispatch({
+              type: 'setMapType',
+              value: getDropdownIndexToMapType(index),
+            });
           }}
           renderButton={(selectedItem, _isOpened) => {
             return (
@@ -294,48 +351,158 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
         />
       </View>
       <View style={styles.controlButtonGap} />
+      <TextInput
+        style={styles.input}
+        onChangeText={setLocalMapId}
+        value={localMapId ?? ''}
+        placeholder="MapId"
+        placeholderTextColor="#000"
+      />
+      <Button
+        title="Use mapId"
+        onPress={() =>
+          dispatch({
+            type: 'setMapId',
+            value: localMapId !== '' ? localMapId : null,
+          })
+        }
+      />
       <View style={styles.rowContainer}>
-        <Text>Top padding</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={value => onPaddingChanged('top', value)}
-          value={padding.top?.toFixed(0)}
-          keyboardType="numeric"
-          inputMode="numeric"
+        <Text>Map Toolbar</Text>
+        <Switch
+          value={mapToolbarEnabled}
+          onValueChange={(value) =>
+            dispatch({ type: 'setMapToolbarEnabled', value })
+          }
         />
       </View>
       <View style={styles.rowContainer}>
-        <Text>Bottom padding</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={value => onPaddingChanged('bottom', value)}
-          value={padding.bottom?.toFixed(0)}
-          keyboardType="numeric"
-          inputMode="numeric"
+        <Text>Indoor Enabled</Text>
+        <Switch
+          value={indoorEnabled}
+          onValueChange={(value) =>
+            dispatch({ type: 'setIndoorEnabled', value })
+          }
         />
       </View>
       <View style={styles.rowContainer}>
-        <Text>Left padding</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={value => onPaddingChanged('left', value)}
-          value={padding.left?.toFixed(0)}
-          keyboardType="numeric"
-          inputMode="numeric"
+        <Text>Traffic Enabled</Text>
+        <Switch
+          value={trafficEnabled}
+          onValueChange={(value) =>
+            dispatch({ type: 'setTrafficEnabled', value })
+          }
         />
       </View>
       <View style={styles.rowContainer}>
-        <Text>Right padding</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={value => onPaddingChanged('right', value)}
-          value={padding.right?.toFixed(0)}
-          keyboardType="numeric"
-          inputMode="numeric"
+        <Text>Compass Enabled</Text>
+        <Switch
+          value={compassEnabled}
+          onValueChange={(value) =>
+            dispatch({ type: 'setCompassEnabled', value })
+          }
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>My Location Button</Text>
+        <Switch
+          value={myLocationButtonEnabled}
+          onValueChange={(value) =>
+            dispatch({ type: 'setMyLocationButtonEnabled', value })
+          }
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Buildings Enabled</Text>
+        <Switch
+          value={buildingsEnabled}
+          onValueChange={(value) =>
+            dispatch({ type: 'setBuildingsEnabled', value })
+          }
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Rotate Gestures</Text>
+        <Switch
+          value={rotateGesturesEnabled}
+          onValueChange={(value) =>
+            dispatch({ type: 'setRotateGesturesEnabled', value })
+          }
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Scroll Gestures</Text>
+        <Switch
+          value={scrollGesturesEnabled}
+          onValueChange={(value) =>
+            dispatch({ type: 'setScrollGesturesEnabled', value })
+          }
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Scroll Gestures During Rotate/Zoom</Text>
+        <Switch
+          value={scrollGesturesEnabledDuringRotateOrZoom}
+          onValueChange={(value) =>
+            dispatch({
+              type: 'setScrollGesturesEnabledDuringRotateOrZoom',
+              value,
+            })
+          }
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Tilt Gestures</Text>
+        <Switch
+          value={tiltGesturesEnabled}
+          onValueChange={(value) =>
+            dispatch({ type: 'setTiltGesturesEnabled', value })
+          }
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Zoom Controls</Text>
+        <Switch
+          value={zoomControlsEnabled}
+          onValueChange={(value) =>
+            dispatch({ type: 'setZoomControlsEnabled', value })
+          }
+        />
+      </View>
+      <View style={styles.rowContainer}>
+        <Text>Zoom Gestures</Text>
+        <Switch
+          value={zoomGesturesEnabled}
+          onValueChange={(value) =>
+            dispatch({ type: 'setZoomGesturesEnabled', value })
+          }
         />
       </View>
     </View>
   );
+};
+
+// Helpers to keep track of the custom ids for markers and circles.
+let markerIndex = 0;
+let circleIndex = 0;
+let polylineIndex = 0;
+let polygonIndex = 0;
+
+const getNextMarkerId = () => {
+  markerIndex += 1;
+  return `marker_${markerIndex}`;
+};
+const getNextCircleId = () => {
+  circleIndex += 1;
+  return `circle_${circleIndex}`;
+};
+const getNextPolylineId = () => {
+  polylineIndex += 1;
+  return `polyline_${polylineIndex}`;
+};
+const getNextPolygonId = () => {
+  polygonIndex += 1;
+  return `polygon_${polygonIndex}`;
 };
 
 export default MapsControls;
