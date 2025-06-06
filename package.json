@@ -3,10 +3,17 @@
   "version": "0.9.3",
   "author": "Google",
   "description": "A React Native library for Navigation SDK on Google Maps Platform",
-  "main": "./lib/commonjs/index.js",
-  "module": "./lib/module/index.js",
+  "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
-  "source": "./src/index.tsx",
+  "exports": {
+    ".": {
+      "source": "./src/index.tsx",
+      "types": "./lib/typescript/src/index.d.ts",
+      "import": "./lib/module/index.js",
+      "default": "./lib/module/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "src",
     "lib",
@@ -21,6 +28,9 @@
     "!android/gradlew",
     "!android/gradlew.bat",
     "!android/local.properties",
+    "!example",
+    "!coverage",
+    "!scripts",
     "!**/__tests__",
     "!**/__fixtures__",
     "!**/__mocks__",
@@ -137,12 +147,6 @@
     "output": "lib",
     "targets": [
       "codegen",
-      [
-        "commonjs",
-        {
-          "esm": true
-        }
-      ],
       [
         "module",
         {
