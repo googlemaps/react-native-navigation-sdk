@@ -24,31 +24,40 @@ setup_permissions([
 ])
 
 linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
+if linkage
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
 end
 
 config = use_native_modules!
 
-target 'ReactNativeNavigationSdkExample' do
-  use_react_native!(
-    :path => config[:reactNativePath],
+def shared_example_target_config(name, config)
+  target name do
+    use_react_native!(
+      :path => config[:reactNativePath],
     # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
-  )
+      :app_path => "#{Pod::Config.instance.installation_root}/..",
+    )
+
+    pod 'RNPermissions', :path => '../node_modules/react-native-permissions'
+    pod 'react-native-navigation-sdk', :path => '../..'
+
+    unless name.end_with?("CarPlay")
+      setup_permissions([
+        'LocationAccuracy',
+        'LocationAlways',
+        'LocationWhenInUse',
+        'Notifications',
+      ])
+    end
+  end
 end
 
-target 'ReactNativeNavigationSdkExampleCarPlay' do
-  use_react_native!(
-    :path => config[:reactNativePath],
-    # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
-  )
-end
+shared_example_target_config('ReactNativeNavigationSdkExample', config)
+shared_example_target_config('ReactNativeNavigationSdkExampleCarPlay', config)
 
-# Test target that inherits from the app
 target 'ReactNativeNavigationSdkExampleTests' do
+  # Test target that inherits from the app
   inherit! :complete
 end
 

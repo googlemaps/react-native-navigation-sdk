@@ -18,6 +18,7 @@
 #import <CarPlay/CarPlay.h>
 #import <GoogleMaps/GoogleMaps.h>
 #import <React/RCTBundleURLProvider.h>
+#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
 #import <UIKit/UIKit.h>
 #import "CarSceneDelegate.h"
 #import "PhoneSceneDelegate.h"
