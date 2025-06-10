@@ -22,8 +22,8 @@
 @implementation CarSceneDelegate
 
 - (CPMapTemplate *)getTemplate {
-  CPMapTemplate *template = [[CPMapTemplate alloc] init];
-  [template showPanningInterfaceAnimated:YES];
+  CPMapTemplate *mapTemplate = [[CPMapTemplate alloc] init];
+  [mapTemplate showPanningInterfaceAnimated:YES];
 
   CPBarButton *customButton = [[CPBarButton alloc]
       initWithTitle:@"Custom Event"
@@ -34,9 +34,9 @@
                                                                                 data:dictionary];
             }];
 
-  template.leadingNavigationBarButtons = @[ customButton ];
-  template.trailingNavigationBarButtons = @[];
-  return template;
+  mapTemplate.leadingNavigationBarButtons = @[ customButton ];
+  mapTemplate.trailingNavigationBarButtons = @[];
+  return mapTemplate;
 }
 
 @end

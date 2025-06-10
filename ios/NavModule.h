@@ -19,7 +19,7 @@
 
 #import <GoogleNavigation/GoogleNavigation.h>
 #import "INavigationCallback.h"
-#import "generated/RNNavigationSdkSpec/RNNavigationSdkSpec.h"
+#import "RNNavigationSdkSpec.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

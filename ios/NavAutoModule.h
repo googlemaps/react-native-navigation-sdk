@@ -17,7 +17,7 @@
 #define NavAutoModule_h
 
 #import "NavViewController.h"
-#import "generated/RNNavigationSdkSpec/RNNavigationSdkSpec.h"
+#import "RNNavigationSdkSpec.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

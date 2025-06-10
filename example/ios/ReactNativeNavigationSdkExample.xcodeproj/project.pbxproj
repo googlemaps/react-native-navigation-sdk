@@ -13,7 +13,7 @@
 		13B07FC11A68108700A75B9A /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.mm */; };
 		29F89EA4FF546EABE968E1D2 /* libPods-ReactNativeNavigationSdkExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 354226CC8A58229ECC025410 /* libPods-ReactNativeNavigationSdkExample.a */; };
 		2A20E8122C8994DB00DB7ADA /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.mm */; };
-		2A20E8142C8994DB00DB7ADA /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		2A20E8142C8994DB00DB7ADA /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		2A20E8282C899A1400DB7ADA /* Info-CarPlay.plist in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB61A68108700A75B9A /* Info-CarPlay.plist */; };
 		2AB8C27A2C89A07000250560 /* Keys.plist in Resources */ = {isa = PBXBuildFile; fileRef = 52D4271C2C81D3F300C7FB36 /* Keys.plist */; };
 		2AB8C27E2C89A0B400250560 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
@@ -93,7 +93,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2A20E8142C8994DB00DB7ADA /* BuildFile in Frameworks */,
+				2A20E8142C8994DB00DB7ADA /* (null) in Frameworks */,
 				29F89EA4FF546EABE968E1D2 /* libPods-ReactNativeNavigationSdkExample.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -658,7 +658,6 @@
 					"-Wno-comma",
 					"-Wno-shorten-64-to-32",
 					"-fmodules",
-					"-fcxx-modules",
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -707,7 +706,6 @@
 					"-Wno-comma",
 					"-Wno-shorten-64-to-32",
 					"-fmodules",
-					"-fcxx-modules",
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -919,10 +917,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
