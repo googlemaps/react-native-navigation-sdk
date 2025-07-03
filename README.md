@@ -1,5 +1,9 @@
 # Google Navigation for React Native (Beta)
 
+**European Economic Area (EEA) developers**
+
+If your billing address is in the European Economic Area, effective on 8 July 2025, the [Google Maps Platform EEA Terms of Service](https://cloud.google.com/terms/maps-platform/eea) will apply to your use of the Services. Functionality varies by region. [Learn more](https://developers.google.com/maps/comms/eea/faq).
+
 ## Description
 
 This repository contains a React Native plugin that provides a [Google Navigation](https://developers.google.com/maps/documentation/navigation) component for building native Android and iOS apps using React.
