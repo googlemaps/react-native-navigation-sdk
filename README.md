@@ -224,6 +224,11 @@ try {
 
 ```
 
+> [!NOTE]
+> Route calculation is only available after the Navigation SDK has successfully acquired the user's location. If the location is not yet available when trying to set a destination, the SDK will return a RouteStatus.LOCATION_DISABLED status.
+>
+> To avoid this, ensure that the SDK has provided a valid user location before calling the setDestinations function. You can do this by subscribing to the onLocationChanged navigation callback and waiting for the first valid location update.
+
 
 #### Adding navigation listeners
 
