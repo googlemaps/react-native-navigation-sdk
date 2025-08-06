@@ -95,24 +95,28 @@ export const useNavigationController = (
       setDestination: async (
         waypoint: Waypoint,
         routingOptions?: RoutingOptions,
-        displayOptions?: DisplayOptions
+        displayOptions?: DisplayOptions,
+        routeToken?: string
       ) => {
         return await NavModule.setDestination(
           waypoint,
           routingOptions,
-          displayOptions
+          displayOptions,
+          routeToken
         );
       },
 
       setDestinations: async (
         waypoints: Waypoint[],
         routingOptions?: RoutingOptions,
-        displayOptions?: DisplayOptions
+        displayOptions?: DisplayOptions,
+        routeToken?: string
       ) => {
         return await NavModule.setDestinations(
           waypoints,
           routingOptions,
-          displayOptions
+          displayOptions,
+          routeToken
         );
       },
 
