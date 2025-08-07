@@ -1,5 +1,5 @@
-# Disable new arch as it is not supported by the current version of package
-ENV['RCT_NEW_ARCH_ENABLED'] = '0'
+# Enable new arch.
+ENV['RCT_NEW_ARCH_ENABLED'] = '1'
 
 def node_require(script)
   # Resolve script with node to allow for hoisting
@@ -13,7 +13,7 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
-platform :ios, "15.1"
+platform :ios, "16.0"
 prepare_react_native_project!
 
 setup_permissions([
@@ -24,38 +24,54 @@ setup_permissions([
 ])
 
 linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
+if linkage
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
 end
 
 config = use_native_modules!
 
-target 'SampleApp' do
-  use_react_native!(
-    :path => config[:reactNativePath],
+def shared_example_target_config(name, config)
+  target name do
+    use_react_native!(
+      :path => config[:reactNativePath],
     # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
-  )
+      :app_path => "#{Pod::Config.instance.installation_root}/..",
+    )
+
+    pod 'RNPermissions', :path => '../node_modules/react-native-permissions'
+    pod 'react-native-navigation-sdk', :path => '../..'
+
+    unless name.end_with?("CarPlay")
+      setup_permissions([
+        'LocationAccuracy',
+        'LocationAlways',
+        'LocationWhenInUse',
+        'Notifications',
+      ])
+    end
+  end
 end
 
-target 'SampleAppCarPlay' do
-  use_react_native!(
-    :path => config[:reactNativePath],
-    # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
-  )
-end
+shared_example_target_config('ReactNativeNavigationSdkExample', config)
+shared_example_target_config('ReactNativeNavigationSdkExampleCarPlay', config)
 
-target 'SampleAppTests' do
+target 'ReactNativeNavigationSdkExampleTests' do
+  # Test target that inherits from the app
   inherit! :complete
-  # Pods for testing, shared between both SampleApp and SampleAppCarPlay
+end
+
+# Run Codegen during development for the example app.
+pre_install do |installer|
+  system("cd ../../ && npx bob build --target codegen")
 end
 
 post_install do |installer|
-    react_native_post_install(
-      installer,
-      config[:reactNativePath],
-      :mac_catalyst_enabled => false
-    )
+  # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
+  react_native_post_install(
+    installer,
+    config[:reactNativePath],
+    :mac_catalyst_enabled => false,
+    # :ccache_enabled => true
+  )
 end

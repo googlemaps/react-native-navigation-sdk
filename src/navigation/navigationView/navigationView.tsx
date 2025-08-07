@@ -14,149 +14,114 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, View, findNodeHandle } from 'react-native';
-import {
-  NavViewManager,
-  sendCommand,
-  commands,
-  type LatLng,
-} from '../../shared';
+import { useEffect, useRef } from 'react';
+import { Platform, StyleSheet } from 'react-native';
+import { getUniqueMapViewId, useNativeEventCallback } from '../../shared';
 import { getNavigationViewController } from './navigationViewController';
 import type { NavigationViewProps } from './types';
-import {
-  getMapViewController,
-  FragmentType,
-  type Circle,
-  type GroundOverlay,
-  type Marker,
-  type Polygon,
-  type Polyline,
-} from '../../maps';
+import { getMapViewController, MapViewType } from '../../maps';
+
+import NavView from '../../native/NativeNavViewComponent';
 
 export const NavigationView = (props: NavigationViewProps) => {
-  const mapViewRef = useRef<any>(null);
-  const [viewId, setViewId] = useState<number | null>(null);
+  const viewCreatedRef = useRef<boolean>(false);
+  const nativeIDRef = useRef<number>(getUniqueMapViewId());
+  const mapViewRef = useRef(null);
 
-  const {
-    androidStylingOptions,
-    iOSStylingOptions,
-    onNavigationViewControllerCreated,
-    onMapViewControllerCreated,
-  } = props;
-
-  /**
-   * @param {any} _ref - The reference to the NavViewManager component.
-   */
-  const onRefAssign = (_ref: any) => {
-    if (mapViewRef.current !== _ref) {
-      mapViewRef.current = _ref;
-    }
-  };
+  const { onNavigationViewControllerCreated, onMapViewControllerCreated } =
+    props;
 
   useEffect(() => {
-    if (!mapViewRef.current) {
+    if (!mapViewRef.current || viewCreatedRef.current) {
       return;
     }
-    const _viewId = findNodeHandle(mapViewRef.current) || 0;
-    if (viewId !== _viewId) {
-      setViewId(_viewId);
+    viewCreatedRef.current = true;
 
-      const stylingOptions =
-        (Platform.OS === 'android'
-          ? androidStylingOptions
-          : iOSStylingOptions) || {};
-
-      const args = [stylingOptions, FragmentType.NAVIGATION];
-
-      setTimeout(() => {
-        sendCommand(_viewId, commands.createFragment, args);
-      });
-
-      onNavigationViewControllerCreated(getNavigationViewController(_viewId));
-      onMapViewControllerCreated(getMapViewController(_viewId));
-    }
+    // Initialize controllers
+    onNavigationViewControllerCreated(
+      getNavigationViewController(nativeIDRef.current)
+    );
+    onMapViewControllerCreated(getMapViewController(nativeIDRef.current));
   }, [
-    androidStylingOptions,
-    iOSStylingOptions,
-    onMapViewControllerCreated,
     onNavigationViewControllerCreated,
-    viewId,
+    onMapViewControllerCreated,
+    mapViewRef,
   ]);
 
-  const onMapClick = useCallback(
-    ({ nativeEvent: latlng }: { nativeEvent: LatLng }) => {
-      props.mapViewCallbacks?.onMapClick?.(latlng);
-    },
-    [props.mapViewCallbacks]
+  const onMapClick = useNativeEventCallback(props.onMapClick);
+  const onMapReady = useNativeEventCallback(props.onMapReady);
+  const onMarkerClick = useNativeEventCallback(props.onMarkerClick);
+  const onPolylineClick = useNativeEventCallback(props.onPolylineClick);
+  const onPolygonClick = useNativeEventCallback(props.onPolygonClick);
+  const onCircleClick = useNativeEventCallback(props.onCircleClick);
+  const onGroundOverlayClick = useNativeEventCallback(
+    props.onGroundOverlayClick
   );
-
-  const onMapReady = useCallback(() => {
-    props.mapViewCallbacks?.onMapReady?.();
-  }, [props.mapViewCallbacks]);
-
-  const onMarkerClick = useCallback(
-    ({ nativeEvent: marker }: { nativeEvent: Marker }) => {
-      props.mapViewCallbacks?.onMarkerClick?.(marker);
-    },
-    [props.mapViewCallbacks]
+  const onMarkerInfoWindowTapped = useNativeEventCallback(
+    props.onMarkerInfoWindowTapped
   );
-
-  const onPolylineClick = useCallback(
-    ({ nativeEvent: polyline }: { nativeEvent: Polyline }) => {
-      props.mapViewCallbacks?.onPolylineClick?.(polyline);
-    },
-    [props.mapViewCallbacks]
+  const onRecenterButtonClick = useNativeEventCallback(
+    props.onRecenterButtonClick
   );
-
-  const onPolygonClick = useCallback(
-    ({ nativeEvent: polygon }: { nativeEvent: Polygon }) => {
-      props.mapViewCallbacks?.onPolygonClick?.(polygon);
-    },
-    [props.mapViewCallbacks]
+  const onPromptVisibilityChanged = useNativeEventCallback(
+    props.onPromptVisibilityChanged
   );
-
-  const onCircleClick = useCallback(
-    ({ nativeEvent: circle }: { nativeEvent: Circle }) => {
-      props.mapViewCallbacks?.onCircleClick?.(circle);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onGroundOverlayClick = useCallback(
-    ({ nativeEvent: groundOverlay }: { nativeEvent: GroundOverlay }) => {
-      props.mapViewCallbacks?.onGroundOverlayClick?.(groundOverlay);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onMarkerInfoWindowTapped = useCallback(
-    ({ nativeEvent: marker }: { nativeEvent: Marker }) => {
-      props.mapViewCallbacks?.onMarkerInfoWindowTapped?.(marker);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onRecenterButtonClick = useCallback(() => {
-    props.navigationViewCallbacks?.onRecenterButtonClick?.();
-  }, [props.navigationViewCallbacks]);
 
   return (
-    <View style={props.style ?? styles.defaultStyle}>
-      <NavViewManager
-        ref={onRefAssign}
-        flex={1}
-        onMapClick={onMapClick}
-        onMapReady={onMapReady}
-        onMarkerClick={onMarkerClick}
-        onPolylineClick={onPolylineClick}
-        onPolygonClick={onPolygonClick}
-        onCircleClick={onCircleClick}
-        onGroundOverlayClick={onGroundOverlayClick}
-        onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
-        onRecenterButtonClick={onRecenterButtonClick}
-      />
-    </View>
+    <NavView
+      style={props.style ?? styles.defaultStyle}
+      nativeID={nativeIDRef.current?.toString()}
+      ref={mapViewRef}
+      viewType={MapViewType.NAVIGATION}
+      mapId={props.mapId ?? null}
+      navigationViewStylingOptions={
+        Platform.OS === 'android'
+          ? props.androidStylingOptions
+          : props.iOSStylingOptions
+      }
+      mapType={props.mapType ?? null}
+      navigationUIEnabled={props.navigationUIEnabled}
+      tripProgressBarEnabled={props.tripProgressBarEnabled}
+      trafficIncidentCardsEnabled={props.trafficIncidentCardsEnabled}
+      headerEnabled={props.headerEnabled}
+      footerEnabled={props.footerEnabled}
+      speedometerEnabled={props.speedometerEnabled}
+      speedLimitIconEnabled={props.speedLimitIconEnabled}
+      recenterButtonEnabled={props.recenterButtonEnabled}
+      mapPadding={props.mapPadding}
+      onMapClick={onMapClick}
+      onMapReady={onMapReady}
+      onMarkerClick={onMarkerClick}
+      onPolylineClick={onPolylineClick}
+      onPolygonClick={onPolygonClick}
+      onCircleClick={onCircleClick}
+      onGroundOverlayClick={onGroundOverlayClick}
+      onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
+      onRecenterButtonClick={onRecenterButtonClick}
+      onPromptVisibilityChanged={onPromptVisibilityChanged}
+      nightMode={props.nightMode}
+      followingPerspective={props.followingPerspective}
+      mapStyle={props.mapStyle}
+      mapToolbarEnabled={props.mapToolbarEnabled}
+      indoorEnabled={props.indoorEnabled}
+      trafficEnabled={props.trafficEnabled}
+      compassEnabled={props.compassEnabled ?? null}
+      myLocationButtonEnabled={props.myLocationButtonEnabled}
+      myLocationEnabled={props.myLocationEnabled}
+      rotateGesturesEnabled={props.rotateGesturesEnabled ?? null}
+      scrollGesturesEnabled={props.scrollGesturesEnabled ?? null}
+      scrollGesturesEnabledDuringRotateOrZoom={
+        props.scrollGesturesEnabledDuringRotateOrZoom ?? null
+      }
+      tiltGesturesEnabled={props.tiltGesturesEnabled ?? null}
+      zoomControlsEnabled={props.zoomControlsEnabled ?? null}
+      zoomGesturesEnabled={props.zoomGesturesEnabled ?? null}
+      buildingsEnabled={props.buildingsEnabled}
+      reportIncidentButtonEnabled={props.reportIncidentButtonEnabled}
+      minZoomLevel={props.minZoomLevel ?? null}
+      maxZoomLevel={props.maxZoomLevel ?? null}
+      initialCameraPosition={props.initialCameraPosition ?? null}
+    />
   );
 };
 

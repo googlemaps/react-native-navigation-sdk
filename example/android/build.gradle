@@ -20,26 +20,28 @@ buildscript {
         // by setting enableDesugaring true in app/build.gradle file.
         minSdkVersion = 34
         compileSdkVersion = 35
-        targetSdkVersion = 34
-        ndkVersion = "26.1.10909125"
+        targetSdkVersion = 35
+        ndkVersion = "27.1.12297006"
+        kotlinVersion = "2.0.21"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath('com.android.tools.build:gradle:8.6.1')
+        classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
         classpath("com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:2.0.1")
     }
 }
 
 allprojects {
-   repositories {
+  repositories {
     maven {
       url("$rootDir/../node_modules/detox/Detox-android")
     }
-   }
- }
+  }
+}
 
 apply plugin: "com.facebook.react.rootproject"

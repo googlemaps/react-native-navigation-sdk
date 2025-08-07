@@ -22,7 +22,6 @@ const styles = StyleSheet.create({
   },
   map_view: {
     flex: 1,
-    color: 'transparent',
   },
   button: {
     backgroundColor: '#2196f3',

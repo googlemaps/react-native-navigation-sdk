@@ -20,7 +20,7 @@ For all the steps above, you can refer to the Android example application for gu
 
 ### Screen for Android Auto
 
-Once your project is configured accordingly, and you are ready to build the screen for Android Auto, you can leverage the `AndroidAutoBaseScreen` provided by the SDK. This base class simplifies the setup by handling initialization, teardown, and rendering the map on the Android Auto display.
+Once your project is configured accordingly, and you are ready to build the screen for Android Auto, you can leverage the `GMNAndroidAutoBaseScreen` provided by the SDK. This base class simplifies the setup by handling initialization, teardown, and rendering the map on the Android Auto display.
 
 Please refer to the `SampleAndroidAutoScreen.java` file in the Android example app for guidance.
 
@@ -61,7 +61,7 @@ public Template onGetTemplate() {
 }
 ```
 
-For advanced customization, you can bypass the base class and implement your own screen by inheriting `Screen`. You can use the provided `AndroidAutoBaseScreen` base class as a reference on how to do that.
+For advanced customization, you can bypass the base class and implement your own screen by inheriting `Screen`. You can use the provided `GMNAndroidAutoBaseScreen` base class as a reference on how to do that.
 
 ### React Native specific setup
 
@@ -70,22 +70,25 @@ On the React Native side, you can use the `useNavigationAuto` hook to interface 
 ```tsx
 const {
   mapViewAutoController,
-  addListeners: addAutoListener,
-  removeListeners: removeAutoListeners,
 } = useNavigationAuto();
 
-const navigationAutoCallbacks: NavigationAutoCallbacks = useMemo(
-  () => ({
-    onCustomNavigationAutoEvent: (event: CustomNavigationAutoEvent) => {
-      console.log('onCustomNavigationAutoEvent:', event);
-    },
-    onAutoScreenAvailabilityChanged: (available: boolean) => {
+useEffect(() => {
+  mapViewAutoController.setOnAutoScreenAvailabilityChangedListener(
+    (available: boolean) => {
       console.log('onAutoScreenAvailabilityChanged:', available);
       setMapViewAutoAvailable(available);
-    },
-  }),
-  []
-);
+    }
+  );
+  mapViewAutoController.setOnCustomNavigationAutoEventListener(
+    (event: CustomNavigationAutoEvent) => {
+      console.log('onCustomNavigationAutoEvent:', event);
+    }
+  );
+
+  return () => {
+    mapViewAutoController.removeAllListeners();
+  };
+});
 
 const setMapType = (mapType: MapType) => {
   console.log('setMapType', mapType);

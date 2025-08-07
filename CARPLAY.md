@@ -56,22 +56,25 @@ On the React Native side, you can use the `useNavigationAuto` hook to interface 
 ```tsx
 const {
   mapViewAutoController,
-  addListeners: addAutoListener,
-  removeListeners: removeAutoListeners,
 } = useNavigationAuto();
 
-const navigationAutoCallbacks: NavigationAutoCallbacks = useMemo(
-  () => ({
-    onCustomNavigationAutoEvent: (event: CustomNavigationAutoEvent) => {
-      console.log('onCustomNavigationAutoEvent:', event);
-    },
-    onAutoScreenAvailabilityChanged: (available: boolean) => {
+useEffect(() => {
+  mapViewAutoController.setOnAutoScreenAvailabilityChangedListener(
+    (available: boolean) => {
       console.log('onAutoScreenAvailabilityChanged:', available);
       setMapViewAutoAvailable(available);
-    },
-  }),
-  []
-);
+    }
+  );
+  mapViewAutoController.setOnCustomNavigationAutoEventListener(
+    (event: CustomNavigationAutoEvent) => {
+      console.log('onCustomNavigationAutoEvent:', event);
+    }
+  );
+
+  return () => {
+    mapViewAutoController.removeAllListeners();
+  };
+});
 
 const setMapType = (mapType: MapType) => {
   console.log('setMapType', mapType);
@@ -83,4 +86,4 @@ For a more detailed example, refer to the `NavigationScreen.tsx` in the React Na
 
 ## Example Project
 
-For a fully functional CarPlay implementation, check out the [SampleApp](./example/ios/) Xcode project, which includes the `SampleAppCarPlay` build target. The sample already contains test entitlement so you don't need to request one from Apple to run it.
+For a fully functional CarPlay implementation, check out the [SampleApp](./example/ios/) Xcode project, which includes the `ReactNativeNavigationSdkExampleCarPlay` build target. The sample already contains test entitlement so you don't need to request one from Apple to run it.

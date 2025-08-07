@@ -13,55 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, sendCommand } from '../../shared/viewManager';
-import type { CameraPerspective, NavigationViewController } from './types';
+import { NavViewModule } from '../../native';
+import type { NavigationViewController } from './types';
 
 export const getNavigationViewController = (
-  viewId: number
+  nativeID: number
 ): NavigationViewController => {
   return {
-    setNavigationUIEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setNavigationUIEnabled, [isOn]);
-    },
-
-    setTripProgressBarEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setTripProgressBarEnabled, [isOn]);
-    },
-
-    setSpeedometerEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setSpeedometerEnabled, [isOn]);
-    },
-
-    setSpeedLimitIconEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setSpeedLimitIconEnabled, [isOn]);
-    },
-
-    setTrafficIncidentCardsEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setTrafficIncidentCardsEnabled, [isOn]);
-    },
-
-    setHeaderEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setHeaderEnabled, [isOn]);
-    },
-
-    setFooterEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setFooterEnabled, [isOn]);
-    },
-
-    showRouteOverview: () => {
-      sendCommand(viewId, commands.showRouteOverview, []);
-    },
-
-    setNightMode: (index: number) => {
-      sendCommand(viewId, commands.setNightMode, [index]);
-    },
-
-    setRecenterButtonEnabled(isEnabled: boolean) {
-      sendCommand(viewId, commands.setRecenterButtonEnabled, [isEnabled]);
-    },
-
-    setFollowingPerspective: (perspective: CameraPerspective) => {
-      sendCommand(viewId, commands.setFollowingPerspective, [perspective]);
+    showRouteOverview: async () => {
+      console.log('clearMapView', nativeID);
+      return await NavViewModule.showRouteOverview(nativeID);
     },
   };
 };

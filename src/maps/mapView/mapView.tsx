@@ -14,34 +14,19 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, findNodeHandle } from 'react-native';
-import {
-  NavViewManager,
-  sendCommand,
-  commands,
-  type LatLng,
-} from '../../shared';
-import {
-  getMapViewController,
-  FragmentType,
-  type Circle,
-  type GroundOverlay,
-  type MapViewProps,
-  type Marker,
-  type Polygon,
-  type Polyline,
-} from '..';
+import { useEffect, useRef } from 'react';
+import { StyleSheet } from 'react-native';
+import { getMapViewController, MapViewType, type MapViewProps } from '.';
+import NavView from '../../native/NativeNavViewComponent';
+import { getUniqueMapViewId, useNativeEventCallback } from '../../shared';
 
 export const MapView = (props: MapViewProps) => {
-  const mapViewRef = useRef<any>(null);
-  const [viewId, setViewId] = useState<number | null>(null);
+  const viewCreatedRef = useRef<boolean>(false);
+  const nativeIDRef = useRef<number>(getUniqueMapViewId());
+  const mapViewRef = useRef(null);
 
   const { onMapViewControllerCreated } = props;
 
-  /**
-   * @param {any} _ref - The reference to the NavViewManager component.
-   */
   const onRefAssign = (_ref: any) => {
     if (mapViewRef.current !== _ref) {
       mapViewRef.current = _ref;
@@ -49,93 +34,68 @@ export const MapView = (props: MapViewProps) => {
   };
 
   useEffect(() => {
-    if (!mapViewRef.current) {
+    if (!mapViewRef.current || viewCreatedRef.current) {
       return;
     }
-    const _viewId = findNodeHandle(mapViewRef.current) || 0;
-    if (viewId !== _viewId) {
-      setViewId(_viewId);
+    viewCreatedRef.current = true;
 
-      const stylingOptions = {};
+    // Initialize map view controller.
+    onMapViewControllerCreated(getMapViewController(nativeIDRef.current));
+  }, [onMapViewControllerCreated, mapViewRef]);
 
-      const args = [stylingOptions, FragmentType.MAP];
-
-      setTimeout(() => {
-        sendCommand(_viewId, commands.createFragment, args);
-      });
-
-      onMapViewControllerCreated(getMapViewController(_viewId));
-    }
-  }, [onMapViewControllerCreated, viewId]);
-
-  const onMapClick = useCallback(
-    ({ nativeEvent: latlng }: { nativeEvent: LatLng }) => {
-      props.mapViewCallbacks?.onMapClick?.(latlng);
-    },
-    [props.mapViewCallbacks]
+  const onMapClick = useNativeEventCallback(props.onMapClick);
+  const onMapReady = useNativeEventCallback(props.onMapReady);
+  const onMarkerClick = useNativeEventCallback(props.onMarkerClick);
+  const onPolylineClick = useNativeEventCallback(props.onPolylineClick);
+  const onPolygonClick = useNativeEventCallback(props.onPolygonClick);
+  const onCircleClick = useNativeEventCallback(props.onCircleClick);
+  const onGroundOverlayClick = useNativeEventCallback(
+    props.onGroundOverlayClick
   );
-
-  const onMapReady = useCallback(() => {
-    props.mapViewCallbacks?.onMapReady?.();
-  }, [props.mapViewCallbacks]);
-
-  const onMarkerClick = useCallback(
-    ({ nativeEvent: marker }: { nativeEvent: Marker }) => {
-      props.mapViewCallbacks?.onMarkerClick?.(marker);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onPolylineClick = useCallback(
-    ({ nativeEvent: polyline }: { nativeEvent: Polyline }) => {
-      props.mapViewCallbacks?.onPolylineClick?.(polyline);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onPolygonClick = useCallback(
-    ({ nativeEvent: polygon }: { nativeEvent: Polygon }) => {
-      props.mapViewCallbacks?.onPolygonClick?.(polygon);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onCircleClick = useCallback(
-    ({ nativeEvent: circle }: { nativeEvent: Circle }) => {
-      props.mapViewCallbacks?.onCircleClick?.(circle);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onGroundOverlayClick = useCallback(
-    ({ nativeEvent: groundOverlay }: { nativeEvent: GroundOverlay }) => {
-      props.mapViewCallbacks?.onGroundOverlayClick?.(groundOverlay);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onMarkerInfoWindowTapped = useCallback(
-    ({ nativeEvent: marker }: { nativeEvent: Marker }) => {
-      props.mapViewCallbacks?.onMarkerInfoWindowTapped?.(marker);
-    },
-    [props.mapViewCallbacks]
+  const onMarkerInfoWindowTapped = useNativeEventCallback(
+    props.onMarkerInfoWindowTapped
   );
 
   return (
-    <View style={props.style ?? styles.defaultStyle}>
-      <NavViewManager
-        ref={onRefAssign}
-        flex={1}
-        onMapClick={onMapClick}
-        onMapReady={onMapReady}
-        onMarkerClick={onMarkerClick}
-        onPolylineClick={onPolylineClick}
-        onPolygonClick={onPolygonClick}
-        onCircleClick={onCircleClick}
-        onGroundOverlayClick={onGroundOverlayClick}
-        onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
-      />
-    </View>
+    <NavView
+      style={props.style ?? styles.defaultStyle}
+      nativeID={nativeIDRef.current?.toString()}
+      ref={onRefAssign}
+      viewType={MapViewType.MAP}
+      mapId={props.mapId ?? null}
+      mapType={props.mapType ?? null}
+      navigationUIEnabled={false}
+      mapPadding={props.mapPadding}
+      onMapClick={onMapClick}
+      onMapReady={onMapReady}
+      onMarkerClick={onMarkerClick}
+      onPolylineClick={onPolylineClick}
+      onPolygonClick={onPolygonClick}
+      onCircleClick={onCircleClick}
+      onGroundOverlayClick={onGroundOverlayClick}
+      onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
+      recenterButtonEnabled={props.recenterButtonEnabled}
+      nightMode={props.nightMode}
+      mapStyle={props.mapStyle}
+      mapToolbarEnabled={props.mapToolbarEnabled}
+      indoorEnabled={props.indoorEnabled}
+      trafficEnabled={props.trafficEnabled}
+      compassEnabled={props.compassEnabled ?? null}
+      myLocationButtonEnabled={props.myLocationButtonEnabled}
+      myLocationEnabled={props.myLocationEnabled}
+      rotateGesturesEnabled={props.rotateGesturesEnabled ?? null}
+      scrollGesturesEnabled={props.scrollGesturesEnabled ?? null}
+      scrollGesturesEnabledDuringRotateOrZoom={
+        props.scrollGesturesEnabledDuringRotateOrZoom ?? null
+      }
+      maxZoomLevel={props.maxZoomLevel ?? null}
+      minZoomLevel={props.minZoomLevel ?? null}
+      tiltGesturesEnabled={props.tiltGesturesEnabled ?? null}
+      zoomControlsEnabled={props.zoomControlsEnabled ?? null}
+      zoomGesturesEnabled={props.zoomGesturesEnabled ?? null}
+      buildingsEnabled={props.buildingsEnabled}
+      initialCameraPosition={props.initialCameraPosition ?? null}
+    />
   );
 };
 

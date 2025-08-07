@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-import { NativeModules, Platform } from 'react-native';
-import { useModuleListeners, type LatLng } from '../../shared';
+import { Platform } from 'react-native';
+import { type LatLng, type Location } from '../../shared';
+import { useRef } from 'react';
+import type { EventSubscription } from 'react-native';
 import type {
   Waypoint,
   AudioGuidance,
   RouteSegment,
   TimeAndDistance,
+  NavigationInitializationStatus,
+  RouteStatus,
 } from '../types';
 import {
-  type NavigationCallbacks,
   type TermsAndConditionsDialogOptions,
   type NavigationController,
   type RoutingOptions,
@@ -31,190 +34,209 @@ import {
   type LocationSimulationOptions,
   TaskRemovedBehavior,
   type DisplayOptions,
+  type ArrivalEvent,
+  type TurnByTurnEvent,
+  type NavigationCallbackListenerSetters,
 } from './types';
-import { getRouteStatusFromStringValue } from '../navigationView';
-import { useMemo } from 'react';
-
-const { NavModule, NavEventDispatcher } = NativeModules;
-const androidBridge: string = 'NavJavascriptBridge';
+import { NavModule } from '../../native';
 
 export const useNavigationController = (
   termsAndConditionsDialogOptions: TermsAndConditionsDialogOptions,
   taskRemovedBehavior: TaskRemovedBehavior = TaskRemovedBehavior.CONTINUE_SERVICE
 ): {
   navigationController: NavigationController;
-  addListeners: (listeners: Partial<NavigationCallbacks>) => void;
-  removeListeners: (listeners: Partial<NavigationCallbacks>) => void;
-  removeAllListeners: () => void;
 } => {
-  const eventTransformer = <K extends keyof NavigationCallbacks>(
-    eventKey: K,
-    ...args: unknown[]
-  ) => {
-    if (eventKey === 'onRouteStatusResult' && typeof args[0] === 'string') {
-      return [getRouteStatusFromStringValue(args[0])];
-    }
-    return args;
+  const subscriptions = useRef<Record<string, EventSubscription | null>>({});
+
+  const createSetter =
+    <T extends (...args: any[]) => void>(eventName: string) =>
+    (callback: T | null) => {
+      subscriptions.current[eventName]?.remove();
+      subscriptions.current[eventName] = null;
+
+      if (callback && (NavModule as any)[eventName] != null) {
+        // Fix me
+        subscriptions.current[eventName] = (NavModule as any)[eventName](
+          callback
+        );
+      }
+    };
+
+  const eventListenerControllers: NavigationCallbackListenerSetters = {
+    setOnNavigationReadyListener: createSetter<() => void>('onNavigationReady'),
+    setOnStartGuidanceListener: createSetter<() => void>('onStartGuidance'),
+    setOnArrivalListener:
+      createSetter<(arrivalEvent: ArrivalEvent) => void>('onArrival'),
+    setOnLocationChangedListener:
+      createSetter<(location: Location) => void>('onLocationChanged'),
+    setOnRawLocationChangedListener: createSetter<(location: Location) => void>(
+      'onRawLocationChanged'
+    ),
+    setOnRouteChangedListener: createSetter<() => void>('onRouteChanged'),
+    setOnReroutingRequestedByOffRouteListener: createSetter<() => void>(
+      'onReroutingRequestedByOffRoute'
+    ),
+    setOnTrafficUpdatedListener: createSetter<() => void>('onTrafficUpdated'),
+    setOnRemainingTimeOrDistanceChangedListener: createSetter<() => void>(
+      'onRemainingTimeOrDistanceChanged'
+    ),
+    setOnTurnByTurnListener:
+      createSetter<(turnByTurnEvents: TurnByTurnEvent[]) => void>(
+        'onTurnByTurn'
+      ),
+    setLogDebugInfoListener:
+      createSetter<(message: string) => void>('logDebugInfo'),
+
+    removeAllListeners: () => {
+      Object.keys(subscriptions.current).forEach((key) => {
+        subscriptions.current[key]?.remove();
+        subscriptions.current[key] = null;
+      });
+    },
   };
 
-  const moduleListenersHandler = useModuleListeners<NavigationCallbacks>(
-    NavEventDispatcher,
-    androidBridge,
-    [
-      'onStartGuidance',
-      'onArrival',
-      'onLocationChanged',
-      'onNavigationReady',
-      'onRouteStatusResult',
-      'onRawLocationChanged',
-      'onRouteChanged',
-      'onReroutingRequestedByOffRoute',
-      'onTrafficUpdated',
-      'onRemainingTimeOrDistanceChanged',
-      'onNavigationInitError',
-      'onTurnByTurn',
-      'logDebugInfo',
-    ],
-    eventTransformer
-  );
-
-  const navigationController: NavigationController = useMemo(
-    () => ({
-      init: async () => {
-        return await NavModule.initializeNavigator(
+  const navigationController: NavigationController = {
+    ...eventListenerControllers,
+    init: async (): Promise<NavigationInitializationStatus> => {
+      try {
+        return (await NavModule.initializeNavigator(
           termsAndConditionsDialogOptions,
           taskRemovedBehavior
+        )) as unknown as NavigationInitializationStatus;
+      } catch (error) {
+        console.error('Error initializing navigator:', error);
+        return Promise.reject(error);
+      }
+    },
+
+    cleanup: async () => {
+      eventListenerControllers.removeAllListeners();
+      await NavModule.cleanup();
+    },
+
+    setDestination: async (
+      waypoint: Waypoint,
+      routingOptions?: RoutingOptions,
+      displayOptions?: DisplayOptions
+    ) => {
+      return (await NavModule.setDestinations(
+        [waypoint],
+        routingOptions || {},
+        displayOptions || {}
+      )) as unknown as RouteStatus;
+    },
+
+    setDestinations: async (
+      waypoints: Waypoint[],
+      routingOptions?: RoutingOptions,
+      displayOptions?: DisplayOptions
+    ) => {
+      return (await NavModule.setDestinations(
+        waypoints,
+        routingOptions || {},
+        displayOptions || {}
+      )) as unknown as RouteStatus;
+    },
+
+    continueToNextDestination: async () => {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(
+          `[DEPRECATED] continueToNextDestination() is deprecated. Use \`setDestinations(...)\` with the new list of destinations instead.`
         );
-      },
+      }
+      return NavModule.continueToNextDestination();
+    },
 
-      cleanup: async () => {
-        moduleListenersHandler.removeAllListeners();
-        await NavModule.cleanup();
-      },
+    clearDestinations: async () => {
+      return NavModule.clearDestinations();
+    },
 
-      setDestination: async (
-        waypoint: Waypoint,
-        routingOptions?: RoutingOptions,
-        displayOptions?: DisplayOptions
-      ) => {
-        return await NavModule.setDestination(
-          waypoint,
-          routingOptions,
-          displayOptions
-        );
-      },
+    startGuidance: async () => {
+      return NavModule.startGuidance();
+    },
 
-      setDestinations: async (
-        waypoints: Waypoint[],
-        routingOptions?: RoutingOptions,
-        displayOptions?: DisplayOptions
-      ) => {
-        return await NavModule.setDestinations(
-          waypoints,
-          routingOptions,
-          displayOptions
-        );
-      },
+    stopGuidance: async () => {
+      return NavModule.stopGuidance();
+    },
 
-      continueToNextDestination: async () => {
-        return await NavModule.continueToNextDestination();
-      },
+    setSpeedAlertOptions: async (alertOptions: SpeedAlertOptions | null) => {
+      return NavModule.setSpeedAlertOptions(alertOptions);
+    },
 
-      clearDestinations: async () => {
-        return await NavModule.clearDestinations();
-      },
+    setAbnormalTerminatingReportingEnabled: (enabled: boolean) => {
+      return NavModule.setAbnormalTerminatingReportingEnabled(enabled);
+    },
 
-      startGuidance: async () => {
-        return await NavModule.startGuidance();
-      },
+    setAudioGuidanceType: (index: AudioGuidance) => {
+      NavModule.setAudioGuidanceType(index);
+    },
 
-      stopGuidance: async () => {
-        return await NavModule.stopGuidance();
-      },
+    setBackgroundLocationUpdatesEnabled: (isEnabled: boolean) => {
+      if (Platform.OS === 'ios') {
+        NavModule.setBackgroundLocationUpdatesEnabled(isEnabled);
+      }
+    },
 
-      setSpeedAlertOptions: async (alertOptions: SpeedAlertOptions | null) => {
-        return await NavModule.setSpeedAlertOptions(alertOptions);
-      },
+    setTurnByTurnLoggingEnabled: (isEnabled: boolean) => {
+      NavModule.setTurnByTurnLoggingEnabled(isEnabled);
+    },
 
-      setAbnormalTerminatingReportingEnabled: (enabled: boolean) => {
-        return NavModule.setAbnormalTerminatingReportingEnabled(enabled);
-      },
+    areTermsAccepted: async (): Promise<boolean> => {
+      return NavModule.areTermsAccepted();
+    },
 
-      setAudioGuidanceType: (index: AudioGuidance) => {
-        NavModule.setAudioGuidanceType(index);
-      },
+    getCurrentRouteSegment: async (): Promise<RouteSegment> => {
+      return NavModule.getCurrentRouteSegment();
+    },
 
-      setBackgroundLocationUpdatesEnabled: (isEnabled: boolean) => {
-        if (Platform.OS === 'ios') {
-          NavModule.setBackgroundLocationUpdatesEnabled(isEnabled);
-        }
-      },
+    getRouteSegments: async (): Promise<RouteSegment[]> => {
+      return NavModule.getRouteSegments();
+    },
 
-      setTurnByTurnLoggingEnabled: (isEnabled: boolean) => {
-        NavModule.setTurnByTurnLoggingEnabled(isEnabled);
-      },
+    getCurrentTimeAndDistance: async (): Promise<TimeAndDistance> => {
+      return NavModule.getCurrentTimeAndDistance();
+    },
 
-      areTermsAccepted: async (): Promise<boolean> => {
-        return await NavModule.areTermsAccepted();
-      },
+    getTraveledPath: async (): Promise<LatLng[]> => {
+      return NavModule.getTraveledPath();
+    },
 
-      getCurrentRouteSegment: async (): Promise<RouteSegment> => {
-        return await NavModule.getCurrentRouteSegment();
-      },
+    getNavSDKVersion: async (): Promise<string> => {
+      return NavModule.getNavSDKVersion();
+    },
 
-      getRouteSegments: async (): Promise<RouteSegment[]> => {
-        return await NavModule.getRouteSegments();
-      },
+    stopUpdatingLocation: async () => {
+      return NavModule.stopUpdatingLocation();
+    },
 
-      getCurrentTimeAndDistance: async (): Promise<TimeAndDistance> => {
-        return await NavModule.getCurrentTimeAndDistance();
-      },
+    startUpdatingLocation: async () => {
+      return NavModule.startUpdatingLocation();
+    },
 
-      getTraveledPath: async (): Promise<LatLng[]> => {
-        return await NavModule.getTraveledPath();
+    simulator: {
+      simulateLocation: (location: LatLng) => {
+        return NavModule.simulateLocation(location);
       },
-
-      getNavSDKVersion: async (): Promise<string> => {
-        return await NavModule.getNavSDKVersion();
+      resumeLocationSimulation: () => {
+        return NavModule.resumeLocationSimulation();
       },
-
-      stopUpdatingLocation: () => {
-        NavModule.stopUpdatingLocation();
+      pauseLocationSimulation: () => {
+        return NavModule.pauseLocationSimulation();
       },
-
-      startUpdatingLocation: () => {
-        NavModule.startUpdatingLocation();
-      },
-
-      simulator: {
-        simulateLocation: (location: LatLng) => {
-          NavModule.simulateLocation(location);
-        },
-        resumeLocationSimulation: () => {
-          NavModule.resumeLocationSimulation();
-        },
-        pauseLocationSimulation: () => {
-          NavModule.pauseLocationSimulation();
-        },
-        simulateLocationsAlongExistingRoute: ({
+      simulateLocationsAlongExistingRoute: ({
+        speedMultiplier,
+      }: LocationSimulationOptions) => {
+        return NavModule.simulateLocationsAlongExistingRoute({
           speedMultiplier,
-        }: LocationSimulationOptions) => {
-          NavModule.simulateLocationsAlongExistingRoute(speedMultiplier);
-        },
-        stopLocationSimulation: () => {
-          NavModule.stopLocationSimulation();
-        },
+        });
       },
-    }),
-    [
-      moduleListenersHandler,
-      taskRemovedBehavior,
-      termsAndConditionsDialogOptions,
-    ]
-  );
+      stopLocationSimulation: () => {
+        return NavModule.stopLocationSimulation();
+      },
+    },
+  };
 
   return {
     navigationController,
-    ...moduleListenersHandler,
   };
 };

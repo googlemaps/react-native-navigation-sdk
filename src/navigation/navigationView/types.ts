@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import type { StyleProp, ViewStyle } from 'react-native';
 import type {
   MapViewCallbacks,
   MapViewController,
@@ -23,6 +22,7 @@ import type {
   AndroidStylingOptions,
   iOSStylingOptions,
 } from './stylingOptions';
+import type { CommonMapViewProps } from '../../shared/types';
 
 /**
  * The perspective that the camera will be looking at the GoogleMap.
@@ -40,27 +40,97 @@ export enum CameraPerspective {
 /** Defines all callbacks to be emitted during navigation. */
 export interface NavigationViewCallbacks {
   /**
-   * Callback function invoked when the re-center button is clicked.
+   * A callback function invoked when the re-center button is clicked.
    */
   onRecenterButtonClick?(): void;
+
+  /**
+   * A callback function invoked before a Navigation SDK UI prompt
+   * element is about to appear and as soon as the element is removed.
+   */
+  onPromptVisibilityChanged?(response: { visible: boolean }): void;
 }
 
 /**
  * `NavigationViewProps` interface extends `MapViewProps` to provide
  * additional methods focused on managing navigation events and state changes.
  */
-export interface NavigationViewProps {
+export interface NavigationViewProps
+  extends CommonMapViewProps,
+    NavigationViewCallbacks,
+    MapViewCallbacks {
   readonly androidStylingOptions?: AndroidStylingOptions;
   readonly iOSStylingOptions?: iOSStylingOptions;
 
-  readonly navigationViewCallbacks?: NavigationViewCallbacks;
-  readonly mapViewCallbacks?: MapViewCallbacks;
+  /**
+   * Indicates whether to display (true) or hide (false) the navigation user interface.
+   */
+  readonly navigationUIEnabled?: boolean;
 
-  readonly style?: StyleProp<ViewStyle> | undefined;
+  /**
+   * Indicates whether to display (true) or hide (false) the trip progress bar on the map.
+   */
+  readonly tripProgressBarEnabled?: boolean;
 
+  /**
+   * Indicates whether to display (true) or hide (false) traffic incident cards on the map.
+   */
+  readonly trafficIncidentCardsEnabled?: boolean;
+
+  /**
+   * Enable or disable the report incident button.
+   *
+   * This button allows users to report incidents on the map.
+   */
+  readonly reportIncidentButtonEnabled?: boolean;
+
+  /**
+   * Indicates whether to display (true) or hide (false) the navigation header on the map.
+   */
+  readonly headerEnabled?: boolean;
+
+  /**
+   * Indicates whether to display (true) or hide (false) the navigation footer on the map.
+   */
+  readonly footerEnabled?: boolean;
+
+  /**
+   * Indicates whether to enable (true) or disable (false) the speedometer display on the map.
+   */
+  readonly speedometerEnabled?: boolean;
+
+  /**
+   * Indicates whether to display (true) or hide (false) the speed limit icon on the map.
+   */
+  readonly speedLimitIconEnabled?: boolean;
+
+  /**
+   * Enables/disables the "Recenter" button on the map.
+   */
+  readonly recenterButtonEnabled?: boolean;
+
+  /**
+   * Sets the night mode setting according to the provided index.
+   */
+  readonly nightMode?: number;
+
+  /**
+   * Set the camera perspective mode for the map.
+   *
+   * If not set, the platform default will be used.
+   */
+  readonly followingPerspective?: CameraPerspective;
+
+  /**
+   * Callback invoked when the navigation view controller is created.
+   */
   onNavigationViewControllerCreated(
     navigationViewController: NavigationViewController
   ): void;
+
+  /**
+   * Callback invoked when the map view controller is created.
+   */
   onMapViewControllerCreated(mapViewController: MapViewController): void;
 }
 
@@ -69,85 +139,7 @@ export interface NavigationViewProps {
  */
 export interface NavigationViewController {
   /**
-   * Show or hide the navigation user interface (UI) on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false) the
-   *               navigation user interface.
-   */
-  setNavigationUIEnabled(enabled: boolean): void;
-
-  /**
-   * Show or hide the trip progress information on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false) the trip
-   *               progress information.
-   */
-  setTripProgressBarEnabled(enabled: boolean): void;
-
-  /**
-   * Show or hide traffic incident cards on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false) traffic
-   *               incident cards on the map.
-   */
-  setTrafficIncidentCardsEnabled(enabled: boolean): void;
-
-  /**
-   * Show or hide navigation header on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false)
-   * navigation header on the map.
-   */
-  setHeaderEnabled(enabled: boolean): void;
-
-  /**
-   * Show or hide navigation footer on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false)
-   * navigation footer on the map.
-   */
-  setFooterEnabled(enabled: boolean): void;
-
-  /**
-   * Enable or disable the speedometer display on the map.
-   *
-   * @param isOn - Indicates whether to enable (true) or disable (false) the
-   *               speedometer display.
-   */
-  setSpeedometerEnabled(enabled: boolean): void;
-
-  /**
-   * Show or hide the speed limit icon on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false) the
-   *               speed limit icon.
-   */
-  setSpeedLimitIconEnabled(enabled: boolean): void;
-
-  /**
    * Shows an overview of the remaining route.
    */
   showRouteOverview(): void;
-
-  /**
-   * Sets the night mode setting according to the provided index.
-   *
-   * @param index - The index representing the desired night mode
-   * setting.
-   */
-  setNightMode(index: number): void;
-
-  /**
-   * Set the camera perspective mode for the map.
-   *
-   * @param perspective - The desired camera perspective mode.
-   */
-  setFollowingPerspective(perspective: CameraPerspective): void;
-
-  /**
-   * Enables/disables the "Recenter" button on the map.
-   *
-   * @param isEnabled - Determines whether the button should be enabled or not.
-   */
-  setRecenterButtonEnabled(isEnabled: boolean): void;
 }

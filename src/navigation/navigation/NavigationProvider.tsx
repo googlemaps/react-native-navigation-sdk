@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import React, { createContext, type ReactNode, useContext } from 'react';
+import { createContext, type ReactNode, useContext } from 'react';
 import type {
   NavigationController,
-  NavigationCallbacks,
   TermsAndConditionsDialogOptions,
   TaskRemovedBehavior,
 } from './types';
@@ -25,8 +24,6 @@ import { useNavigationController } from './useNavigationController';
 
 interface NavigationContextProps {
   navigationController: NavigationController;
-  addListeners: (listeners: Partial<NavigationCallbacks>) => void;
-  removeListeners: (listeners: Partial<NavigationCallbacks>) => void;
 }
 
 const NavigationContext = createContext<NavigationContextProps | undefined>(
@@ -44,19 +41,13 @@ export const NavigationProvider = ({
   taskRemovedBehavior,
   children,
 }: NavigationProviderProps) => {
-  const { navigationController, addListeners, removeListeners } =
-    useNavigationController(
-      termsAndConditionsDialogOptions,
-      taskRemovedBehavior
-    );
+  const { navigationController } = useNavigationController(
+    termsAndConditionsDialogOptions,
+    taskRemovedBehavior
+  );
+
   return (
-    <NavigationContext.Provider
-      value={{
-        navigationController,
-        addListeners,
-        removeListeners,
-      }}
-    >
+    <NavigationContext.Provider value={{ navigationController }}>
       {children}
     </NavigationContext.Provider>
   );
@@ -67,12 +58,5 @@ export const useNavigation = (): NavigationContextProps => {
   if (!context) {
     throw new Error('useNavigation must be used within a NavigationProvider');
   }
-  const { navigationController, addListeners, removeListeners } = context;
-
-  // Memoize the return value to ensure stable references
-  return {
-    navigationController,
-    addListeners,
-    removeListeners,
-  };
+  return context;
 };

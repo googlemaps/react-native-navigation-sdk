@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-export * from './viewManager';
 export * from './types';
-export * from './useModuleListeners';
+export * from './useNativeEventCallback';
+export * from './viewIdUtil';

@@ -14,31 +14,26 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Button, Switch, Text, View } from 'react-native';
 import Snackbar from 'react-native-snackbar';
 
 import {
-  NavigationInitErrorCode,
+  NavigationInitializationStatus,
   NavigationView,
   RouteStatus,
   type ArrivalEvent,
-  type Circle,
-  type LatLng,
   type Location,
-  type MapViewCallbacks,
   type MapViewController,
-  type Marker,
-  type NavigationAutoCallbacks,
-  type NavigationCallbacks,
-  type NavigationViewCallbacks,
   type NavigationViewController,
-  type Polygon,
-  type Polyline,
   useNavigation,
   useNavigationAuto,
   type CustomNavigationAutoEvent,
 } from '@googlemaps/react-native-navigation-sdk';
+import {
+  mapNavControlsReducer,
+  initialMapNavControlsState,
+} from '../controls/mapNavControlsReducer';
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
 import OverlayModal from '../helpers/overlayModal';
@@ -61,30 +56,75 @@ const marginAmount = 50;
 
 const NavigationScreen = () => {
   const { arePermissionsApproved } = usePermissions();
+  const { navigationController } = useNavigation();
+
   const [overlayType, setOverlayType] = useState<OverlayType>(OverlayType.None);
   const [mapViewController, setMapViewController] =
     useState<MapViewController | null>(null);
   const [navigationViewController, setNavigationViewController] =
     useState<NavigationViewController | null>(null);
 
-  const {
-    mapViewAutoController,
-    addListeners: addAutoListener,
-    removeListeners: removeAutoListeners,
-  } = useNavigationAuto();
+  const { mapViewAutoController } = useNavigationAuto();
   const [mapViewAutoAvailable, setMapViewAutoAvailable] =
     useState<boolean>(false);
 
-  const { navigationController, addListeners, removeListeners } =
-    useNavigation();
+  const [state, dispatch] = React.useReducer(
+    mapNavControlsReducer,
+    initialMapNavControlsState
+  );
 
   const [navigationInitialized, setNavigationInitialized] = useState(false);
 
-  const onRouteChanged = useCallback(() => {
-    showSnackbar('Route Changed');
-  }, []);
+  const [margin, setMargin] = useState<number | undefined>(undefined);
 
-  const [margin, setMargin] = useState<number | null>(null);
+  useEffect(() => {
+    // Set listeners for navigation events
+    navigationController.setOnArrivalListener(onArrival);
+    navigationController.setOnLocationChangedListener((location: Location) => {
+      console.log('onLocationChanged:', location);
+    });
+    navigationController.setOnRawLocationChangedListener(
+      (location: Location) => {
+        console.log('onRawLocationChanged:', location);
+      }
+    );
+    navigationController.setOnNavigationReadyListener(() => {
+      console.log('onNavigationReady');
+      setNavigationInitialized(true);
+    });
+    navigationController.setOnRemainingTimeOrDistanceChangedListener(
+      async () => {
+        if (navigationController) {
+          const currentTimeAndDistance =
+            await navigationController.getCurrentTimeAndDistance();
+          console.log(currentTimeAndDistance);
+        }
+        console.log('called onRemainingTimeOrDistanceChanged');
+      }
+    );
+    navigationController.setOnRouteChangedListener(() => {
+      showSnackbar('Route Changed');
+    });
+    navigationController.setOnStartGuidanceListener(() => {
+      showSnackbar('Start Guidance');
+    });
+    navigationController.setOnTrafficUpdatedListener(() => {
+      showSnackbar('Traffic Updated');
+    });
+    navigationController.setOnTurnByTurnListener((turnByTurn: any) => {
+      console.log('onTurnByTurn:', turnByTurn);
+    });
+    navigationController.setLogDebugInfoListener((message: string) => {
+      console.log('LogDebugInfo:', message);
+      showSnackbar(message);
+    });
+    navigationController.setOnReroutingRequestedByOffRouteListener(() => {
+      console.log('Rerouting requested by off route');
+    });
+
+    // Cleanup function to remove all listeners
+    return () => navigationController.removeAllListeners();
+  });
 
   const onArrival = useCallback(
     (event: ArrivalEvent) => {
@@ -102,29 +142,9 @@ const NavigationScreen = () => {
     [navigationController]
   );
 
-  const onTrafficUpdated = useCallback(() => {
-    showSnackbar('Traffic Updated');
-  }, []);
-
-  const onNavigationReady = useCallback(() => {
-    console.log('onNavigationReady');
-    setNavigationInitialized(true);
-  }, []);
-
   const onNavigationDispose = useCallback(async () => {
-    await navigationViewController?.setNavigationUIEnabled(false);
+    dispatch({ type: 'setNavigationUIEnabled', value: false });
     setNavigationInitialized(false);
-  }, [navigationViewController]);
-
-  const onNavigationInitError = useCallback(
-    (errorCode: NavigationInitErrorCode) => {
-      showSnackbar(`Failed to initialize navigation errorCode: ${errorCode}`);
-    },
-    []
-  );
-
-  const onStartGuidance = useCallback(() => {
-    showSnackbar('Start Guidance');
   }, []);
 
   const onRouteStatusOk = useCallback(() => {
@@ -143,10 +163,6 @@ const NavigationScreen = () => {
     showSnackbar('Error: Network Error');
   }, []);
 
-  const onStartingGuidanceError = useCallback(() => {
-    showSnackbar('Error: Starting Guidance Error');
-  }, []);
-
   const onLocationDisabled = useCallback(() => {
     showSnackbar('Error: Location Disabled');
   }, []);
@@ -154,27 +170,6 @@ const NavigationScreen = () => {
   const onLocationUnknown = useCallback(() => {
     showSnackbar('Error: Location Unknown');
   }, []);
-
-  const onLocationChanged = useCallback((location: Location) => {
-    console.log('onLocationChanged:', location);
-  }, []);
-
-  const onRawLocationChanged = useCallback((location: Location) => {
-    console.log('onRawLocationChanged:', location);
-  }, []);
-
-  const onTurnByTurn = useCallback((turnByTurn: any) => {
-    console.log('onTurnByTurn:', turnByTurn);
-  }, []);
-
-  const onRemainingTimeOrDistanceChanged = useCallback(async () => {
-    if (navigationController) {
-      const currentTimeAndDistance =
-        await navigationController.getCurrentTimeAndDistance();
-      console.log(currentTimeAndDistance);
-    }
-    console.log('called onRemainingTimeOrDistanceChanged');
-  }, [navigationController]);
 
   const onRouteStatusResult = useCallback(
     (routeStatus: RouteStatus) => {
@@ -198,8 +193,7 @@ const NavigationScreen = () => {
           onLocationUnknown();
           break;
         default:
-          console.log('routeStatus: ' + routeStatus);
-          onStartingGuidanceError();
+          showSnackbar(`Error: Route Status Error: ${routeStatus}`);
       }
     },
     [
@@ -209,50 +203,7 @@ const NavigationScreen = () => {
       onNetworkError,
       onLocationDisabled,
       onLocationUnknown,
-      onStartingGuidanceError,
     ]
-  );
-
-  const navigationCallbacks: NavigationCallbacks = useMemo(
-    () => ({
-      onRouteChanged,
-      onArrival,
-      onNavigationReady,
-      onNavigationInitError,
-      onLocationChanged,
-      onRawLocationChanged,
-      onTrafficUpdated,
-      onRouteStatusResult,
-      onStartGuidance,
-      onRemainingTimeOrDistanceChanged,
-      onTurnByTurn,
-    }),
-    [
-      onRouteChanged,
-      onArrival,
-      onNavigationReady,
-      onNavigationInitError,
-      onLocationChanged,
-      onRawLocationChanged,
-      onTrafficUpdated,
-      onRouteStatusResult,
-      onStartGuidance,
-      onRemainingTimeOrDistanceChanged,
-      onTurnByTurn,
-    ]
-  );
-
-  const navigationAutoCallbacks: NavigationAutoCallbacks = useMemo(
-    () => ({
-      onCustomNavigationAutoEvent: (event: CustomNavigationAutoEvent) => {
-        console.log('onCustomNavigationAutoEvent:', event);
-      },
-      onAutoScreenAvailabilityChanged: (available: boolean) => {
-        console.log('onAutoScreenAvailabilityChanged:', available);
-        setMapViewAutoAvailable(available);
-      },
-    }),
-    []
   );
 
   useEffect(() => {
@@ -263,23 +214,46 @@ const NavigationScreen = () => {
   }, [mapViewAutoController]);
 
   useEffect(() => {
-    addListeners(navigationCallbacks);
-    return () => {
-      removeListeners(navigationCallbacks);
-    };
-  }, [navigationCallbacks, addListeners, removeListeners]);
+    mapViewAutoController.setOnAutoScreenAvailabilityChangedListener(
+      (available: boolean) => {
+        console.log('onAutoScreenAvailabilityChanged:', available);
+        setMapViewAutoAvailable(available);
+      }
+    );
+    mapViewAutoController.setOnCustomNavigationAutoEventListener(
+      (event: CustomNavigationAutoEvent) => {
+        console.log('onCustomNavigationAutoEvent:', event);
+      }
+    );
 
-  useEffect(() => {
-    addAutoListener(navigationAutoCallbacks);
     return () => {
-      removeAutoListeners(navigationAutoCallbacks);
+      mapViewAutoController.removeAllListeners();
     };
-  }, [navigationAutoCallbacks, addAutoListener, removeAutoListeners]);
+  });
 
   const onMapReady = useCallback(async () => {
     console.log('Map is ready, initializing navigator...');
     try {
-      await navigationController.init();
+      const status = await navigationController.init();
+      switch (status) {
+        case NavigationInitializationStatus.OK:
+          showSnackbar('Navigator initialized');
+          break;
+        case NavigationInitializationStatus.NOT_AUTHORIZED:
+          showSnackbar('Error: Not Authorized');
+          break;
+        case NavigationInitializationStatus.TERMS_NOT_ACCEPTED:
+          showSnackbar('Error: Terms Not Accepted');
+          break;
+        case NavigationInitializationStatus.NETWORK_ERROR:
+          showSnackbar('Error: Network Error');
+          break;
+        case NavigationInitializationStatus.LOCATION_PERMISSION_MISSING:
+          showSnackbar('Error: Location Permission Missing');
+          break;
+        default:
+          showSnackbar('Error: Unknown Error:' + status);
+      }
     } catch (error) {
       console.error('Error initializing navigator', error);
       showSnackbar('Error initializing navigator');
@@ -302,47 +276,12 @@ const NavigationScreen = () => {
     setOverlayType(OverlayType.AutoMapControls);
   }, [setOverlayType]);
 
-  const navigationViewCallbacks: NavigationViewCallbacks = {
-    onRecenterButtonClick,
-  };
-
-  const mapViewCallbacks: MapViewCallbacks = useMemo(() => {
-    return {
-      onMapReady,
-      onMarkerClick: (marker: Marker) => {
-        console.log('onMarkerClick:', marker);
-        showSnackbar('Removing marker in 5 seconds');
-        setTimeout(() => {
-          mapViewController?.removeMarker(marker.id);
-        }, 5000);
-      },
-      onPolygonClick: (polygon: Polygon) => {
-        console.log('onPolygonClick:', polygon);
-        mapViewController?.removePolygon(polygon.id);
-      },
-      onCircleClick: (circle: Circle) => {
-        console.log('onCircleClick:', circle);
-        mapViewController?.removeCircle(circle.id);
-      },
-      onPolylineClick: (polyline: Polyline) => {
-        console.log('onPolylineClick:', polyline);
-        mapViewController?.removePolyline(polyline.id);
-      },
-      onMarkerInfoWindowTapped: (marker: Marker) => {
-        console.log('onMarkerInfoWindowTapped:', marker);
-      },
-      onMapClick: (latLng: LatLng) => {
-        console.log('onMapClick:', latLng);
-      },
-    };
-  }, [mapViewController, onMapReady]);
-
   const closeOverlay = (): void => {
     setOverlayType(OverlayType.None);
   };
 
   return arePermissionsApproved ? (
-    <View style={styles.container}>
+    <View style={[styles.container]}>
       <NavigationView
         style={[
           {
@@ -350,19 +289,104 @@ const NavigationScreen = () => {
             margin: margin,
           },
         ]}
-        androidStylingOptions={{
-          primaryDayModeThemeColor: '#34eba8',
-          headerDistanceValueTextColor: '#76b5c5',
-          headerInstructionsFirstRowTextSize: '20f',
+        mapType={state.mapType}
+        mapPadding={state.padding}
+        mapToolbarEnabled={state.mapToolbarEnabled}
+        indoorEnabled={state.indoorEnabled}
+        myLocationEnabled={state.myLocationEnabled}
+        trafficEnabled={state.trafficEnabled}
+        compassEnabled={state.compassEnabled}
+        myLocationButtonEnabled={state.myLocationButtonEnabled}
+        buildingsEnabled={state.buildingsEnabled}
+        rotateGesturesEnabled={state.rotateGesturesEnabled}
+        scrollGesturesEnabled={state.scrollGesturesEnabled}
+        scrollGesturesEnabledDuringRotateOrZoom={
+          state.scrollGesturesEnabledDuringRotateOrZoom
+        }
+        tiltGesturesEnabled={state.tiltGesturesEnabled}
+        zoomControlsEnabled={state.zoomControlsEnabled}
+        zoomGesturesEnabled={state.zoomGesturesEnabled}
+        followingPerspective={state.followingPerspective}
+        nightMode={state.nightMode}
+        navigationUIEnabled={state.navigationUIEnabled}
+        tripProgressBarEnabled={state.tripProgressBarEnabled}
+        speedLimitIconEnabled={state.speedLimitIconEnabled}
+        speedometerEnabled={state.speedometerEnabled}
+        trafficIncidentCardsEnabled={state.trafficIncidentCardsEnabled}
+        reportIncidentButtonEnabled={state.reportIncidentButtonEnabled}
+        recenterButtonEnabled={state.recenterButtonEnabled}
+        headerEnabled={state.headerEnabled}
+        footerEnabled={state.footerEnabled}
+        onMapReady={onMapReady}
+        onMarkerClick={(marker) => {
+          console.log('onMarkerClick:', marker);
+          showSnackbar('Removing marker in 5 seconds');
+          setTimeout(() => {
+            mapViewController?.removeMarker(marker.id);
+          }, 5000);
         }}
-        iOSStylingOptions={{
-          navigationHeaderPrimaryBackgroundColor: '#34eba8',
-          navigationHeaderDistanceValueTextColor: '#76b5c5',
+        onPolygonClick={(polygon) => {
+          console.log('onPolygonClick:', polygon);
+          mapViewController?.removePolygon(polygon.id);
         }}
-        navigationViewCallbacks={navigationViewCallbacks}
-        mapViewCallbacks={mapViewCallbacks}
+        onCircleClick={(circle) => {
+          console.log('onCircleClick:', circle);
+          mapViewController?.removeCircle(circle.id);
+        }}
+        onPolylineClick={(polyline) => {
+          console.log('onPolylineClick:', polyline);
+          mapViewController?.removePolyline(polyline.id);
+        }}
+        onMarkerInfoWindowTapped={(marker) => {
+          console.log('onMarkerInfoWindowTapped:', marker);
+        }}
+        onMapClick={(latLng) => {
+          console.log('onMapClick:', latLng);
+        }}
+        onPromptVisibilityChanged={(res) => {
+          console.log('onPromptVisibilityChanged - visible:', res.visible);
+        }}
         onMapViewControllerCreated={setMapViewController}
         onNavigationViewControllerCreated={setNavigationViewController}
+        onRecenterButtonClick={onRecenterButtonClick}
+        initialCameraPosition={{
+          target: {
+            lat: 37.422,
+            lng: -122.084,
+          },
+          zoom: 15,
+        }}
+        androidStylingOptions={{
+          primaryDayModeThemeColor: '#1A237E',
+          secondaryDayModeThemeColor: '#3F51B5',
+          primaryNightModeThemeColor: '#212121',
+          secondaryNightModeThemeColor: '#424242',
+          headerLargeManeuverIconColor: '#FFFF00',
+          headerSmallManeuverIconColor: '#FFA500',
+          headerNextStepTextColor: '#00FF00',
+          headerNextStepTextSize: '20f',
+          headerDistanceValueTextColor: '#00FF00',
+          headerDistanceUnitsTextColor: '#0000FF',
+          headerDistanceValueTextSize: '20f',
+          headerDistanceUnitsTextSize: '18f',
+          headerInstructionsTextColor: '#FFFF00',
+          headerInstructionsFirstRowTextSize: '24f',
+          headerInstructionsSecondRowTextSize: '20f',
+          headerGuidanceRecommendedLaneColor: '#FFA500',
+        }}
+        iOSStylingOptions={{
+          navigationHeaderPrimaryBackgroundColor: '#1A237E',
+          navigationHeaderSecondaryBackgroundColor: '#3F51B5',
+          navigationHeaderPrimaryBackgroundColorNightMode: '#212121',
+          navigationHeaderSecondaryBackgroundColorNightMode: '#424242',
+          navigationHeaderLargeManeuverIconColor: '#FFFF00',
+          navigationHeaderSmallManeuverIconColor: '#FFA500',
+          navigationHeaderGuidanceRecommendedLaneColor: '#FFA500',
+          navigationHeaderNextStepTextColor: '#00FF00',
+          navigationHeaderDistanceValueTextColor: '#00FF00',
+          navigationHeaderDistanceUnitsTextColor: '#0000FF',
+          navigationHeaderInstructionsTextColor: '#FFFF00',
+        }}
       />
 
       {navigationViewController != null &&
@@ -377,6 +401,9 @@ const NavigationScreen = () => {
               navigationViewController={navigationViewController}
               getCameraPosition={mapViewController?.getCameraPosition}
               onNavigationDispose={onNavigationDispose}
+              state={state}
+              dispatch={dispatch}
+              onRouteStatusResult={onRouteStatusResult}
             />
           </OverlayModal>
         )}
@@ -386,7 +413,11 @@ const NavigationScreen = () => {
           visible={overlayType === OverlayType.MapControls}
           closeOverlay={closeOverlay}
         >
-          <MapsControls mapViewController={mapViewController} />
+          <MapsControls
+            mapViewController={mapViewController}
+            state={state}
+            dispatch={dispatch}
+          />
         </OverlayModal>
       )}
 
@@ -395,7 +426,11 @@ const NavigationScreen = () => {
           visible={overlayType === OverlayType.AutoMapControls}
           closeOverlay={closeOverlay}
         >
-          <MapsControls mapViewController={mapViewAutoController} />
+          <MapsControls
+            mapViewController={mapViewAutoController}
+            state={state}
+            dispatch={dispatch}
+          />
         </OverlayModal>
       )}
 
@@ -414,7 +449,7 @@ const NavigationScreen = () => {
           <Switch
             value={!!margin}
             onValueChange={() => {
-              setMargin(margin ? null : marginAmount);
+              setMargin(margin ? undefined : marginAmount);
             }}
           />
         </View>

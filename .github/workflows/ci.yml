@@ -37,7 +37,7 @@ jobs:
         run: yarn lint
 
       - name: Typecheck files
-        run: yarn test:types
+        run: yarn typecheck
 
   check-objc-formatting:
     runs-on: ubuntu-latest
@@ -52,7 +52,7 @@ jobs:
       - name: Check Objective-C formatting
         run: ./scripts/format-objc.sh --check
 
-  check-java-formatting:
+  check-java-and-kotlin-formatting:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -83,6 +83,24 @@ jobs:
 
       - name: Check Java formatting
         run: ./scripts/format-java.sh --check
+
+      - name: Download ktfmt
+        run: |
+          KTFMT_VERSION=0.54
+          KTFMT_URL=https://repo1.maven.org/maven2/com/facebook/ktfmt/${KTFMT_VERSION}/ktfmt-${KTFMT_VERSION}-jar-with-dependencies.jar
+          mkdir -p $HOME/ktfmt
+          curl -L -o $HOME/ktfmt/ktfmt.jar $KTFMT_URL
+
+      - name: Create ktfmt wrapper script
+        run: |
+          cat << 'EOF' > /usr/local/bin/ktfmt
+          #!/bin/sh
+          exec java -jar "$HOME/ktfmt/ktfmt.jar" "$@"
+          EOF
+          chmod +x /usr/local/bin/ktfmt
+
+      - name: Check Kotlin formatting
+        run: ./scripts/format-kotlin.sh --check
 
   test:
     runs-on: ubuntu-latest
@@ -222,7 +240,7 @@ jobs:
           NO_FLIPPER: 1
 
       - name: Copy Keys.plist file from sample
-        run: cp example/ios/SampleApp/Keys.plist.sample example/ios/SampleApp/Keys.plist
+        run: cp example/ios/ReactNativeNavigationSdkExample/Keys.plist.sample example/ios/ReactNativeNavigationSdkExample/Keys.plist
 
       - name: Build example for iOS
         run: |
