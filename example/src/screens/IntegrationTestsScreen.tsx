@@ -247,8 +247,8 @@ const IntegrationTestsScreen = () => {
           tripProgressBarEnabled={mapNavControlsState.tripProgressBarEnabled}
           speedLimitIconEnabled={mapNavControlsState.speedLimitIconEnabled}
           speedometerEnabled={mapNavControlsState.speedometerEnabled}
-          trafficIncidentsCardEnabled={
-            mapNavControlsState.trafficIncidentsCardEnabled
+          trafficIncidentCardsEnabled={
+            mapNavControlsState.trafficIncidentCardsEnabled
           }
           reportIncidentButtonEnabled={
             mapNavControlsState.reportIncidentButtonEnabled

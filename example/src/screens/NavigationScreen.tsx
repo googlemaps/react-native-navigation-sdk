@@ -312,7 +312,7 @@ const NavigationScreen = () => {
         tripProgressBarEnabled={state.tripProgressBarEnabled}
         speedLimitIconEnabled={state.speedLimitIconEnabled}
         speedometerEnabled={state.speedometerEnabled}
-        trafficIncidentsCardEnabled={state.trafficIncidentsCardEnabled}
+        trafficIncidentCardsEnabled={state.trafficIncidentCardsEnabled}
         reportIncidentButtonEnabled={state.reportIncidentButtonEnabled}
         recenterButtonEnabled={state.recenterButtonEnabled}
         headerEnabled={state.headerEnabled}

@@ -70,9 +70,9 @@ struct NavViewInitialCameraPositionTargetStruct {
   Float lng{};
 };
 
-static inline void fromRawValue(
-    const PropsParserContext &context, const RawValue &value,
-    NavViewInitialCameraPositionTargetStruct &result) {
+static inline void
+fromRawValue(const PropsParserContext &context, const RawValue &value,
+             NavViewInitialCameraPositionTargetStruct &result) {
   auto map = (std::unordered_map<std::string, RawValue>)value;
 
   auto tmp_lat = map.find("lat");
@@ -85,8 +85,8 @@ static inline void fromRawValue(
   }
 }
 
-static inline std::string toString(
-    const NavViewInitialCameraPositionTargetStruct &value) {
+static inline std::string
+toString(const NavViewInitialCameraPositionTargetStruct &value) {
   return "[Object NavViewInitialCameraPositionTargetStruct]";
 }
 
@@ -120,12 +120,12 @@ static inline void fromRawValue(const PropsParserContext &context,
   }
 }
 
-static inline std::string toString(
-    const NavViewInitialCameraPositionStruct &value) {
+static inline std::string
+toString(const NavViewInitialCameraPositionStruct &value) {
   return "[Object NavViewInitialCameraPositionStruct]";
 }
 class NavViewProps final : public ViewProps {
- public:
+public:
   NavViewProps() = default;
   NavViewProps(const PropsParserContext &context,
                const NavViewProps &sourceProps, const RawProps &rawProps);
@@ -139,7 +139,7 @@ class NavViewProps final : public ViewProps {
   NavViewMapPaddingStruct mapPadding{};
   bool navigationUIEnabled{};
   bool tripProgressBarEnabled{false};
-  bool trafficIncidentsCardEnabled{true};
+  bool trafficIncidentCardsEnabled{true};
   bool headerEnabled{true};
   bool footerEnabled{true};
   bool speedometerEnabled{true};
@@ -168,4 +168,4 @@ class NavViewProps final : public ViewProps {
   NavViewInitialCameraPositionStruct initialCameraPosition{};
 };
 
-}  // namespace facebook::react
+} // namespace facebook::react

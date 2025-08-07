@@ -202,8 +202,8 @@ public class GMNMapViewLayout extends FrameLayout {
     if (mInitialViewProps.tripProgressBarEnabled != null) {
       setTripProgressBarEnabled(mInitialViewProps.tripProgressBarEnabled);
     }
-    if (mInitialViewProps.trafficIncidentsCardEnabled != null) {
-      setTrafficIncidentsCardEnabled(mInitialViewProps.trafficIncidentsCardEnabled);
+    if (mInitialViewProps.trafficIncidentCardsEnabled != null) {
+      setTrafficIncidentCardsEnabled(mInitialViewProps.trafficIncidentCardsEnabled);
     }
     if (mInitialViewProps.headerEnabled != null) {
       setHeaderEnabled(mInitialViewProps.headerEnabled);
@@ -335,13 +335,13 @@ public class GMNMapViewLayout extends FrameLayout {
     } else if (mInitialViewProps != null) mInitialViewProps.tripProgressBarEnabled = value;
   }
 
-  public void setTrafficIncidentsCardEnabled(boolean value) {
+  public void setTrafficIncidentCardsEnabled(boolean value) {
     if (isReady()) {
       IGMNNavViewFragment navFragment = getNavFragment();
       if (navFragment != null) {
         navFragment.setTrafficIncidentCardsEnabled(value);
       }
-    } else if (mInitialViewProps != null) mInitialViewProps.trafficIncidentsCardEnabled = value;
+    } else if (mInitialViewProps != null) mInitialViewProps.trafficIncidentCardsEnabled = value;
   }
 
   public void setHeaderEnabled(boolean value) {

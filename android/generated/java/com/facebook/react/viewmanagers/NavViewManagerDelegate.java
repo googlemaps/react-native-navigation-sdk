@@ -61,8 +61,8 @@ public class NavViewManagerDelegate<T extends View, U extends BaseViewManager<T,
       case "tripProgressBarEnabled":
         mViewManager.setTripProgressBarEnabled(view, value == null ? false : (boolean) value);
         break;
-      case "trafficIncidentsCardEnabled":
-        mViewManager.setTrafficIncidentsCardEnabled(view, value == null ? true : (boolean) value);
+      case "trafficIncidentCardsEnabled":
+        mViewManager.setTrafficIncidentCardsEnabled(view, value == null ? true : (boolean) value);
         break;
       case "headerEnabled":
         mViewManager.setHeaderEnabled(view, value == null ? true : (boolean) value);

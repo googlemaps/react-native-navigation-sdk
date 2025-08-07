@@ -71,7 +71,7 @@ export interface NativeNavViewProps extends ViewProps {
   }> | null;
   navigationUIEnabled?: WithDefault<boolean, null>;
   tripProgressBarEnabled?: WithDefault<boolean, false>;
-  trafficIncidentsCardEnabled?: WithDefault<boolean, true>;
+  trafficIncidentCardsEnabled?: WithDefault<boolean, true>;
   headerEnabled?: WithDefault<boolean, true>;
   footerEnabled?: WithDefault<boolean, true>;
   speedometerEnabled?: WithDefault<boolean, true>;

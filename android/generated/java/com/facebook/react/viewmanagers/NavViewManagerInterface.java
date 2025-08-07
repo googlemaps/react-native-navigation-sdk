@@ -39,7 +39,7 @@ public interface NavViewManagerInterface<T extends View> extends ViewManagerWith
   void setMapPadding(T view, @Nullable ReadableMap value);
   void setNavigationUIEnabled(T view, @Nullable Boolean value);
   void setTripProgressBarEnabled(T view, boolean value);
-  void setTrafficIncidentsCardEnabled(T view, boolean value);
+  void setTrafficIncidentCardsEnabled(T view, boolean value);
   void setHeaderEnabled(T view, boolean value);
   void setFooterEnabled(T view, boolean value);
   void setSpeedometerEnabled(T view, boolean value);

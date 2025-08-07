@@ -55,7 +55,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     tripProgressBarEnabled,
     speedLimitIconEnabled,
     speedometerEnabled,
-    trafficIncidentsCardEnabled,
+    trafficIncidentCardsEnabled,
     reportIncidentButtonEnabled,
     recenterButtonEnabled,
     headerEnabled,
@@ -354,9 +354,9 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       <View style={styles.rowContainer}>
         <Text>Traffic incidents card</Text>
         <Switch
-          value={trafficIncidentsCardEnabled}
+          value={trafficIncidentCardsEnabled}
           onValueChange={(v) =>
-            dispatch({ type: 'setTrafficIncidentsCardEnabled', value: v })
+            dispatch({ type: 'setTrafficIncidentCardsEnabled', value: v })
           }
         />
       </View>

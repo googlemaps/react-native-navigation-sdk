@@ -40,7 +40,7 @@ public class GMNViewProps {
   @Nullable Integer mapType;
   @Nullable ReadableMap mapPadding;
   @Nullable Boolean tripProgressBarEnabled;
-  @Nullable Boolean trafficIncidentsCardEnabled;
+  @Nullable Boolean trafficIncidentCardsEnabled;
   @Nullable Boolean headerEnabled;
   @Nullable Boolean footerEnabled;
   @Nullable Boolean speedometerEnabled;

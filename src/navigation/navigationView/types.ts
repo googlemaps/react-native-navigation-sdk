@@ -75,7 +75,7 @@ export interface NavigationViewProps
   /**
    * Indicates whether to display (true) or hide (false) traffic incident cards on the map.
    */
-  readonly trafficIncidentsCardEnabled?: boolean;
+  readonly trafficIncidentCardsEnabled?: boolean;
 
   /**
    * Enable or disable the report incident button.

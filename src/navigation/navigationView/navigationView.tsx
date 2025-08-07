@@ -82,7 +82,7 @@ export const NavigationView = (props: NavigationViewProps) => {
       mapType={props.mapType ?? null}
       navigationUIEnabled={props.navigationUIEnabled}
       tripProgressBarEnabled={props.tripProgressBarEnabled}
-      trafficIncidentsCardEnabled={props.trafficIncidentsCardEnabled}
+      trafficIncidentCardsEnabled={props.trafficIncidentCardsEnabled}
       headerEnabled={props.headerEnabled}
       footerEnabled={props.footerEnabled}
       speedometerEnabled={props.speedometerEnabled}

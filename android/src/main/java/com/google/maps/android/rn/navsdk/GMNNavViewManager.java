@@ -223,8 +223,8 @@ public class GMNNavViewManager extends SimpleViewManager<GMNMapViewLayout>
   }
 
   @Override
-  public void setTrafficIncidentsCardEnabled(GMNMapViewLayout view, boolean value) {
-    view.setTrafficIncidentsCardEnabled(value);
+  public void setTrafficIncidentCardsEnabled(GMNMapViewLayout view, boolean value) {
+    view.setTrafficIncidentCardsEnabled(value);
   }
 
   @Override

@@ -300,7 +300,7 @@ const MultipleMapsScreen = () => {
         myLocationEnabled={navState.myLocationEnabled}
         tripProgressBarEnabled={navState.tripProgressBarEnabled}
         reportIncidentButtonEnabled={navState.reportIncidentButtonEnabled}
-        trafficIncidentsCardEnabled={navState.trafficIncidentsCardEnabled}
+        trafficIncidentCardsEnabled={navState.trafficIncidentCardsEnabled}
         speedLimitIconEnabled={navState.speedLimitIconEnabled}
         speedometerEnabled={navState.speedometerEnabled}
         nightMode={navState.nightMode}

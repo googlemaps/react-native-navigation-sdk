@@ -27,7 +27,7 @@ export interface MapNavControlsState {
   tripProgressBarEnabled: boolean;
   speedLimitIconEnabled: boolean;
   speedometerEnabled: boolean;
-  trafficIncidentsCardEnabled: boolean;
+  trafficIncidentCardsEnabled: boolean;
   reportIncidentButtonEnabled: boolean;
   recenterButtonEnabled: boolean;
   headerEnabled: boolean;
@@ -57,7 +57,7 @@ export type MapNavControlsAction =
   | { type: 'setTripProgressBarEnabled'; value: boolean }
   | { type: 'setSpeedLimitIconEnabled'; value: boolean }
   | { type: 'setSpeedometerEnabled'; value: boolean }
-  | { type: 'setTrafficIncidentsCardEnabled'; value: boolean }
+  | { type: 'setTrafficIncidentCardsEnabled'; value: boolean }
   | { type: 'setReportIncidentButtonEnabled'; value: boolean }
   | { type: 'setRecenterButtonEnabled'; value: boolean }
   | { type: 'setHeaderEnabled'; value: boolean }
@@ -87,7 +87,7 @@ export const initialMapNavControlsState: MapNavControlsState = {
   tripProgressBarEnabled: false,
   speedLimitIconEnabled: true,
   speedometerEnabled: true,
-  trafficIncidentsCardEnabled: true,
+  trafficIncidentCardsEnabled: true,
   reportIncidentButtonEnabled: true,
   recenterButtonEnabled: true,
   headerEnabled: true,
@@ -126,8 +126,8 @@ export function mapNavControlsReducer(
       return { ...state, speedLimitIconEnabled: action.value };
     case 'setSpeedometerEnabled':
       return { ...state, speedometerEnabled: action.value };
-    case 'setTrafficIncidentsCardEnabled':
-      return { ...state, trafficIncidentsCardEnabled: action.value };
+    case 'setTrafficIncidentCardsEnabled':
+      return { ...state, trafficIncidentCardsEnabled: action.value };
     case 'setReportIncidentButtonEnabled':
       return { ...state, reportIncidentButtonEnabled: action.value };
     case 'setRecenterButtonEnabled':
