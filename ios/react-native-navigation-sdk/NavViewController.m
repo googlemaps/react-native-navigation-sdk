@@ -247,6 +247,10 @@
   [_mapView.settings setNavigationTripProgressBarEnabled:isEnabled];
 }
 
+- (void)setReportIncidentButtonEnabled:(BOOL)isEnabled {
+  _mapView.settings.navigationReportIncidentButtonEnabled = isEnabled;
+}
+
 - (void)setMyLocationButtonEnabled:(BOOL)isEnabled {
   [_mapView.settings setMyLocationButton:isEnabled];
 }
@@ -296,6 +300,10 @@
   _mapView.navigationUIDelegate = self;
   [self applyStylingOptions];
   return result;
+}
+
+- (void)onPromptVisibilityChange:(BOOL)isVisible {
+  [self.callbacks handlePromptVisibilityChanged:isVisible];
 }
 
 - (void)preferredContentSizeDidChangeForChildContentContainer:

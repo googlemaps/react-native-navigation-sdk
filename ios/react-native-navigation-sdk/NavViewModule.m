@@ -43,6 +43,12 @@ static NavViewModule *sharedInstance = nil;
   }
 }
 
+- (void)informPromptVisibilityChange:(BOOL)visible {
+  for (NavViewController *viewController in self.viewControllers.allValues) {
+    [viewController onPromptVisibilityChange:visible];
+  }
+}
+
 - (void)setTravelMode:(GMSNavigationTravelMode)travelMode {
   for (NavViewController *viewController in self.viewControllers.allValues) {
     [viewController setTravelMode:travelMode];

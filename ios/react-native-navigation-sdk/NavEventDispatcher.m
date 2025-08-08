@@ -41,7 +41,6 @@ RCT_EXPORT_MODULE(NavEventDispatcher);
     @"onNavigationReady",
     @"onNavigationInitError",
     @"onStartGuidance",
-    @"onRecenterButtonClick",
     @"onRouteStatusResult",
     @"onReroutingRequestedByOffRoute",
     @"onLocationChanged",

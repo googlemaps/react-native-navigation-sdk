@@ -33,6 +33,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.libraries.navigation.NavigationView;
+import com.google.android.libraries.navigation.PromptVisibilityChangedListener;
 import com.google.android.libraries.navigation.StylingOptions;
 import com.google.android.libraries.navigation.SupportNavigationFragment;
 
@@ -55,11 +56,21 @@ public class NavViewFragment extends SupportNavigationFragment
     this.viewTag = viewTag;
   }
 
-  private NavigationView.OnRecenterButtonClickedListener onRecenterButtonClickedListener =
+  private final NavigationView.OnRecenterButtonClickedListener onRecenterButtonClickedListener =
       new NavigationView.OnRecenterButtonClickedListener() {
         @Override
         public void onRecenterButtonClick() {
           emitEvent("onRecenterButtonClick", null);
+        }
+      };
+
+  private final PromptVisibilityChangedListener onPromptVisibilityChangedListener =
+      new PromptVisibilityChangedListener() {
+        @Override
+        public void onVisibilityChanged(boolean isVisible) {
+          WritableMap map = Arguments.createMap();
+          map.putBoolean("visible", isVisible);
+          emitEvent("onPromptVisibilityChanged", map);
         }
       };
 
@@ -87,6 +98,7 @@ public class NavViewFragment extends SupportNavigationFragment
 
             setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
             addOnRecenterButtonClickedListener(onRecenterButtonClickedListener);
+            addPromptVisibilityChangedListener(onPromptVisibilityChangedListener);
           }
         });
   }
@@ -116,11 +128,6 @@ public class NavViewFragment extends SupportNavigationFragment
   @Override
   public void onMapReady() {
     emitEvent("onMapReady", null);
-  }
-
-  @Override
-  public void onRecenterButtonClick() {
-    emitEvent("onRecenterButtonClick", null);
   }
 
   @Override
@@ -176,6 +183,7 @@ public class NavViewFragment extends SupportNavigationFragment
 
   private void cleanup() {
     removeOnRecenterButtonClickedListener(onRecenterButtonClickedListener);
+    removePromptVisibilityChangedListener(onPromptVisibilityChangedListener);
   }
 
   private void emitEvent(String eventName, @Nullable WritableMap data) {

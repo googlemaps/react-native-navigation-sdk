@@ -303,6 +303,10 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         getFragmentForRoot(root)
             .getMapController()
             .setPadding(args.getInt(0), args.getInt(1), args.getInt(2), args.getInt(3));
+        break;
+      case SET_REPORT_INCIDENT_BUTTON_ENABLED:
+        getNavFragmentForRoot(root).setReportIncidentButtonEnabled(args.getBoolean(0));
+        break;
     }
   }
 
@@ -318,6 +322,9 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
                 .put(
                     "onRecenterButtonClick",
                     MapBuilder.of("registrationName", "onRecenterButtonClick"))
+                .put(
+                    "onPromptVisibilityChanged",
+                    MapBuilder.of("registrationName", "onPromptVisibilityChanged"))
                 .put("onMapReady", MapBuilder.of("registrationName", "onMapReady"))
                 .put("onMapClick", MapBuilder.of("registrationName", "onMapClick"))
                 .put("onMarkerClick", MapBuilder.of("registrationName", "onMarkerClick"))

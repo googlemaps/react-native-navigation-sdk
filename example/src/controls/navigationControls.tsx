@@ -55,12 +55,14 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   const nightModeOptions = ['Auto', 'Force Day', 'Force Night'];
   const audioGuidanceOptions = ['Silent', 'Alerts only', 'Alerts and guidance'];
   const [tripProgressBarEnabled, setTripProgressBarEnabled] = useState(false);
+  const [reportIncidentButtonEnabled, setReportIncidentButtonEnabled] =
+    useState(true);
   const [navigationUiEnabled, setNavigationUIEnabled] = useState(true);
   const [turnByTurnLoggingEnabled, setTurnByTurnLoggingEnabled] =
     useState(false);
   const [speedLimitIconEnabled, setSpeedLimitIconEnabled] = useState(false);
   const [speedometerEnabled, setSpeedometerEnabled] = useState(false);
-  const [trafficIncidentsCardEnabled, setTrafficIncidentsCardEnabled] =
+  const [trafficIncidentCardsEnabled, setTrafficIncidentCardsEnabled] =
     useState(false);
   const [recenterButtonEnabled, setRecenterButtonEnabled] = useState(true);
   const [
@@ -212,6 +214,12 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     navigationViewController.setTripProgressBarEnabled(isOn);
   };
 
+  const toggleReportIncidentButtonEnabled = (isOn: boolean) => {
+    console.log('setReportIncidentButtonEnabled', isOn);
+    setReportIncidentButtonEnabled(isOn);
+    navigationViewController.setReportIncidentButtonEnabled(isOn);
+  };
+
   const toggleSpeedLimitIconEnabled = (isOn: boolean) => {
     console.log('setSpeedLimitIconEnabled', isOn);
     setSpeedLimitIconEnabled(isOn);
@@ -236,9 +244,9 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     navigationController.setTurnByTurnLoggingEnabled(isOn);
   };
 
-  const toggleTrafficIncidentsCardEnabled = (isOn: boolean) => {
-    console.log('toggleTrafficIncidentsCardEnabled:', isOn);
-    setTrafficIncidentsCardEnabled(isOn);
+  const toggleTrafficIncidentCardsEnabled = (isOn: boolean) => {
+    console.log('toggleTrafficIncidentCardsEnabled:', isOn);
+    setTrafficIncidentCardsEnabled(isOn);
     navigationViewController.setTrafficIncidentCardsEnabled(isOn);
   };
 
@@ -354,7 +362,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       />
       <Button title="Set target as Destination" onPress={initWaypoint} />
       <View style={styles.controlButtonGap} />
-      <Button title="Multiple Destination" onPress={initWaypoints} />
+      <Button title="Set multiple destinations" onPress={initWaypoints} />
       <Button title="Dispose navigation" onPress={disposeNavigation} />
       <Button
         title="Continue to next destination"
@@ -393,6 +401,15 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         />
       </View>
       <View style={styles.rowContainer}>
+        <Text>Report incident button</Text>
+        <Switch
+          value={reportIncidentButtonEnabled}
+          onValueChange={() => {
+            toggleReportIncidentButtonEnabled(!reportIncidentButtonEnabled);
+          }}
+        />
+      </View>
+      <View style={styles.rowContainer}>
         <Text>Speed limit icon</Text>
         <Switch
           value={speedLimitIconEnabled}
@@ -413,9 +430,9 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       <View style={styles.rowContainer}>
         <Text>Traffic incidents card</Text>
         <Switch
-          value={trafficIncidentsCardEnabled}
+          value={trafficIncidentCardsEnabled}
           onValueChange={() => {
-            toggleTrafficIncidentsCardEnabled(!trafficIncidentsCardEnabled);
+            toggleTrafficIncidentCardsEnabled(!trafficIncidentCardsEnabled);
           }}
         />
       </View>

@@ -141,6 +141,13 @@ export const NavigationView = (props: NavigationViewProps) => {
     props.navigationViewCallbacks?.onRecenterButtonClick?.();
   }, [props.navigationViewCallbacks]);
 
+  const onPromptVisibilityChanged = useCallback(
+    ({ nativeEvent: event }: { nativeEvent: { visible: boolean } }) => {
+      props.navigationViewCallbacks?.onPromptVisibilityChanged?.(event.visible);
+    },
+    [props.navigationViewCallbacks]
+  );
+
   return (
     <View style={props.style ?? styles.defaultStyle}>
       <NavViewManager
@@ -155,6 +162,7 @@ export const NavigationView = (props: NavigationViewProps) => {
         onGroundOverlayClick={onGroundOverlayClick}
         onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
         onRecenterButtonClick={onRecenterButtonClick}
+        onPromptVisibilityChanged={onPromptVisibilityChanged}
       />
     </View>
   );

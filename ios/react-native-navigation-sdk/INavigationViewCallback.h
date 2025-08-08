@@ -34,6 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)handlePolygonClick:(GMSPolygon *)polygon;
 - (void)handleCircleClick:(GMSCircle *)circle;
 - (void)handleGroundOverlayClick:(GMSGroundOverlay *)groundOverlay;
+- (void)handlePromptVisibilityChanged:(BOOL)isVisible;
 @end
 
 NS_ASSUME_NONNULL_END

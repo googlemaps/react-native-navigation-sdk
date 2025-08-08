@@ -65,6 +65,7 @@ export interface NativeNavViewProps extends ViewProps {
   onGroundOverlayClick?: DirectEventHandler<GroundOverlay>;
   onMarkerInfoWindowTapped?: DirectEventHandler<Marker>;
   onRecenterButtonClick?: DirectEventHandler<null>;
+  onPromptVisibilityChanged?: DirectEventHandler<{ visible: boolean }>;
 }
 
 type NativeNavViewManagerComponentType = HostComponent<NativeNavViewProps>;

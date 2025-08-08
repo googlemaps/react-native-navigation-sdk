@@ -23,8 +23,6 @@ import com.google.android.gms.maps.model.Polyline;
 public interface INavigationViewCallback {
   void onMapReady();
 
-  void onRecenterButtonClick();
-
   void onMarkerClick(Marker marker);
 
   void onPolylineClick(Polyline polyline);

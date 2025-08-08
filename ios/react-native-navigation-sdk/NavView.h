@@ -33,6 +33,7 @@
 @property(nonatomic, copy) RCTDirectEventBlock onPolygonClick;
 @property(nonatomic, copy) RCTDirectEventBlock onCircleClick;
 @property(nonatomic, copy) RCTDirectEventBlock onGroundOverlayClick;
+@property(nonatomic, copy) RCTDirectEventBlock onPromptVisibilityChanged;
 
 - (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions
                                                      fragmentType:(FragmentType)fragmentType;

@@ -15,7 +15,7 @@ This repository contains a React Native plugin that provides a [Google Navigatio
 
 |                                 | Android | iOS       |
 | ------------------------------- | ------- | --------- |
-| **Minimum mobile OS supported** | SDK 23+ | iOS 15.0+ |
+| **Minimum mobile OS supported** | SDK 23+ | iOS 16.0+ |
 
 * A React Native project
 * A Google Cloud project

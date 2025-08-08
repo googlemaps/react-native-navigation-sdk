@@ -3,6 +3,6 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>[Add your key]</string>
+	<string>[Add Google Maps API key here]</string>
 </dict>
 </plist>

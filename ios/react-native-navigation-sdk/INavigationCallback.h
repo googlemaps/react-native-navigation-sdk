@@ -38,6 +38,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)onRouteStatusResult:(GMSRouteStatus)routeStatus;
 - (void)onReroutingRequestedByOffRoute;
 - (void)onLocationChanged:(NSDictionary *)location;
+- (void)onPromptVisibilityChange:(BOOL)visible;
 @end
 
 #endif /* INavigationCallback_h */

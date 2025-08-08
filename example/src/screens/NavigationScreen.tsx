@@ -176,6 +176,10 @@ const NavigationScreen = () => {
     console.log('called onRemainingTimeOrDistanceChanged');
   }, [navigationController]);
 
+  const onPromptVisibilityChanged = useCallback((visible: boolean) => {
+    console.log('Prompt visibility changed to:', visible);
+  }, []);
+
   const onRouteStatusResult = useCallback(
     (routeStatus: RouteStatus) => {
       switch (routeStatus) {
@@ -304,6 +308,7 @@ const NavigationScreen = () => {
 
   const navigationViewCallbacks: NavigationViewCallbacks = {
     onRecenterButtonClick,
+    onPromptVisibilityChanged,
   };
 
   const mapViewCallbacks: MapViewCallbacks = useMemo(() => {

@@ -22,8 +22,8 @@
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
 
-// RCTNavViewManager is responsible for managing both the regular map fragment as well as the
-// navigation map view fragment.
+// RCTNavViewManager is responsible for managing both the regular map fragment
+// as well as the navigation map view fragment.
 //
 @implementation RCTNavViewManager
 static NSMutableDictionary<NSNumber *, NavViewController *> *_viewControllers;
@@ -40,6 +40,7 @@ RCT_EXPORT_VIEW_PROPERTY(onPolylineClick, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onPolygonClick, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onCircleClick, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onGroundOverlayClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onPromptVisibilityChanged, RCTDirectEventBlock);
 
 - (instancetype)init {
   if (self = [super init]) {
@@ -125,6 +126,15 @@ RCT_EXPORT_METHOD(setTripProgressBarEnabled
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     [viewController setTripProgressBarEnabled:isEnabled];
+  });
+}
+
+RCT_EXPORT_METHOD(setReportIncidentButtonEnabled
+                  : (nonnull NSNumber *)reactTag isEnabled
+                  : (BOOL)isEnabled) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NavViewController *viewController = [self getViewControllerForTag:reactTag];
+    [viewController setReportIncidentButtonEnabled:isEnabled];
   });
 }
 
