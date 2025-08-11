@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * Desugaring is required to be set on from navigation-sdk version 6.3.0 onwards.
+ * Note that this enableDesugaring currently affects Detox testing with release builds.
+ */
+def enableDesugaring = true
+
 buildscript {
     ext {
         buildToolsVersion = "35.0.0"
-        // If minSDKVersion is set below 34, make sure to enable desugaring
-        // to use certain Java 8+ APIs on lower API levels
-        // by setting enableDesugaring true in app/build.gradle file.
         minSdkVersion = 34
         compileSdkVersion = 35
         targetSdkVersion = 34
@@ -35,11 +38,28 @@ buildscript {
 }
 
 allprojects {
-   repositories {
-    maven {
-      url("$rootDir/../node_modules/detox/Detox-android")
-    }
+    repositories {
+        maven {
+            url("$rootDir/../node_modules/detox/Detox-android")
+        }
    }
- }
+
+    subprojects {
+        afterEvaluate { project ->
+            if (project.hasProperty('android')) {
+                android {
+                    compileOptions {
+                        coreLibraryDesugaringEnabled enableDesugaring
+                    }
+                }
+
+                dependencies {
+                    // Desugar Java 8+ APIs
+                    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.3'
+                }
+            }
+        }
+    }
+}
 
 apply plugin: "com.facebook.react.rootproject"
