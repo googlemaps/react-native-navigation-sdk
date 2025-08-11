@@ -15,7 +15,7 @@ This repository contains a React Native plugin that provides a [Google Navigatio
 
 |                                 | Android | iOS       |
 | ------------------------------- | ------- | --------- |
-| **Minimum mobile OS supported** | SDK 23+ | iOS 15.0+ |
+| **Minimum mobile OS supported** | SDK 23+ | iOS 16.0+ |
 
 * A React Native project
 * A Google Cloud project
@@ -62,20 +62,12 @@ To ensure compatibility with AndroidX, enable Jetifier in your `android/gradle.p
 android.enableJetifier=true
 ```
 
-#### Minimum SDK Requirements for Android
+#### Enable Core Library Desugaring
 
-The `minSdkVersion` for your Android project must be set to 23 or higher in `android/app/build.gradle`:
+Core library desugaring **must be enabled** for your Android project, regardless of your minSdkVersion.
 
-```groovy
-android {
-    defaultConfig {
-        minSdkVersion 23
-    }
-}
-```
+To enable desugaring, update your `android/app/build.gradle` file:
 
-If `minSdkVersion` is set to less than 34 (API 34), you need to configure desugaring for your Android app.
-To enable desugaring, add the following configurations to `android/app/build.gradle` file:
 ```groovy
 android {
     ...
@@ -90,7 +82,17 @@ dependencies {
 }
 ```
 
-You may also need to upgrade to Gradle 8.4 and the Android Gradle plugin version 8.3.0
+#### Minimum SDK Requirements for Android
+
+The `minSdkVersion` for your Android project must be set to 23 or higher in `android/app/build.gradle`:
+
+```groovy
+android {
+    defaultConfig {
+        minSdkVersion 23
+    }
+}
+```
 
 #### Set Google Maps API Key
 

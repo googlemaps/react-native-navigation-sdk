@@ -43,6 +43,14 @@ export interface NavigationViewCallbacks {
    * Callback function invoked when the re-center button is clicked.
    */
   onRecenterButtonClick?(): void;
+
+  /**
+   * A callback function invoked before a Navigation SDK UI prompt
+   * element is about to appear and as soon as the element is removed.
+   *
+   * @param visible - A boolean indicating whether the prompt is visible.
+   */
+  onPromptVisibilityChanged?(visible: boolean): void;
 }
 
 /**
@@ -83,6 +91,13 @@ export interface NavigationViewController {
    *               progress information.
    */
   setTripProgressBarEnabled(enabled: boolean): void;
+
+  /**
+   * Show or hide the report incident button.
+   *
+   * @param isOn - Indicateswhether the report incident button should be shown.
+   */
+  setReportIncidentButtonEnabled(enabled: boolean): void;
 
   /**
    * Show or hide traffic incident cards on the map.

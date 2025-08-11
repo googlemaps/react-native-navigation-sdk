@@ -28,6 +28,10 @@ export const getNavigationViewController = (
       sendCommand(viewId, commands.setTripProgressBarEnabled, [isOn]);
     },
 
+    setReportIncidentButtonEnabled: (isOn: boolean) => {
+      sendCommand(viewId, commands.setReportIncidentButtonEnabled, [isOn]);
+    },
+
     setSpeedometerEnabled: (isOn: boolean) => {
       sendCommand(viewId, commands.setSpeedometerEnabled, [isOn]);
     },

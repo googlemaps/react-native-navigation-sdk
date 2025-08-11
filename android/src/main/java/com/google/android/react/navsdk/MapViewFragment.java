@@ -92,11 +92,6 @@ public class MapViewFragment extends SupportMapFragment
   }
 
   @Override
-  public void onRecenterButtonClick() {
-    emitEvent("onRecenterButtonClick", null);
-  }
-
-  @Override
   public void onMarkerClick(Marker marker) {
     emitEvent("onMarkerClick", ObjectTranslationUtil.getMapFromMarker(marker));
   }

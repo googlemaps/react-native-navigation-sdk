@@ -658,6 +658,14 @@ RCT_EXPORT_METHOD(stopUpdatingLocation) {
   [self onLocationChanged:[ObjectTranslationUtil transformCLLocationToDictionary:location]];
 }
 
+- (void)navigatorWillPresentPrompt:(GMSNavigator *)navigator {
+  [self onPromptVisibilityChange:YES];
+}
+
+- (void)navigatorDidDismissPrompt:(GMSNavigator *)navigator {
+  [self onPromptVisibilityChange:NO];
+}
+
 // Listener to handle arrival events.
 - (void)navigator:(GMSNavigator *)navigator didArriveAtWaypoint:(GMSNavigationWaypoint *)waypoint {
   NSMutableDictionary *eventMap = [[NSMutableDictionary alloc] init];
@@ -699,6 +707,11 @@ RCT_EXPORT_METHOD(stopUpdatingLocation) {
 
 - (void)onArrival:(NSDictionary *)eventMap {
   [self sendCommandToReactNative:@"onArrival" args:eventMap];
+}
+
+- (void)onPromptVisibilityChange:(BOOL)visible {
+  NavViewModule *navViewModule = [NavViewModule sharedInstance];
+  [navViewModule informPromptVisibilityChange:visible];
 }
 
 - (void)onNavigationReady {

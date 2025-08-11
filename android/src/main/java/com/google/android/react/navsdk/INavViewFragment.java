@@ -33,4 +33,6 @@ public interface INavViewFragment extends IMapViewFragment {
   void showRouteOverview();
 
   void setNightModeOption(int jsValue);
+
+  void setReportIncidentButtonEnabled(boolean enabled);
 }

@@ -59,6 +59,7 @@ module.exports = {
       type: 'ios.simulator',
       device: {
         type: 'iPhone 16 Pro',
+        os: 'iOS 18.5',
       },
     },
     attached: {
@@ -70,7 +71,7 @@ module.exports = {
     emulator: {
       type: 'android.emulator',
       device: {
-        avdName: 'Pixel_8_API_35',
+        avdName: 'Pixel_9_Pro_API_35',
       },
     },
   },

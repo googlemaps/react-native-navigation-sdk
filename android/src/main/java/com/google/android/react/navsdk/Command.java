@@ -55,7 +55,8 @@ public enum Command {
   REMOVE_GROUND_OVERLAY(36, "removeGroundOverlay"),
   SET_ZOOM_CONTROLS_ENABLED(37, "setZoomControlsEnabled"),
   SET_RECENTER_BUTTON_ENABLED(38, "setRecenterButtonEnabled"),
-  SET_PADDING(39, "setPadding");
+  SET_PADDING(39, "setPadding"),
+  SET_REPORT_INCIDENT_BUTTON_ENABLED(40, "setReportIncidentButtonEnabled");
 
   private final int value;
   private final String name;

@@ -27,13 +27,13 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "15.0" }
+  s.platforms    = { :ios => "16.0" }
   s.source       = { :git => "https://github.com/googlemaps/react-native-navigation-sdk.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/react-native-navigation-sdk/*.{h,m,mm}"
 
   s.dependency "React-Core"
-  s.dependency "GoogleNavigation", "9.3.0"
+  s.dependency "GoogleNavigation", "10.1.0"
 
   # Don't install the dependencies when we run `pod install` in the old architecture.
   if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then

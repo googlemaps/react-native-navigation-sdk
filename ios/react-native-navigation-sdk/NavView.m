@@ -65,6 +65,14 @@
   }
 }
 
+- (void)handlePromptVisibilityChanged:(BOOL)visible {
+  if (self.onPromptVisibilityChanged) {
+    self.onPromptVisibilityChanged(@{
+      @"visible" : @(visible),
+    });
+  }
+}
+
 - (void)handleMapReady {
   if (self.onMapReady) {
     self.onMapReady(nil);

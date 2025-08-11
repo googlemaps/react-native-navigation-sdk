@@ -23,6 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, strong) NSMutableDictionary<NSNumber *, NavViewController *> *viewControllers;
 
 - (void)attachViewsToNavigationSession:(GMSNavigationSession *)session;
+- (void)informPromptVisibilityChange:(BOOL)visible;
 - (void)setTravelMode:(GMSNavigationTravelMode)travelMode;
 
 // Class method to access the singleton instance
