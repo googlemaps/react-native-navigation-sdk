@@ -313,7 +313,7 @@ The Google Navigation SDK React Native library offers functionalities that neces
 > [!NOTE]
 > The management of these permissions falls outside the scope of the Navigation SDKs for Android and iOS. As a developer integrating these SDKs into your applications, you are responsible for requesting and obtaining the necessary permissions from the users of your app.
 
-You can see example of handling permissions in the [app.tsx](./example/src/app.tsx) file of the sample application:
+You can see example of handling permissions in the [App.tsx](./example/src/App.tsx) file of the sample application:
 
 ```tsx
 import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
