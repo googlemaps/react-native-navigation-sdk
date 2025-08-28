@@ -15,17 +15,22 @@
  */
 
 import { useRef, useCallback, useEffect } from 'react';
-import { NativeEventEmitter, Platform, type NativeModule } from 'react-native';
+import {
+  NativeEventEmitter,
+  type EmitterSubscription,
+  type NativeModule,
+} from 'react-native';
 
 type ListenerMap<T> = {
   [K in keyof T]?: NonNullable<T[K]>[];
 };
 
+// A hook to manage event listeners for a specific Native Module,
+// using the cross-platform NativeEventEmitter.
 export const useModuleListeners = <
   T extends { [K in keyof T]: ((...args: any[]) => void) | undefined },
 >(
   dispatcher: NativeModule,
-  androidBridge: string,
   eventTypes: Array<keyof T>,
   eventTransformer?: <K extends keyof T>(
     eventKey: K,
@@ -38,70 +43,85 @@ export const useModuleListeners = <
 } => {
   const listenersRef = useRef<ListenerMap<T>>({});
   const eventEmitterRef = useRef<NativeEventEmitter | null>(null);
+  const subsRef = useRef<Record<string, EmitterSubscription | undefined>>({});
 
-  const getIOSEventEmitter = useCallback(() => {
+  const getEventEmitter = useCallback(() => {
     if (!eventEmitterRef.current) {
       eventEmitterRef.current = new NativeEventEmitter(dispatcher);
     }
     return eventEmitterRef.current;
   }, [dispatcher]);
 
-  const updateListeners = useCallback(() => {
-    // Wrap the listeners in a single object to pass to the native module for event handling.
-    // Multiplexes the events to all registered listeners.
-    const wrappedListeners = Object.keys(listenersRef.current).reduce(
-      (acc, eventName) => {
-        const eventKey = eventName as keyof T;
-        acc[eventKey] = (...args: unknown[]) => {
-          listenersRef.current[eventKey]?.forEach(callback =>
-            callback(
-              ...(eventTransformer ? eventTransformer(eventKey, ...args) : args)
-            )
-          );
-        };
-        return acc;
-      },
-      {} as {
-        [K in keyof T]?: (...args: unknown[]) => void;
-      }
-    );
+  const removeAllNativeSubscriptions = useCallback(() => {
+    // Remove the specific subscriptions we created.
+    Object.values(subsRef.current).forEach(sub => sub?.remove());
+    subsRef.current = {};
 
+    // As a safeguard, remove all listeners for the specified event types
+    // from our emitter instance.
+    eventTypes.forEach(eventType => {
+      const name = String(eventType);
+      getEventEmitter().removeAllListeners(name);
+    });
+  }, [eventTypes, getEventEmitter]);
+
+  const updateListeners = useCallback(() => {
+    // Wrap listeners to multiplex events to all registered callbacks.
+    const wrappedListeners: { [K in keyof T]?: (...args: unknown[]) => void } =
+      {};
+
+    (Object.keys(listenersRef.current) as Array<keyof T>).forEach(eventKey => {
+      wrappedListeners[eventKey] = (...args: unknown[]) => {
+        const transformedArgs = eventTransformer
+          ? eventTransformer(eventKey, ...args)
+          : args;
+        listenersRef.current[eventKey]?.forEach(cb => cb(...transformedArgs));
+      };
+    });
+
+    // Ensure all declared event types have a subscription, even if no JS listener is attached yet.
     eventTypes.forEach(eventType => {
       if (!wrappedListeners[eventType]) {
-        wrappedListeners[eventType] = () => {};
+        wrappedListeners[eventType] = () => {}; // No-op handler
       }
     });
 
-    // Platform-specific event handling
-    if (Platform.OS === 'android') {
-      const BatchedBridge = require('react-native/Libraries/BatchedBridge/BatchedBridge');
-      BatchedBridge.registerCallableModule(androidBridge, wrappedListeners);
-    } else if (Platform.OS === 'ios') {
-      eventTypes.forEach(eventType => {
-        getIOSEventEmitter().removeAllListeners(eventType as string);
-        getIOSEventEmitter().addListener(
-          eventType as string,
-          wrappedListeners[eventType]!
-        );
-      });
-    }
-  }, [eventTypes, androidBridge, getIOSEventEmitter, eventTransformer]);
+    removeAllNativeSubscriptions();
+
+    // Subscribe to all events.
+    eventTypes.forEach(eventType => {
+      const name = String(eventType);
+      const handler = wrappedListeners[eventType]!;
+      // No Platform check needed here anymore! ✅
+      const sub = getEventEmitter().addListener(name, handler);
+      subsRef.current[name] = sub;
+    });
+  }, [
+    eventTypes,
+    eventTransformer,
+    getEventEmitter,
+    removeAllNativeSubscriptions,
+  ]);
 
   const addListeners = (listeners: Partial<T>) => {
-    (Object.keys(listeners) as [keyof T]).forEach(key => {
-      listenersRef.current[key] = [
-        ...(listenersRef.current[key] || []),
-        listeners[key]!,
-      ];
+    (Object.keys(listeners) as Array<keyof T>).forEach(key => {
+      const fn = listeners[key];
+      if (!fn) return;
+      listenersRef.current[key] = [...(listenersRef.current[key] || []), fn];
     });
     updateListeners();
   };
 
   const removeListeners = (listeners: Partial<T>) => {
-    (Object.keys(listeners) as [keyof T]).forEach(key => {
+    (Object.keys(listeners) as Array<keyof T>).forEach(key => {
+      const fn = listeners[key];
+      if (!fn) return;
       listenersRef.current[key] = listenersRef.current[key]?.filter(
-        listener => listener !== listeners[key]
+        cb => cb !== fn
       );
+      if (!listenersRef.current[key]?.length) {
+        delete listenersRef.current[key];
+      }
     });
     updateListeners();
   };
@@ -114,9 +134,10 @@ export const useModuleListeners = <
   useEffect(() => {
     updateListeners();
     return () => {
-      removeAllListeners();
+      removeAllNativeSubscriptions();
+      listenersRef.current = {};
     };
-  }, [updateListeners, removeAllListeners]);
+  }, [updateListeners, removeAllNativeSubscriptions]);
 
   return {
     addListeners,

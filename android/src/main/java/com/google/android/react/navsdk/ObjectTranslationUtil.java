@@ -74,8 +74,8 @@ public class ObjectTranslationUtil {
 
   public static WritableMap getMapFromLatLng(LatLng latLng) {
     WritableMap map = Arguments.createMap();
-    map.putDouble("lat", latLng.latitude);
-    map.putDouble("lng", latLng.longitude);
+    map.putDouble(Constants.LAT_FIELD_KEY, latLng.latitude);
+    map.putDouble(Constants.LNG_FIELD_KEY, latLng.longitude);
     return map;
   }
 
@@ -173,8 +173,8 @@ public class ObjectTranslationUtil {
 
   public static WritableMap getMapFromLocation(Location location) {
     WritableMap map = Arguments.createMap();
-    map.putDouble("lng", location.getLongitude());
-    map.putDouble("lat", location.getLatitude());
+    map.putDouble(Constants.LNG_FIELD_KEY, location.getLongitude());
+    map.putDouble(Constants.LAT_FIELD_KEY, location.getLatitude());
     map.putDouble("time", location.getTime());
     map.putDouble("speed", location.getSpeed());
     map.putString("provider", location.getProvider());

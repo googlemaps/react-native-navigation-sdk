@@ -35,8 +35,6 @@ import { useMemo } from 'react';
 
 const { NavAutoEventDispatcher, NavAutoModule } = NativeModules;
 
-const androidBridge: string = 'NavAutoJavascriptBridge';
-
 export const useNavigationAuto = (): {
   mapViewAutoController: MapViewAutoController;
   addListeners: (listeners: Partial<NavigationAutoCallbacks>) => void;
@@ -45,7 +43,6 @@ export const useNavigationAuto = (): {
 } => {
   const moduleListenersHandler = useModuleListeners<NavigationAutoCallbacks>(
     NavAutoEventDispatcher,
-    androidBridge,
     ['onAutoScreenAvailabilityChanged', 'onCustomNavigationAutoEvent']
   );
 
