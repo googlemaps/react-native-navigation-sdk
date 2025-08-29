@@ -443,7 +443,7 @@ RCT_EXPORT_METHOD(setRouteToken
     };
 
     // Use the route token to set destinations
-    [navigator setDestinations:@[] routeToken:routeToken callback:routeStatusCallback];
+    [navigator setDestinationsWithRouteToken:routeToken callback:routeStatusCallback];
   });
 }
 
