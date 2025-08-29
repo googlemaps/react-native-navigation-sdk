@@ -411,6 +411,18 @@ export interface NavigationController {
   setTurnByTurnLoggingEnabled(isEnabled: boolean): void;
 
   /**
+   * Sets a custom route using a route token obtained from the Google Routes API.
+   * This allows navigation using a pre-calculated route.
+   *
+   * @param routeToken - A route token string obtained from the Google Routes API
+   * @param displayOptions - Optional display configuration for the route
+   */
+  setRouteToken(
+    routeToken: string,
+    displayOptions?: DisplayOptions
+  ): Promise<void>;
+
+  /**
    * Simulator to be used in navigation.
    */
   readonly simulator: Simulator;

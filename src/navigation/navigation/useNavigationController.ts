@@ -178,6 +178,13 @@ export const useNavigationController = (
         return await NavModule.getNavSDKVersion();
       },
 
+      setRouteToken: async (
+        routeToken: string,
+        displayOptions?: DisplayOptions
+      ) => {
+        return await NavModule.setRouteToken(routeToken, displayOptions);
+      },
+
       stopUpdatingLocation: () => {
         NavModule.stopUpdatingLocation();
       },

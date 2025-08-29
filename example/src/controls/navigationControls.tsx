@@ -178,6 +178,27 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     navigationController.clearDestinations();
   };
 
+  const setCustomRouteWithToken = () => {
+    // Example route token - in practice, this would come from your Routes API call
+    const exampleRouteToken = 'route_token_from_google_routes_api';
+
+    const displayOptions: DisplayOptions = {
+      showDestinationMarkers: true,
+      showStopSigns: true,
+      showTrafficLights: true,
+    };
+
+    try {
+      navigationController.setRouteToken(exampleRouteToken, displayOptions);
+      Alert.alert(
+        'Route Token',
+        'Custom route set with route token (this is just an example)'
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to set route token: ' + error);
+    }
+  };
+
   const startSimulation = () => {
     navigationController.simulator.simulateLocationsAlongExistingRoute({
       speedMultiplier: 5,
@@ -363,6 +384,11 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       <Button title="Set target as Destination" onPress={initWaypoint} />
       <View style={styles.controlButtonGap} />
       <Button title="Set multiple destinations" onPress={initWaypoints} />
+      <Button
+        title="Set route with token (example)"
+        onPress={setCustomRouteWithToken}
+      />
+
       <Button title="Dispose navigation" onPress={disposeNavigation} />
       <Button
         title="Continue to next destination"

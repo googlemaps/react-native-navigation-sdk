@@ -458,6 +458,40 @@ public class NavModule extends ReactContextBaseJavaModule
   }
 
   @ReactMethod
+  public void setRouteToken(
+      String routeToken,
+      @Nullable ReadableMap displayOptions) {
+    if (mNavigator == null) {
+      // TODO: HANDLE THIS
+      return;
+    }
+
+    pendingRoute = null; // reset pendingRoute
+    mWaypoints.clear(); // reset waypoints
+
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (displayOptions != null) {
+            pendingRoute =
+                mNavigator.setDestinationsWithRouteToken(
+                    routeToken,
+                    ObjectTranslationUtil.getDisplayOptionsFromMap(displayOptions.toHashMap()));
+          } else {
+            pendingRoute = mNavigator.setDestinationsWithRouteToken(routeToken);
+          }
+
+          setOnResultListener(
+              new IRouteStatusResult() {
+                @Override
+                public void onResult(Navigator.RouteStatus code) {
+                  sendCommandToReactNative("onRouteStatusResult", code.toString());
+                }
+              });
+        });
+  }
+
+
+  @ReactMethod
   public void clearDestinations() {
     if (mNavigator != null) {
       mWaypoints.clear(); // reset waypoints

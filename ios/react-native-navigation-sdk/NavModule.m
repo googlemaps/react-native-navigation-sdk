@@ -410,6 +410,44 @@ RCT_EXPORT_METHOD(setDestinations
   });
 }
 
+RCT_EXPORT_METHOD(setRouteToken
+                  : (nonnull NSString *)routeToken displayOptions
+                  : (NSDictionary *)displayOptions resolve
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
+  __weak typeof(self) weakSelf = self;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    __strong typeof(self) strongSelf = weakSelf;
+    if (!strongSelf) {
+      reject(@"internal_error", @"An internal error occurred", nil);
+      return;
+    }
+
+    GMSNavigator *navigator = nil;
+    if (![strongSelf checkNavigatorWithError:reject navigator:&navigator]) {
+      return;
+    }
+
+    if (displayOptions != NULL) {
+      [self setDisplayOptionsToViews:displayOptions];
+    }
+
+    // Clear existing destinations
+    strongSelf->_destinations = [[NSMutableArray alloc] init];
+
+    void (^routeStatusCallback)(GMSRouteStatus) = ^(GMSRouteStatus routeStatus) {
+      __strong typeof(weakSelf) strongSelf = weakSelf;
+      if (!strongSelf) return;
+      [strongSelf onRouteStatusResult:routeStatus];
+      resolve(@(YES));
+    };
+
+    // Use the route token to set destinations
+    [navigator setDestinationsWithRouteToken:routeToken callback:routeStatusCallback];
+  });
+}
+
+
 - (void)setDisplayOptionsToViews:(NSDictionary *)options {
   for (NavViewController *viewController in [NavViewModule sharedInstance]
            .viewControllers.allValues) {
