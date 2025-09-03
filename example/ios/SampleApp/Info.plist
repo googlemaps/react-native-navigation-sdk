@@ -37,10 +37,12 @@
 	</dict>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>[Add your description here]</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>[Add your description here]</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>[Add your description here]</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>[Add your description here]</string>
+	<key>RCTNewArchEnabled</key>
+	<false/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>

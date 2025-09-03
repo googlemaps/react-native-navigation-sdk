@@ -18,6 +18,7 @@
 #import <CarPlay/CarPlay.h>
 #import <GoogleMaps/GoogleMaps.h>
 #import <React/RCTBundleURLProvider.h>
+#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
 #import <UIKit/UIKit.h>
 #import "CarSceneDelegate.h"
 #import "PhoneSceneDelegate.h"
@@ -27,6 +28,7 @@
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   self.moduleName = @"SampleApp";
+  self.dependencyProvider = [RCTAppDependencyProvider new];
 
   // Note: Ensure that you have copied the Keys.plist.sample to Keys.plist
   // and have added the correct API_KEY value to the file.
@@ -37,11 +39,7 @@
   NSString *api_key = [keysDictionary objectForKey:@"API_KEY"];
 
   [GMSServices provideAPIKey:api_key];
-  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
-  self.rootView = [[RCTRootView alloc] initWithBridge:bridge
-                                           moduleName:self.moduleName
-                                    initialProperties:nil];
-  return YES;
+  return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
 - (UISceneConfiguration *)application:(UIApplication *)application
