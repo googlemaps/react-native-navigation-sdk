@@ -756,20 +756,14 @@ public class NavModule extends ReactContextBaseJavaModule
             @Override
             public void onLocationChanged(final Location location) {
               if (mIsListeningRoadSnappedLocation) {
-                WritableNativeArray params = new WritableNativeArray();
-                params.pushMap(ObjectTranslationUtil.getMapFromLocation(location));
-
-                sendCommandToReactNative("onLocationChanged", params);
+                sendCommandToReactNative("onLocationChanged", ObjectTranslationUtil.getMapFromLocation(location));
               }
             }
 
             @Override
             public void onRawLocationUpdate(final Location location) {
               if (mIsListeningRoadSnappedLocation) {
-                WritableNativeArray params = new WritableNativeArray();
-                params.pushMap(ObjectTranslationUtil.getMapFromLocation(location));
-
-                sendCommandToReactNative("onRawLocationChanged", params);
+                sendCommandToReactNative("onRawLocationChanged", ObjectTranslationUtil.getMapFromLocation(location));
               }
             }
           };
