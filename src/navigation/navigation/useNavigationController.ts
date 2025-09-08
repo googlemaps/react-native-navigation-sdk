@@ -35,7 +35,7 @@ import {
 } from './types';
 import { getRouteStatusFromStringValue } from '../navigationView';
 
-const { NavModule, NavEventDispatcher } = NativeModules;
+const { NavModule } = NativeModules;
 
 export const useNavigationController = (
   termsAndConditionsDialogOptions: TermsAndConditionsDialogOptions,
@@ -57,7 +57,7 @@ export const useNavigationController = (
   };
 
   const moduleListenersHandler = useModuleListeners<NavigationCallbacks>(
-    NavEventDispatcher,
+    'NavEventDispatcher',
     [
       'onStartGuidance',
       'onArrival',

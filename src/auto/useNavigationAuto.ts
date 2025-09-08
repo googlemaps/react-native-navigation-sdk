@@ -33,7 +33,7 @@ import type {
 } from '../maps';
 import { useMemo } from 'react';
 
-const { NavAutoEventDispatcher, NavAutoModule } = NativeModules;
+const { NavAutoModule } = NativeModules;
 
 export const useNavigationAuto = (): {
   mapViewAutoController: MapViewAutoController;
@@ -42,7 +42,7 @@ export const useNavigationAuto = (): {
   removeAllListeners: () => void;
 } => {
   const moduleListenersHandler = useModuleListeners<NavigationAutoCallbacks>(
-    NavAutoEventDispatcher,
+    'NavAutoEventDispatcher',
     ['onAutoScreenAvailabilityChanged', 'onCustomNavigationAutoEvent']
   );
 

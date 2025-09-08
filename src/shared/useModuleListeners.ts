@@ -17,8 +17,8 @@
 import { useRef, useCallback, useEffect } from 'react';
 import {
   NativeEventEmitter,
-  type EmitterSubscription,
-  type NativeModule,
+  NativeModules,
+  type EventSubscription,
 } from 'react-native';
 
 type ListenerMap<T> = {
@@ -30,7 +30,7 @@ type ListenerMap<T> = {
 export const useModuleListeners = <
   T extends { [K in keyof T]: ((...args: any[]) => void) | undefined },
 >(
-  dispatcher: NativeModule,
+  dispatcher: keyof NativeModules,
   eventTypes: Array<keyof T>,
   eventTransformer?: <K extends keyof T>(
     eventKey: K,
@@ -43,11 +43,13 @@ export const useModuleListeners = <
 } => {
   const listenersRef = useRef<ListenerMap<T>>({});
   const eventEmitterRef = useRef<NativeEventEmitter | null>(null);
-  const subsRef = useRef<Record<string, EmitterSubscription | undefined>>({});
+  const subsRef = useRef<Record<string, EventSubscription | undefined>>({});
 
   const getEventEmitter = useCallback(() => {
     if (!eventEmitterRef.current) {
-      eventEmitterRef.current = new NativeEventEmitter(dispatcher);
+      eventEmitterRef.current = new NativeEventEmitter(
+        NativeModules[dispatcher]
+      );
     }
     return eventEmitterRef.current;
   }, [dispatcher]);
@@ -92,7 +94,6 @@ export const useModuleListeners = <
     eventTypes.forEach(eventType => {
       const name = String(eventType);
       const handler = wrappedListeners[eventType]!;
-      // No Platform check needed here anymore! ✅
       const sub = getEventEmitter().addListener(name, handler);
       subsRef.current[name] = sub;
     });
