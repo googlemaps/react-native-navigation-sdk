@@ -3492,9 +3492,9 @@ __metadata:
   linkType: hard
 
 "ansi-regex@npm:^6.0.1":
-  version: 6.2.1
-  resolution: "ansi-regex@npm:6.2.1"
-  checksum: bb149b0e4edc281064df581913a4eafb2fb7b00a0826321fc6f1a6dbfcfde57c36d710606b3bddfac8ad3cd4d5c57d6d8256fa97117e1728f05ca44a9729ac2e
+  version: 6.2.2
+  resolution: "ansi-regex@npm:6.2.2"
+  checksum: 9b17ce2c6daecc75bcd5966b9ad672c23b184dc3ed9bf3c98a0702f0d2f736c15c10d461913568f2cf527a5e64291c7473358885dd493305c84a1cfed66ba94f
   languageName: node
   linkType: hard
 
@@ -3524,9 +3524,9 @@ __metadata:
   linkType: hard
 
 "ansi-styles@npm:^6.1.0":
-  version: 6.2.2
-  resolution: "ansi-styles@npm:6.2.2"
-  checksum: 7fcda7f87afa202a67efc81b850fb19875640a8cebb35222e8296e9e567e731a85c227d7eeab0794290364c4c12a9590d4489b81c2764f9880eb2e44e8ef6335
+  version: 6.2.3
+  resolution: "ansi-styles@npm:6.2.3"
+  checksum: f1b0829cf048cce870a305819f65ce2adcebc097b6d6479e12e955fd6225df9b9eb8b497083b764df796d94383ff20016cc4dbbae5b40f36138fb65a9d33c2e2
   languageName: node
   linkType: hard
 
@@ -4231,9 +4231,9 @@ __metadata:
   linkType: hard
 
 "chalk@npm:^5.3.0":
-  version: 5.6.1
-  resolution: "chalk@npm:5.6.1"
-  checksum: 71573aca5ebcabbb5c4c365c98a9b9a7e12a469f2a6a9378455d4908266fd4ee0afaeafca643bcf1656e4d7821f44822caaadff7b3d9b23ccf84a6c6ca1351f9
+  version: 5.6.2
+  resolution: "chalk@npm:5.6.2"
+  checksum: 4ee2d47a626d79ca27cb5299ecdcce840ef5755e287412536522344db0fc51ca0f6d6433202332c29e2288c6a90a2b31f3bd626bc8c14743b6b6ee28abd3b796
   languageName: node
   linkType: hard
 
@@ -4743,14 +4743,14 @@ __metadata:
   linkType: hard
 
 "debug@npm:4, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.4, debug@npm:^4.4.0, debug@npm:^4.4.1":
-  version: 4.4.2
-  resolution: "debug@npm:4.4.2"
+  version: 4.4.1
+  resolution: "debug@npm:4.4.1"
   dependencies:
     ms: ^2.1.3
   peerDependenciesMeta:
     supports-color:
       optional: true
-  checksum: d322b27c3d319b514b416ef346f91e0a9cafba1285d5dd4624fc1586eab577d2351a2403eb0e767dd73ac837eb80f159ed6064ea8b587dc633fdc51c87a7bb4e
+  checksum: a43826a01cda685ee4cec00fb2d3322eaa90ccadbef60d9287debc2a886be3e835d9199c80070ede75a409ee57828c4c6cd80e4b154f2843f0dc95a570dc0729
   languageName: node
   linkType: hard
 
@@ -5060,9 +5060,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.211":
-  version: 1.5.214
-  resolution: "electron-to-chromium@npm:1.5.214"
-  checksum: e996a9f94ab7599489069aef4ddf1098d4c43871998ff80d4e388b927eaf7593bdb3dfcc4fda5d33ffd2f48b28f19f8aa73bca784da277091112c1b50e3b8128
+  version: 1.5.215
+  resolution: "electron-to-chromium@npm:1.5.215"
+  checksum: bb9cc85f51334fa9ae7ba3c2c77739616004c924e9282e955f39d90025ec40994fba9fd8d0128004e23fdfecdbe89cf9e04a1199c11c65c0213b1e090aa8c290
   languageName: node
   linkType: hard
 
@@ -5150,11 +5150,11 @@ __metadata:
   linkType: hard
 
 "error-ex@npm:^1.3.1":
-  version: 1.3.3
-  resolution: "error-ex@npm:1.3.3"
+  version: 1.3.2
+  resolution: "error-ex@npm:1.3.2"
   dependencies:
     is-arrayish: ^0.2.1
-  checksum: 0d2c83a8d42fa450e258b98ca1dfa4956e01a868476a5956b0ddddd07dee63d4974585791737b1aaf6e3565c2e426b506885776aa1c4bafca7c35b19b7d692d5
+  checksum: c1c2b8b65f9c91b0f9d75f0debaa7ec5b35c266c2cac5de412c1a6de86d4cbae04ae44e510378cb14d032d0645a36925d0186f8bb7367bcc629db256b743a001
   languageName: node
   linkType: hard
 
@@ -6696,9 +6696,9 @@ __metadata:
   linkType: hard
 
 "is-arrayish@npm:^0.3.1":
-  version: 0.3.3
-  resolution: "is-arrayish@npm:0.3.3"
-  checksum: 5c2ebac97f29fac1508856f78b8491633ecd6738bc54be49d115f8d52f2e831984afee02dff77eba23586f515f0808b34d17dab8eef47e3046c9087d5c74971c
+  version: 0.3.2
+  resolution: "is-arrayish@npm:0.3.2"
+  checksum: 977e64f54d91c8f169b59afcd80ff19227e9f5c791fa28fa2e5bce355cbaf6c2c356711b734656e80c9dd4a854dd7efcf7894402f1031dfc5de5d620775b4d5f
   languageName: node
   linkType: hard
 
@@ -10477,11 +10477,11 @@ __metadata:
   linkType: hard
 
 "simple-swizzle@npm:^0.2.2":
-  version: 0.2.3
-  resolution: "simple-swizzle@npm:0.2.3"
+  version: 0.2.2
+  resolution: "simple-swizzle@npm:0.2.2"
   dependencies:
     is-arrayish: ^0.3.1
-  checksum: 49d0697571c1049fefb60807ff236d9631795bc68fde70dc241bfdaaaab6d582d7d72099356712f2f824d2421d718e66ddad1e7e99909f1e98fc22a7a98bec69
+  checksum: a7f3f2ab5c76c4472d5c578df892e857323e452d9f392e1b5cf74b74db66e6294a1e1b8b390b519fa1b96b5b613f2a37db6cffef52c3f1f8f3c5ea64eb2d54c0
   languageName: node
   linkType: hard
 
@@ -10867,11 +10867,11 @@ __metadata:
   linkType: hard
 
 "strip-ansi@npm:^7.0.1":
-  version: 7.1.1
-  resolution: "strip-ansi@npm:7.1.1"
+  version: 7.1.2
+  resolution: "strip-ansi@npm:7.1.2"
   dependencies:
     ansi-regex: ^6.0.1
-  checksum: ff9f7dea99f9cd2068ee7aa4f80d580a38ece81e2b2e15abd18fa69e09b42e98fc24c38b25678f6acf504cfae7b03dc60e1eb22da5628fcbafb0ccc194eb02f7
+  checksum: db0e3f9654e519c8a33c50fc9304d07df5649388e7da06d3aabf66d29e5ad65d5e6315d8519d409c15b32fa82c1df7e11ed6f8cd50b0e4404463f0c9d77c8d0b
   languageName: node
   linkType: hard
 
