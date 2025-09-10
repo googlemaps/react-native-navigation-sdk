@@ -9685,7 +9685,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-is-edge-to-edge@npm:^1.1.7":
+"react-native-is-edge-to-edge@npm:^1.2.1":
   version: 1.2.1
   resolution: "react-native-is-edge-to-edge@npm:1.2.1"
   peerDependencies:
@@ -9731,7 +9731,7 @@ __metadata:
     react-native-monorepo-config: ^0.1.9
     react-native-permissions: ^5.1.0
     react-native-safe-area-context: ^5.5.2
-    react-native-screens: 4.11.1
+    react-native-screens: 4.15.4
     react-native-select-dropdown: ^4.0.1
     react-native-snackbar: ^2.8.0
     ts-jest: ^29.2.5
@@ -9762,17 +9762,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-screens@npm:4.11.1":
-  version: 4.11.1
-  resolution: "react-native-screens@npm:4.11.1"
+"react-native-screens@npm:4.15.4":
+  version: 4.15.4
+  resolution: "react-native-screens@npm:4.15.4"
   dependencies:
     react-freeze: ^1.0.0
-    react-native-is-edge-to-edge: ^1.1.7
+    react-native-is-edge-to-edge: ^1.2.1
     warn-once: ^0.1.0
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 22d3c302ef90a1cb20eed8c130b32e53d49288a19eba844f506a5e38342ef2add0d4f7a2ff5501cc05052aef6bf7f180db26a067b01f70f3cc12d3e1497329d6
+  checksum: e0e5fbfcb77f0cd1b5358faa09b46661ef26fbcfa191ac49019967f2068feccf7cd3fa83e8dd7d52207443cd5f6263831440c365ba276fbb97def596a77626bb
   languageName: node
   linkType: hard
 
