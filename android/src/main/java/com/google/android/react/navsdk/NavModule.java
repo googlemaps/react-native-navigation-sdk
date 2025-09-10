@@ -13,17 +13,16 @@
  */
 package com.google.android.react.navsdk;
 
+import android.app.Activity;
 import android.location.Location;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.CatalystInstance;
 import com.facebook.react.bridge.LifecycleEventListener;
-import com.facebook.react.bridge.NativeArray;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
@@ -32,6 +31,7 @@ import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.NavInfo;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
@@ -62,13 +62,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class NavModule extends ReactContextBaseJavaModule
     implements INavigationCallback, LifecycleEventListener {
   public static final String REACT_CLASS = "NavModule";
-  private static final String TAG = "NavModule";
   private static NavModule instance;
   private static ModuleReadyListener moduleReadyListener;
 
   ReactApplicationContext reactContext;
   private Navigator mNavigator;
-  private ArrayList<Waypoint> mWaypoints = new ArrayList<>();
+  private final ArrayList<Waypoint> mWaypoints = new ArrayList<>();
   private ListenableResultFuture<Navigator.RouteStatus> pendingRoute;
   private RoadSnappedLocationProvider mRoadSnappedLocationProvider;
   private NavViewManager mNavViewManager;
@@ -140,6 +139,7 @@ public class NavModule extends ReactContextBaseJavaModule
     return mNavigator;
   }
 
+  @NonNull
   @Override
   public String getName() {
     return REACT_CLASS;
@@ -147,8 +147,7 @@ public class NavModule extends ReactContextBaseJavaModule
 
   @Override
   public Map<String, Object> getConstants() {
-    final Map<String, Object> constants = new HashMap<>();
-    return constants;
+    return new HashMap<>();
   }
 
   @ReactMethod
@@ -186,15 +185,18 @@ public class NavModule extends ReactContextBaseJavaModule
 
     UiThreadUtil.runOnUiThread(
         () -> {
-          NavInfoReceivingService.getNavInfoLiveData()
-              .observe((LifecycleOwner) getCurrentActivity(), navInfoObserver);
+          final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
+          if (currentActivity != null) {
+            NavInfoReceivingService.getNavInfoLiveData()
+                .observe((LifecycleOwner) currentActivity, navInfoObserver);
+          }
         });
   }
 
   private void onNavigationReady() {
     mNavViewManager.applyStylingOptions();
 
-    sendCommandToReactNative("onNavigationReady", (NativeArray) null);
+    sendCommandToReactNative("onNavigationReady", null);
 
     for (NavigationReadyListener listener : mNavigationReadyListeners) {
       listener.onReady(true);
@@ -220,18 +222,22 @@ public class NavModule extends ReactContextBaseJavaModule
 
   /** Starts the Navigation API, saving a reference to the ready Navigator instance. */
   private void initializeNavigationApi() {
+    final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
+    if (currentActivity == null) return;
     NavigationApi.getNavigator(
-        getCurrentActivity().getApplication(),
+        currentActivity.getApplication(),
         new NavigationApi.NavigatorListener() {
           @Override
           public void onNavigatorReady(Navigator navigator) {
+            final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
+            if (currentActivity == null) return;
+
             // Keep a reference to the Navigator (used to configure and start nav)
             mNavigator = navigator;
             mNavigator.setTaskRemovedBehavior(taskRemovedBehaviour);
             if (mRoadSnappedLocationProvider == null) {
               mRoadSnappedLocationProvider =
-                  NavigationApi.getRoadSnappedLocationProvider(
-                      getCurrentActivity().getApplication());
+                  NavigationApi.getRoadSnappedLocationProvider(currentActivity.getApplication());
             }
             registerNavigationListeners();
             onNavigationReady();
@@ -274,10 +280,13 @@ public class NavModule extends ReactContextBaseJavaModule
    */
   @ReactMethod
   public void setTurnByTurnLoggingEnabled(boolean isEnabled) {
+    final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
+    if (currentActivity == null) return;
+
     if (isEnabled) {
-      NavForwardingManager.startNavForwarding(mNavigator, getCurrentActivity(), this);
+      NavForwardingManager.startNavForwarding(mNavigator, currentActivity, this);
     } else {
-      NavForwardingManager.stopNavForwarding(mNavigator, getCurrentActivity(), this);
+      NavForwardingManager.stopNavForwarding(mNavigator, currentActivity, this);
     }
   }
 
@@ -309,7 +318,7 @@ public class NavModule extends ReactContextBaseJavaModule
         new Navigator.RouteChangedListener() {
           @Override
           public void onRouteChanged() {
-            sendCommandToReactNative("onRouteChanged", (NativeArray) null);
+            sendCommandToReactNative("onRouteChanged", null);
           }
         };
     mNavigator.addRouteChangedListener(mRouteChangedListener);
@@ -318,7 +327,7 @@ public class NavModule extends ReactContextBaseJavaModule
         new Navigator.TrafficUpdatedListener() {
           @Override
           public void onTrafficUpdated() {
-            sendCommandToReactNative("onTrafficUpdated", (NativeArray) null);
+            sendCommandToReactNative("onTrafficUpdated", null);
           }
         };
     mNavigator.addTrafficUpdatedListener(mTrafficUpdatedListener);
@@ -327,7 +336,7 @@ public class NavModule extends ReactContextBaseJavaModule
         new Navigator.ReroutingListener() {
           @Override
           public void onReroutingRequestedByOffRoute() {
-            sendCommandToReactNative("onReroutingRequestedByOffRoute", (NativeArray) null);
+            sendCommandToReactNative("onReroutingRequestedByOffRoute", null);
           }
         };
     mNavigator.addReroutingListener(mReroutingListener);
@@ -336,7 +345,7 @@ public class NavModule extends ReactContextBaseJavaModule
         new Navigator.RemainingTimeOrDistanceChangedListener() {
           @Override
           public void onRemainingTimeOrDistanceChanged() {
-            sendCommandToReactNative("onRemainingTimeOrDistanceChanged", (NativeArray) null);
+            sendCommandToReactNative("onRemainingTimeOrDistanceChanged", null);
           }
         };
     mNavigator.addRemainingTimeOrDistanceChangedListener(
@@ -371,8 +380,10 @@ public class NavModule extends ReactContextBaseJavaModule
 
     if (map.containsKey("position")) {
       Map latlng = (Map) map.get("position");
-      if (latlng.get("lat") != null) lat = Double.parseDouble(latlng.get("lat").toString());
-      if (latlng.get("lng") != null) lng = Double.parseDouble(latlng.get("lng").toString());
+      if (latlng.get(Constants.LAT_FIELD_KEY) != null)
+        lat = Double.parseDouble(latlng.get(Constants.LAT_FIELD_KEY).toString());
+      if (latlng.get(Constants.LNG_FIELD_KEY) != null)
+        lng = Double.parseDouble(latlng.get(Constants.LNG_FIELD_KEY).toString());
     }
 
     boolean vehicleStopover = CollectionUtil.getBool("vehicleStopover", map, false);
@@ -491,7 +502,7 @@ public class NavModule extends ReactContextBaseJavaModule
     }
 
     mNavigator.startGuidance();
-    sendCommandToReactNative("onStartGuidance", (NativeArray) null);
+    sendCommandToReactNative("onStartGuidance", null);
   }
 
   @ReactMethod
@@ -644,23 +655,12 @@ public class NavModule extends ReactContextBaseJavaModule
     promise.resolve(arr);
   }
 
-  /** Send command to react native with string param. */
-  private void sendCommandToReactNative(String functionName, String stringParam) {
-    WritableNativeArray params = new WritableNativeArray();
-
-    if (stringParam != null) {
-      params.pushString("" + stringParam);
-    }
-    sendCommandToReactNative(functionName, params);
-  }
-
   /** Send command to react native. */
-  private void sendCommandToReactNative(String functionName, NativeArray params) {
-    ReactContext reactContext = getReactApplicationContext();
-
-    if (reactContext != null) {
-      CatalystInstance catalystInstance = reactContext.getCatalystInstance();
-      catalystInstance.callFunction(Constants.NAV_JAVASCRIPT_FLAG, functionName, params);
+  private void sendCommandToReactNative(String functionName, @Nullable Object params) {
+    if (reactContext.hasActiveReactInstance()) {
+      reactContext
+          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+          .emit(functionName, params);
     }
   }
 
@@ -668,14 +668,17 @@ public class NavModule extends ReactContextBaseJavaModule
   public void simulateLocation(ReadableMap location) {
     if (mNavigator != null) {
       HashMap<String, Object> locationMap = location.toHashMap();
-      Double lat = CollectionUtil.getDouble("lat", locationMap, 0);
-      Double lng = CollectionUtil.getDouble("lng", locationMap, 0);
+      Double lat = CollectionUtil.getDouble(Constants.LAT_FIELD_KEY, locationMap, 0);
+      Double lng = CollectionUtil.getDouble(Constants.LNG_FIELD_KEY, locationMap, 0);
       mNavigator.getSimulator().setUserLocation(new LatLng(lat, lng));
     }
   }
 
   @ReactMethod
   private void showTermsAndConditionsDialog() {
+    final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
+    if (currentActivity == null) return;
+
     if (this.tocParamsMap == null) {
       return;
     }
@@ -691,7 +694,7 @@ public class NavModule extends ReactContextBaseJavaModule
             : TermsAndConditionsCheckOption.ENABLED;
 
     NavigationApi.showTermsAndConditionsDialog(
-        getCurrentActivity(),
+        currentActivity,
         companyName,
         title,
         null,
@@ -714,7 +717,9 @@ public class NavModule extends ReactContextBaseJavaModule
   }
 
   public Boolean getTermsAccepted() {
-    return NavigationApi.areTermsAccepted(getCurrentActivity().getApplication());
+    final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
+    if (currentActivity == null) return false;
+    return NavigationApi.areTermsAccepted(currentActivity.getApplication());
   }
 
   @ReactMethod
@@ -724,7 +729,9 @@ public class NavModule extends ReactContextBaseJavaModule
 
   @ReactMethod
   public void resetTermsAccepted() {
-    NavigationApi.resetTermsAccepted(getCurrentActivity().getApplication());
+    final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
+    if (currentActivity == null) return;
+    NavigationApi.resetTermsAccepted(currentActivity.getApplication());
   }
 
   @ReactMethod
@@ -749,20 +756,16 @@ public class NavModule extends ReactContextBaseJavaModule
             @Override
             public void onLocationChanged(final Location location) {
               if (mIsListeningRoadSnappedLocation) {
-                WritableNativeArray params = new WritableNativeArray();
-                params.pushMap(ObjectTranslationUtil.getMapFromLocation(location));
-
-                sendCommandToReactNative("onLocationChanged", params);
+                sendCommandToReactNative(
+                    "onLocationChanged", ObjectTranslationUtil.getMapFromLocation(location));
               }
             }
 
             @Override
             public void onRawLocationUpdate(final Location location) {
               if (mIsListeningRoadSnappedLocation) {
-                WritableNativeArray params = new WritableNativeArray();
-                params.pushMap(ObjectTranslationUtil.getMapFromLocation(location));
-
-                sendCommandToReactNative("onRawLocationChanged", params);
+                sendCommandToReactNative(
+                    "onRawLocationChanged", ObjectTranslationUtil.getMapFromLocation(location));
               }
             }
           };

@@ -284,8 +284,10 @@ public class MapViewController {
     Double lng = null;
     if (map.containsKey("location")) {
       Map<String, Object> latlng = (Map<String, Object>) map.get("location");
-      if (latlng.get("lat") != null) lat = Double.parseDouble(latlng.get("lat").toString());
-      if (latlng.get("lng") != null) lng = Double.parseDouble(latlng.get("lng").toString());
+      if (latlng.get(Constants.LAT_FIELD_KEY) != null)
+        lat = Double.parseDouble(latlng.get(Constants.LAT_FIELD_KEY).toString());
+      if (latlng.get(Constants.LNG_FIELD_KEY) != null)
+        lng = Double.parseDouble(latlng.get(Constants.LNG_FIELD_KEY).toString());
     }
 
     GroundOverlayOptions options = new GroundOverlayOptions();
@@ -568,9 +570,11 @@ public class MapViewController {
   private LatLng createLatLng(Map<String, Object> map) {
     Double lat = null;
     Double lng = null;
-    if (map.containsKey("lat") && map.containsKey("lng")) {
-      if (map.get("lat") != null) lat = Double.parseDouble(map.get("lat").toString());
-      if (map.get("lng") != null) lng = Double.parseDouble(map.get("lng").toString());
+    if (map.containsKey(Constants.LAT_FIELD_KEY) && map.containsKey(Constants.LNG_FIELD_KEY)) {
+      if (map.get(Constants.LAT_FIELD_KEY) != null)
+        lat = Double.parseDouble(map.get(Constants.LAT_FIELD_KEY).toString());
+      if (map.get(Constants.LNG_FIELD_KEY) != null)
+        lng = Double.parseDouble(map.get(Constants.LNG_FIELD_KEY).toString());
     }
 
     return new LatLng(lat, lng);

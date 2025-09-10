@@ -15,6 +15,7 @@
  */
 
 import { NativeModules, Platform } from 'react-native';
+import { useMemo } from 'react';
 import { useModuleListeners, type LatLng } from '../../shared';
 import type {
   Waypoint,
@@ -33,10 +34,8 @@ import {
   type DisplayOptions,
 } from './types';
 import { getRouteStatusFromStringValue } from '../navigationView';
-import { useMemo } from 'react';
 
-const { NavModule, NavEventDispatcher } = NativeModules;
-const androidBridge: string = 'NavJavascriptBridge';
+const { NavModule } = NativeModules;
 
 export const useNavigationController = (
   termsAndConditionsDialogOptions: TermsAndConditionsDialogOptions,
@@ -58,8 +57,7 @@ export const useNavigationController = (
   };
 
   const moduleListenersHandler = useModuleListeners<NavigationCallbacks>(
-    NavEventDispatcher,
-    androidBridge,
+    'NavEventDispatcher',
     [
       'onStartGuidance',
       'onArrival',

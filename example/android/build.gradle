@@ -20,18 +20,18 @@ def enableDesugaring = true
 
 buildscript {
     ext {
-        buildToolsVersion = "35.0.0"
+        buildToolsVersion = "36.0.0"
         minSdkVersion = 34
-        compileSdkVersion = 35
-        targetSdkVersion = 34
-        ndkVersion = "26.1.10909125"
+        compileSdkVersion = 36
+        targetSdkVersion = 36
+        ndkVersion = "27.1.12297006"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath('com.android.tools.build:gradle:8.6.1')
+        classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:2.0.1")
     }
@@ -42,8 +42,18 @@ allprojects {
         maven {
             url("$rootDir/../node_modules/detox/Detox-android")
         }
-   }
+    }
 
+    // Required: you must exclude the Google Play service Maps SDK from
+    // your transitive dependencies to make sure there won't be
+    // multiple copies of Google Maps SDK in your binary, as the Navigation
+    // SDK already bundles the Google Maps SDK.
+    configurations {
+        implementation {
+            exclude group: 'com.google.android.gms', module: 'play-services-maps'
+        }
+    }
+    
     subprojects {
         afterEvaluate { project ->
             if (project.hasProperty('android')) {

@@ -15,7 +15,7 @@ This repository contains a React Native plugin that provides a [Google Navigatio
 
 |                                 | Android | iOS       |
 | ------------------------------- | ------- | --------- |
-| **Minimum mobile OS supported** | SDK 23+ | iOS 16.0+ |
+| **Minimum mobile OS supported** | SDK 24+ | iOS 16.0+ |
 
 * A React Native project
 * A Google Cloud project
@@ -84,12 +84,12 @@ dependencies {
 
 #### Minimum SDK Requirements for Android
 
-The `minSdkVersion` for your Android project must be set to 23 or higher in `android/app/build.gradle`:
+The `minSdkVersion` for your Android project must be set to 24 or higher in `android/app/build.gradle`:
 
 ```groovy
 android {
     defaultConfig {
-        minSdkVersion 23
+        minSdkVersion 24
     }
 }
 ```

@@ -20,13 +20,10 @@ import android.app.Application;
 import androidx.annotation.NonNull;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.facebook.react.ReactNativeApplicationEntryPoint;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
-import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactNativeHost;
-import com.facebook.react.soloader.OpenSourceMergedSoMapping;
-import com.facebook.soloader.SoLoader;
-import java.io.IOException;
 import java.util.List;
 
 public class MainApplication extends Application implements ReactApplication {
@@ -38,6 +35,7 @@ public class MainApplication extends Application implements ReactApplication {
           return BuildConfig.DEBUG;
         }
 
+        @NonNull
         @Override
         protected List<ReactPackage> getPackages() {
           @SuppressWarnings("UnnecessaryLocalVariable")
@@ -47,6 +45,7 @@ public class MainApplication extends Application implements ReactApplication {
           return packages;
         }
 
+        @NonNull
         @Override
         protected String getJSMainModuleName() {
           return "index";
@@ -55,11 +54,6 @@ public class MainApplication extends Application implements ReactApplication {
         @Override
         protected boolean isNewArchEnabled() {
           return BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
-        }
-
-        @Override
-        protected Boolean isHermesEnabled() {
-          return BuildConfig.IS_HERMES_ENABLED;
         }
       };
 
@@ -72,14 +66,6 @@ public class MainApplication extends Application implements ReactApplication {
   @Override
   public void onCreate() {
     super.onCreate();
-    try {
-      SoLoader.init(this, OpenSourceMergedSoMapping.INSTANCE);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
-      // If you opted-in for the New Architecture, we load the native entry point for this app.
-      DefaultNewArchitectureEntryPoint.load();
-    }
+    ReactNativeApplicationEntryPoint.loadReactNative(this);
   }
 }

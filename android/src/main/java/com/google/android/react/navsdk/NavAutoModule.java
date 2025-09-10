@@ -14,18 +14,18 @@
 package com.google.android.react.navsdk;
 
 import android.location.Location;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.CatalystInstance;
-import com.facebook.react.bridge.NativeArray;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
@@ -34,15 +34,13 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.libraries.navigation.StylingOptions;
-import java.util.Map;
 
 /**
- * This exposes a series of methods that can be called diretly from the React Native code. They have
- * been implemented using promises as it's not recommended for them to be synchronous.
+ * This exposes a series of methods that can be called directly from the React Native code. They
+ * have been implemented using promises as it's not recommended for them to be synchronous.
  */
 public class NavAutoModule extends ReactContextBaseJavaModule implements INavigationAutoCallback {
   public static final String REACT_CLASS = "NavAutoModule";
-  private static final String TAG = "AndroidAutoModule";
   private static NavAutoModule instance;
   private static ModuleReadyListener moduleReadyListener;
 
@@ -64,6 +62,7 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
     }
   }
 
+  @NonNull
   @Override
   public String getName() {
     return REACT_CLASS;
@@ -98,13 +97,6 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
     sendScreenState(false);
     mMapViewController = null;
     mNavigationViewController = null;
-  }
-
-  public void setStylingOptions(Map<String, Object> stylingOptions) {
-    mStylingOptions = new StylingOptionsBuilder.Builder(stylingOptions).build();
-    if (mStylingOptions != null && mNavigationViewController != null) {
-      mNavigationViewController.setStylingOptions(mStylingOptions);
-    }
   }
 
   @ReactMethod
@@ -408,11 +400,6 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
 
           CameraPosition cp = mMapViewController.getGoogleMap().getCameraPosition();
 
-          if (cp == null) {
-            promise.resolve(null);
-            return;
-          }
-
           LatLng target = cp.target;
           WritableMap map = Arguments.createMap();
           map.putDouble("bearing", cp.bearing);
@@ -438,7 +425,6 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
             promise.resolve(ObjectTranslationUtil.getMapFromLocation(location));
           } catch (Exception e) {
             promise.resolve(null);
-            return;
           }
         });
   }
@@ -539,12 +525,11 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
   }
 
   /** Send command to react native. */
-  private void sendCommandToReactNative(String functionName, NativeArray params) {
-    ReactContext reactContext = getReactApplicationContext();
-
-    if (reactContext != null) {
-      CatalystInstance catalystInstance = reactContext.getCatalystInstance();
-      catalystInstance.callFunction(Constants.NAV_AUTO_JAVASCRIPT_FLAG, functionName, params);
+  private void sendCommandToReactNative(String functionName, @Nullable Object params) {
+    if (reactContext.hasActiveReactInstance()) {
+      reactContext
+          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+          .emit(functionName, params);
     }
   }
 }

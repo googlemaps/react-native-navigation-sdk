@@ -13,7 +13,7 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
-platform :ios, "16.0"
+platform :ios, '16'
 prepare_react_native_project!
 
 setup_permissions([
@@ -53,9 +53,10 @@ target 'SampleAppTests' do
 end
 
 post_install do |installer|
-    react_native_post_install(
-      installer,
-      config[:reactNativePath],
-      :mac_catalyst_enabled => false
-    )
+  react_native_post_install(
+    installer,
+    config[:reactNativePath],
+    :mac_catalyst_enabled => false,
+    # :ccache_enabled => true
+  )
 end

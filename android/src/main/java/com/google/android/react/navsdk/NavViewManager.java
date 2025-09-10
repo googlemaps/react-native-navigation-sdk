@@ -178,7 +178,10 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
       case DELETE_FRAGMENT:
         try {
           int viewId = root.getId();
+
           FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
+          if (activity == null) return;
+
           IMapViewFragment fragment = Objects.requireNonNull(fragmentMap.remove(viewId)).get();
           activity
               .getSupportFragmentManager()
