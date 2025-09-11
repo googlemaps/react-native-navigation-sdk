@@ -28,6 +28,7 @@ type ListenerMap<T> = {
 // A hook to manage event listeners for a specific Native Module,
 // using the cross-platform NativeEventEmitter.
 export const useModuleListeners = <
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   T extends { [K in keyof T]: ((...args: any[]) => void) | undefined },
 >(
   dispatcher: keyof NativeModules,

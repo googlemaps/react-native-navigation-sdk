@@ -15,7 +15,7 @@
  */
 import { RouteStatus } from './types';
 
-export const getRouteStatusFromStringValue = (value: string) => {
+export const getRouteStatusFromStringValue = (value: string): RouteStatus => {
   switch (value) {
     case 'OK':
       return RouteStatus.OK;
