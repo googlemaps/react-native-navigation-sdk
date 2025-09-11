@@ -33,6 +33,7 @@ import {
   type NavigationCallbacks,
   type NavigationViewCallbacks,
   type NavigationViewController,
+  type TurnByTurnEvent,
   type Polygon,
   type Polyline,
   useNavigation,
@@ -163,7 +164,7 @@ const NavigationScreen = () => {
     console.log('onRawLocationChanged:', location);
   }, []);
 
-  const onTurnByTurn = useCallback((turnByTurn: any) => {
+  const onTurnByTurn = useCallback((turnByTurn: TurnByTurnEvent[]) => {
     console.log('onTurnByTurn:', turnByTurn);
   }, []);
 
@@ -349,12 +350,10 @@ const NavigationScreen = () => {
   return arePermissionsApproved ? (
     <View style={styles.container}>
       <NavigationView
-        style={[
-          {
-            ...styles.map_view,
-            margin: margin,
-          },
-        ]}
+        style={{
+          ...styles.map_view,
+          margin: margin,
+        }}
         androidStylingOptions={{
           primaryDayModeThemeColor: '#34eba8',
           headerDistanceValueTextColor: '#76b5c5',

@@ -43,7 +43,7 @@ export const NavigationProvider = ({
   termsAndConditionsDialogOptions,
   taskRemovedBehavior,
   children,
-}: NavigationProviderProps) => {
+}: NavigationProviderProps): React.JSX.Element => {
   const { navigationController, addListeners, removeListeners } =
     useNavigationController(
       termsAndConditionsDialogOptions,

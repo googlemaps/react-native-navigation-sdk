@@ -429,4 +429,5 @@ export enum TaskRemovedBehavior {
 /**
  * Defines the turn-by-turn event data.
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TurnByTurnEvent {}

@@ -32,8 +32,9 @@ export const viewManagerName =
 export const sendCommand = (
   viewId: number,
   command: number | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   args?: any[]
-) => {
+): void => {
   if (command === undefined) {
     throw new Error(
       "Command not found, please make sure you're using the referencing the right method"
@@ -43,6 +44,7 @@ export const sendCommand = (
   try {
     UIManager.dispatchViewManagerCommand(
       viewId,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       Platform.OS === 'android' ? (command.toString() as any) : command,
       args
     );

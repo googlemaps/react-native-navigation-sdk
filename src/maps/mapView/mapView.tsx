@@ -33,18 +33,20 @@ import {
   type Polyline,
 } from '..';
 
-export const MapView = (props: MapViewProps) => {
+export const MapView = (props: MapViewProps): React.JSX.Element => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapViewRef = useRef<any>(null);
   const [viewId, setViewId] = useState<number | null>(null);
 
   const { onMapViewControllerCreated } = props;
 
   /**
-   * @param {any} _ref - The reference to the NavViewManager component.
+   * @param ref - The reference to the NavViewManager component.
    */
-  const onRefAssign = (_ref: any) => {
-    if (mapViewRef.current !== _ref) {
-      mapViewRef.current = _ref;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onRefAssign = (ref: any): void => {
+    if (mapViewRef.current !== ref) {
+      mapViewRef.current = ref;
     }
   };
 
