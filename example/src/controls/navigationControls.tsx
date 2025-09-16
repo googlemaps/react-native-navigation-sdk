@@ -15,15 +15,7 @@
  */
 
 import React, { useState } from 'react';
-import {
-  Alert,
-  Button,
-  Platform,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, Button, Platform, Text, TextInput, View } from 'react-native';
 import {
   CameraPerspective,
   type NavigationViewController,
@@ -393,63 +385,63 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       <Button title="Get traveled path" onPress={getTraveledPath} />
       <View style={styles.rowContainer}>
         <Text>Trip progress</Text>
-        <Switch
-          value={tripProgressBarEnabled}
-          onValueChange={() => {
+        <Button
+          title={tripProgressBarEnabled ? 'Disable' : 'Enable'}
+          onPress={() => {
             toggleTripProgressBarEnabled(!tripProgressBarEnabled);
           }}
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Report incident button</Text>
-        <Switch
-          value={reportIncidentButtonEnabled}
-          onValueChange={() => {
+        <Button
+          title={reportIncidentButtonEnabled ? 'Disable' : 'Enable'}
+          onPress={() => {
             toggleReportIncidentButtonEnabled(!reportIncidentButtonEnabled);
           }}
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Speed limit icon</Text>
-        <Switch
-          value={speedLimitIconEnabled}
-          onValueChange={() => {
+        <Button
+          title={speedLimitIconEnabled ? 'Disable' : 'Enable'}
+          onPress={() => {
             toggleSpeedLimitIconEnabled(!speedLimitIconEnabled);
           }}
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Speedometer</Text>
-        <Switch
-          value={speedometerEnabled}
-          onValueChange={() => {
+        <Button
+          title={speedometerEnabled ? 'Disable' : 'Enable'}
+          onPress={() => {
             toggleSpeedometerEnabled(!speedometerEnabled);
           }}
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Traffic incidents card</Text>
-        <Switch
-          value={trafficIncidentCardsEnabled}
-          onValueChange={() => {
+        <Button
+          title={trafficIncidentCardsEnabled ? 'Disable' : 'Enable'}
+          onPress={() => {
             toggleTrafficIncidentCardsEnabled(!trafficIncidentCardsEnabled);
           }}
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Navigation UI</Text>
-        <Switch
-          value={navigationUiEnabled}
-          onValueChange={() => {
+        <Button
+          title={navigationUiEnabled ? 'Disable' : 'Enable'}
+          onPress={() => {
             toggleNavigationUiEnabled(!navigationUiEnabled);
           }}
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Turn-by-turn logging</Text>
-        <Switch
-          value={turnByTurnLoggingEnabled}
-          onValueChange={() => {
+        <Button
+          title={turnByTurnLoggingEnabled ? 'Disable' : 'Enable'}
+          onPress={() => {
             toggleTurnByTurnLoggingEnabled(!turnByTurnLoggingEnabled);
           }}
         />
@@ -457,9 +449,9 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       {Platform.OS === 'ios' ? (
         <View style={styles.rowContainer}>
           <Text>Background location updates</Text>
-          <Switch
-            value={backgroundLocationUpdatesEnabled}
-            onValueChange={() => {
+          <Button
+            title={backgroundLocationUpdatesEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
               toggleBackgroundLocationUpdatesEnabled(
                 !backgroundLocationUpdatesEnabled
               );
@@ -469,27 +461,27 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       ) : null}
       <View style={styles.rowContainer}>
         <Text>Recenter button</Text>
-        <Switch
-          value={recenterButtonEnabled}
-          onValueChange={() => {
+        <Button
+          title={recenterButtonEnabled ? 'Disable' : 'Enable'}
+          onPress={() => {
             toggleRecenterButtonEnabled(!recenterButtonEnabled);
           }}
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Header enabled</Text>
-        <Switch
-          value={headerEnabled}
-          onValueChange={() => {
+        <Button
+          title={headerEnabled ? 'Disable' : 'Enable'}
+          onPress={() => {
             toggleHeaderEnabled(!headerEnabled);
           }}
         />
       </View>
       <View style={styles.rowContainer}>
         <Text>Footer enabled</Text>
-        <Switch
-          value={footerEnabled}
-          onValueChange={() => {
+        <Button
+          title={footerEnabled ? 'Disable' : 'Enable'}
+          onPress={() => {
             toggleFooterEnabled(!footerEnabled);
           }}
         />

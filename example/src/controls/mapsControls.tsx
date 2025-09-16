@@ -16,7 +16,7 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { Button, Switch, Text, TextInput, View } from 'react-native';
+import { Button, Text, TextInput, View } from 'react-native';
 
 import SelectDropdown from 'react-native-select-dropdown';
 import styles from '../styles';
@@ -27,7 +27,6 @@ import {
   type Circle,
   type Polyline,
   type Polygon,
-  type Padding,
 } from '@googlemaps/react-native-navigation-sdk';
 
 export interface MapControlsProps {
@@ -42,12 +41,7 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
   const [enableLocationMarker, setEnableLocationMarker] = useState(true);
   const [latitude, onLatChanged] = useState('');
   const [longitude, onLngChanged] = useState('');
-  const [padding, setPadding] = useState<Padding>({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  });
+  const [customPaddingEnabled, setCustomPaddingEnabled] = useState(false);
 
   useEffect(() => {
     if (zoom !== null) {
@@ -202,10 +196,20 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
     mapViewController.clearMapView();
   };
 
-  const onPaddingChanged = (edge: keyof typeof padding, value: string) => {
-    const updatedPadding: Padding = { ...padding, [edge]: Number(value) };
-    setPadding(updatedPadding);
-    mapViewController.setPadding(updatedPadding);
+  const toggleCustomPadding = () => {
+    if (!customPaddingEnabled) {
+      // Enable custom paddings: more on top and bottom
+      mapViewController.setPadding({
+        top: 60,
+        bottom: 40,
+        left: 10,
+        right: 10,
+      });
+    } else {
+      // Disable: reset paddings
+      mapViewController.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
+    }
+    setCustomPaddingEnabled(!customPaddingEnabled);
   };
 
   return (
@@ -254,9 +258,9 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
       <Button title="Get camera position" onPress={getCameraPositionClicked} />
       <View style={styles.rowContainer}>
         <Text>Location marker</Text>
-        <Switch
-          value={enableLocationMarker}
-          onValueChange={() => {
+        <Button
+          title={enableLocationMarker ? 'Disable' : 'Enable'}
+          onPress={() => {
             setEnableLocationMarker(!enableLocationMarker);
             setMyLocationButtonEnabled(!enableLocationMarker);
           }}
@@ -295,43 +299,10 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
       </View>
       <View style={styles.controlButtonGap} />
       <View style={styles.rowContainer}>
-        <Text>Top padding</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={value => onPaddingChanged('top', value)}
-          value={padding.top?.toFixed(0)}
-          keyboardType="numeric"
-          inputMode="numeric"
-        />
-      </View>
-      <View style={styles.rowContainer}>
-        <Text>Bottom padding</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={value => onPaddingChanged('bottom', value)}
-          value={padding.bottom?.toFixed(0)}
-          keyboardType="numeric"
-          inputMode="numeric"
-        />
-      </View>
-      <View style={styles.rowContainer}>
-        <Text>Left padding</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={value => onPaddingChanged('left', value)}
-          value={padding.left?.toFixed(0)}
-          keyboardType="numeric"
-          inputMode="numeric"
-        />
-      </View>
-      <View style={styles.rowContainer}>
-        <Text>Right padding</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={value => onPaddingChanged('right', value)}
-          value={padding.right?.toFixed(0)}
-          keyboardType="numeric"
-          inputMode="numeric"
+        <Text>Custom map paddings</Text>
+        <Button
+          title={customPaddingEnabled ? 'Disable' : 'Enable'}
+          onPress={toggleCustomPadding}
         />
       </View>
     </View>

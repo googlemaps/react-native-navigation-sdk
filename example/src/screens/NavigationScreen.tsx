@@ -15,7 +15,7 @@
  */
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Button, Switch, Text, View } from 'react-native';
+import { Button, View } from 'react-native';
 import Snackbar from 'react-native-snackbar';
 
 import {
@@ -413,15 +413,12 @@ const NavigationScreen = () => {
         {mapViewAutoAvailable && (
           <Button title="Auto" onPress={onShowAutoMapsControlsClick} />
         )}
-        <View style={styles.rowContainer}>
-          <Text>Margin</Text>
-          <Switch
-            value={!!margin}
-            onValueChange={() => {
-              setMargin(margin ? null : marginAmount);
-            }}
-          />
-        </View>
+        <Button
+          title={margin ? 'Margin on' : 'Margin off'}
+          onPress={() => {
+            setMargin(margin ? null : marginAmount);
+          }}
+        />
       </View>
     </View>
   ) : (
