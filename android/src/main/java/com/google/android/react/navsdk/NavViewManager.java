@@ -33,7 +33,6 @@ import com.google.android.gms.maps.GoogleMap;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 // NavViewManager is responsible for managing both the regular map fragment as well as the
 // navigation map view fragment.
@@ -45,6 +44,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
   private static NavViewManager instance;
 
   private final HashMap<Integer, WeakReference<IMapViewFragment>> fragmentMap = new HashMap<>();
+  private final HashMap<Integer, Choreographer.FrameCallback> frameCallbackMap = new HashMap<>();
 
   private ReactApplicationContext reactContext;
 
@@ -72,6 +72,34 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     return new FrameLayout(reactContext);
   }
 
+  /** Clean up fragment when React Native view is destroyed */
+  @Override
+  public void onDropViewInstance(FrameLayout view) {
+    super.onDropViewInstance(view);
+
+    int viewId = view.getId();
+
+    Choreographer.FrameCallback frameCallback = frameCallbackMap.remove(viewId);
+    if (frameCallback != null) {
+      Choreographer.getInstance().removeFrameCallback(frameCallback);
+    }
+
+    FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
+    if (activity == null) return;
+
+    WeakReference<IMapViewFragment> weakReference = fragmentMap.remove(viewId);
+    if (weakReference != null) {
+      IMapViewFragment fragment = weakReference.get();
+      if (fragment != null && fragment.isAdded()) {
+        activity
+            .getSupportFragmentManager()
+            .beginTransaction()
+            .remove((Fragment) fragment)
+            .commitNowAllowingStateLoss();
+      }
+    }
+  }
+
   /** Map the "create" command to an integer */
   @Nullable
   @Override
@@ -83,7 +111,6 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     map.put(SET_NAVIGATION_UI_ENABLED.toString(), SET_NAVIGATION_UI_ENABLED.getValue());
     map.put(SET_FOLLOWING_PERSPECTIVE.toString(), SET_FOLLOWING_PERSPECTIVE.getValue());
     map.put(SET_NIGHT_MODE.toString(), SET_NIGHT_MODE.getValue());
-    map.put(DELETE_FRAGMENT.toString(), DELETE_FRAGMENT.getValue());
     map.put(SET_SPEEDOMETER_ENABLED.toString(), SET_SPEEDOMETER_ENABLED.getValue());
     map.put(SET_SPEED_LIMIT_ICON_ENABLED.toString(), SET_SPEED_LIMIT_ICON_ENABLED.getValue());
     map.put(SET_ZOOM_LEVEL.toString(), SET_ZOOM_LEVEL.getValue());
@@ -123,8 +150,13 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     return map;
   }
 
+  @Nullable
   public INavViewFragment getNavFragmentForRoot(ViewGroup root) {
     IMapViewFragment fragment = getFragmentForRoot(root);
+
+    if (fragment == null) {
+      return null;
+    }
 
     // Check if the fragment is an INavigationViewFragment
     if (fragment instanceof INavViewFragment) {
@@ -134,31 +166,34 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     }
   }
 
+  @Nullable
   public IMapViewFragment getFragmentForRoot(ViewGroup root) {
     int viewId = root.getId();
     return getFragmentForViewId(viewId);
   }
 
+  @Nullable
   public IMapViewFragment getFragmentForViewId(int viewId) {
     WeakReference<IMapViewFragment> weakReference = fragmentMap.get(viewId);
-    if (weakReference == null || weakReference.get() == null) {
-      throw new IllegalStateException("Fragment not found for the provided viewId.");
+    if (weakReference == null) {
+      return null; // No entry for this viewId
     }
-    return weakReference.get();
-  }
 
-  public IMapViewFragment getAnyFragment() {
-    if (fragmentMap.isEmpty()) {
+    IMapViewFragment fragment = weakReference.get();
+    if (fragment == null) {
+      // Fragment was garbage collected, clean up the map entry
+      fragmentMap.remove(viewId);
       return null;
     }
-    // Return the first fragment found in the map's values collection.
-    return fragmentMap.values().iterator().next().get();
+
+    return fragment;
   }
 
   public void applyStylingOptions() {
     for (WeakReference<IMapViewFragment> weakReference : fragmentMap.values()) {
-      if (weakReference.get() != null) {
-        weakReference.get().applyStylingOptions();
+      IMapViewFragment fragment = weakReference.get();
+      if (fragment != null) {
+        fragment.applyStylingOptions();
       }
     }
   }
@@ -175,140 +210,238 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         CustomTypes.FragmentType fragmentType = getFragmentTypeFromJsValue(args.getInt(1));
         createFragment(root, stylingOptions, fragmentType);
         break;
-      case DELETE_FRAGMENT:
-        try {
-          int viewId = root.getId();
-
-          FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
-          if (activity == null) return;
-
-          IMapViewFragment fragment = Objects.requireNonNull(fragmentMap.remove(viewId)).get();
-          activity
-              .getSupportFragmentManager()
-              .beginTransaction()
-              .remove((Fragment) fragment)
-              .commitNowAllowingStateLoss();
-        } catch (Exception ignored) {
+      case MOVE_CAMERA:
+        IMapViewFragment fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().moveCamera(args.getMap(0).toHashMap());
         }
         break;
-      case MOVE_CAMERA:
-        getFragmentForRoot(root).getMapController().moveCamera(args.getMap(0).toHashMap());
-        break;
       case SET_TRIP_PROGRESS_BAR_ENABLED:
-        getNavFragmentForRoot(root).setTripProgressBarEnabled(args.getBoolean(0));
+        INavViewFragment navFragment = getNavFragmentForRoot(root);
+        if (navFragment != null) {
+          navFragment.setTripProgressBarEnabled(args.getBoolean(0));
+        }
         break;
       case SET_NAVIGATION_UI_ENABLED:
-        getNavFragmentForRoot(root).setNavigationUiEnabled(args.getBoolean(0));
+        navFragment = getNavFragmentForRoot(root);
+        if (navFragment != null) {
+          navFragment.setNavigationUiEnabled(args.getBoolean(0));
+        }
         break;
       case SET_FOLLOWING_PERSPECTIVE:
-        getNavFragmentForRoot(root).getMapController().setFollowingPerspective(args.getInt(0));
+        navFragment = getNavFragmentForRoot(root);
+        if (navFragment != null) {
+          navFragment.getMapController().setFollowingPerspective(args.getInt(0));
+        }
         break;
       case SET_NIGHT_MODE:
-        getNavFragmentForRoot(root).setNightModeOption(args.getInt(0));
+        navFragment = getNavFragmentForRoot(root);
+        if (navFragment != null) {
+          navFragment.setNightModeOption(args.getInt(0));
+        }
         break;
       case SET_SPEEDOMETER_ENABLED:
-        getNavFragmentForRoot(root).setSpeedometerEnabled(args.getBoolean(0));
+        navFragment = getNavFragmentForRoot(root);
+        if (navFragment != null) {
+          navFragment.setSpeedometerEnabled(args.getBoolean(0));
+        }
         break;
       case SET_SPEED_LIMIT_ICON_ENABLED:
-        getNavFragmentForRoot(root).setSpeedLimitIconEnabled(args.getBoolean(0));
+        navFragment = getNavFragmentForRoot(root);
+        if (navFragment != null) {
+          navFragment.setSpeedLimitIconEnabled(args.getBoolean(0));
+        }
         break;
       case SET_ZOOM_LEVEL:
         int level = args.getInt(0);
-        getFragmentForRoot(root).getMapController().setZoomLevel(level);
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setZoomLevel(level);
+        }
         break;
       case SET_INDOOR_ENABLED:
-        getFragmentForRoot(root).getMapController().setIndoorEnabled(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setIndoorEnabled(args.getBoolean(0));
+        }
         break;
       case SET_TRAFFIC_ENABLED:
-        getFragmentForRoot(root).getMapController().setTrafficEnabled(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setTrafficEnabled(args.getBoolean(0));
+        }
         break;
       case SET_COMPASS_ENABLED:
-        getFragmentForRoot(root).getMapController().setCompassEnabled(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setCompassEnabled(args.getBoolean(0));
+        }
         break;
       case SET_MY_LOCATION_BUTTON_ENABLED:
-        getFragmentForRoot(root).getMapController().setCompassEnabled(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setCompassEnabled(args.getBoolean(0));
+        }
         break;
       case SET_MY_LOCATION_ENABLED:
-        getFragmentForRoot(root).getMapController().setMyLocationEnabled(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setMyLocationEnabled(args.getBoolean(0));
+        }
         break;
       case SET_ROTATE_GESTURES_ENABLED:
-        getFragmentForRoot(root).getMapController().setRotateGesturesEnabled(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setRotateGesturesEnabled(args.getBoolean(0));
+        }
         break;
       case SET_SCROLL_GESTURES_ENABLED:
-        getFragmentForRoot(root).getMapController().setScrollGesturesEnabled(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setScrollGesturesEnabled(args.getBoolean(0));
+        }
         break;
       case SET_SCROLL_GESTURES_ENABLED_DURING_ROTATE_OR_ZOOM:
-        getFragmentForRoot(root)
-            .getMapController()
-            .setScrollGesturesEnabledDuringRotateOrZoom(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment
+              .getMapController()
+              .setScrollGesturesEnabledDuringRotateOrZoom(args.getBoolean(0));
+        }
         break;
       case SET_TILT_GESTURES_ENABLED:
-        getFragmentForRoot(root).getMapController().setTiltGesturesEnabled(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setTiltGesturesEnabled(args.getBoolean(0));
+        }
         break;
       case SET_ZOOM_CONTROLS_ENABLED:
-        getFragmentForRoot(root).getMapController().setZoomControlsEnabled(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setZoomControlsEnabled(args.getBoolean(0));
+        }
         break;
       case SET_ZOOM_GESTURES_ENABLED:
-        getFragmentForRoot(root).getMapController().setZoomGesturesEnabled(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setZoomGesturesEnabled(args.getBoolean(0));
+        }
         break;
       case SET_BUILDINGS_ENABLED:
-        getFragmentForRoot(root).getMapController().setBuildingsEnabled(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setBuildingsEnabled(args.getBoolean(0));
+        }
         break;
       case SET_MAP_TYPE:
-        getFragmentForRoot(root).getMapController().setMapType(args.getInt(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setMapType(args.getInt(0));
+        }
         break;
       case SET_MAP_TOOLBAR_ENABLED:
-        getFragmentForRoot(root).getMapController().setMapToolbarEnabled(args.getBoolean(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().setMapToolbarEnabled(args.getBoolean(0));
+        }
         break;
       case CLEAR_MAP_VIEW:
-        getFragmentForRoot(root).getMapController().clearMapView();
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().clearMapView();
+        }
         break;
       case RESET_MIN_MAX_ZOOM_LEVEL:
-        getFragmentForRoot(root).getMapController().resetMinMaxZoomLevel();
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().resetMinMaxZoomLevel();
+        }
         break;
       case SET_MAP_STYLE:
-        getFragmentForRoot(root).setMapStyle(args.getString(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.setMapStyle(args.getString(0));
+        }
         break;
       case ANIMATE_CAMERA:
-        getFragmentForRoot(root).getMapController().animateCamera(args.getMap(0).toHashMap());
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().animateCamera(args.getMap(0).toHashMap());
+        }
         break;
       case SET_TRAFFIC_INCIDENT_CARDS_ENABLED:
-        getNavFragmentForRoot(root).setTrafficIncidentCardsEnabled(args.getBoolean(0));
+        navFragment = getNavFragmentForRoot(root);
+        if (navFragment != null) {
+          navFragment.setTrafficIncidentCardsEnabled(args.getBoolean(0));
+        }
         break;
       case SET_FOOTER_ENABLED:
-        getNavFragmentForRoot(root).setEtaCardEnabled(args.getBoolean(0));
+        navFragment = getNavFragmentForRoot(root);
+        if (navFragment != null) {
+          navFragment.setEtaCardEnabled(args.getBoolean(0));
+        }
         break;
       case SET_HEADER_ENABLED:
-        getNavFragmentForRoot(root).setHeaderEnabled(args.getBoolean(0));
+        navFragment = getNavFragmentForRoot(root);
+        if (navFragment != null) {
+          navFragment.setHeaderEnabled(args.getBoolean(0));
+        }
         break;
       case SET_RECENTER_BUTTON_ENABLED:
-        getNavFragmentForRoot(root).setRecenterButtonEnabled(args.getBoolean(0));
+        navFragment = getNavFragmentForRoot(root);
+        if (navFragment != null) {
+          navFragment.setRecenterButtonEnabled(args.getBoolean(0));
+        }
         break;
       case SHOW_ROUTE_OVERVIEW:
-        getNavFragmentForRoot(root).showRouteOverview();
+        navFragment = getNavFragmentForRoot(root);
+        if (navFragment != null) {
+          navFragment.showRouteOverview();
+        }
         break;
       case REMOVE_MARKER:
-        getFragmentForRoot(root).getMapController().removeMarker(args.getString(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().removeMarker(args.getString(0));
+        }
         break;
       case REMOVE_POLYLINE:
-        getFragmentForRoot(root).getMapController().removePolyline(args.getString(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().removePolyline(args.getString(0));
+        }
         break;
       case REMOVE_POLYGON:
-        getFragmentForRoot(root).getMapController().removePolygon(args.getString(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().removePolygon(args.getString(0));
+        }
         break;
       case REMOVE_CIRCLE:
-        getFragmentForRoot(root).getMapController().removeCircle(args.getString(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().removeCircle(args.getString(0));
+        }
         break;
       case REMOVE_GROUND_OVERLAY:
-        getFragmentForRoot(root).getMapController().removeGroundOverlay(args.getString(0));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment.getMapController().removeGroundOverlay(args.getString(0));
+        }
         break;
       case SET_PADDING:
-        getFragmentForRoot(root)
-            .getMapController()
-            .setPadding(args.getInt(0), args.getInt(1), args.getInt(2), args.getInt(3));
+        fragment = getFragmentForRoot(root);
+        if (fragment != null) {
+          fragment
+              .getMapController()
+              .setPadding(args.getInt(0), args.getInt(1), args.getInt(2), args.getInt(3));
+        }
         break;
       case SET_REPORT_INCIDENT_BUTTON_ENABLED:
-        getNavFragmentForRoot(root).setReportIncidentButtonEnabled(args.getBoolean(0));
+        navFragment = getNavFragmentForRoot(root);
+        if (navFragment != null) {
+          navFragment.setReportIncidentButtonEnabled(args.getBoolean(0));
+        }
         break;
     }
   }
@@ -384,22 +517,39 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
    * be changed when better solution is found.
    */
   public void setupLayout(FrameLayout view) {
-    Choreographer.getInstance()
-        .postFrameCallback(
-            new Choreographer.FrameCallback() {
-              @Override
-              public void doFrame(long frameTimeNanos) {
-                manuallyLayoutChildren(view);
-                view.getViewTreeObserver().dispatchOnGlobalLayout();
-                Choreographer.getInstance().postFrameCallback(this);
-              }
-            });
+    int viewId = view.getId();
+
+    // Remove any existing callback for this viewId
+    Choreographer.FrameCallback existingCallback = frameCallbackMap.get(viewId);
+    if (existingCallback != null) {
+      Choreographer.getInstance().removeFrameCallback(existingCallback);
+    }
+
+    Choreographer.FrameCallback frameCallback =
+        new Choreographer.FrameCallback() {
+          @Override
+          public void doFrame(long frameTimeNanos) {
+            // Check if this view still has a valid fragment before proceeding
+            IMapViewFragment fragment = getFragmentForViewId(viewId);
+            if (fragment != null) {
+              manuallyLayoutChildren(view);
+              view.getViewTreeObserver().dispatchOnGlobalLayout();
+              Choreographer.getInstance().postFrameCallback(this);
+            } else {
+              // Fragment no longer exists or was garbage collected, remove callback and stop
+              frameCallbackMap.remove(viewId);
+            }
+          }
+        };
+
+    frameCallbackMap.put(viewId, frameCallback);
+    Choreographer.getInstance().postFrameCallback(frameCallback);
   }
 
   /** Layout all children properly */
   public void manuallyLayoutChildren(FrameLayout view) {
     IMapViewFragment fragment = getFragmentForRoot(view);
-    if (fragment.isAdded()) {
+    if (fragment != null && fragment.isAdded()) {
       View childView = fragment.getView();
       if (childView != null) {
         childView.measure(
@@ -412,7 +562,9 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
   public GoogleMap getGoogleMap(int viewId) {
     try {
-      return getFragmentForViewId(viewId).getGoogleMap();
+      IMapViewFragment fragment = getFragmentForViewId(viewId);
+      if (fragment == null) return null;
+      return fragment.getGoogleMap();
     } catch (Exception e) {
       return null;
     }

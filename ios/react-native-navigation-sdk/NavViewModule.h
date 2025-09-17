@@ -20,7 +20,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface NavViewModule : NSObject <RCTBridgeModule>
-@property(nonatomic, strong) NSMutableDictionary<NSNumber *, NavViewController *> *viewControllers;
+@property(nonatomic, strong) NSMapTable<NSNumber *, NavViewController *> *viewControllers;
 
 - (void)attachViewsToNavigationSession:(GMSNavigationSession *)session;
 - (void)informPromptVisibilityChange:(BOOL)visible;

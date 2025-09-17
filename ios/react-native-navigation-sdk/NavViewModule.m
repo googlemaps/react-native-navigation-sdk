@@ -38,25 +38,25 @@ static NavViewModule *sharedInstance = nil;
 }
 
 - (void)attachViewsToNavigationSession:(GMSNavigationSession *)session {
-  for (NavViewController *viewController in self.viewControllers.allValues) {
+  for (NavViewController *viewController in self.viewControllers.objectEnumerator) {
     [viewController attachToNavigationSession:session];
   }
 }
 
 - (void)informPromptVisibilityChange:(BOOL)visible {
-  for (NavViewController *viewController in self.viewControllers.allValues) {
+  for (NavViewController *viewController in self.viewControllers.objectEnumerator) {
     [viewController onPromptVisibilityChange:visible];
   }
 }
 
 - (void)setTravelMode:(GMSNavigationTravelMode)travelMode {
-  for (NavViewController *viewController in self.viewControllers.allValues) {
+  for (NavViewController *viewController in self.viewControllers.objectEnumerator) {
     [viewController setTravelMode:travelMode];
   }
 }
 
 - (NavViewController *)getViewControllerForTag:(NSNumber *)reactTag {
-  NavViewController *viewController = self.viewControllers[reactTag];
+  NavViewController *viewController = [self.viewControllers objectForKey:reactTag];
   return viewController;
 }
 

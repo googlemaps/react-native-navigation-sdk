@@ -412,7 +412,7 @@ RCT_EXPORT_METHOD(setDestinations
 
 - (void)setDisplayOptionsToViews:(NSDictionary *)options {
   for (NavViewController *viewController in [NavViewModule sharedInstance]
-           .viewControllers.allValues) {
+           .viewControllers.objectEnumerator) {
     if (options[@"showDestinationMarkers"] != nil) {
       [viewController
           setShowDestinationMarkersEnabled:[options[@"showDestinationMarkers"] boolValue]];

@@ -26,7 +26,7 @@
 // as well as the navigation map view fragment.
 //
 @implementation RCTNavViewManager
-static NSMutableDictionary<NSNumber *, NavViewController *> *_viewControllers;
+static NSMapTable<NSNumber *, NavViewController *> *_viewControllers;
 static NavViewModule *_navViewModule;
 
 RCT_EXPORT_MODULE();
@@ -44,7 +44,8 @@ RCT_EXPORT_VIEW_PROPERTY(onPromptVisibilityChanged, RCTDirectEventBlock);
 
 - (instancetype)init {
   if (self = [super init]) {
-    _viewControllers = [NSMutableDictionary new];
+    _viewControllers = [NSMapTable mapTableWithKeyOptions:NSPointerFunctionsStrongMemory
+                                             valueOptions:NSPointerFunctionsWeakMemory];
     _navViewModule = [NavViewModule allocWithZone:nil];
     _navViewModule.viewControllers = _viewControllers;
   }
@@ -52,7 +53,17 @@ RCT_EXPORT_VIEW_PROPERTY(onPromptVisibilityChanged, RCTDirectEventBlock);
 }
 
 - (UIView *)view {
-  return [[NavView alloc] init];
+  NavView *navView = [[NavView alloc] init];
+
+  __weak typeof(self) weakSelf = self;
+  navView.cleanupBlock = ^(NSNumber *reactTag) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (strongSelf && reactTag) {
+      [strongSelf unregisterViewControllerForTag:reactTag];
+    }
+  };
+
+  return navView;
 }
 
 + (BOOL)requiresMainQueueSetup {
@@ -60,12 +71,14 @@ RCT_EXPORT_VIEW_PROPERTY(onPromptVisibilityChanged, RCTDirectEventBlock);
 }
 
 - (NavViewController *)getViewControllerForTag:(NSNumber *)reactTag {
-  return _viewControllers[reactTag];
+  @synchronized(_viewControllers) {
+    return [_viewControllers objectForKey:reactTag];
+  }
 }
 
 - (void)registerViewController:(NavViewController *)viewController forTag:(NSNumber *)reactTag {
   @synchronized(_viewControllers) {
-    _viewControllers[reactTag] = viewController;
+    [_viewControllers setObject:viewController forKey:reactTag];
   }
 }
 
@@ -94,29 +107,14 @@ RCT_EXPORT_METHOD(createFragment
   }];
 }
 
-RCT_EXPORT_METHOD(deleteFragment : (nonnull NSNumber *)reactTag) {
-  [self.bridge.uiManager
-      addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-        NavView *view = (NavView *)viewRegistry[reactTag];
-        if (!view || ![view isKindOfClass:[NavView class]]) {
-          RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
-          return;
-        }
-
-        NavViewController *viewController = [self getViewControllerForTag:reactTag];
-        if (viewController) {
-          [view removeReactSubview:viewController.view];
-          [self unregisterViewControllerForTag:reactTag];
-        }
-      }];
-}
-
 RCT_EXPORT_METHOD(moveCamera
                   : (nonnull NSNumber *)reactTag cameraPosition
                   : (NSDictionary *)cameraPosition) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController moveCamera:cameraPosition];
+    if (viewController) {
+      [viewController moveCamera:cameraPosition];
+    }
   });
 }
 
@@ -125,7 +123,9 @@ RCT_EXPORT_METHOD(setTripProgressBarEnabled
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setTripProgressBarEnabled:isEnabled];
+    if (viewController) {
+      [viewController setTripProgressBarEnabled:isEnabled];
+    }
   });
 }
 
@@ -134,7 +134,9 @@ RCT_EXPORT_METHOD(setReportIncidentButtonEnabled
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setReportIncidentButtonEnabled:isEnabled];
+    if (viewController) {
+      [viewController setReportIncidentButtonEnabled:isEnabled];
+    }
   });
 }
 
@@ -143,7 +145,9 @@ RCT_EXPORT_METHOD(setNavigationUIEnabled
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setNavigationUIEnabled:isEnabled];
+    if (viewController) {
+      [viewController setNavigationUIEnabled:isEnabled];
+    }
   });
 }
 
@@ -152,14 +156,18 @@ RCT_EXPORT_METHOD(setFollowingPerspective
                   : (nonnull NSNumber *)index) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setFollowingPerspective:index];
+    if (viewController) {
+      [viewController setFollowingPerspective:index];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(setNightMode : (nonnull NSNumber *)reactTag index : (nonnull NSNumber *)index) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setNightMode:index];
+    if (viewController) {
+      [viewController setNightMode:index];
+    }
   });
 }
 
@@ -168,7 +176,9 @@ RCT_EXPORT_METHOD(setSpeedometerEnabled
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setSpeedometerEnabled:isEnabled];
+    if (viewController) {
+      [viewController setSpeedometerEnabled:isEnabled];
+    }
   });
 }
 
@@ -177,7 +187,9 @@ RCT_EXPORT_METHOD(setSpeedLimitIconEnabled
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setSpeedLimitIconEnabled:isEnabled];
+    if (viewController) {
+      [viewController setSpeedLimitIconEnabled:isEnabled];
+    }
   });
 }
 
@@ -186,42 +198,54 @@ RCT_EXPORT_METHOD(setRecenterButtonEnabled
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setRecenterButtonEnabled:isEnabled];
+    if (viewController) {
+      [viewController setRecenterButtonEnabled:isEnabled];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(setZoomLevel : (nonnull NSNumber *)reactTag level : (nonnull NSNumber *)level) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setZoomLevel:level];
+    if (viewController) {
+      [viewController setZoomLevel:level];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(removeMarker : (nonnull NSNumber *)reactTag params : (NSString *)markerId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController removeMarker:markerId];
+    if (viewController) {
+      [viewController removeMarker:markerId];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(removePolyline : (nonnull NSNumber *)reactTag params : (NSString *)polylineId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController removePolyline:polylineId];
+    if (viewController) {
+      [viewController removePolyline:polylineId];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(removePolygon : (nonnull NSNumber *)reactTag params : (NSString *)polygonId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController removePolygon:polygonId];
+    if (viewController) {
+      [viewController removePolygon:polygonId];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(removeCircle : (nonnull NSNumber *)reactTag params : (NSString *)circleId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController removeCircle:circleId];
+    if (viewController) {
+      [viewController removeCircle:circleId];
+    }
   });
 }
 
@@ -230,14 +254,18 @@ RCT_EXPORT_METHOD(removeGroundOverlay
                   : (NSString *)overlayId) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController removeGroundOverlay:overlayId];
+    if (viewController) {
+      [viewController removeGroundOverlay:overlayId];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(showRouteOverview : (nonnull NSNumber *)reactTag) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController showRouteOverview];
+    if (viewController) {
+      [viewController showRouteOverview];
+    }
   });
 }
 
@@ -245,21 +273,27 @@ RCT_EXPORT_METHOD(showRouteOverview : (nonnull NSNumber *)reactTag) {
 RCT_EXPORT_METHOD(setIndoorEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setIndoorEnabled:isEnabled];
+    if (viewController) {
+      [viewController setIndoorEnabled:isEnabled];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(setTrafficEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setTrafficEnabled:isEnabled];
+    if (viewController) {
+      [viewController setTrafficEnabled:isEnabled];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(setCompassEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setCompassEnabled:isEnabled];
+    if (viewController) {
+      [viewController setCompassEnabled:isEnabled];
+    }
   });
 }
 
@@ -268,14 +302,18 @@ RCT_EXPORT_METHOD(setMyLocationButtonEnabled
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setMyLocationButtonEnabled:isEnabled];
+    if (viewController) {
+      [viewController setMyLocationButtonEnabled:isEnabled];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(setMyLocationEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setMyLocationEnabled:isEnabled];
+    if (viewController) {
+      [viewController setMyLocationEnabled:isEnabled];
+    }
   });
 }
 
@@ -284,7 +322,9 @@ RCT_EXPORT_METHOD(setRotateGesturesEnabled
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setRotateGesturesEnabled:isEnabled];
+    if (viewController) {
+      [viewController setRotateGesturesEnabled:isEnabled];
+    }
   });
 }
 
@@ -293,7 +333,9 @@ RCT_EXPORT_METHOD(setScrollGesturesEnabled
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setScrollGesturesEnabled:isEnabled];
+    if (viewController) {
+      [viewController setScrollGesturesEnabled:isEnabled];
+    }
   });
 }
 
@@ -302,7 +344,9 @@ RCT_EXPORT_METHOD(setScrollGesturesEnabledDuringRotateOrZoom
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setScrollGesturesEnabledDuringRotateOrZoom:isEnabled];
+    if (viewController) {
+      [viewController setScrollGesturesEnabledDuringRotateOrZoom:isEnabled];
+    }
   });
 }
 
@@ -311,7 +355,9 @@ RCT_EXPORT_METHOD(setTiltGesturesEnabled
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setTiltGesturesEnabled:isEnabled];
+    if (viewController) {
+      [viewController setTiltGesturesEnabled:isEnabled];
+    }
   });
 }
 
@@ -320,14 +366,18 @@ RCT_EXPORT_METHOD(setZoomGesturesEnabled
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setZoomGesturesEnabled:isEnabled];
+    if (viewController) {
+      [viewController setZoomGesturesEnabled:isEnabled];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(setBuildingsEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setBuildingsEnabled:isEnabled];
+    if (viewController) {
+      [viewController setBuildingsEnabled:isEnabled];
+    }
   });
 }
 
@@ -336,28 +386,36 @@ RCT_EXPORT_METHOD(setTrafficIncidentCardsEnabled
                   : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setTrafficIncidentCardsEnabled:isEnabled];
+    if (viewController) {
+      [viewController setTrafficIncidentCardsEnabled:isEnabled];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(setHeaderEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setHeaderEnabled:isEnabled];
+    if (viewController) {
+      [viewController setHeaderEnabled:isEnabled];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(setFooterEnabled : (nonnull NSNumber *)reactTag isEnabled : (BOOL)isEnabled) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setFooterEnabled:isEnabled];
+    if (viewController) {
+      [viewController setFooterEnabled:isEnabled];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(resetMinMaxZoomLevel : (nonnull NSNumber *)reactTag) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController resetMinMaxZoomLevel];
+    if (viewController) {
+      [viewController resetMinMaxZoomLevel];
+    }
   });
 }
 
@@ -372,34 +430,24 @@ RCT_EXPORT_METHOD(animateCamera
                                          zoom:10];
     GMSCameraUpdate *update = [GMSCameraUpdate setCamera:cameraPosition];
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController animateCamera:update];
+    if (viewController) {
+      [viewController animateCamera:update];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(setMapStyle
                   : (nonnull NSNumber *)reactTag jsonStyleString
-                  : (NSString *)jsonStyleString debugCallback
-                  : (RCTResponseSenderBlock)debugCallback) {
+                  : (NSString *)jsonStyleString) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NSError *error;
     GMSMapStyle *mapStyle = [GMSMapStyle styleWithJSONString:jsonStyleString error:&error];
 
-    if (!mapStyle) {
-      // Send error message through debugCallback instead of logging it
-      debugCallback(@[ [NSString
-          stringWithFormat:@"One or more of the map styles failed to load. Error: %@", error] ]);
-      return;
-    }
-
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
 
-    if (!viewController) {
-      debugCallback(@[ @"ViewController is null" ]);
-      return;
+    if (viewController) {
+      [viewController setMapStyle:mapStyle];
     }
-
-    [viewController setMapStyle:mapStyle];
-    debugCallback(@[ @"Map style set successfully" ]);
   });
 }
 
@@ -425,14 +473,18 @@ RCT_EXPORT_METHOD(setMapType : (nonnull NSNumber *)reactTag mapType : (NSInteger
     }
 
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setMapType:mapViewType];
+    if (viewController) {
+      [viewController setMapType:mapViewType];
+    }
   });
 }
 
 RCT_EXPORT_METHOD(clearMapView : (nonnull NSNumber *)reactTag) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController clearMapView];
+    if (viewController) {
+      [viewController clearMapView];
+    }
   });
 }
 
@@ -444,9 +496,10 @@ RCT_EXPORT_METHOD(setPadding
                   : (nonnull NSNumber *)right) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
-    [viewController setPadding:UIEdgeInsetsMake(top.floatValue, left.floatValue, bottom.floatValue,
-                                                right.floatValue)];
+    if (viewController) {
+      [viewController setPadding:UIEdgeInsetsMake(top.floatValue, left.floatValue,
+                                                  bottom.floatValue, right.floatValue)];
+    }
   });
 }
-
 @end

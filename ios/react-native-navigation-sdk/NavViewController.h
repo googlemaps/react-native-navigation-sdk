@@ -30,8 +30,6 @@ typedef void (^OnStringResult)(NSString *result);
 typedef void (^OnBooleanResult)(BOOL result);
 typedef void (^OnDictionaryResult)(NSDictionary *_Nullable result);
 typedef void (^OnArrayResult)(NSArray *_Nullable result);
-- (instancetype)initWithWidth:(CGFloat)width height:(CGFloat)height;
-- (void)updateLayoutWithWidth:(CGFloat)width height:(CGFloat)height;
 - (void)setStylingOptions:(nonnull NSDictionary *)stylingOptions;
 - (void)getCameraPosition:(OnDictionaryResult)completionBlock;
 - (void)getMyLocation:(OnDictionaryResult)completionBlock;

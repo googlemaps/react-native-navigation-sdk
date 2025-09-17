@@ -23,7 +23,6 @@ public enum Command {
   SET_NAVIGATION_UI_ENABLED(5, "setNavigationUIEnabled"),
   SET_FOLLOWING_PERSPECTIVE(6, "setFollowingPerspective"),
   SET_NIGHT_MODE(7, "setNightMode"),
-  DELETE_FRAGMENT(8, "deleteFragment"),
   SET_SPEEDOMETER_ENABLED(9, "setSpeedometerEnabled"),
   SET_SPEED_LIMIT_ICON_ENABLED(10, "setSpeedLimitIconEnabled"),
   SET_ZOOM_LEVEL(11, "setZoomLevel"),

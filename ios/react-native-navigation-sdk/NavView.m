@@ -126,4 +126,14 @@
   }
 }
 
+- (void)willMoveToSuperview:(UIView *)newSuperview {
+  [super willMoveToSuperview:newSuperview];
+  if (newSuperview == nil && _viewController && self.cleanupBlock) {
+    // As newSuperview is nil, the view is being removed from its superview, call the cleanup block
+    // provided by the view manager
+    self.cleanupBlock(self.reactTag);
+    _viewController = nil;
+  }
+}
+
 @end
