@@ -90,12 +90,10 @@ public class EnumTranslationUtil {
   }
 
   public static CustomTypes.FragmentType getFragmentTypeFromJsValue(int jsValue) {
-    switch (jsValue) {
-      case 0:
-      default:
-        return CustomTypes.FragmentType.MAP;
-      case 1:
-        return CustomTypes.FragmentType.NAVIGATION;
-    }
+    return switch (jsValue) {
+      case 0 -> CustomTypes.FragmentType.MAP;
+      case 1 -> CustomTypes.FragmentType.NAVIGATION;
+      default -> throw new IllegalStateException("Unexpected FragmentType value: " + jsValue);
+    };
   }
 }

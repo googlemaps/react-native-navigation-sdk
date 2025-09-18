@@ -16,12 +16,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View, findNodeHandle } from 'react-native';
-import {
-  NavViewManager,
-  sendCommand,
-  commands,
-  type LatLng,
-} from '../../shared';
+import { NavViewManager, type LatLng } from '../../shared';
 import { getNavigationViewController } from './navigationViewController';
 import type { NavigationViewProps } from './types';
 import {
@@ -65,18 +60,6 @@ export const NavigationView = (
     const _viewId = findNodeHandle(mapViewRef.current) || 0;
     if (viewId !== _viewId) {
       setViewId(_viewId);
-
-      const stylingOptions =
-        (Platform.OS === 'android'
-          ? androidStylingOptions
-          : iOSStylingOptions) || {};
-
-      const args = [stylingOptions, FragmentType.NAVIGATION];
-
-      setTimeout(() => {
-        sendCommand(_viewId, commands.createFragment, args);
-      });
-
       onNavigationViewControllerCreated(getNavigationViewController(_viewId));
       onMapViewControllerCreated(getMapViewController(_viewId));
     }
@@ -157,6 +140,12 @@ export const NavigationView = (
       <NavViewManager
         ref={onRefAssign}
         flex={1}
+        fragmentType={FragmentType.NAVIGATION}
+        stylingOptions={
+          (Platform.OS === 'android'
+            ? androidStylingOptions
+            : iOSStylingOptions) || {}
+        }
         onMapClick={onMapClick}
         onMapReady={onMapReady}
         onMarkerClick={onMarkerClick}

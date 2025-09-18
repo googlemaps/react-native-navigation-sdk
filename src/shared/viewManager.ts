@@ -23,7 +23,10 @@ import {
 } from 'react-native';
 import type { LatLng } from '.';
 import type { Circle, GroundOverlay, Marker, Polygon, Polyline } from '../maps';
-import type { DirectEventHandler } from 'react-native/Libraries/Types/CodegenTypesNamespace';
+import type {
+  DirectEventHandler,
+  Int32,
+} from 'react-native/Libraries/Types/CodegenTypesNamespace';
 
 // NavViewManager is responsible for managing both the regular map fragment as well as the navigation map view fragment.
 export const viewManagerName =
@@ -63,6 +66,8 @@ export const commands = (
 
 export interface NativeNavViewProps extends ViewProps {
   flex?: number | undefined;
+  fragmentType: Int32;
+  stylingOptions?: unknown | undefined;
   onMapReady?: DirectEventHandler<null>;
   onMapClick?: DirectEventHandler<LatLng>;
   onMarkerClick?: DirectEventHandler<Marker>;

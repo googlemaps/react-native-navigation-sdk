@@ -194,7 +194,7 @@ public class NavModule extends ReactContextBaseJavaModule
   }
 
   private void onNavigationReady() {
-    mNavViewManager.applyStylingOptions();
+    mNavViewManager.onNavigationReady();
 
     sendCommandToReactNative("onNavigationReady", null);
 

@@ -119,6 +119,7 @@ public class NavViewFragment extends SupportNavigationFragment
 
   public void setStylingOptions(StylingOptions stylingOptions) {
     mStylingOptions = stylingOptions;
+    applyStylingOptions();
   }
 
   public void setNightModeOption(int jsValue) {

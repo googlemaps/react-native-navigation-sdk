@@ -50,6 +50,12 @@ const styles = StyleSheet.create({
     margin: 10,
     justifyContent: 'space-evenly',
   },
+  pagerButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    marginHorizontal: 10,
+    marginTop: 10,
+  },
   controlButtonGap: {
     height: 15,
   },

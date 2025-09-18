@@ -16,12 +16,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, findNodeHandle } from 'react-native';
-import {
-  NavViewManager,
-  sendCommand,
-  commands,
-  type LatLng,
-} from '../../shared';
+import { NavViewManager, type LatLng } from '../../shared';
 import {
   getMapViewController,
   FragmentType,
@@ -57,15 +52,6 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
     const _viewId = findNodeHandle(mapViewRef.current) || 0;
     if (viewId !== _viewId) {
       setViewId(_viewId);
-
-      const stylingOptions = {};
-
-      const args = [stylingOptions, FragmentType.MAP];
-
-      setTimeout(() => {
-        sendCommand(_viewId, commands.createFragment, args);
-      });
-
       onMapViewControllerCreated(getMapViewController(_viewId));
     }
   }, [onMapViewControllerCreated, viewId]);
@@ -128,6 +114,7 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
       <NavViewManager
         ref={onRefAssign}
         flex={1}
+        fragmentType={FragmentType.MAP}
         onMapClick={onMapClick}
         onMapReady={onMapReady}
         onMarkerClick={onMarkerClick}

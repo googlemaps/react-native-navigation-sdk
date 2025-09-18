@@ -15,6 +15,7 @@
  */
 
 #import "RCTNavViewManager.h"
+#import <React/RCTConvert.h>
 #import <React/RCTUIManager.h>
 #import "CustomTypes.h"
 #import "NavView.h"
@@ -30,17 +31,6 @@ static NSMapTable<NSNumber *, NavViewController *> *_viewControllers;
 static NavViewModule *_navViewModule;
 
 RCT_EXPORT_MODULE();
-
-RCT_EXPORT_VIEW_PROPERTY(onRecenterButtonClick, RCTDirectEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onMapReady, RCTDirectEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onMapClick, RCTDirectEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onMarkerInfoWindowTapped, RCTDirectEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onMarkerClick, RCTDirectEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onPolylineClick, RCTDirectEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onPolygonClick, RCTDirectEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onCircleClick, RCTDirectEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onGroundOverlayClick, RCTDirectEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onPromptVisibilityChanged, RCTDirectEventBlock);
 
 - (instancetype)init {
   if (self = [super init]) {
@@ -87,24 +77,32 @@ RCT_EXPORT_VIEW_PROPERTY(onPromptVisibilityChanged, RCTDirectEventBlock);
     [_viewControllers removeObjectForKey:reactTag];
   }
 }
+RCT_EXPORT_VIEW_PROPERTY(onRecenterButtonClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onMapReady, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onMapClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onMarkerInfoWindowTapped, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onMarkerClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onPolylineClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onPolygonClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onCircleClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onGroundOverlayClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onPromptVisibilityChanged, RCTDirectEventBlock);
 
-RCT_EXPORT_METHOD(createFragment
-                  : (nonnull NSNumber *)reactTag stylingOptions
-                  : (NSDictionary *)stylingOptions fragmentType
-                  : (NSInteger)fragmentType) {
-  [self.bridge.uiManager addUIBlock:^(RCTUIManager *uiManager,
-                                      NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-    NavView *view = (NavView *)viewRegistry[reactTag];
-    if (!view || ![view isKindOfClass:[NavView class]]) {
-      RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
-      return;
-    }
-
+RCT_CUSTOM_VIEW_PROPERTY(fragmentType, NSNumber *, NavView) {
+  if (json && json != (id)kCFNull) {
+    FragmentType fragmentType = (FragmentType)[json integerValue];
     NavViewController *viewController =
-        [view initializeViewControllerWithStylingOptions:stylingOptions fragmentType:fragmentType];
+        [view initializeViewControllerWithFragmentType:fragmentType];
+    [self registerViewController:viewController forTag:view.reactTag];
+  }
+}
 
-    [self registerViewController:viewController forTag:reactTag];
-  }];
+RCT_CUSTOM_VIEW_PROPERTY(stylingOptions, NSDictionary *, NavView) {
+  NSDictionary *options = nil;
+  if (json && json != (id)kCFNull) {
+    options = [RCTConvert NSDictionary:json];
+  }
+  [view applyStylingOptions:options];
 }
 
 RCT_EXPORT_METHOD(moveCamera

@@ -16,7 +16,6 @@ package com.google.android.react.navsdk;
 import androidx.annotation.NonNull;
 
 public enum Command {
-  CREATE_FRAGMENT(1, "createFragment"),
   MOVE_CAMERA(2, "moveCamera"),
   SET_MY_LOCATION_ENABLED(3, "setMyLocationEnabled"),
   SET_TRIP_PROGRESS_BAR_ENABLED(4, "setTripProgressBarEnabled"),
