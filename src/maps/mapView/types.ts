@@ -144,7 +144,7 @@ export enum FragmentType {
   /** Regular Google map view without navigation */
   MAP = 0,
   /** Google map view with navigation */
-  NAVIGATION,
+  NAVIGATION = 1,
 }
 
 /**

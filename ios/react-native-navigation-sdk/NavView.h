@@ -35,8 +35,12 @@
 @property(nonatomic, copy) RCTDirectEventBlock onGroundOverlayClick;
 @property(nonatomic, copy) RCTDirectEventBlock onPromptVisibilityChanged;
 
-- (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions
-                                                     fragmentType:(FragmentType)fragmentType;
+// Cleanup block that will be called when the view is removed from superview
+@property(nonatomic, copy) void (^cleanupBlock)(NSNumber *reactTag);
+
+- (NavViewController *)initializeViewControllerWithFragmentType:(FragmentType)fragmentType;
+
+- (void)applyStylingOptions:(NSDictionary *)stylingOptions;
 - (NavViewController *)getViewController;
 
 @end

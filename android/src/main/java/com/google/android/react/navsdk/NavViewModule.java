@@ -160,15 +160,14 @@ public class NavViewModule extends ReactContextBaseJavaModule {
   public void addMarker(int viewId, ReadableMap markerOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap(viewId) != null) {
-            Marker marker =
-                mNavViewManager
-                    .getFragmentForViewId(viewId)
-                    .getMapController()
-                    .addMarker(markerOptionsMap.toHashMap());
-
-            promise.resolve(ObjectTranslationUtil.getMapFromMarker(marker));
+          IMapViewFragment fragment = mNavViewManager.getFragmentForViewId(viewId);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
           }
+
+          Marker marker = fragment.getMapController().addMarker(markerOptionsMap.toHashMap());
+          promise.resolve(ObjectTranslationUtil.getMapFromMarker(marker));
         });
   }
 
@@ -176,16 +175,14 @@ public class NavViewModule extends ReactContextBaseJavaModule {
   public void addPolyline(int viewId, ReadableMap polylineOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap(viewId) == null) {
+          IMapViewFragment fragment = mNavViewManager.getFragmentForViewId(viewId);
+          if (fragment == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
-          Polyline polyline =
-              mNavViewManager
-                  .getFragmentForViewId(viewId)
-                  .getMapController()
-                  .addPolyline(polylineOptionsMap.toHashMap());
 
+          Polyline polyline =
+              fragment.getMapController().addPolyline(polylineOptionsMap.toHashMap());
           promise.resolve(ObjectTranslationUtil.getMapFromPolyline(polyline));
         });
   }
@@ -194,16 +191,13 @@ public class NavViewModule extends ReactContextBaseJavaModule {
   public void addPolygon(int viewId, ReadableMap polygonOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap(viewId) == null) {
+          IMapViewFragment fragment = mNavViewManager.getFragmentForViewId(viewId);
+          if (fragment == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
-          Polygon polygon =
-              mNavViewManager
-                  .getFragmentForViewId(viewId)
-                  .getMapController()
-                  .addPolygon(polygonOptionsMap.toHashMap());
 
+          Polygon polygon = fragment.getMapController().addPolygon(polygonOptionsMap.toHashMap());
           promise.resolve(ObjectTranslationUtil.getMapFromPolygon(polygon));
         });
   }
@@ -212,16 +206,13 @@ public class NavViewModule extends ReactContextBaseJavaModule {
   public void addCircle(int viewId, ReadableMap circleOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap(viewId) == null) {
+          IMapViewFragment fragment = mNavViewManager.getFragmentForViewId(viewId);
+          if (fragment == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
-          Circle circle =
-              mNavViewManager
-                  .getFragmentForViewId(viewId)
-                  .getMapController()
-                  .addCircle(circleOptionsMap.toHashMap());
 
+          Circle circle = fragment.getMapController().addCircle(circleOptionsMap.toHashMap());
           promise.resolve(ObjectTranslationUtil.getMapFromCircle(circle));
         });
   }
@@ -230,16 +221,14 @@ public class NavViewModule extends ReactContextBaseJavaModule {
   public void addGroundOverlay(int viewId, ReadableMap overlayOptionsMap, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap(viewId) == null) {
+          IMapViewFragment fragment = mNavViewManager.getFragmentForViewId(viewId);
+          if (fragment == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
-          GroundOverlay overlay =
-              mNavViewManager
-                  .getFragmentForViewId(viewId)
-                  .getMapController()
-                  .addGroundOverlay(overlayOptionsMap.toHashMap());
 
+          GroundOverlay overlay =
+              fragment.getMapController().addGroundOverlay(overlayOptionsMap.toHashMap());
           promise.resolve(ObjectTranslationUtil.getMapFromGroundOverlay(overlay));
         });
   }

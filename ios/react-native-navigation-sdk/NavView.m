@@ -23,6 +23,22 @@
 
 @implementation NavView
 
+- (instancetype)initWithFrame:(CGRect)frame {
+  self = [super initWithFrame:frame];
+  if (self) {
+    _viewController = [[NavViewController alloc] init];
+  }
+  return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)coder {
+  self = [super initWithCoder:coder];
+  if (self) {
+    _viewController = [[NavViewController alloc] init];
+  }
+  return self;
+}
+
 - (void)layoutSubviews {
   [super layoutSubviews];
   if (self.superview) {
@@ -36,15 +52,11 @@
   }
 }
 
-- (NavViewController *)initializeViewControllerWithStylingOptions:(NSDictionary *)stylingOptions
-                                                     fragmentType:(FragmentType)fragmentType {
-  _viewController = [[NavViewController alloc] init];
+- (NavViewController *)initializeViewControllerWithFragmentType:(FragmentType)fragmentType {
   // FragmentType 0 = MAP, 1 = NAVIGATION.
   _viewController.isNavigationEnabled = fragmentType == NAVIGATION;
   // Test if styling options is not nil
-  if (stylingOptions != nil && [stylingOptions count] > 0) {
-    [_viewController setStylingOptions:stylingOptions];
-  }
+
   [_viewController setNavigationCallbacks:self];
   [self addSubview:_viewController.view];
 
@@ -57,6 +69,12 @@
   ]];
 
   return _viewController;
+}
+
+- (void)applyStylingOptions:(NSDictionary *)stylingOptions {
+  if (stylingOptions != nil && [stylingOptions count] > 0) {
+    [_viewController setStylingOptions:stylingOptions];
+  }
 }
 
 - (void)handleRecenterButtonClick {
@@ -123,6 +141,16 @@
   if (self.onGroundOverlayClick) {
     self.onGroundOverlayClick(
         [ObjectTranslationUtil transformGroundOverlayToDictionary:groundOverlay]);
+  }
+}
+
+- (void)willMoveToSuperview:(UIView *)newSuperview {
+  [super willMoveToSuperview:newSuperview];
+  if (newSuperview == nil && _viewController && self.cleanupBlock) {
+    // As newSuperview is nil, the view is being removed from its superview, call the cleanup block
+    // provided by the view manager
+    self.cleanupBlock(self.reactTag);
+    _viewController = nil;
   }
 }
 

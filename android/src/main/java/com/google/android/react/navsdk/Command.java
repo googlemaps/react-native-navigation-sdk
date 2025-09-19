@@ -16,14 +16,12 @@ package com.google.android.react.navsdk;
 import androidx.annotation.NonNull;
 
 public enum Command {
-  CREATE_FRAGMENT(1, "createFragment"),
   MOVE_CAMERA(2, "moveCamera"),
   SET_MY_LOCATION_ENABLED(3, "setMyLocationEnabled"),
   SET_TRIP_PROGRESS_BAR_ENABLED(4, "setTripProgressBarEnabled"),
   SET_NAVIGATION_UI_ENABLED(5, "setNavigationUIEnabled"),
   SET_FOLLOWING_PERSPECTIVE(6, "setFollowingPerspective"),
   SET_NIGHT_MODE(7, "setNightMode"),
-  DELETE_FRAGMENT(8, "deleteFragment"),
   SET_SPEEDOMETER_ENABLED(9, "setSpeedometerEnabled"),
   SET_SPEED_LIMIT_ICON_ENABLED(10, "setSpeedLimitIconEnabled"),
   SET_ZOOM_LEVEL(11, "setZoomLevel"),

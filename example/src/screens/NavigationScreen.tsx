@@ -355,13 +355,21 @@ const NavigationScreen = () => {
           margin: margin,
         }}
         androidStylingOptions={{
-          primaryDayModeThemeColor: '#34eba8',
-          headerDistanceValueTextColor: '#76b5c5',
-          headerInstructionsFirstRowTextSize: '20f',
+          primaryDayModeThemeColor: '#0076a8',
+          primaryNightModeThemeColor: '#3400a8',
+          secondaryDayModeThemeColor: '#0076a8',
+          secondaryNightModeThemeColor: '#3400a8',
+          headerLargeManeuverIconColor: '#f65308',
+          headerSmallManeuverIconColor: '#f65308',
+          headerDistanceValueTextColor: '#f65308',
+          headerInstructionsFirstRowTextSize: '18f',
         }}
         iOSStylingOptions={{
-          navigationHeaderPrimaryBackgroundColor: '#34eba8',
-          navigationHeaderDistanceValueTextColor: '#76b5c5',
+          navigationHeaderPrimaryBackgroundColor: '#0076a8',
+          navigationHeaderPrimaryBackgroundColorNightMode: '#3400a8',
+          navigationHeaderSecondaryBackgroundColor: '#0076a8',
+          navigationHeaderSecondaryBackgroundColorNightMode: '#3400a8',
+          navigationHeaderDistanceValueTextColor: '#f65308',
         }}
         navigationViewCallbacks={navigationViewCallbacks}
         mapViewCallbacks={mapViewCallbacks}
