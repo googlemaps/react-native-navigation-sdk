@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.10.2...v0.10.3) (2025-09-19)
+
+
+### Bug Fixes
+
+* view lifecycle issue ([#473](https://github.com/googlemaps/react-native-navigation-sdk/issues/473)) ([2922fc6](https://github.com/googlemaps/react-native-navigation-sdk/commit/2922fc644b6847526bc9661f425a25b019d1d523))
+
 ## [0.10.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.10.1...v0.10.2) (2025-09-11)
 
 
