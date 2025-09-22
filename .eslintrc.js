@@ -19,6 +19,7 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
+    tsconfigRootDir: __dirname,
     sourceType: 'module',
     ecmaFeatures: {
       jsx: true,
@@ -31,6 +32,7 @@ module.exports = {
   },
   plugins: [
     '@typescript-eslint',
+    'eslint-plugin-tsdoc',
     'react',
     'react-hooks',
     'react-native',
@@ -60,6 +62,7 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }], // Allow unused vars starting with _
     'import/default': 'off', // Disable for now due to react-native-select-dropdown issues
+    'tsdoc/syntax': 'warn',
   },
   settings: {
     'react': {
