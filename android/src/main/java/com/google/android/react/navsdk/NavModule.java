@@ -459,13 +459,11 @@ public class NavModule extends ReactContextBaseJavaModule
       pendingRoute = mNavigator.setDestinations(mWaypoints);
     }
 
-    setOnResultListener(
-        new IRouteStatusResult() {
-          @Override
-          public void onResult(Navigator.RouteStatus code) {
-            sendCommandToReactNative("onRouteStatusResult", code.toString());
-          }
-        });
+    if (pendingRoute != null) {
+      // Set an action to perform when a route is determined to the destination
+      pendingRoute.setOnResultListener(
+          code -> sendCommandToReactNative("onRouteStatusResult", code.toString()));
+    }
   }
 
   @ReactMethod
@@ -481,18 +479,6 @@ public class NavModule extends ReactContextBaseJavaModule
     if (mNavigator != null) {
       mNavigator.continueToNextDestination();
     }
-  }
-
-  private void setOnResultListener(IRouteStatusResult listener) {
-    // Set an action to perform when a route is determined to the destination
-    if (pendingRoute != null)
-      pendingRoute.setOnResultListener(
-          new ListenableResultFuture.OnResultListener<Navigator.RouteStatus>() {
-            @Override
-            public void onResult(Navigator.RouteStatus code) {
-              listener.onResult(code);
-            }
-          });
   }
 
   @ReactMethod
@@ -844,8 +830,4 @@ public class NavModule extends ReactContextBaseJavaModule
 
   @Override
   public void onHostDestroy() {}
-
-  private interface IRouteStatusResult {
-    void onResult(Navigator.RouteStatus code);
-  }
 }

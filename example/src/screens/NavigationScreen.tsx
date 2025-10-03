@@ -58,8 +58,6 @@ enum OverlayType {
   AutoMapControls = 'AutoMapControls',
 }
 
-const marginAmount = 50;
-
 const NavigationScreen = () => {
   const { arePermissionsApproved } = usePermissions();
   const [overlayType, setOverlayType] = useState<OverlayType>(OverlayType.None);
@@ -81,12 +79,6 @@ const NavigationScreen = () => {
 
   const [navigationInitialized, setNavigationInitialized] = useState(false);
 
-  const onRouteChanged = useCallback(() => {
-    showSnackbar('Route Changed');
-  }, []);
-
-  const [margin, setMargin] = useState<number | null>(null);
-
   const onArrival = useCallback(
     (event: ArrivalEvent) => {
       if (event.isFinalDestination) {
@@ -102,10 +94,6 @@ const NavigationScreen = () => {
     },
     [navigationController]
   );
-
-  const onTrafficUpdated = useCallback(() => {
-    showSnackbar('Traffic Updated');
-  }, []);
 
   const onNavigationReady = useCallback(() => {
     console.log('onNavigationReady');
@@ -123,38 +111,6 @@ const NavigationScreen = () => {
     },
     []
   );
-
-  const onStartGuidance = useCallback(() => {
-    showSnackbar('Start Guidance');
-  }, []);
-
-  const onRouteStatusOk = useCallback(() => {
-    showSnackbar('Route created');
-  }, []);
-
-  const onRouteCancelled = useCallback(() => {
-    showSnackbar('Error: Route Cancelled');
-  }, []);
-
-  const onNoRouteFound = useCallback(() => {
-    showSnackbar('Error: No Route Found');
-  }, []);
-
-  const onNetworkError = useCallback(() => {
-    showSnackbar('Error: Network Error');
-  }, []);
-
-  const onStartingGuidanceError = useCallback(() => {
-    showSnackbar('Error: Starting Guidance Error');
-  }, []);
-
-  const onLocationDisabled = useCallback(() => {
-    showSnackbar('Error: Location Disabled');
-  }, []);
-
-  const onLocationUnknown = useCallback(() => {
-    showSnackbar('Error: Location Unknown');
-  }, []);
 
   const onLocationChanged = useCallback((location: Location) => {
     console.log('onLocationChanged:', location);
@@ -177,71 +133,60 @@ const NavigationScreen = () => {
     console.log('called onRemainingTimeOrDistanceChanged');
   }, [navigationController]);
 
-  const onPromptVisibilityChanged = useCallback((visible: boolean) => {
+  const onPromptVisibilityChanged = (visible: boolean) => {
     console.log('Prompt visibility changed to:', visible);
-  }, []);
+  };
 
-  const onRouteStatusResult = useCallback(
-    (routeStatus: RouteStatus) => {
-      switch (routeStatus) {
-        case RouteStatus.OK:
-          onRouteStatusOk();
-          break;
-        case RouteStatus.ROUTE_CANCELED:
-          onRouteCancelled();
-          break;
-        case RouteStatus.NO_ROUTE_FOUND:
-          onNoRouteFound();
-          break;
-        case RouteStatus.NETWORK_ERROR:
-          onNetworkError();
-          break;
-        case RouteStatus.LOCATION_DISABLED:
-          onLocationDisabled();
-          break;
-        case RouteStatus.LOCATION_UNKNOWN:
-          onLocationUnknown();
-          break;
-        default:
-          console.log('routeStatus: ' + routeStatus);
-          onStartingGuidanceError();
-      }
-    },
-    [
-      onRouteStatusOk,
-      onRouteCancelled,
-      onNoRouteFound,
-      onNetworkError,
-      onLocationDisabled,
-      onLocationUnknown,
-      onStartingGuidanceError,
-    ]
-  );
+  const onRouteStatusResult = useCallback((routeStatus: RouteStatus) => {
+    switch (routeStatus) {
+      case RouteStatus.OK:
+        showSnackbar('Route created');
+        break;
+      case RouteStatus.ROUTE_CANCELED:
+        showSnackbar('Error: Route Cancelled');
+        break;
+      case RouteStatus.NO_ROUTE_FOUND:
+        showSnackbar('Error: No Route Found');
+        break;
+      case RouteStatus.NETWORK_ERROR:
+        showSnackbar('Error: Network Error');
+        break;
+      case RouteStatus.LOCATION_DISABLED:
+        showSnackbar('Error: Location Disabled');
+        break;
+      case RouteStatus.LOCATION_UNKNOWN:
+        showSnackbar('Error: Location Unknown');
+        break;
+      case RouteStatus.DUPLICATE_WAYPOINTS_ERROR:
+        showSnackbar('Error: Consecutive duplicate waypoints are not allowed');
+        break;
+      default:
+        console.log('routeStatus: ' + routeStatus);
+        showSnackbar('Error: Starting Guidance Error');
+    }
+  }, []);
 
   const navigationCallbacks: NavigationCallbacks = useMemo(
     () => ({
-      onRouteChanged,
+      onRouteChanged: () => showSnackbar('Route Changed'),
       onArrival,
       onNavigationReady,
       onNavigationInitError,
       onLocationChanged,
       onRawLocationChanged,
-      onTrafficUpdated,
+      onTrafficUpdated: () => showSnackbar('Traffic Updated'),
       onRouteStatusResult,
-      onStartGuidance,
+      onStartGuidance: () => showSnackbar('Start Guidance'),
       onRemainingTimeOrDistanceChanged,
       onTurnByTurn,
     }),
     [
-      onRouteChanged,
       onArrival,
       onNavigationReady,
       onNavigationInitError,
       onLocationChanged,
       onRawLocationChanged,
-      onTrafficUpdated,
       onRouteStatusResult,
-      onStartGuidance,
       onRemainingTimeOrDistanceChanged,
       onTurnByTurn,
     ]
@@ -291,9 +236,9 @@ const NavigationScreen = () => {
     }
   }, [navigationController]);
 
-  const onRecenterButtonClick = useCallback(() => {
+  const onRecenterButtonClick = () => {
     console.log('onRecenterButtonClick');
-  }, []);
+  };
 
   const onShowNavControlsClick = useCallback(() => {
     setOverlayType(OverlayType.NavControls);
@@ -350,10 +295,7 @@ const NavigationScreen = () => {
   return arePermissionsApproved ? (
     <View style={styles.container}>
       <NavigationView
-        style={{
-          ...styles.map_view,
-          margin: margin,
-        }}
+        style={styles.map_view}
         androidStylingOptions={{
           primaryDayModeThemeColor: '#0076a8',
           primaryNightModeThemeColor: '#3400a8',
@@ -421,12 +363,6 @@ const NavigationScreen = () => {
         {mapViewAutoAvailable && (
           <Button title="Auto" onPress={onShowAutoMapsControlsClick} />
         )}
-        <Button
-          title={margin ? 'Margin on' : 'Margin off'}
-          onPress={() => {
-            setMargin(margin ? null : marginAmount);
-          }}
-        />
       </View>
     </View>
   ) : (

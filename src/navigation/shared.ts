@@ -41,6 +41,9 @@ export const getRouteStatusFromStringValue = (value: string): RouteStatus => {
     case 'WAYPOINT_ERROR':
       return RouteStatus.WAYPOINT_ERROR;
 
+    case 'DUPLICATE_WAYPOINTS_ERROR':
+      return RouteStatus.DUPLICATE_WAYPOINTS_ERROR;
+
     default:
       return RouteStatus.UNKNOWN;
   }

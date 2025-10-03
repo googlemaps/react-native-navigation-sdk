@@ -84,10 +84,6 @@ const MultipleMapsScreen = () => {
     console.log('mapViewController1 changed', mapViewController1);
   }, [mapViewController1]);
 
-  const onRouteChanged = useCallback(() => {
-    showSnackbar('Route Changed');
-  }, []);
-
   const onArrival = useCallback(
     (event: ArrivalEvent) => {
       if (event.isFinalDestination) {
@@ -103,10 +99,6 @@ const MultipleMapsScreen = () => {
     },
     [navigationController]
   );
-
-  const onTrafficUpdated = useCallback(() => {
-    showSnackbar('Traffic Updated');
-  }, []);
 
   const onNavigationReady = useCallback(async () => {
     if (navigationViewController1 != null) {
@@ -128,38 +120,6 @@ const MultipleMapsScreen = () => {
     []
   );
 
-  const onStartGuidance = useCallback(() => {
-    showSnackbar('Start Guidance');
-  }, []);
-
-  const onRouteStatusOk = useCallback(() => {
-    showSnackbar('Route created');
-  }, []);
-
-  const onRouteCancelled = useCallback(() => {
-    showSnackbar('Error: Route Cancelled');
-  }, []);
-
-  const onNoRouteFound = useCallback(() => {
-    showSnackbar('Error: No Route Found');
-  }, []);
-
-  const onNetworkError = useCallback(() => {
-    showSnackbar('Error: Network Error');
-  }, []);
-
-  const onStartingGuidanceError = useCallback(() => {
-    showSnackbar('Error: Starting Guidance Error');
-  }, []);
-
-  const onLocationDisabled = useCallback(() => {
-    showSnackbar('Error: Location Disabled');
-  }, []);
-
-  const onLocationUnknown = useCallback(() => {
-    showSnackbar('Error: Location Unknown');
-  }, []);
-
   const onLocationChanged = useCallback((location: Location) => {
     console.log('onLocationChanged: ', location);
   }, []);
@@ -175,66 +135,55 @@ const MultipleMapsScreen = () => {
     console.log('onRemainingTimeOrDistanceChanged', currentTimeAndDistance);
   }, [navigationController]);
 
-  const onRouteStatusResult = useCallback(
-    (routeStatus: RouteStatus) => {
-      switch (routeStatus) {
-        case RouteStatus.OK:
-          onRouteStatusOk();
-          break;
-        case RouteStatus.ROUTE_CANCELED:
-          onRouteCancelled();
-          break;
-        case RouteStatus.NO_ROUTE_FOUND:
-          onNoRouteFound();
-          break;
-        case RouteStatus.NETWORK_ERROR:
-          onNetworkError();
-          break;
-        case RouteStatus.LOCATION_DISABLED:
-          onLocationDisabled();
-          break;
-        case RouteStatus.LOCATION_UNKNOWN:
-          onLocationUnknown();
-          break;
-        default:
-          console.log('routeStatus: ' + routeStatus);
-          onStartingGuidanceError();
-      }
-    },
-    [
-      onRouteStatusOk,
-      onRouteCancelled,
-      onNoRouteFound,
-      onNetworkError,
-      onLocationDisabled,
-      onLocationUnknown,
-      onStartingGuidanceError,
-    ]
-  );
+  const onRouteStatusResult = useCallback((routeStatus: RouteStatus) => {
+    switch (routeStatus) {
+      case RouteStatus.OK:
+        showSnackbar('Route created');
+        break;
+      case RouteStatus.ROUTE_CANCELED:
+        showSnackbar('Error: Route Cancelled');
+        break;
+      case RouteStatus.NO_ROUTE_FOUND:
+        showSnackbar('Error: No Route Found');
+        break;
+      case RouteStatus.NETWORK_ERROR:
+        showSnackbar('Error: Network Error');
+        break;
+      case RouteStatus.LOCATION_DISABLED:
+        showSnackbar('Error: Location Disabled');
+        break;
+      case RouteStatus.LOCATION_UNKNOWN:
+        showSnackbar('Error: Location Unknown');
+        break;
+      case RouteStatus.DUPLICATE_WAYPOINTS_ERROR:
+        showSnackbar('Error: Consecutive duplicate waypoints are not allowed');
+        break;
+      default:
+        console.log('routeStatus: ' + routeStatus);
+        showSnackbar('Error: Starting Guidance Error');
+    }
+  }, []);
 
   const navigationCallbacks: NavigationCallbacks = useMemo(
     () => ({
-      onRouteChanged,
+      onRouteChanged: () => showSnackbar('Route Changed'),
       onArrival,
       onNavigationReady,
       onNavigationInitError,
       onLocationChanged,
       onRawLocationChanged,
-      onTrafficUpdated,
+      onTrafficUpdated: () => showSnackbar('Traffic Updated'),
       onRouteStatusResult,
-      onStartGuidance,
+      onStartGuidance: () => showSnackbar('Start Guidance'),
       onRemainingTimeOrDistanceChanged,
     }),
     [
-      onRouteChanged,
       onArrival,
       onNavigationReady,
       onNavigationInitError,
       onLocationChanged,
       onRawLocationChanged,
-      onTrafficUpdated,
       onRouteStatusResult,
-      onStartGuidance,
       onRemainingTimeOrDistanceChanged,
     ]
   );
@@ -260,17 +209,17 @@ const MultipleMapsScreen = () => {
     console.log('onRecenterButtonClick');
   }, []);
 
-  const onShowNavControlsClick = useCallback(() => {
+  const onShowNavControlsClick = () => {
     setOverlayType(OverlayType.NavControls);
-  }, []);
+  };
 
-  const onShowMapsControlsClick1 = useCallback(() => {
+  const onShowMapsControlsClick1 = () => {
     setOverlayType(OverlayType.MapControls1);
-  }, []);
+  };
 
-  const onShowMapsControlsClick2 = useCallback(() => {
+  const onShowMapsControlsClick2 = () => {
     setOverlayType(OverlayType.MapControls2);
-  }, []);
+  };
 
   const navigationViewCallbacks: NavigationViewCallbacks = useMemo(
     () => ({
