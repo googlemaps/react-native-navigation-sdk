@@ -203,6 +203,8 @@ export enum RouteStatus {
   WAYPOINT_ERROR,
   /** An invalid place it was used to define the route, check if that exists or if that has expired. */
   INVALID_PLACE_ID,
+  /** The route could not be calculated because consecutive duplicate waypoints were provided. */
+  DUPLICATE_WAYPOINTS_ERROR,
   /** An unknown error has happened to generate the route. */
   UNKNOWN,
 }

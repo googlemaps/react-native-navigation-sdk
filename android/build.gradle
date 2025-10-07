@@ -48,7 +48,7 @@ android {
 
   defaultConfig {
     minSdkVersion 24
-    targetSdkVersion 34
+    targetSdkVersion 36
   }
 
   buildFeatures {
@@ -82,6 +82,6 @@ dependencies {
   implementation "androidx.car.app:app:1.4.0"
   implementation "androidx.car.app:app-projected:1.4.0"
   implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-  implementation "com.google.android.libraries.navigation:navigation:6.3.1"
+  implementation "com.google.android.libraries.navigation:navigation:7.0.0"
   api 'com.google.guava:guava:31.0.1-android'
 }

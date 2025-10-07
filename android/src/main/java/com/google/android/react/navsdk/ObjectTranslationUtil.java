@@ -113,12 +113,18 @@ public class ObjectTranslationUtil {
       options.hideDestinationMarkers(!CollectionUtil.getBool("showDestinationMarkers", map, true));
     }
 
+    // Note: showStopSigns and showTrafficLights are deprecated in Navigation SDK 7.0.0
+    // and now default to true. These will be removed in SDK 8.0.0
     if (map.containsKey("showStopSigns")) {
-      options.showStopSigns(CollectionUtil.getBool("showStopSigns", map, false));
+      boolean showStopSigns = CollectionUtil.getBool("showStopSigns", map, true);
+      //noinspection deprecation
+      options.showStopSigns(showStopSigns);
     }
 
     if (map.containsKey("showTrafficLights")) {
-      options.showTrafficLights(CollectionUtil.getBool("showTrafficLights", map, false));
+      boolean showTrafficLights = CollectionUtil.getBool("showTrafficLights", map, true);
+      //noinspection deprecation
+      options.showTrafficLights(showTrafficLights);
     }
 
     return options;
