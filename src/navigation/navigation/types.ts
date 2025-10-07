@@ -74,11 +74,15 @@ export interface DisplayOptions {
   /**
    * Configures whether stop signs are shown during navigation.
    * If true, stop signs are shown.
+   *
+   * Defaults to true.
    */
   showStopSigns?: boolean;
   /**
    * Configures whether traffic lights are shown during navigation.
    * If true, traffic lights are shown.
+   *
+   * Defaults to true.
    */
   showTrafficLights?: boolean;
 }
