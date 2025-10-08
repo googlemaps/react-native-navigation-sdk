@@ -71,14 +71,20 @@ export interface DisplayOptions {
    * If true, destination markers are shown.
    */
   showDestinationMarkers?: boolean;
+
   /**
+   * @deprecated Stop signs are enabled by default and this option will be removed in a future release.
+   *
    * Configures whether stop signs are shown during navigation.
    * If true, stop signs are shown.
    *
    * Defaults to true.
    */
   showStopSigns?: boolean;
+
   /**
+   * @deprecated Traffic lights are enabled by default and this option will be removed in a future release.
+   *
    * Configures whether traffic lights are shown during navigation.
    * If true, traffic lights are shown.
    *
@@ -124,6 +130,7 @@ export interface ArrivalEvent {
    * Waypoint the device has arrived to. This waypoint was used when setDestinations was called.
    */
   waypoint: Waypoint;
+
   /** Whether this is the last waypoint to be visited in the route */
   isFinalDestination?: boolean;
 }
