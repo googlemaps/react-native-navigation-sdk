@@ -30,7 +30,7 @@
   self.mapTemplate = [self getTemplate];
   self.mapTemplate.mapDelegate = self;
 
-  self.navViewController = [[NavViewController alloc] initWithFragmentType:NAVIGATION];
+  self.navViewController = [[NavViewController alloc] initWithMapViewType:NAVIGATION];
   self.carWindow.rootViewController = self.navViewController;
   [self.interfaceController setRootTemplate:self.mapTemplate animated:YES completion:nil];
   [NavModule registerNavigationSessionReadyCallback:^{

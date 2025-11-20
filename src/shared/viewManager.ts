@@ -68,7 +68,7 @@ export const commands = (
 export interface NativeNavViewProps extends ViewProps {
   flex?: number | undefined;
   mapInitializationOptions: {
-    fragmentType: Int32;
+    mapViewType: Int32;
     mapId?: string;
     navigationStylingOptions?: AndroidStylingOptions | iOSStylingOptions;
   };

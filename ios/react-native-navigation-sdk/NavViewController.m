@@ -34,14 +34,14 @@
   NSMutableArray<GMSGroundOverlay *> *_groundOverlayList;
   NSDictionary *_stylingOptions;
   NSString *_mapId;
-  FragmentType _fragmentType;
+  MapViewType _mapViewType;
   id<INavigationViewCallback> _viewCallbacks;
 }
 
-- (instancetype)initWithFragmentType:(FragmentType)fragmentType {
+- (instancetype)initWithMapViewType:(MapViewType)mapViewType {
   self = [super init];
   if (self) {
-    _fragmentType = fragmentType;
+    _mapViewType = mapViewType;
   }
   return self;
 }
@@ -192,7 +192,7 @@
 }
 
 - (void)setNavigationUIEnabled:(BOOL)isEnabled {
-  if (_fragmentType != NAVIGATION) {
+  if (_mapViewType != NAVIGATION) {
     return;
   }
   _mapView.navigationEnabled = isEnabled;
@@ -328,7 +328,7 @@
 #pragma mark - View Controller functions
 
 - (BOOL)attachToNavigationSession:(GMSNavigationSession *)session {
-  if (_fragmentType != NAVIGATION) {
+  if (_mapViewType != NAVIGATION) {
     return NO;
   }
   BOOL result = [_mapView enableNavigationWithSession:session];

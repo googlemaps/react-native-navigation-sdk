@@ -611,13 +611,13 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     int viewId = view.getId();
     Fragment fragment;
 
-    CustomTypes.FragmentType fragmentType =
-        EnumTranslationUtil.getFragmentTypeFromJsValue(
-            mapInitializationOptions.getInt("fragmentType"));
+    CustomTypes.MapViewType mapViewType =
+        EnumTranslationUtil.getMapViewTypeFromJsValue(
+            mapInitializationOptions.getInt("mapViewType"));
 
     GoogleMapOptions googleMapOptions = buildGoogleMapOptions(mapInitializationOptions);
 
-    if (fragmentType == CustomTypes.FragmentType.MAP) {
+    if (mapViewType == CustomTypes.MapViewType.MAP) {
       fragment = MapViewFragment.newInstance(reactContext, viewId, googleMapOptions);
     } else {
       NavViewFragment navFragment =

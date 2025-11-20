@@ -29,7 +29,7 @@ typedef void (^OnStringResult)(NSString *result);
 typedef void (^OnBooleanResult)(BOOL result);
 typedef void (^OnDictionaryResult)(NSDictionary *_Nullable result);
 typedef void (^OnArrayResult)(NSArray *_Nullable result);
-- (instancetype)initWithFragmentType:(FragmentType)fragmentType;
+- (instancetype)initWithMapViewType:(MapViewType)mapViewType;
 - (void)setStylingOptions:(nonnull NSDictionary *)stylingOptions;
 - (void)setMapId:(NSString *)mapId;
 - (void)getCameraPosition:(OnDictionaryResult)completionBlock;

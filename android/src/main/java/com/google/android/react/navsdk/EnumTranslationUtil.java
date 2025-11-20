@@ -89,11 +89,11 @@ public class EnumTranslationUtil {
     }
   }
 
-  public static CustomTypes.FragmentType getFragmentTypeFromJsValue(int jsValue) {
+  public static CustomTypes.MapViewType getMapViewTypeFromJsValue(int jsValue) {
     return switch (jsValue) {
-      case 0 -> CustomTypes.FragmentType.MAP;
-      case 1 -> CustomTypes.FragmentType.NAVIGATION;
-      default -> throw new IllegalStateException("Unexpected FragmentType value: " + jsValue);
+      case 0 -> CustomTypes.MapViewType.MAP;
+      case 1 -> CustomTypes.MapViewType.NAVIGATION;
+      default -> throw new IllegalStateException("Unexpected MapViewType value: " + jsValue);
     };
   }
 }

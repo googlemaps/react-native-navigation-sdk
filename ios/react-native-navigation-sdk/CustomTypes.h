@@ -16,7 +16,7 @@
 #ifndef CustomTypes_h
 #define CustomTypes_h
 
-typedef NS_ENUM(NSInteger, FragmentType) {
+typedef NS_ENUM(NSInteger, MapViewType) {
   MAP,
   NAVIGATION,
 };

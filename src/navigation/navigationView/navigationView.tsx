@@ -21,7 +21,7 @@ import { getNavigationViewController } from './navigationViewController';
 import type { NavigationViewProps } from './types';
 import {
   getMapViewController,
-  FragmentType,
+  MapViewType,
   type Circle,
   type GroundOverlay,
   type Marker,
@@ -141,7 +141,7 @@ export const NavigationView = (
         ref={onRefAssign}
         flex={1}
         mapInitializationOptions={{
-          fragmentType: FragmentType.NAVIGATION,
+          mapViewType: MapViewType.NAVIGATION,
           mapId: props.mapId,
           navigationStylingOptions:
             (Platform.OS === 'android'

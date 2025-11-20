@@ -48,11 +48,11 @@
   }
 }
 
-- (NavViewController *)initializeViewControllerWithFragmentType:(FragmentType)fragmentType
-                                                          mapId:(NSString *)mapId
-                                                 stylingOptions:(NSDictionary *)stylingOptions {
-  // Initialize view controller with the fragment type
-  _viewController = [[NavViewController alloc] initWithFragmentType:fragmentType];
+- (NavViewController *)initializeViewControllerWithMapViewType:(MapViewType)mapViewType
+                                                         mapId:(NSString *)mapId
+                                                stylingOptions:(NSDictionary *)stylingOptions {
+  // Initialize view controller with the map view type
+  _viewController = [[NavViewController alloc] initWithMapViewType:mapViewType];
 
   if (mapId) {
     [_viewController setMapId:mapId];

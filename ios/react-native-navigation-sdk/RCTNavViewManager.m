@@ -95,14 +95,14 @@ RCT_CUSTOM_VIEW_PROPERTY(mapInitializationOptions, NSDictionary *, NavView) {
     // Extract all properties and pass them to initialization method
     NSString *mapId = mapInitializationOptions[@"mapId"];
     NSDictionary *stylingOptions = mapInitializationOptions[@"navigationStylingOptions"];
-    NSNumber *fragmentTypeNumber = mapInitializationOptions[@"fragmentType"];
+    NSNumber *mapViewTypeNumber = mapInitializationOptions[@"mapViewType"];
 
-    if (fragmentTypeNumber) {
-      FragmentType fragmentType = (FragmentType)[fragmentTypeNumber integerValue];
+    if (mapViewTypeNumber) {
+      MapViewType mapViewType = (MapViewType)[mapViewTypeNumber integerValue];
       NavViewController *viewController =
-          [view initializeViewControllerWithFragmentType:fragmentType
-                                                   mapId:mapId
-                                          stylingOptions:stylingOptions];
+          [view initializeViewControllerWithMapViewType:mapViewType
+                                                  mapId:mapId
+                                         stylingOptions:stylingOptions];
       [self registerViewController:viewController forTag:view.reactTag];
     }
   }
