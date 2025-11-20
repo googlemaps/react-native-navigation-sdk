@@ -32,9 +32,10 @@
   NSMutableArray<GMSCircle *> *_circleList;
   NSMutableArray<GMSGroundOverlay *> *_groundOverlayList;
   NSDictionary *_stylingOptions;
+  NSString *_mapId;
+  BOOL _isNavigationEnabled;
+  id<INavigationViewCallback> _viewCallbacks;
 }
-
-@synthesize callbacks = _callbacks;
 
 - (void)loadView {
   [super loadView];
@@ -45,57 +46,71 @@
   _circleList = [[NSMutableArray alloc] init];
   _groundOverlayList = [[NSMutableArray alloc] init];
 
-  self->_mapView = [[GMSMapView alloc] initWithFrame:CGRectZero];
+  GMSMapViewOptions *options = [[GMSMapViewOptions alloc] init];
 
-  self.view = self->_mapView;
-  self->_mapView.delegate = self;
+  if (_mapId && ![_mapId isEqualToString:@""]) {
+    options.mapID = [GMSMapID mapIDWithIdentifier:_mapId];
+  }
+
+  _mapView = [[GMSMapView alloc] initWithOptions:options];
+
+  self.view = _mapView;
+  _mapView.delegate = self;
 
   NavModule *navModule = [NavModule sharedInstance];
   if (navModule != nil && [navModule hasSession]) {
     [self attachToNavigationSession:[navModule getSession]];
   }
   dispatch_async(dispatch_get_main_queue(), ^{
-    [self.callbacks handleMapReady];
+    [_viewCallbacks handleMapReady];
   });
 }
 
 - (void)mapViewDidTapRecenterButton:(GMSMapView *)mapView {
-  [self.callbacks handleRecenterButtonClick];
+  [_viewCallbacks handleRecenterButtonClick];
 }
 
 - (void)mapView:(GMSMapView *)mapView didTapInfoWindowOfMarker:(GMSMarker *)marker {
-  [self.callbacks handleMarkerInfoWindowTapped:marker];
+  [_viewCallbacks handleMarkerInfoWindowTapped:marker];
 }
 
 - (void)mapView:(GMSMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
-  [self.callbacks
+  [_viewCallbacks
       handleMapClick:[ObjectTranslationUtil transformCoordinateToDictionary:coordinate]];
 }
 
 - (BOOL)mapView:(GMSMapView *)mapView didTapMarker:(GMSMarker *)marker {
-  [self.callbacks handleMarkerClick:marker];
+  [_viewCallbacks handleMarkerClick:marker];
   return FALSE;
 }
 
 - (void)mapView:(GMSMapView *)mapView didTapOverlay:(GMSOverlay *)overlay {
   if ([overlay isKindOfClass:[GMSPolyline class]]) {
     GMSPolyline *polyline = (GMSPolyline *)overlay;
-    [self.callbacks handlePolylineClick:polyline];
+    [_viewCallbacks handlePolylineClick:polyline];
   } else if ([overlay isKindOfClass:[GMSPolygon class]]) {
     GMSPolygon *polygon = (GMSPolygon *)overlay;
-    [self.callbacks handlePolygonClick:polygon];
+    [_viewCallbacks handlePolygonClick:polygon];
   } else if ([overlay isKindOfClass:[GMSCircle class]]) {
     GMSCircle *circle = (GMSCircle *)overlay;
-    [self.callbacks handleCircleClick:circle];
+    [_viewCallbacks handleCircleClick:circle];
   } else if ([overlay isKindOfClass:[GMSGroundOverlay class]]) {
     GMSGroundOverlay *groundOverlay = (GMSGroundOverlay *)overlay;
-    [self.callbacks handleGroundOverlayClick:groundOverlay];
+    [_viewCallbacks handleGroundOverlayClick:groundOverlay];
   }
 }
 
 - (void)setStylingOptions:(nonnull NSDictionary *)stylingOptions {
   _stylingOptions = stylingOptions;
   [self applyStylingOptions];
+}
+
+- (void)setMapId:(NSString *)mapId {
+  _mapId = mapId;
+}
+
+- (void)setNavigationEnabled:(BOOL)isEnabled {
+  _isNavigationEnabled = isEnabled;
 }
 
 - (void)applyStylingOptions {
@@ -172,6 +187,9 @@
 }
 
 - (void)setNavigationUIEnabled:(BOOL)isEnabled {
+  if (!_isNavigationEnabled) {
+    return;
+  }
   _mapView.navigationEnabled = isEnabled;
 }
 
@@ -260,11 +278,23 @@
 }
 
 - (void)setShowTrafficLightsEnabled:(BOOL)isEnabled {
-  [_mapView.settings setShowsTrafficLights:isEnabled];
+  // setShowsTrafficLights: is deprecated in Google Maps SDK 10.1.0+.
+  // Traffic lights are shown by default.
+  if ([_mapView.settings respondsToSelector:@selector(setShowsTrafficLights:)]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    [_mapView.settings setShowsTrafficLights:isEnabled];
+#pragma clang diagnostic pop
+  }
 }
 
 - (void)setShowStopSignsEnabled:(BOOL)isEnabled {
+  // setShowStopSignsEnabled: is deprecated in Google Maps SDK 10.1.0+.
+  // Stop signs are shown by default.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   [_mapView.settings setShowsStopSigns:isEnabled];
+#pragma clang diagnostic pop
 }
 
 - (void)setMyLocationEnabled:(BOOL)isEnabled {
@@ -303,7 +333,7 @@
 }
 
 - (void)onPromptVisibilityChange:(BOOL)isVisible {
-  [self.callbacks handlePromptVisibilityChanged:isVisible];
+  [_viewCallbacks handlePromptVisibilityChanged:isVisible];
 }
 
 - (void)preferredContentSizeDidChangeForChildContentContainer:
@@ -314,8 +344,8 @@
        withTransitionCoordinator:(nonnull id<UIViewControllerTransitionCoordinator>)coordinator {
 }
 
-- (void)setNavigationCallbacks:(nonnull id<INavigationViewCallback>)fn {
-  self.callbacks = fn;
+- (void)setNavigationViewCallbacks:(nonnull id<INavigationViewCallback>)fn {
+  _viewCallbacks = fn;
 }
 
 // Maps SDK

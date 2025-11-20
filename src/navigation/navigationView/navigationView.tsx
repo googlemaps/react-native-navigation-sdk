@@ -140,12 +140,14 @@ export const NavigationView = (
       <NavViewManager
         ref={onRefAssign}
         flex={1}
-        fragmentType={FragmentType.NAVIGATION}
-        stylingOptions={
-          (Platform.OS === 'android'
-            ? androidStylingOptions
-            : iOSStylingOptions) || {}
-        }
+        mapInitializationOptions={{
+          fragmentType: FragmentType.NAVIGATION,
+          mapId: props.mapId,
+          navigationStylingOptions:
+            (Platform.OS === 'android'
+              ? androidStylingOptions
+              : iOSStylingOptions) || {},
+        }}
         onMapClick={onMapClick}
         onMapReady={onMapReady}
         onMarkerClick={onMarkerClick}

@@ -114,7 +114,10 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
       <NavViewManager
         ref={onRefAssign}
         flex={1}
-        fragmentType={FragmentType.MAP}
+        mapInitializationOptions={{
+          fragmentType: FragmentType.MAP,
+          mapId: props.mapId,
+        }}
         onMapClick={onMapClick}
         onMapReady={onMapReady}
         onMarkerClick={onMarkerClick}

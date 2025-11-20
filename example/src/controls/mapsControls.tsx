@@ -19,7 +19,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Text, TextInput, View } from 'react-native';
 
 import SelectDropdown from 'react-native-select-dropdown';
-import styles from '../styles';
+import { ControlStyles } from '../styles/components';
 import {
   type MapViewController,
   MapType,
@@ -215,7 +215,7 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
   return (
     <View>
       <TextInput
-        style={styles.input}
+        style={ControlStyles.input}
         onChangeText={onLatChanged}
         value={latitude}
         placeholder="Latitude"
@@ -223,7 +223,7 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
         keyboardType="numeric"
       />
       <TextInput
-        style={styles.input}
+        style={ControlStyles.input}
         onChangeText={onLngChanged}
         value={longitude}
         placeholder="Longitude"
@@ -256,7 +256,7 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
         onPress={getIsMyLocationEnabled}
       />
       <Button title="Get camera position" onPress={getCameraPositionClicked} />
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Location marker</Text>
         <Button
           title={enableLocationMarker ? 'Disable' : 'Enable'}
@@ -266,7 +266,7 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Map type</Text>
         <SelectDropdown
           data={mapTypeOptions}
@@ -275,8 +275,8 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
           }}
           renderButton={(selectedItem, _isOpened) => {
             return (
-              <View style={styles.dropdownButtonStyle}>
-                <Text style={styles.dropdownButtonTxtStyle}>
+              <View style={ControlStyles.dropdownButton}>
+                <Text style={ControlStyles.dropdownButtonText}>
                   {selectedItem || 'Select'}
                 </Text>
               </View>
@@ -285,20 +285,20 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
           renderItem={(item, _index, isSelected) => {
             return (
               <View
-                style={{
-                  ...styles.dropdownItemStyle,
-                  ...(isSelected && { backgroundColor: '#D2D9DF' }),
-                }}
+                style={[
+                  ControlStyles.dropdownItem,
+                  isSelected && ControlStyles.dropdownItemSelected,
+                ]}
               >
-                <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
               </View>
             );
           }}
-          dropdownStyle={styles.dropdownMenuStyle}
+          dropdownStyle={ControlStyles.dropdownMenu}
         />
       </View>
-      <View style={styles.controlButtonGap} />
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.controlButtonGap} />
+      <View style={ControlStyles.rowContainer}>
         <Text>Custom map paddings</Text>
         <Button
           title={customPaddingEnabled ? 'Disable' : 'Enable'}

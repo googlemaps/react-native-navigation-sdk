@@ -147,7 +147,7 @@ dependencies {
     implementation "androidx.car.app:app-projected:1.4.0"
 
     // Include the Google Navigation SDK.
-    implementation 'com.google.android.libraries.navigation:navigation:7.0.0'
+    implementation 'com.google.android.libraries.navigation:navigation:7.1.0'
 }
 
 secrets {

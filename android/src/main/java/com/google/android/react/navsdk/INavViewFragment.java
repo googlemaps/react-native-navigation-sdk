@@ -13,6 +13,8 @@
  */
 package com.google.android.react.navsdk;
 
+import com.google.android.libraries.navigation.StylingOptions;
+
 public interface INavViewFragment extends IMapViewFragment {
   void setNavigationUiEnabled(boolean enableNavigationUi);
 
@@ -35,4 +37,8 @@ public interface INavViewFragment extends IMapViewFragment {
   void setNightModeOption(int jsValue);
 
   void setReportIncidentButtonEnabled(boolean enabled);
+
+  void setStylingOptions(StylingOptions stylingOptions);
+
+  void applyStylingOptions();
 }

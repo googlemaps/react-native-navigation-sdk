@@ -38,7 +38,9 @@
 // Cleanup block that will be called when the view is removed from superview
 @property(nonatomic, copy) void (^cleanupBlock)(NSNumber *reactTag);
 
-- (NavViewController *)initializeViewControllerWithFragmentType:(FragmentType)fragmentType;
+- (NavViewController *)initializeViewControllerWithFragmentType:(FragmentType)fragmentType
+                                                          mapId:(NSString *)mapId
+                                                 stylingOptions:(NSDictionary *)stylingOptions;
 
 - (void)applyStylingOptions:(NSDictionary *)stylingOptions;
 - (NavViewController *)getViewController;

@@ -43,7 +43,8 @@ import {
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
 import OverlayModal from '../helpers/overlayModal';
-import styles from '../styles';
+import { CommonStyles, MapStyles } from '../styles/components';
+import { MapStylingOptions } from '../styles/mapStyling';
 import usePermissions from '../checkPermissions';
 
 // Utility function for showing Snackbar
@@ -293,26 +294,11 @@ const NavigationScreen = () => {
   };
 
   return arePermissionsApproved ? (
-    <View style={styles.container}>
+    <View style={CommonStyles.container}>
       <NavigationView
-        style={styles.map_view}
-        androidStylingOptions={{
-          primaryDayModeThemeColor: '#0076a8',
-          primaryNightModeThemeColor: '#3400a8',
-          secondaryDayModeThemeColor: '#0076a8',
-          secondaryNightModeThemeColor: '#3400a8',
-          headerLargeManeuverIconColor: '#f65308',
-          headerSmallManeuverIconColor: '#f65308',
-          headerDistanceValueTextColor: '#f65308',
-          headerInstructionsFirstRowTextSize: '18f',
-        }}
-        iOSStylingOptions={{
-          navigationHeaderPrimaryBackgroundColor: '#0076a8',
-          navigationHeaderPrimaryBackgroundColorNightMode: '#3400a8',
-          navigationHeaderSecondaryBackgroundColor: '#0076a8',
-          navigationHeaderSecondaryBackgroundColorNightMode: '#3400a8',
-          navigationHeaderDistanceValueTextColor: '#f65308',
-        }}
+        style={MapStyles.mapView}
+        androidStylingOptions={MapStylingOptions.android}
+        iOSStylingOptions={MapStylingOptions.iOS}
         navigationViewCallbacks={navigationViewCallbacks}
         mapViewCallbacks={mapViewCallbacks}
         onMapViewControllerCreated={setMapViewController}
@@ -353,7 +339,7 @@ const NavigationScreen = () => {
         </OverlayModal>
       )}
 
-      <View style={styles.controlButtons}>
+      <View style={CommonStyles.buttonRow}>
         <Button
           title="Navigation"
           onPress={onShowNavControlsClick}

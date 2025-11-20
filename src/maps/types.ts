@@ -168,5 +168,13 @@ export interface MapViewProps {
 
   readonly style?: StyleProp<ViewStyle> | undefined;
 
+  /**
+   * The map ID is used to associate your map with a particular style in the Google Cloud Console.
+   *
+   * This enables Cloud-based map styling for both navigation and regular maps.
+   * The map ID must be configured in your Google Cloud Console project before use.
+   */
+  readonly mapId?: string;
+
   onMapViewControllerCreated(mapViewController: MapViewController): void;
 }

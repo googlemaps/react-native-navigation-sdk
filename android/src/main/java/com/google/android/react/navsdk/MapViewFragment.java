@@ -25,7 +25,7 @@ import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.GroundOverlay;
@@ -33,9 +33,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.android.libraries.navigation.StylingOptions;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A fragment that displays a view with a Google Map using MapFragment. This fragment's lifecycle is
@@ -45,25 +42,23 @@ import java.util.List;
 public class MapViewFragment extends SupportMapFragment
     implements IMapViewFragment, INavigationViewCallback {
   private static final String TAG = "MapViewFragment";
-  private GoogleMap mGoogleMap;
-  private MapViewController mMapViewController;
-  private StylingOptions mStylingOptions;
-
-  private List<Marker> markerList = new ArrayList<>();
-  private List<Polyline> polylineList = new ArrayList<>();
-  private List<Polygon> polygonList = new ArrayList<>();
-  private List<GroundOverlay> groundOverlayList = new ArrayList<>();
-  private List<Circle> circleList = new ArrayList<>();
   private int viewTag; // React native view tag.
   private ReactApplicationContext reactContext;
+  private GoogleMap mGoogleMap;
+  private MapViewController mMapViewController;
 
-  public MapViewFragment(ReactApplicationContext reactContext, int viewTag) {
-    this.reactContext = reactContext;
-    this.viewTag = viewTag;
+  public static MapViewFragment newInstance(
+      ReactApplicationContext reactContext, int viewTag, @NonNull GoogleMapOptions mapOptions) {
+    MapViewFragment fragment = new MapViewFragment();
+    Bundle args = new Bundle();
+    args.putParcelable("MapOptions", mapOptions);
+
+    fragment.setArguments(args);
+    fragment.reactContext = reactContext;
+    fragment.viewTag = viewTag;
+
+    return fragment;
   }
-  ;
-
-  private String style = "";
 
   @SuppressLint("MissingPermission")
   @Override
@@ -71,17 +66,21 @@ public class MapViewFragment extends SupportMapFragment
     super.onViewCreated(view, savedInstanceState);
 
     getMapAsync(
-        new OnMapReadyCallback() {
-          public void onMapReady(GoogleMap googleMap) {
-            mGoogleMap = googleMap;
+        googleMap -> {
+          mGoogleMap = googleMap;
 
-            mMapViewController = new MapViewController();
-            mMapViewController.initialize(googleMap, () -> requireActivity());
+          mMapViewController = new MapViewController();
+          mMapViewController.initialize(googleMap, this::requireActivity);
 
-            // Setup map listeners with the provided callback
-            mMapViewController.setupMapListeners(MapViewFragment.this);
+          // Setup map listeners with the provided callback
+          mMapViewController.setupMapListeners(MapViewFragment.this);
 
-            emitEvent("onMapReady", null);
+          emitEvent("onMapReady", null);
+
+          // Request layout to ensure fragment is properly sized
+          View fragmentView = getView();
+          if (fragmentView != null) {
+            fragmentView.requestLayout();
           }
         });
   }
@@ -129,10 +128,6 @@ public class MapViewFragment extends SupportMapFragment
   public MapViewController getMapController() {
     return mMapViewController;
   }
-
-  public void applyStylingOptions() {}
-
-  public void setStylingOptions(StylingOptions stylingOptions) {}
 
   public void setMapStyle(String url) {
     mMapViewController.setMapStyle(url);

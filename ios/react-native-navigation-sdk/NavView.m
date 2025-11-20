@@ -13,7 +13,9 @@
 // limitations under the License.
 
 #import "NavView.h"
+#import <GoogleMaps/GoogleMaps.h>
 #import "NavViewController.h"
+#import "ObjectTranslationUtil.h"
 
 @interface NavView ()
 
@@ -52,12 +54,20 @@
   }
 }
 
-- (NavViewController *)initializeViewControllerWithFragmentType:(FragmentType)fragmentType {
-  // FragmentType 0 = MAP, 1 = NAVIGATION.
-  _viewController.isNavigationEnabled = fragmentType == NAVIGATION;
-  // Test if styling options is not nil
+- (NavViewController *)initializeViewControllerWithFragmentType:(FragmentType)fragmentType
+                                                          mapId:(NSString *)mapId
+                                                 stylingOptions:(NSDictionary *)stylingOptions {
+  [_viewController setNavigationEnabled:(fragmentType == NAVIGATION)];
 
-  [_viewController setNavigationCallbacks:self];
+  if (mapId) {
+    [_viewController setMapId:mapId];
+  }
+
+  if (stylingOptions && [stylingOptions count] > 0) {
+    [_viewController setStylingOptions:stylingOptions];
+  }
+
+  [_viewController setNavigationViewCallbacks:self];
   [self addSubview:_viewController.view];
 
   _viewController.view.translatesAutoresizingMaskIntoConstraints = NO;
@@ -147,8 +157,8 @@
 - (void)willMoveToSuperview:(UIView *)newSuperview {
   [super willMoveToSuperview:newSuperview];
   if (newSuperview == nil && _viewController && self.cleanupBlock) {
-    // As newSuperview is nil, the view is being removed from its superview, call the cleanup block
-    // provided by the view manager
+    // As newSuperview is nil, the view is being removed from its superview,
+    // call the cleanup block provided by the view manager
     self.cleanupBlock(self.reactTag);
     _viewController = nil;
   }

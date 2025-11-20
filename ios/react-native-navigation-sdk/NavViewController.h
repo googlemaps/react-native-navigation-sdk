@@ -23,14 +23,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface NavViewController : UIViewController <GMSMapViewNavigationUIDelegate, GMSMapViewDelegate>
 
-@property(weak, nonatomic) id<INavigationViewCallback> callbacks;
-@property(nonatomic, assign) BOOL isNavigationEnabled;
 typedef void (^RouteStatusCallback)(GMSRouteStatus routeStatus);
 typedef void (^OnStringResult)(NSString *result);
 typedef void (^OnBooleanResult)(BOOL result);
 typedef void (^OnDictionaryResult)(NSDictionary *_Nullable result);
 typedef void (^OnArrayResult)(NSArray *_Nullable result);
 - (void)setStylingOptions:(nonnull NSDictionary *)stylingOptions;
+- (void)setMapId:(NSString *)mapId;
+- (void)setNavigationEnabled:(BOOL)isEnabled;
 - (void)getCameraPosition:(OnDictionaryResult)completionBlock;
 - (void)getMyLocation:(OnDictionaryResult)completionBlock;
 - (void)getUiSettings:(OnDictionaryResult)completionBlock;
@@ -44,7 +44,7 @@ typedef void (^OnArrayResult)(NSArray *_Nullable result);
 - (void)setSpeedometerEnabled:(BOOL)isEnabled;
 - (void)setSpeedLimitIconEnabled:(BOOL)isEnabled;
 - (void)setZoomLevel:(NSNumber *)level;
-- (void)setNavigationCallbacks:(id<INavigationViewCallback>)fn;
+- (void)setNavigationViewCallbacks:(id<INavigationViewCallback>)fn;
 - (void)setIndoorEnabled:(BOOL)isEnabled;
 - (void)setTrafficEnabled:(BOOL)isEnabled;
 - (void)setCompassEnabled:(BOOL)isEnabled;

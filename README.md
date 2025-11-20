@@ -287,6 +287,7 @@ in an unbounded widget will cause the application to behave unexpectedly.
 // Permissions must have been granted by this point.
 
 <NavigationView
+    mapId="your-map-id-here" // Optional: Your map ID configured in Google Cloud Console
     androidStylingOptions={{
         primaryDayModeThemeColor: '#34eba8',
         headerDistanceValueTextColor: '#76b5c5',
@@ -310,6 +311,7 @@ You can also add a bare `MapView` that works as a normal map view without naviga
 
 ```tsx
 <MapView
+    mapId="your-map-id-here" // Optional: Your map ID configured in Google Cloud Console
     mapViewCallbacks={mapViewCallbacks}
     onMapViewControllerCreated={setMapViewController}
 />
