@@ -16,6 +16,7 @@
 
 #import "NavViewController.h"
 #import <React/RCTLog.h>
+#import "CustomTypes.h"
 #import "NavModule.h"
 #import "ObjectTranslationUtil.h"
 #import "UIColor+Util.h"
@@ -33,8 +34,16 @@
   NSMutableArray<GMSGroundOverlay *> *_groundOverlayList;
   NSDictionary *_stylingOptions;
   NSString *_mapId;
-  BOOL _isNavigationEnabled;
+  FragmentType _fragmentType;
   id<INavigationViewCallback> _viewCallbacks;
+}
+
+- (instancetype)initWithFragmentType:(FragmentType)fragmentType {
+  self = [super init];
+  if (self) {
+    _fragmentType = fragmentType;
+  }
+  return self;
 }
 
 - (void)loadView {
@@ -107,10 +116,6 @@
 
 - (void)setMapId:(NSString *)mapId {
   _mapId = mapId;
-}
-
-- (void)setNavigationEnabled:(BOOL)isEnabled {
-  _isNavigationEnabled = isEnabled;
 }
 
 - (void)applyStylingOptions {
@@ -187,7 +192,7 @@
 }
 
 - (void)setNavigationUIEnabled:(BOOL)isEnabled {
-  if (!_isNavigationEnabled) {
+  if (_fragmentType != NAVIGATION) {
     return;
   }
   _mapView.navigationEnabled = isEnabled;
@@ -323,7 +328,7 @@
 #pragma mark - View Controller functions
 
 - (BOOL)attachToNavigationSession:(GMSNavigationSession *)session {
-  if (!_isNavigationEnabled) {
+  if (_fragmentType != NAVIGATION) {
     return NO;
   }
   BOOL result = [_mapView enableNavigationWithSession:session];

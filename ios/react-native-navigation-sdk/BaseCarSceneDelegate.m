@@ -16,6 +16,7 @@
 #import "BaseCarSceneDelegate.h"
 #import <CarPlay/CarPlay.h>
 #import <Foundation/Foundation.h>
+#import "CustomTypes.h"
 #import "NavAutoModule.h"
 #import "NavModule.h"
 
@@ -29,8 +30,7 @@
   self.mapTemplate = [self getTemplate];
   self.mapTemplate.mapDelegate = self;
 
-  self.navViewController = [[NavViewController alloc] init];
-  [self.navViewController setNavigationEnabled:YES];
+  self.navViewController = [[NavViewController alloc] initWithFragmentType:NAVIGATION];
   self.carWindow.rootViewController = self.navViewController;
   [self.interfaceController setRootTemplate:self.mapTemplate animated:YES completion:nil];
   [NavModule registerNavigationSessionReadyCallback:^{

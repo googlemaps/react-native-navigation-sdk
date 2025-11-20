@@ -27,17 +27,11 @@
 
 - (instancetype)initWithFrame:(CGRect)frame {
   self = [super initWithFrame:frame];
-  if (self) {
-    _viewController = [[NavViewController alloc] init];
-  }
   return self;
 }
 
 - (instancetype)initWithCoder:(NSCoder *)coder {
   self = [super initWithCoder:coder];
-  if (self) {
-    _viewController = [[NavViewController alloc] init];
-  }
   return self;
 }
 
@@ -57,7 +51,8 @@
 - (NavViewController *)initializeViewControllerWithFragmentType:(FragmentType)fragmentType
                                                           mapId:(NSString *)mapId
                                                  stylingOptions:(NSDictionary *)stylingOptions {
-  [_viewController setNavigationEnabled:(fragmentType == NAVIGATION)];
+  // Initialize view controller with the fragment type
+  _viewController = [[NavViewController alloc] initWithFragmentType:fragmentType];
 
   if (mapId) {
     [_viewController setMapId:mapId];

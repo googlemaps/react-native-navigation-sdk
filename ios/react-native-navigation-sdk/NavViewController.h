@@ -15,6 +15,7 @@
  */
 
 #import <UIKit/UIKit.h>
+#import "CustomTypes.h"
 #import "INavigationViewCallback.h"
 #import "ObjectTranslationUtil.h"
 @import GoogleNavigation;
@@ -28,9 +29,9 @@ typedef void (^OnStringResult)(NSString *result);
 typedef void (^OnBooleanResult)(BOOL result);
 typedef void (^OnDictionaryResult)(NSDictionary *_Nullable result);
 typedef void (^OnArrayResult)(NSArray *_Nullable result);
+- (instancetype)initWithFragmentType:(FragmentType)fragmentType;
 - (void)setStylingOptions:(nonnull NSDictionary *)stylingOptions;
 - (void)setMapId:(NSString *)mapId;
-- (void)setNavigationEnabled:(BOOL)isEnabled;
 - (void)getCameraPosition:(OnDictionaryResult)completionBlock;
 - (void)getMyLocation:(OnDictionaryResult)completionBlock;
 - (void)getUiSettings:(OnDictionaryResult)completionBlock;
