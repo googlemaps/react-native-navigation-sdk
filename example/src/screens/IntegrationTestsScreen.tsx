@@ -31,7 +31,7 @@ import {
   NavigationView,
   useNavigation,
 } from '@googlemaps/react-native-navigation-sdk';
-import styles from '../styles';
+import { CommonStyles, ControlStyles } from '../styles/components';
 import OverlayModal from '../helpers/overlayModal';
 import {
   testMapInitialization,
@@ -220,7 +220,7 @@ const IntegrationTestsScreen = () => {
   }, [testStatus, detoxStepNumber]);
 
   return (
-    <View style={styles.container}>
+    <View style={CommonStyles.container}>
       <Text>See CONTRIBUTING.md to see how to run integration tests.</Text>
       <View style={{ flex: 6, margin: 5 }}>
         <NavigationView
@@ -241,7 +241,7 @@ const IntegrationTestsScreen = () => {
           }}
         />
       </View>
-      <View style={styles.controlButtons}>
+      <View style={ControlStyles.controlButtons}>
         <Button
           title="Tests"
           testID="tests_menu_button"

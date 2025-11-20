@@ -19,7 +19,7 @@ import { StyleSheet, View, findNodeHandle } from 'react-native';
 import { NavViewManager, type LatLng } from '../../shared';
 import {
   getMapViewController,
-  FragmentType,
+  MapViewType,
   type Circle,
   type GroundOverlay,
   type MapViewProps,
@@ -114,7 +114,10 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
       <NavViewManager
         ref={onRefAssign}
         flex={1}
-        fragmentType={FragmentType.MAP}
+        mapInitializationOptions={{
+          mapViewType: MapViewType.MAP,
+          mapId: props.mapId,
+        }}
         onMapClick={onMapClick}
         onMapReady={onMapReady}
         onMarkerClick={onMarkerClick}

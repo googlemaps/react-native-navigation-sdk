@@ -14,7 +14,7 @@
 package com.google.android.react.navsdk;
 
 public class CustomTypes {
-  public enum FragmentType {
+  public enum MapViewType {
     MAP,
     NAVIGATION
   }

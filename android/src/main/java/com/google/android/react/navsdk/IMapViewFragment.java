@@ -15,14 +15,9 @@ package com.google.android.react.navsdk;
 
 import android.view.View;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.libraries.navigation.StylingOptions;
 
 public interface IMapViewFragment {
   MapViewController getMapController();
-
-  void setStylingOptions(StylingOptions stylingOptions);
-
-  void applyStylingOptions();
 
   void setMapStyle(String url);
 

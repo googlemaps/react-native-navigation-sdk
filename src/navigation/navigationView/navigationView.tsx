@@ -21,7 +21,7 @@ import { getNavigationViewController } from './navigationViewController';
 import type { NavigationViewProps } from './types';
 import {
   getMapViewController,
-  FragmentType,
+  MapViewType,
   type Circle,
   type GroundOverlay,
   type Marker,
@@ -140,12 +140,14 @@ export const NavigationView = (
       <NavViewManager
         ref={onRefAssign}
         flex={1}
-        fragmentType={FragmentType.NAVIGATION}
-        stylingOptions={
-          (Platform.OS === 'android'
-            ? androidStylingOptions
-            : iOSStylingOptions) || {}
-        }
+        mapInitializationOptions={{
+          mapViewType: MapViewType.NAVIGATION,
+          mapId: props.mapId,
+          navigationStylingOptions:
+            (Platform.OS === 'android'
+              ? androidStylingOptions
+              : iOSStylingOptions) || {},
+        }}
         onMapClick={onMapClick}
         onMapReady={onMapReady}
         onMarkerClick={onMarkerClick}

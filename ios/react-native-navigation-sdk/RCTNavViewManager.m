@@ -88,21 +88,24 @@ RCT_EXPORT_VIEW_PROPERTY(onCircleClick, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onGroundOverlayClick, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onPromptVisibilityChanged, RCTDirectEventBlock);
 
-RCT_CUSTOM_VIEW_PROPERTY(fragmentType, NSNumber *, NavView) {
+RCT_CUSTOM_VIEW_PROPERTY(mapInitializationOptions, NSDictionary *, NavView) {
   if (json && json != (id)kCFNull) {
-    FragmentType fragmentType = (FragmentType)[json integerValue];
-    NavViewController *viewController =
-        [view initializeViewControllerWithFragmentType:fragmentType];
-    [self registerViewController:viewController forTag:view.reactTag];
-  }
-}
+    NSDictionary *mapInitializationOptions = [RCTConvert NSDictionary:json];
 
-RCT_CUSTOM_VIEW_PROPERTY(stylingOptions, NSDictionary *, NavView) {
-  NSDictionary *options = nil;
-  if (json && json != (id)kCFNull) {
-    options = [RCTConvert NSDictionary:json];
+    // Extract all properties and pass them to initialization method
+    NSString *mapId = mapInitializationOptions[@"mapId"];
+    NSDictionary *stylingOptions = mapInitializationOptions[@"navigationStylingOptions"];
+    NSNumber *mapViewTypeNumber = mapInitializationOptions[@"mapViewType"];
+
+    if (mapViewTypeNumber) {
+      MapViewType mapViewType = (MapViewType)[mapViewTypeNumber integerValue];
+      NavViewController *viewController =
+          [view initializeViewControllerWithMapViewType:mapViewType
+                                                  mapId:mapId
+                                         stylingOptions:stylingOptions];
+      [self registerViewController:viewController forTag:view.reactTag];
+    }
   }
-  [view applyStylingOptions:options];
 }
 
 RCT_EXPORT_METHOD(moveCamera

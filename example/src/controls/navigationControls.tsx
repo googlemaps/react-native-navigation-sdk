@@ -28,7 +28,7 @@ import {
 } from '@googlemaps/react-native-navigation-sdk';
 import SelectDropdown from 'react-native-select-dropdown';
 
-import styles from '../styles';
+import { ControlStyles } from '../styles/components';
 
 export interface NavigationControlsProps {
   readonly navigationController: NavigationController;
@@ -200,18 +200,6 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     });
   };
 
-  const toggleTripProgressBarEnabled = (isOn: boolean) => {
-    console.log('setTripProgressBarEnabled', isOn);
-    setTripProgressBarEnabled(isOn);
-    navigationViewController.setTripProgressBarEnabled(isOn);
-  };
-
-  const toggleReportIncidentButtonEnabled = (isOn: boolean) => {
-    console.log('setReportIncidentButtonEnabled', isOn);
-    setReportIncidentButtonEnabled(isOn);
-    navigationViewController.setReportIncidentButtonEnabled(isOn);
-  };
-
   const toggleSpeedLimitIconEnabled = (isOn: boolean) => {
     console.log('setSpeedLimitIconEnabled', isOn);
     setSpeedLimitIconEnabled(isOn);
@@ -329,7 +317,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     <View>
       <Text>Target</Text>
       <TextInput
-        style={styles.input}
+        style={ControlStyles.input}
         onChangeText={onLatChanged}
         value={latitude}
         placeholder="Latitude"
@@ -337,7 +325,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         keyboardType="numeric"
       />
       <TextInput
-        style={styles.input}
+        style={ControlStyles.input}
         onChangeText={onLngChanged}
         value={longitude}
         placeholder="Longitude"
@@ -353,7 +341,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         onPress={simulateLocation}
       />
       <Button title="Set target as Destination" onPress={initWaypoint} />
-      <View style={styles.controlButtonGap} />
+      <View style={ControlStyles.controlButtonGap} />
       <Button title="Set multiple destinations" onPress={initWaypoints} />
       <Button title="Dispose navigation" onPress={disposeNavigation} />
       <Button
@@ -383,25 +371,31 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       />
       <Button title="Get route segments" onPress={getRouteSegments} />
       <Button title="Get traveled path" onPress={getTraveledPath} />
-      <View style={styles.rowContainer}>
-        <Text>Trip progress</Text>
+      <View style={ControlStyles.rowContainer}>
+        <Text>Toggle trip progress bar</Text>
         <Button
           title={tripProgressBarEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
-            toggleTripProgressBarEnabled(!tripProgressBarEnabled);
+            setTripProgressBarEnabled(!tripProgressBarEnabled);
+            navigationViewController.setTripProgressBarEnabled(
+              !tripProgressBarEnabled
+            );
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
-        <Text>Report incident button</Text>
+      <View style={ControlStyles.rowContainer}>
+        <Text>Toggle report incident button</Text>
         <Button
           title={reportIncidentButtonEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
-            toggleReportIncidentButtonEnabled(!reportIncidentButtonEnabled);
+            setReportIncidentButtonEnabled(!reportIncidentButtonEnabled);
+            navigationViewController.setReportIncidentButtonEnabled(
+              !reportIncidentButtonEnabled
+            );
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Speed limit icon</Text>
         <Button
           title={speedLimitIconEnabled ? 'Disable' : 'Enable'}
@@ -410,7 +404,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Speedometer</Text>
         <Button
           title={speedometerEnabled ? 'Disable' : 'Enable'}
@@ -419,7 +413,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Traffic incidents card</Text>
         <Button
           title={trafficIncidentCardsEnabled ? 'Disable' : 'Enable'}
@@ -428,7 +422,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Navigation UI</Text>
         <Button
           title={navigationUiEnabled ? 'Disable' : 'Enable'}
@@ -437,7 +431,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Turn-by-turn logging</Text>
         <Button
           title={turnByTurnLoggingEnabled ? 'Disable' : 'Enable'}
@@ -447,7 +441,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         />
       </View>
       {Platform.OS === 'ios' ? (
-        <View style={styles.rowContainer}>
+        <View style={ControlStyles.rowContainer}>
           <Text>Background location updates</Text>
           <Button
             title={backgroundLocationUpdatesEnabled ? 'Disable' : 'Enable'}
@@ -459,7 +453,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           />
         </View>
       ) : null}
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Recenter button</Text>
         <Button
           title={recenterButtonEnabled ? 'Disable' : 'Enable'}
@@ -468,7 +462,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Header enabled</Text>
         <Button
           title={headerEnabled ? 'Disable' : 'Enable'}
@@ -477,7 +471,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Footer enabled</Text>
         <Button
           title={footerEnabled ? 'Disable' : 'Enable'}
@@ -486,7 +480,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Night mode </Text>
         <SelectDropdown
           data={nightModeOptions}
@@ -495,8 +489,8 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
           renderButton={(selectedItem, _isOpened) => {
             return (
-              <View style={styles.dropdownButtonStyle}>
-                <Text style={styles.dropdownButtonTxtStyle}>
+              <View style={ControlStyles.dropdownButton}>
+                <Text style={ControlStyles.dropdownButtonText}>
                   {selectedItem || 'Select'}
                 </Text>
               </View>
@@ -505,19 +499,19 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           renderItem={(item, _index, isSelected) => {
             return (
               <View
-                style={{
-                  ...styles.dropdownItemStyle,
-                  ...(isSelected && { backgroundColor: '#D2D9DF' }),
-                }}
+                style={[
+                  ControlStyles.dropdownItem,
+                  isSelected && ControlStyles.dropdownItemSelected,
+                ]}
               >
-                <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
               </View>
             );
           }}
-          dropdownStyle={styles.dropdownMenuStyle}
+          dropdownStyle={ControlStyles.dropdownMenu}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Audio guidance type </Text>
         <SelectDropdown
           data={audioGuidanceOptions}
@@ -526,8 +520,8 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
           renderButton={(selectedItem, _isOpened) => {
             return (
-              <View style={styles.dropdownButtonStyle}>
-                <Text style={styles.dropdownButtonTxtStyle}>
+              <View style={ControlStyles.dropdownButton}>
+                <Text style={ControlStyles.dropdownButtonText}>
                   {selectedItem || 'Select'}
                 </Text>
               </View>
@@ -536,19 +530,19 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           renderItem={(item, _index, isSelected) => {
             return (
               <View
-                style={{
-                  ...styles.dropdownItemStyle,
-                  ...(isSelected && { backgroundColor: '#D2D9DF' }),
-                }}
+                style={[
+                  ControlStyles.dropdownItem,
+                  isSelected && ControlStyles.dropdownItemSelected,
+                ]}
               >
-                <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
               </View>
             );
           }}
-          dropdownStyle={styles.dropdownMenuStyle}
+          dropdownStyle={ControlStyles.dropdownMenu}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Camera perspective</Text>
         <SelectDropdown
           data={perspectiveOptions}
@@ -565,8 +559,8 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
           renderButton={(selectedItem, _isOpened) => {
             return (
-              <View style={styles.dropdownButtonStyle}>
-                <Text style={styles.dropdownButtonTxtStyle}>
+              <View style={ControlStyles.dropdownButton}>
+                <Text style={ControlStyles.dropdownButtonText}>
                   {selectedItem || 'Select'}
                 </Text>
               </View>
@@ -575,16 +569,16 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           renderItem={(item, _index, isSelected) => {
             return (
               <View
-                style={{
-                  ...styles.dropdownItemStyle,
-                  ...(isSelected && { backgroundColor: '#D2D9DF' }),
-                }}
+                style={[
+                  ControlStyles.dropdownItem,
+                  isSelected && ControlStyles.dropdownItemSelected,
+                ]}
               >
-                <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
               </View>
             );
           }}
-          dropdownStyle={styles.dropdownMenuStyle}
+          dropdownStyle={ControlStyles.dropdownMenu}
         />
       </View>
     </View>

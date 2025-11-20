@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-import type { StyleProp, ViewStyle } from 'react-native';
-import type {
-  MapViewCallbacks,
-  MapViewController,
-} from '../../maps/mapView/types';
 import type {
   AndroidStylingOptions,
   iOSStylingOptions,
 } from './stylingOptions';
+import type { MapViewProps } from '../../maps/types';
 
 /**
  * The perspective that the camera will be looking at the GoogleMap.
@@ -57,19 +53,15 @@ export interface NavigationViewCallbacks {
  * `NavigationViewProps` interface extends `MapViewProps` to provide
  * additional methods focused on managing navigation events and state changes.
  */
-export interface NavigationViewProps {
+export interface NavigationViewProps extends MapViewProps {
   readonly androidStylingOptions?: AndroidStylingOptions;
   readonly iOSStylingOptions?: iOSStylingOptions;
 
   readonly navigationViewCallbacks?: NavigationViewCallbacks;
-  readonly mapViewCallbacks?: MapViewCallbacks;
-
-  readonly style?: StyleProp<ViewStyle> | undefined;
 
   onNavigationViewControllerCreated(
     navigationViewController: NavigationViewController
   ): void;
-  onMapViewControllerCreated(mapViewController: MapViewController): void;
 }
 
 /**
@@ -145,12 +137,30 @@ export interface NavigationViewController {
   showRouteOverview(): void;
 
   /**
-   * Sets the night mode setting according to the provided index.
+   * Sets the night mode setting for the navigation UI.
    *
-   * @param index - The index representing the desired night mode
-   * setting.
+   * This controls whether the navigation UI should be displayed in day or night mode,
+   * affecting the color scheme and visibility of UI elements.
+   *
+   * @param mode - The night mode setting to apply. Valid values are:
+   *   - `0` (AUTO): The Navigation SDK automatically determines the appropriate
+   *     day or night mode according to the user's location and local time.
+   *   - `1` (FORCE_DAY): Forces day mode regardless of time or location.
+   *   - `2` (FORCE_NIGHT): Forces night mode regardless of time or location.
+   *
+   * @example
+   * ```typescript
+   * // Auto mode - SDK determines day/night based on location and time
+   * navigationViewController.setNightMode(0);
+   *
+   * // Force day mode
+   * navigationViewController.setNightMode(1);
+   *
+   * // Force night mode
+   * navigationViewController.setNightMode(2);
+   * ```
    */
-  setNightMode(index: number): void;
+  setNightMode(mode: number): void;
 
   /**
    * Set the camera perspective mode for the map.
