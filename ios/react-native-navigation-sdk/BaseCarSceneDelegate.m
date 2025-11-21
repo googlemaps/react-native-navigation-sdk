@@ -69,7 +69,7 @@
 - (void)attachSession {
   if ([NavModule sharedInstance] != nil && [[NavModule sharedInstance] hasSession] &&
       !_sessionAttached) {
-    [self.navViewController attachToNavigationSession:[[NavModule sharedInstance] getSession]];
+    [self.navViewController attachToNavigationSessionIfNeeded];
     [self.navViewController setHeaderEnabled:NO];
     [self.navViewController setRecenterButtonEnabled:NO];
     [self.navViewController setFooterEnabled:NO];

@@ -22,7 +22,8 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NavViewModule : NSObject <RCTBridgeModule>
 @property(nonatomic, strong) NSMapTable<NSNumber *, NavViewController *> *viewControllers;
 
-- (void)attachViewsToNavigationSession:(GMSNavigationSession *)session;
+- (void)attachViewsToNavigationSession;
+- (void)navigationSessionDestroyed;
 - (void)informPromptVisibilityChange:(BOOL)visible;
 - (void)setTravelMode:(GMSNavigationTravelMode)travelMode;
 

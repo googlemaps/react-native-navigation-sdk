@@ -151,10 +151,24 @@
 
 - (void)willMoveToSuperview:(UIView *)newSuperview {
   [super willMoveToSuperview:newSuperview];
-  if (newSuperview == nil && _viewController && self.cleanupBlock) {
-    // As newSuperview is nil, the view is being removed from its superview,
-    // call the cleanup block provided by the view manager
+  if (newSuperview == nil && _viewController) {
+    // View is being removed from hierarchy, cleanup the view controller
+    [self cleanup];
+  }
+}
+
+- (void)dealloc {
+  [self cleanup];
+}
+
+- (void)cleanup {
+  if (self.cleanupBlock) {
     self.cleanupBlock(self.reactTag);
+    self.cleanupBlock = nil;
+  }
+
+  if (_viewController) {
+    [_viewController.view removeFromSuperview];
     _viewController = nil;
   }
 }
