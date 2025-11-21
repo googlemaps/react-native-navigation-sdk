@@ -18,6 +18,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Button, Text, View } from 'react-native';
 import Snackbar from 'react-native-snackbar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   type Circle,
@@ -80,6 +81,7 @@ const IntegrationTestsScreen = () => {
   const [failureMessage, setFailuremessage] = useState('');
   const [navigationViewController, setNavigationViewController] =
     useState<NavigationViewController | null>(null);
+  const insets = useSafeAreaInsets();
 
   const onMapReady = useCallback(async () => {
     console.log('Map is ready, initializing navigator...');
@@ -220,7 +222,7 @@ const IntegrationTestsScreen = () => {
   }, [testStatus, detoxStepNumber]);
 
   return (
-    <View style={CommonStyles.container}>
+    <View style={[CommonStyles.container, { paddingBottom: insets.bottom }]}>
       <Text>See CONTRIBUTING.md to see how to run integration tests.</Text>
       <View style={{ flex: 6, margin: 5 }}>
         <NavigationView

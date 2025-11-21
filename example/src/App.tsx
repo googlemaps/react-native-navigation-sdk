@@ -21,6 +21,7 @@ import {
   useNavigation as useAppNavigation,
   type NavigationProp,
 } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Button, Text } from 'react-native';
 import { CommonStyles } from './styles/components';
@@ -48,6 +49,7 @@ export type StackNavigation = NavigationProp<RootStackParamList>;
 const HomeScreen = () => {
   const { navigate } = useAppNavigation<StackNavigation>();
   const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
   const [sdkVersion, setSdkVersion] = useState<string>('');
 
   const { navigationController } = useNavigation();
@@ -67,7 +69,7 @@ const HomeScreen = () => {
   }, [navigationController]);
 
   return (
-    <View style={CommonStyles.centered}>
+    <View style={[CommonStyles.centered, { paddingBottom: insets.bottom }]}>
       {/* SDK Version Display */}
       <View style={{ padding: 16, alignItems: 'center' }}>
         <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>
