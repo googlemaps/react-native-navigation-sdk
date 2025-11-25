@@ -17,6 +17,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Button, View } from 'react-native';
 import Snackbar from 'react-native-snackbar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   NavigationInitErrorCode,
@@ -61,6 +62,7 @@ enum OverlayType {
 
 const NavigationScreen = () => {
   const { arePermissionsApproved } = usePermissions();
+  const insets = useSafeAreaInsets();
   const [overlayType, setOverlayType] = useState<OverlayType>(OverlayType.None);
   const [mapViewController, setMapViewController] =
     useState<MapViewController | null>(null);
@@ -294,7 +296,7 @@ const NavigationScreen = () => {
   };
 
   return arePermissionsApproved ? (
-    <View style={CommonStyles.container}>
+    <View style={[CommonStyles.container, { paddingBottom: insets.bottom }]}>
       <NavigationView
         style={MapStyles.mapView}
         androidStylingOptions={MapStylingOptions.android}

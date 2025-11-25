@@ -34,6 +34,7 @@ import {
   type NavigationViewCallbacks,
   useNavigation,
 } from '@googlemaps/react-native-navigation-sdk';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import usePermissions from '../checkPermissions';
 
 const MapIdScreen = () => {
@@ -43,7 +44,7 @@ const MapIdScreen = () => {
     useState<NavigationViewController | null>(null);
   const [navigationUiEnabled, setNavigationUIEnabled] = useState(true);
   const [nightMode, setNightMode] = useState<number>(0); // 0: Auto, 1: Force Day, 2: Force Night
-
+  const insets = useSafeAreaInsets();
   const { arePermissionsApproved } = usePermissions();
   const { navigationController, addListeners, removeListeners } =
     useNavigation();
@@ -172,7 +173,7 @@ const MapIdScreen = () => {
   return (
     <ScrollView
       style={CommonStyles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: insets.bottom }]}
     >
       {confirmedMapId === null ? (
         // Configuration screen

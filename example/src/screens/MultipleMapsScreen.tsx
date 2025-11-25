@@ -26,6 +26,7 @@ import PagerView, {
   type PagerViewOnPageSelectedEvent,
 } from 'react-native-pager-view';
 import Snackbar from 'react-native-snackbar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   NavigationInitErrorCode,
@@ -66,6 +67,7 @@ enum OverlayType {
 }
 
 const MultipleMapsScreen = () => {
+  const insets = useSafeAreaInsets();
   const [mapsVisible, setMapsVisible] = useState(true);
   const { arePermissionsApproved } = usePermissions();
   const [overlayType, setOverlayType] = useState<OverlayType>(OverlayType.None);
@@ -80,10 +82,6 @@ const MultipleMapsScreen = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const { navigationController, addListeners, removeListeners } =
     useNavigation();
-
-  useEffect(() => {
-    console.log('mapViewController1 changed', mapViewController1);
-  }, [mapViewController1]);
 
   const onArrival = useCallback(
     (event: ArrivalEvent) => {
@@ -303,7 +301,7 @@ const MultipleMapsScreen = () => {
   }, []);
 
   return arePermissionsApproved ? (
-    <View style={CommonStyles.container}>
+    <View style={[CommonStyles.container, { paddingBottom: insets.bottom }]}>
       <View style={CommonStyles.buttonContainer}>
         <Button
           title={mapsVisible ? 'Hide maps' : 'Show maps'}

@@ -110,7 +110,7 @@ RCT_EXPORT_MODULE(NavModule);
   [self->_session.roadSnappedLocationProvider addListener:self];
 
   NavViewModule *navViewModule = [NavViewModule sharedInstance];
-  [navViewModule attachViewsToNavigationSession:_session];
+  [navViewModule attachViewsToNavigationSession];
 
   [self onNavigationReady];
 }
@@ -175,6 +175,7 @@ RCT_EXPORT_METHOD(cleanup
     }
 
     if (self->_session.navigator != nil) {
+      [self->_session.navigator removeListener:self];
       [self->_session.navigator clearDestinations];
       self->_session.navigator.guidanceActive = NO;
       self->_session.navigator.sendsBackgroundNotifications = NO;
@@ -186,6 +187,10 @@ RCT_EXPORT_METHOD(cleanup
 
     self->_session.started = NO;
     self->_session = nil;
+
+    NavViewModule *navViewModule = [NavViewModule sharedInstance];
+    [navViewModule navigationSessionDestroyed];
+
     if (_navigationSessionDisposedCallback) {
       _navigationSessionDisposedCallback();
     }

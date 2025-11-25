@@ -42,6 +42,12 @@ RCT_EXPORT_MODULE();
   return self;
 }
 
+- (void)dealloc {
+  @synchronized(_viewControllers) {
+    [_viewControllers removeAllObjects];
+  }
+}
+
 - (UIView *)view {
   NavView *navView = [[NavView alloc] init];
 
@@ -74,9 +80,17 @@ RCT_EXPORT_MODULE();
 
 - (void)unregisterViewControllerForTag:(NSNumber *)reactTag {
   @synchronized(_viewControllers) {
+    NavViewController *viewController = [_viewControllers objectForKey:reactTag];
+    if (viewController) {
+      // Explicitly cleanup the view controller to release resources
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [viewController.view removeFromSuperview];
+      });
+    }
     [_viewControllers removeObjectForKey:reactTag];
   }
 }
+
 RCT_EXPORT_VIEW_PROPERTY(onRecenterButtonClick, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onMapReady, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onMapClick, RCTDirectEventBlock);

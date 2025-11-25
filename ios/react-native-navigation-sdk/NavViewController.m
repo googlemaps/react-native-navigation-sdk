@@ -36,6 +36,8 @@
   NSString *_mapId;
   MapViewType _mapViewType;
   id<INavigationViewCallback> _viewCallbacks;
+  BOOL _isSessionAttached;
+  NSNumber *_isNavigationUIEnabled;
 }
 
 - (instancetype)initWithMapViewType:(MapViewType)mapViewType {
@@ -62,17 +64,126 @@
   }
 
   _mapView = [[GMSMapView alloc] initWithOptions:options];
-
+  if (_mapViewType == NAVIGATION) {
+    _mapView.navigationEnabled = YES;
+  }
   self.view = _mapView;
   _mapView.delegate = self;
+}
+
+- (void)viewDidLoad {
+  [super viewDidLoad];
+
+  [_viewCallbacks handleMapReady];
+}
+
+- (void)viewDidLayoutSubviews {
+  [super viewDidLayoutSubviews];
+
+  [self attachToNavigationSessionIfNeeded];
+}
+
+- (BOOL)attachToNavigationSessionIfNeeded {
+  // Only attach if view has proper type, state and dimensions (not zero size)
+  if (_mapViewType != NAVIGATION || _isSessionAttached || _mapView.bounds.size.width == 0 ||
+      _mapView.bounds.size.height == 0) {
+    return NO;
+  }
 
   NavModule *navModule = [NavModule sharedInstance];
-  if (navModule != nil && [navModule hasSession]) {
-    [self attachToNavigationSession:[navModule getSession]];
+  if (navModule == nil || ![navModule hasSession]) {
+    return NO;
   }
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [_viewCallbacks handleMapReady];
-  });
+
+  GMSNavigationSession *session = [navModule getSession];
+  if (_mapView == nil || session == nil) {
+    return NO;
+  }
+
+  // `enableNavigationWithSession` returns false if TOS is not accepted.
+  // This should not be possible in normal usage as the NavModule ensures TOS acceptance before
+  // navigation session creation.
+  BOOL result = [_mapView enableNavigationWithSession:session];
+
+  if (result) {
+    _mapView.navigationUIDelegate = self;
+    [self applyStylingOptions];
+
+    [self restoreNavigationUIState];
+
+    _isSessionAttached = YES;
+
+    [self forceInvalidateView];
+  }
+
+  return result;
+}
+
+- (void)forceInvalidateView {
+  if (_mapView) {
+    // Defer to next run loop to ensure view is properly sized
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (self->_mapView) {
+        [self->_mapView setNeedsLayout];
+        [self->_mapView.layer setNeedsDisplay];
+      }
+    });
+  }
+}
+
+- (void)restoreNavigationUIState {
+  if (_mapView) {
+    if (_isNavigationUIEnabled != nil) {
+      _mapView.navigationEnabled = [_isNavigationUIEnabled boolValue];
+    } else {
+      _mapView.navigationEnabled = _mapViewType == NAVIGATION;
+    }
+  }
+}
+
+- (void)navigationSessionDestroyed {
+  _isSessionAttached = NO;
+  if (_mapView) {
+    _mapView.navigationUIDelegate = nil;
+    _mapView.navigationEnabled = NO;
+  }
+}
+
+- (void)cleanup {
+  _isSessionAttached = NO;
+
+  // Remove all delegates to break retain cycles
+  if (_mapView) {
+    _mapView.delegate = nil;
+    _mapView.navigationUIDelegate = nil;
+    _mapView.navigationEnabled = NO;
+    [_mapView clear];
+
+    [_mapView removeFromSuperview];
+    _mapView = nil;
+  }
+
+  // Clear local arrays and set to nil
+  [_markerList removeAllObjects];
+  [_polylineList removeAllObjects];
+  [_polygonList removeAllObjects];
+  [_circleList removeAllObjects];
+  [_groundOverlayList removeAllObjects];
+
+  _markerList = nil;
+  _polylineList = nil;
+  _polygonList = nil;
+  _circleList = nil;
+  _groundOverlayList = nil;
+
+  // Clear callbacks
+  _viewCallbacks = nil;
+}
+
+- (void)dealloc {
+  [self cleanup];
+  [self.view removeFromSuperview];
+  self.view = nil;
 }
 
 - (void)mapViewDidTapRecenterButton:(GMSMapView *)mapView {
@@ -195,6 +306,7 @@
   if (_mapViewType != NAVIGATION) {
     return;
   }
+  _isNavigationUIEnabled = @(isEnabled);
   _mapView.navigationEnabled = isEnabled;
 }
 
@@ -326,16 +438,6 @@
 }
 
 #pragma mark - View Controller functions
-
-- (BOOL)attachToNavigationSession:(GMSNavigationSession *)session {
-  if (_mapViewType != NAVIGATION) {
-    return NO;
-  }
-  BOOL result = [_mapView enableNavigationWithSession:session];
-  _mapView.navigationUIDelegate = self;
-  [self applyStylingOptions];
-  return result;
-}
 
 - (void)onPromptVisibilityChange:(BOOL)isVisible {
   [_viewCallbacks handlePromptVisibilityChanged:isVisible];
