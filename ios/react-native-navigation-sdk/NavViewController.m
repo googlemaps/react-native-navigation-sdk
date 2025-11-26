@@ -34,16 +34,19 @@
   NSMutableArray<GMSGroundOverlay *> *_groundOverlayList;
   NSDictionary *_stylingOptions;
   NSString *_mapId;
+  NSNumber *_colorScheme;
   MapViewType _mapViewType;
   id<INavigationViewCallback> _viewCallbacks;
   BOOL _isSessionAttached;
   NSNumber *_isNavigationUIEnabled;
+  NSNumber *_navigationLightingMode;
 }
 
 - (instancetype)initWithMapViewType:(MapViewType)mapViewType {
   self = [super init];
   if (self) {
     _mapViewType = mapViewType;
+    _navigationLightingMode = nil;
   }
   return self;
 }
@@ -69,6 +72,8 @@
   }
   self.view = _mapView;
   _mapView.delegate = self;
+  [self applyColorScheme];
+  [self applyNavigationLighting];
 }
 
 - (void)viewDidLoad {
@@ -229,6 +234,45 @@
   _mapId = mapId;
 }
 
+- (void)setColorScheme:(NSNumber *)colorScheme {
+  _colorScheme = colorScheme;
+  [self applyColorScheme];
+  [self applyNavigationLighting];
+}
+
+- (void)applyColorScheme {
+  if (_mapView == nil) {
+    return;
+  }
+  UIUserInterfaceStyle style = UIUserInterfaceStyleUnspecified;
+  if (_colorScheme) {
+    NSInteger colorSchemeValue = [_colorScheme integerValue];
+    if (colorSchemeValue == 1) {
+      style = UIUserInterfaceStyleLight;
+    } else if (colorSchemeValue == 2) {
+      style = UIUserInterfaceStyleDark;
+    }
+  }
+  _mapView.overrideUserInterfaceStyle = style;
+}
+
+- (void)applyNavigationLighting {
+  if (_mapViewType != NAVIGATION || _mapView == nil) {
+    return;
+  }
+
+  if (_navigationLightingMode == nil) {
+    // Allow the SDK to determine the lighting mode automatically.
+    [_mapView setLightingMode:nil];
+    return;
+  }
+
+  GMSNavigationLightingMode mode =
+      (GMSNavigationLightingMode)[_navigationLightingMode integerValue];
+
+  [_mapView setLightingMode:mode];
+}
+
 - (void)applyStylingOptions {
   if (_stylingOptions) {
     if (_stylingOptions[@"navigationHeaderPrimaryBackgroundColor"] != nil) {
@@ -365,13 +409,16 @@
 }
 
 - (void)setNightMode:(NSNumber *)index {
-  // In case index = 0, that means we want to leave the calculation to the
-  // native library depending on time.
-  if ([index isEqual:@1]) {
-    [_mapView setLightingMode:GMSNavigationLightingModeNormal];
-  } else if ([index isEqual:@2]) {
-    [_mapView setLightingMode:GMSNavigationLightingModeLowLight];
+  NSInteger modeValue = index != nil ? [index integerValue] : 0;
+  if (modeValue == 1) {
+    _navigationLightingMode = @(GMSNavigationLightingModeNormal);
+  } else if (modeValue == 2) {
+    _navigationLightingMode = @(GMSNavigationLightingModeLowLight);
+  } else {
+    // Resets to SDK-managed lighting.
+    _navigationLightingMode = nil;
   }
+  [self applyNavigationLighting];
 }
 
 - (void)showRouteOverview {

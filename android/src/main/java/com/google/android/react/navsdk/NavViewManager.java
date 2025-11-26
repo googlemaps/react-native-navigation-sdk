@@ -48,6 +48,9 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
   private final HashMap<Integer, WeakReference<IMapViewFragment>> fragmentMap = new HashMap<>();
 
+  // Cache the latest options per view so deferred fragment creation uses fresh values.
+  private final HashMap<Integer, ReadableMap> mapOptionsCache = new HashMap<>();
+
   private ReactApplicationContext reactContext;
 
   public static synchronized NavViewManager getInstance(ReactApplicationContext reactContext) {
@@ -74,21 +77,27 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
   /** Builds GoogleMapOptions with all configured map settings. */
   @NonNull
-  private GoogleMapOptions buildGoogleMapOptions(ReadableMap mapInitializationOptions) {
+  private GoogleMapOptions buildGoogleMapOptions(ReadableMap mapOptionsMap) {
     GoogleMapOptions options = new GoogleMapOptions();
-    if (mapInitializationOptions == null) {
+    if (mapOptionsMap == null) {
       return options;
     }
 
-    if (mapInitializationOptions.hasKey("mapId") && !mapInitializationOptions.isNull("mapId")) {
-      String mapIdFromOptions = mapInitializationOptions.getString("mapId");
+    if (mapOptionsMap.hasKey("mapId") && !mapOptionsMap.isNull("mapId")) {
+      String mapIdFromOptions = mapOptionsMap.getString("mapId");
       if (mapIdFromOptions != null && !mapIdFromOptions.isEmpty()) {
         options.mapId(mapIdFromOptions);
       }
     }
 
-    if (mapInitializationOptions.hasKey("mapType") && !mapInitializationOptions.isNull("mapType")) {
-      options.mapType(mapInitializationOptions.getInt("mapType"));
+    if (mapOptionsMap.hasKey("mapType") && !mapOptionsMap.isNull("mapType")) {
+      options.mapType(mapOptionsMap.getInt("mapType"));
+    }
+
+    if (mapOptionsMap.hasKey("mapColorScheme")) {
+      int jsValue =
+          mapOptionsMap.isNull("mapColorScheme") ? 0 : mapOptionsMap.getInt("mapColorScheme");
+      options.mapColorScheme(EnumTranslationUtil.getMapColorSchemeFromJsValue(jsValue));
     }
 
     return options;
@@ -151,6 +160,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     if (activity == null) return;
 
     WeakReference<IMapViewFragment> weakReference = fragmentMap.remove(viewId);
+    mapOptionsCache.remove(viewId);
     if (weakReference != null) {
       IMapViewFragment fragment = weakReference.get();
       if (fragment != null && fragment.isAdded()) {
@@ -163,17 +173,17 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     }
   }
 
-  @ReactProp(name = "mapInitializationOptions")
-  public void setMapInitializationOptions(
-      FrameLayout view, @NonNull ReadableMap mapInitializationOptions) {
+  @ReactProp(name = "mapOptions")
+  public void setMapOptions(FrameLayout view, @NonNull ReadableMap mapOptions) {
     int viewId = view.getId();
+    mapOptionsCache.put(viewId, mapOptions);
 
-    // Don't create fragment if already exists
     if (isFragmentCreated(viewId)) {
+      updateMapOptionValues(viewId, mapOptions);
       return;
     }
 
-    scheduleFragmentTransaction(view, mapInitializationOptions);
+    scheduleFragmentTransaction(view, mapOptions);
   }
 
   /** Map the "create" command to an integer */
@@ -317,7 +327,8 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         navFragment = getNavFragmentForRoot(root);
         if (navFragment != null) {
           assert args != null;
-          navFragment.setNightModeOption(args.getInt(0));
+          int nightModeOverride = EnumTranslationUtil.getForceNightModeFromJsValue(args.getInt(0));
+          navFragment.setNightModeOption(nightModeOverride);
         }
         break;
       case SET_SPEEDOMETER_ENABLED:
@@ -590,21 +601,54 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
   }
 
   private void scheduleFragmentTransaction(
-      @NonNull FrameLayout root, @NonNull ReadableMap mapInitializationOptions) {
+      @NonNull FrameLayout root, @NonNull ReadableMap mapOptions) {
 
     // Commit the fragment transaction after view is added to the view hierarchy.
     root.post(
         () -> {
-          if (isFragmentCreated(root.getId())) {
+          int viewId = root.getId();
+          if (isFragmentCreated(viewId)) {
             return;
           }
-          commitFragmentTransaction(root, mapInitializationOptions);
+          ReadableMap latestOptions = mapOptionsCache.get(viewId);
+          ReadableMap optionsToUse = latestOptions != null ? latestOptions : mapOptions;
+          commitFragmentTransaction(root, optionsToUse);
         });
+  }
+
+  private void updateMapOptionValues(int viewId, @NonNull ReadableMap mapOptions) {
+    IMapViewFragment fragment = getFragmentForViewId(viewId);
+    if (fragment == null) {
+      return;
+    }
+
+    if (mapOptions.hasKey("mapColorScheme")) {
+      int jsValue = mapOptions.isNull("mapColorScheme") ? 0 : mapOptions.getInt("mapColorScheme");
+      fragment.setMapColorScheme(EnumTranslationUtil.getMapColorSchemeFromJsValue(jsValue));
+    }
+
+    if (fragment instanceof INavViewFragment
+        && mapOptions.hasKey("navigationStylingOptions")
+        && !mapOptions.isNull("navigationStylingOptions")) {
+      ReadableMap stylingMap = mapOptions.getMap("navigationStylingOptions");
+      if (stylingMap != null) {
+        StylingOptions stylingOptions =
+            new StylingOptionsBuilder.Builder(stylingMap.toHashMap()).build();
+        ((INavViewFragment) fragment).setStylingOptions(stylingOptions);
+      }
+    }
+
+    if (fragment instanceof INavViewFragment && mapOptions.hasKey("navigationNightMode")) {
+      int nightMode =
+          mapOptions.isNull("navigationNightMode") ? 0 : mapOptions.getInt("navigationNightMode");
+      ((INavViewFragment) fragment)
+          .setNightModeOption(EnumTranslationUtil.getForceNightModeFromJsValue(nightMode));
+    }
   }
 
   /** Replace your React Native view with a custom fragment */
   private void commitFragmentTransaction(
-      @NonNull FrameLayout view, @NonNull ReadableMap mapInitializationOptions) {
+      @NonNull FrameLayout view, @NonNull ReadableMap mapOptions) {
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
     if (activity == null) return;
@@ -612,20 +656,26 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     Fragment fragment;
 
     CustomTypes.MapViewType mapViewType =
-        EnumTranslationUtil.getMapViewTypeFromJsValue(
-            mapInitializationOptions.getInt("mapViewType"));
+        EnumTranslationUtil.getMapViewTypeFromJsValue(mapOptions.getInt("mapViewType"));
 
-    GoogleMapOptions googleMapOptions = buildGoogleMapOptions(mapInitializationOptions);
+    GoogleMapOptions googleMapOptions = buildGoogleMapOptions(mapOptions);
 
     if (mapViewType == CustomTypes.MapViewType.MAP) {
       fragment = MapViewFragment.newInstance(reactContext, viewId, googleMapOptions);
     } else {
       NavViewFragment navFragment =
           NavViewFragment.newInstance(reactContext, viewId, googleMapOptions);
+      Integer nightMode = null;
+      if (mapOptions.hasKey("navigationNightMode")) {
+        int jsValue =
+            mapOptions.isNull("navigationNightMode") ? 0 : mapOptions.getInt("navigationNightMode");
+        nightMode = EnumTranslationUtil.getForceNightModeFromJsValue(jsValue);
+        navFragment.setNightModeOption(nightMode);
+      }
 
-      if (mapInitializationOptions.hasKey("navigationStylingOptions")
-          && !mapInitializationOptions.isNull("navigationStylingOptions")) {
-        ReadableMap stylingOptionsMap = mapInitializationOptions.getMap("navigationStylingOptions");
+      if (mapOptions.hasKey("navigationStylingOptions")
+          && !mapOptions.isNull("navigationStylingOptions")) {
+        ReadableMap stylingOptionsMap = mapOptions.getMap("navigationStylingOptions");
         StylingOptions stylingOptions =
             new StylingOptionsBuilder.Builder(stylingOptionsMap.toHashMap()).build();
         navFragment.setStylingOptions(stylingOptions);

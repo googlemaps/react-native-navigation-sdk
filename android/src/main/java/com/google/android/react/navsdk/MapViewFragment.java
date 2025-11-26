@@ -30,6 +30,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapColorScheme;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
@@ -46,6 +47,7 @@ public class MapViewFragment extends SupportMapFragment
   private ReactApplicationContext reactContext;
   private GoogleMap mGoogleMap;
   private MapViewController mMapViewController;
+  private @MapColorScheme int mapColorScheme = MapColorScheme.FOLLOW_SYSTEM;
 
   public static MapViewFragment newInstance(
       ReactApplicationContext reactContext, int viewTag, @NonNull GoogleMapOptions mapOptions) {
@@ -74,6 +76,7 @@ public class MapViewFragment extends SupportMapFragment
 
           // Setup map listeners with the provided callback
           mMapViewController.setupMapListeners(MapViewFragment.this);
+          applyMapColorSchemeToMap();
 
           emitEvent("onMapReady", null);
 
@@ -135,6 +138,18 @@ public class MapViewFragment extends SupportMapFragment
 
   public GoogleMap getGoogleMap() {
     return mGoogleMap;
+  }
+
+  @Override
+  public void setMapColorScheme(@MapColorScheme int mapColorScheme) {
+    this.mapColorScheme = mapColorScheme;
+    applyMapColorSchemeToMap();
+  }
+
+  private void applyMapColorSchemeToMap() {
+    if (mMapViewController != null) {
+      mMapViewController.setColorScheme(mapColorScheme);
+    }
   }
 
   private void emitEvent(String eventName, @Nullable WritableMap data) {

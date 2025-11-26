@@ -21,6 +21,7 @@ import { Button, Text, TextInput, View } from 'react-native';
 import SelectDropdown from 'react-native-select-dropdown';
 import { ControlStyles } from '../styles/components';
 import {
+  MapColorScheme,
   type MapViewController,
   MapType,
   type Marker,
@@ -31,12 +32,26 @@ import {
 
 export interface MapControlsProps {
   readonly mapViewController: MapViewController;
+  readonly mapColorScheme?: MapColorScheme;
+  readonly onMapColorSchemeChange?: (scheme: MapColorScheme) => void;
 }
 
 export const defaultZoom: number = 15;
 
-const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
+const MapsControls: React.FC<MapControlsProps> = ({
+  mapViewController,
+  mapColorScheme = MapColorScheme.FOLLOW_SYSTEM,
+  onMapColorSchemeChange,
+}) => {
   const mapTypeOptions = ['None', 'Normal', 'Satellite', 'Terrain', 'Hybrid'];
+  const colorSchemeOptions = ['Follow System', 'Light', 'Dark'];
+  const colorSchemeIndex =
+    mapColorScheme === MapColorScheme.LIGHT
+      ? 1
+      : mapColorScheme === MapColorScheme.DARK
+        ? 2
+        : 0;
+  const colorSchemeLabel = colorSchemeOptions[colorSchemeIndex];
   const [zoom, setZoom] = useState<number | null>(null);
   const [enableLocationMarker, setEnableLocationMarker] = useState(true);
   const [latitude, onLatChanged] = useState('');
@@ -212,6 +227,16 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
     setCustomPaddingEnabled(!customPaddingEnabled);
   };
 
+  const setMapColorScheme = (index: number) => {
+    const scheme =
+      index === 1
+        ? MapColorScheme.LIGHT
+        : index === 2
+          ? MapColorScheme.DARK
+          : MapColorScheme.FOLLOW_SYSTEM;
+    onMapColorSchemeChange?.(scheme);
+  };
+
   return (
     <View>
       <TextInput
@@ -303,6 +328,38 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
         <Button
           title={customPaddingEnabled ? 'Disable' : 'Enable'}
           onPress={toggleCustomPadding}
+        />
+      </View>
+      <View style={ControlStyles.rowContainer}>
+        <Text>Map color scheme</Text>
+        <SelectDropdown
+          data={colorSchemeOptions}
+          defaultValueByIndex={colorSchemeIndex}
+          onSelect={(_item, index) => {
+            setMapColorScheme(index);
+          }}
+          renderButton={(selectedItem, _isOpened) => {
+            return (
+              <View style={ControlStyles.dropdownButton}>
+                <Text style={ControlStyles.dropdownButtonText}>
+                  {selectedItem || colorSchemeLabel}
+                </Text>
+              </View>
+            );
+          }}
+          renderItem={(item, _index, isSelected) => {
+            return (
+              <View
+                style={[
+                  ControlStyles.dropdownItem,
+                  isSelected && ControlStyles.dropdownItemSelected,
+                ]}
+              >
+                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
+              </View>
+            );
+          }}
+          dropdownStyle={ControlStyles.dropdownMenu}
         />
       </View>
     </View>

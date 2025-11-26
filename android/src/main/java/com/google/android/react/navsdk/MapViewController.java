@@ -28,6 +28,7 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapColorScheme;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -511,6 +512,14 @@ public class MapViewController {
     }
 
     mGoogleMap.setMapType(EnumTranslationUtil.getMapTypeFromJsValue(jsValue));
+  }
+
+  public void setColorScheme(@MapColorScheme int mapColorScheme) {
+    if (mGoogleMap == null) {
+      return;
+    }
+
+    mGoogleMap.setMapColorScheme(mapColorScheme);
   }
 
   public void clearMapView() {

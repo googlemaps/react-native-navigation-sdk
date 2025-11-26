@@ -32,6 +32,8 @@ import {
   NavigationInitErrorCode,
   NavigationView,
   RouteStatus,
+  MapColorScheme,
+  NavigationNightMode,
   type ArrivalEvent,
   type Circle,
   type LatLng,
@@ -78,6 +80,14 @@ const MultipleMapsScreen = () => {
   const [navigationViewController1, setNavigationViewController1] =
     useState<NavigationViewController | null>(null);
   const [navigationInitialized, setNavigationInitialized] = useState(false);
+  const [mapColorScheme1, setMapColorScheme1] = useState<MapColorScheme>(
+    MapColorScheme.FOLLOW_SYSTEM
+  );
+  const [mapColorScheme2, setMapColorScheme2] = useState<MapColorScheme>(
+    MapColorScheme.FOLLOW_SYSTEM
+  );
+  const [navigationNightMode, setNavigationNightMode] =
+    useState<NavigationNightMode>(NavigationNightMode.AUTO);
   const pagerRef = useRef<PagerView | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const { navigationController, addListeners, removeListeners } =
@@ -336,6 +346,8 @@ const MultipleMapsScreen = () => {
                 style={{ flex: 1 }}
                 androidStylingOptions={MapStylingOptions.android}
                 iOSStylingOptions={MapStylingOptions.iOS}
+                mapColorScheme={mapColorScheme1}
+                navigationNightMode={navigationNightMode}
                 navigationViewCallbacks={navigationViewCallbacks}
                 mapViewCallbacks={mapViewCallbacks1}
                 onMapViewControllerCreated={setMapViewController1}
@@ -355,6 +367,7 @@ const MultipleMapsScreen = () => {
               <MapView
                 style={{ flex: 1 }}
                 mapViewCallbacks={mapViewCallbacks2}
+                mapColorScheme={mapColorScheme2}
                 onMapViewControllerCreated={setMapViewController2}
               />
               {currentPage === 1 && (
@@ -378,6 +391,8 @@ const MultipleMapsScreen = () => {
                   navigationViewController={navigationViewController1}
                   getCameraPosition={mapViewController1?.getCameraPosition}
                   onNavigationDispose={onNavigationDispose}
+                  navigationNightMode={navigationNightMode}
+                  onNavigationNightModeChange={setNavigationNightMode}
                 />
               </OverlayModal>
             )}
@@ -387,7 +402,11 @@ const MultipleMapsScreen = () => {
               visible={overlayType === OverlayType.MapControls1}
               closeOverlay={closeOverlay}
             >
-              <MapsControls mapViewController={mapViewController1} />
+              <MapsControls
+                mapViewController={mapViewController1}
+                mapColorScheme={mapColorScheme1}
+                onMapColorSchemeChange={setMapColorScheme1}
+              />
             </OverlayModal>
           )}
 
@@ -396,7 +415,11 @@ const MultipleMapsScreen = () => {
               visible={overlayType === OverlayType.MapControls2}
               closeOverlay={closeOverlay}
             >
-              <MapsControls mapViewController={mapViewController2} />
+              <MapsControls
+                mapViewController={mapViewController2}
+                mapColorScheme={mapColorScheme2}
+                onMapColorSchemeChange={setMapColorScheme2}
+              />
             </OverlayModal>
           )}
         </React.Fragment>

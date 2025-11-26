@@ -18,8 +18,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View, findNodeHandle } from 'react-native';
 import { NavViewManager, type LatLng } from '../../shared';
 import { getNavigationViewController } from './navigationViewController';
-import type { NavigationViewProps } from './types';
+import { NavigationNightMode, type NavigationViewProps } from './types';
 import {
+  MapColorScheme,
   getMapViewController,
   MapViewType,
   type Circle,
@@ -140,9 +141,12 @@ export const NavigationView = (
       <NavViewManager
         ref={onRefAssign}
         flex={1}
-        mapInitializationOptions={{
+        mapOptions={{
           mapViewType: MapViewType.NAVIGATION,
           mapId: props.mapId,
+          mapColorScheme: props.mapColorScheme ?? MapColorScheme.FOLLOW_SYSTEM,
+          navigationNightMode:
+            props.navigationNightMode ?? NavigationNightMode.AUTO,
           navigationStylingOptions:
             (Platform.OS === 'android'
               ? androidStylingOptions

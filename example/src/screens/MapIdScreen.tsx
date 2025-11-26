@@ -28,6 +28,8 @@ import { CommonStyles, MapStyles } from '../styles/components';
 import {
   NavigationView,
   MapView,
+  MapColorScheme,
+  NavigationNightMode,
   type NavigationViewController,
   type NavigationCallbacks,
   type MapViewCallbacks,
@@ -43,7 +45,11 @@ const MapIdScreen = () => {
   const [navigationViewController, setNavigationViewController] =
     useState<NavigationViewController | null>(null);
   const [navigationUiEnabled, setNavigationUIEnabled] = useState(true);
-  const [nightMode, setNightMode] = useState<number>(0); // 0: Auto, 1: Force Day, 2: Force Night
+  const [navigationNightMode, setNavigationNightMode] =
+    useState<NavigationNightMode>(NavigationNightMode.AUTO);
+  const [mapColorScheme, setMapColorScheme] = useState<MapColorScheme>(
+    MapColorScheme.FOLLOW_SYSTEM
+  );
   const insets = useSafeAreaInsets();
   const { arePermissionsApproved } = usePermissions();
   const { navigationController, addListeners, removeListeners } =
@@ -70,6 +76,8 @@ const MapIdScreen = () => {
   const handleReset = useCallback(() => {
     setConfirmedMapId(null);
     setNavigationUIEnabled(false);
+    setMapColorScheme(MapColorScheme.FOLLOW_SYSTEM);
+    setNavigationNightMode(NavigationNightMode.AUTO);
   }, []);
 
   const toggleNavigationUiEnabled = useCallback(
@@ -83,25 +91,43 @@ const MapIdScreen = () => {
     [navigationViewController]
   );
 
-  const toggleNightMode = useCallback(() => {
-    // Cycle through: 0 (Auto) -> 1 (Force Day) -> 2 (Force Night) -> 0 (Auto)
-    const newMode = (nightMode + 1) % 3;
-    setNightMode(newMode);
+  const cycleMapColorScheme = useCallback(() => {
+    const nextScheme =
+      mapColorScheme === MapColorScheme.FOLLOW_SYSTEM
+        ? MapColorScheme.LIGHT
+        : mapColorScheme === MapColorScheme.LIGHT
+          ? MapColorScheme.DARK
+          : MapColorScheme.FOLLOW_SYSTEM;
+    setMapColorScheme(nextScheme);
+  }, [mapColorScheme]);
 
-    if (navigationViewController) {
-      navigationViewController.setNightMode(newMode);
-      console.log('setNightMode on NavigationView:', newMode);
-    }
-  }, [nightMode, navigationViewController]);
-
-  const getNightModeLabel = () => {
-    switch (nightMode) {
-      case 0:
+  const getMapColorSchemeLabel = () => {
+    switch (mapColorScheme) {
+      case MapColorScheme.LIGHT:
+        return 'Light';
+      case MapColorScheme.DARK:
+        return 'Dark';
+      default:
         return 'Auto';
-      case 1:
-        return 'Day';
-      case 2:
-        return 'Night';
+    }
+  };
+
+  const cycleNavigationNightMode = useCallback(() => {
+    const nextMode =
+      navigationNightMode === NavigationNightMode.AUTO
+        ? NavigationNightMode.FORCE_DAY
+        : navigationNightMode === NavigationNightMode.FORCE_DAY
+          ? NavigationNightMode.FORCE_NIGHT
+          : NavigationNightMode.AUTO;
+    setNavigationNightMode(nextMode);
+  }, [navigationNightMode]);
+
+  const getNavigationNightModeLabel = () => {
+    switch (navigationNightMode) {
+      case NavigationNightMode.FORCE_DAY:
+        return 'Force Day';
+      case NavigationNightMode.FORCE_NIGHT:
+        return 'Force Night';
       default:
         return 'Auto';
     }
@@ -237,8 +263,8 @@ const MapIdScreen = () => {
                   }
                 />
                 <Button
-                  title={`Night: ${getNightModeLabel()}`}
-                  onPress={toggleNightMode}
+                  title={getNavigationNightModeLabel()}
+                  onPress={cycleNavigationNightMode}
                 />
               </View>
             </View>
@@ -246,9 +272,13 @@ const MapIdScreen = () => {
               key={`navigation-${confirmedMapId}`}
               style={MapStyles.map}
               mapId={confirmedMapId || undefined}
+              mapColorScheme={mapColorScheme}
+              navigationNightMode={navigationNightMode}
               navigationViewCallbacks={navigationViewCallbacks}
               mapViewCallbacks={navigationMapViewCallbacks}
-              onMapViewControllerCreated={_controller => {}}
+              onMapViewControllerCreated={_controller => {
+                console.log('MapViewController created for NavigationView');
+              }}
               onNavigationViewControllerCreated={setNavigationViewController}
             />
           </View>
@@ -260,9 +290,17 @@ const MapIdScreen = () => {
               key={`map-${confirmedMapId}`}
               style={MapStyles.map}
               mapId={confirmedMapId || undefined}
-              onMapViewControllerCreated={_controller =>
-                console.log('MapView controller created')
-              }
+              mapColorScheme={mapColorScheme}
+              onMapViewControllerCreated={_controller => {
+                console.log('MapViewController created for MapView');
+              }}
+            />
+          </View>
+
+          <View style={styles.mapColorSchemeCard}>
+            <Button
+              title={`Map Color Scheme: ${getMapColorSchemeLabel()}`}
+              onPress={cycleMapColorScheme}
             />
           </View>
         </View>
@@ -293,6 +331,11 @@ const styles = StyleSheet.create({
   headerButtons: {
     flexDirection: 'row',
     gap: 10,
+  },
+  mapColorSchemeCard: {
+    padding: 12,
+    backgroundColor: '#fff',
+    alignItems: 'flex-end',
   },
 });
 
