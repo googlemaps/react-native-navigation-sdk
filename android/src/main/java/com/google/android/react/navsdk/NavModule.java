@@ -151,7 +151,11 @@ public class NavModule extends ReactContextBaseJavaModule
   }
 
   @ReactMethod
-  private void cleanup() {
+  public void cleanup(final Promise promise) {
+    if (!ensureNavigatorAvailable(promise)) {
+      return;
+    }
+
     stopUpdatingLocation();
     removeNavigationListeners();
     mWaypoints.clear();
@@ -160,10 +164,12 @@ public class NavModule extends ReactContextBaseJavaModule
       listener.onReady(false);
     }
 
+    final Navigator navigator = mNavigator;
     UiThreadUtil.runOnUiThread(
         () -> {
-          mNavigator.clearDestinations();
-          mNavigator.cleanup();
+          navigator.clearDestinations();
+          navigator.cleanup();
+          promise.resolve(true);
         });
   }
 
@@ -282,6 +288,10 @@ public class NavModule extends ReactContextBaseJavaModule
   public void setTurnByTurnLoggingEnabled(boolean isEnabled) {
     final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
     if (currentActivity == null) return;
+    if (mNavigator == null) {
+      logDebugInfo(JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
+      return;
+    }
 
     if (isEnabled) {
       NavForwardingManager.startNavForwarding(mNavigator, currentActivity, this);
@@ -295,6 +305,9 @@ public class NavModule extends ReactContextBaseJavaModule
    * navigation events occur (e.g. the driver's route changes or the destination is reached).
    */
   private void registerNavigationListeners() {
+    if (mNavigator == null) {
+      return;
+    }
     removeNavigationListeners();
 
     mArrivalListener =
@@ -353,6 +366,9 @@ public class NavModule extends ReactContextBaseJavaModule
   }
 
   private void removeNavigationListeners() {
+    if (mNavigator == null) {
+      return;
+    }
     if (mArrivalListener != null) {
       mNavigator.removeArrivalListener(mArrivalListener);
     }
@@ -417,19 +433,20 @@ public class NavModule extends ReactContextBaseJavaModule
   public void setDestination(
       ReadableMap waypoint,
       @Nullable ReadableMap routingOptions,
-      @Nullable ReadableMap displayOptions) {
+      @Nullable ReadableMap displayOptions,
+      final Promise promise) {
     WritableArray array = new WritableNativeArray();
     array.pushMap(waypoint);
-    setDestinations(array, routingOptions, displayOptions);
+    setDestinations(array, routingOptions, displayOptions, promise);
   }
 
   @ReactMethod
   public void setDestinations(
       ReadableArray waypoints,
       @Nullable ReadableMap routingOptions,
-      @Nullable ReadableMap displayOptions) {
-    if (mNavigator == null) {
-      // TODO: HANDLE THIS
+      @Nullable ReadableMap displayOptions,
+      final Promise promise) {
+    if (!ensureNavigatorAvailable(promise)) {
       return;
     }
 
@@ -462,42 +479,63 @@ public class NavModule extends ReactContextBaseJavaModule
     if (pendingRoute != null) {
       // Set an action to perform when a route is determined to the destination
       pendingRoute.setOnResultListener(
-          code -> sendCommandToReactNative("onRouteStatusResult", code.toString()));
+          code -> {
+            sendCommandToReactNative("onRouteStatusResult", code.toString());
+            promise.resolve(true);
+          });
+    } else {
+      promise.resolve(true);
     }
   }
 
   @ReactMethod
-  public void clearDestinations() {
-    if (mNavigator != null) {
-      mWaypoints.clear(); // reset waypoints
-      mNavigator.clearDestinations();
+  public void clearDestinations(final Promise promise) {
+    if (!ensureNavigatorAvailable(promise)) {
+      return;
     }
+    mWaypoints.clear(); // reset waypoints
+    mNavigator.clearDestinations();
+    promise.resolve(true);
   }
 
   @ReactMethod
-  public void continueToNextDestination() {
-    if (mNavigator != null) {
-      mNavigator.continueToNextDestination();
+  public void continueToNextDestination(final Promise promise) {
+    if (!ensureNavigatorAvailable(promise)) {
+      return;
     }
+    mNavigator.continueToNextDestination();
+    promise.resolve(true);
   }
 
   @ReactMethod
-  public void startGuidance() {
+  public void startGuidance(final Promise promise) {
+    if (!ensureNavigatorAvailable(promise)) {
+      return;
+    }
     if (mWaypoints.isEmpty()) {
+      promise.reject(JsErrors.NO_DESTINATIONS_ERROR_CODE, JsErrors.NO_DESTINATIONS_ERROR_MESSAGE);
       return;
     }
 
     mNavigator.startGuidance();
     sendCommandToReactNative("onStartGuidance", null);
+    promise.resolve(true);
   }
 
   @ReactMethod
-  public void stopGuidance() {
+  public void stopGuidance(final Promise promise) {
+    if (!ensureNavigatorAvailable(promise)) {
+      return;
+    }
     mNavigator.stopGuidance();
+    promise.resolve(true);
   }
 
   @ReactMethod
   public void simulateLocationsAlongExistingRoute(float speedMultiplier) {
+    if (mNavigator == null) {
+      return;
+    }
     if (mWaypoints.isEmpty()) {
       return;
     }
@@ -510,16 +548,25 @@ public class NavModule extends ReactContextBaseJavaModule
 
   @ReactMethod
   public void stopLocationSimulation() {
+    if (mNavigator == null) {
+      return;
+    }
     mNavigator.getSimulator().unsetUserLocation();
   }
 
   @ReactMethod
   public void pauseLocationSimulation() {
+    if (mNavigator == null) {
+      return;
+    }
     mNavigator.getSimulator().pause();
   }
 
   @ReactMethod
   public void resumeLocationSimulation() {
+    if (mNavigator == null) {
+      return;
+    }
     mNavigator.getSimulator().resume();
   }
 
@@ -530,6 +577,9 @@ public class NavModule extends ReactContextBaseJavaModule
 
   @ReactMethod
   public void setSpeedAlertOptions(@Nullable ReadableMap options) {
+    if (mNavigator == null) {
+      return;
+    }
     if (options == null) {
       mNavigator.setSpeedAlertOptions(null);
       return;
@@ -648,6 +698,14 @@ public class NavModule extends ReactContextBaseJavaModule
           .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
           .emit(functionName, params);
     }
+  }
+
+  private boolean ensureNavigatorAvailable(final Promise promise) {
+    if (mNavigator == null) {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
+      return false;
+    }
+    return true;
   }
 
   @ReactMethod

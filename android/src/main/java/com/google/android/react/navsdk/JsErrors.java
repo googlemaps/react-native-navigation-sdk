@@ -21,4 +21,7 @@ public class JsErrors {
   public static final String NO_MAP_ERROR_CODE = "NO_MAP_ERROR_CODE";
   public static final String NO_MAP_ERROR_MESSAGE =
       "Make sure to initialize the map view has been initialized before executing.";
+
+  public static final String NO_DESTINATIONS_ERROR_CODE = "NO_DESTINATIONS";
+  public static final String NO_DESTINATIONS_ERROR_MESSAGE = "Destinations not set";
 }

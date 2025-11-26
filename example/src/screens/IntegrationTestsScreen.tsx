@@ -16,7 +16,7 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { Button, Text, View } from 'react-native';
+import { Button, Text, View, useWindowDimensions } from 'react-native';
 import Snackbar from 'react-native-snackbar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -46,6 +46,9 @@ import {
   testOnRemainingTimeOrDistanceChanged,
   testOnArrival,
   testOnRouteChanged,
+  testNavigationStateGuards,
+  testStartGuidanceWithoutDestinations,
+  NO_ERRORS_DETECTED_LABEL,
 } from './integration_tests/integration_test';
 
 // Utility function for showing Snackbar
@@ -78,10 +81,13 @@ const IntegrationTestsScreen = () => {
   const { navigationController, addListeners, removeListeners } =
     useNavigation();
   const [detoxStepNumber, setDetoxStepNumber] = useState(0);
-  const [failureMessage, setFailuremessage] = useState('');
+  const [failureMessage, setFailuremessage] = useState(
+    NO_ERRORS_DETECTED_LABEL
+  );
   const [navigationViewController, setNavigationViewController] =
     useState<NavigationViewController | null>(null);
   const insets = useSafeAreaInsets();
+  const windowDimensions = useWindowDimensions();
 
   const onMapReady = useCallback(async () => {
     console.log('Map is ready, initializing navigator...');
@@ -208,6 +214,12 @@ const IntegrationTestsScreen = () => {
       case 'testOnRouteChanged':
         await testOnRouteChanged(getTestTools());
         break;
+      case 'testNavigationStateGuards':
+        await testNavigationStateGuards(getTestTools());
+        break;
+      case 'testStartGuidanceWithoutDestinations':
+        await testStartGuidanceWithoutDestinations(getTestTools());
+        break;
       default:
         resetTestState();
         break;
@@ -220,6 +232,10 @@ const IntegrationTestsScreen = () => {
     }
     return testStatus;
   }, [testStatus, detoxStepNumber]);
+
+  const overlayMinHeight = useMemo(() => {
+    return Math.max(0, windowDimensions.height - insets.top - insets.bottom);
+  }, [windowDimensions.height, insets.top, insets.bottom]);
 
   return (
     <View style={[CommonStyles.container, { paddingBottom: insets.bottom }]}>
@@ -257,6 +273,7 @@ const IntegrationTestsScreen = () => {
         closeOverlay={() => {
           setIsOverlayOpen(false);
         }}
+        height={overlayMinHeight}
       >
         <Button
           title="testNavigationSessionInitialization"
@@ -333,6 +350,20 @@ const IntegrationTestsScreen = () => {
           testID="testOnRouteChanged"
           onPress={() => {
             runTest('testOnRouteChanged');
+          }}
+        />
+        <Button
+          title="testNavigationStateGuards"
+          testID="testNavigationStateGuards"
+          onPress={() => {
+            runTest('testNavigationStateGuards');
+          }}
+        />
+        <Button
+          title="testStartGuidanceWithoutDestinations"
+          testID="testStartGuidanceWithoutDestinations"
+          onPress={() => {
+            runTest('testStartGuidanceWithoutDestinations');
           }}
         />
       </OverlayModal>
