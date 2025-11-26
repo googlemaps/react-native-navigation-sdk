@@ -15,6 +15,7 @@ package com.google.android.react.navsdk;
 
 import android.view.View;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.MapColorScheme;
 
 public interface IMapViewFragment {
   MapViewController getMapController();
@@ -22,6 +23,8 @@ public interface IMapViewFragment {
   void setMapStyle(String url);
 
   GoogleMap getGoogleMap();
+
+  void setMapColorScheme(@MapColorScheme int colorScheme);
 
   // Fragment
   boolean isAdded();

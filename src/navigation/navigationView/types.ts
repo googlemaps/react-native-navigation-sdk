@@ -57,11 +57,33 @@ export interface NavigationViewProps extends MapViewProps {
   readonly androidStylingOptions?: AndroidStylingOptions;
   readonly iOSStylingOptions?: iOSStylingOptions;
 
+  /**
+   * Controls the navigation night mode for Navigation UI.
+   *
+   * Defaults to `NavigationNightMode.AUTO` when not provided.
+   */
+  readonly navigationNightMode?: NavigationNightMode;
+
   readonly navigationViewCallbacks?: NavigationViewCallbacks;
 
   onNavigationViewControllerCreated(
     navigationViewController: NavigationViewController
   ): void;
+}
+
+/**
+ * Represents the navigation UI lighting mode.
+ *
+ * Android ref https://developers.google.com/maps/documentation/navigation/android-sdk/reference/com/google/android/libraries/navigation/ForceNightMode
+ * iOS ref https://developers.google.com/maps/documentation/navigation/ios-sdk/reference/objc/Enums/GMSNavigationLightingMode
+ */
+export enum NavigationNightMode {
+  /** Let the SDK automatically determine day or night. */
+  AUTO = 0,
+  /** Force day mode regardless of time or location. */
+  FORCE_DAY = 1,
+  /** Force night mode regardless of time or location. */
+  FORCE_NIGHT = 2,
 }
 
 /**
@@ -142,11 +164,19 @@ export interface NavigationViewController {
    * This controls whether the navigation UI should be displayed in day or night mode,
    * affecting the color scheme and visibility of UI elements.
    *
-   * @param mode - The night mode setting to apply. Valid values are:
-   *   - `0` (AUTO): The Navigation SDK automatically determines the appropriate
-   *     day or night mode according to the user's location and local time.
-   *   - `1` (FORCE_DAY): Forces day mode regardless of time or location.
-   *   - `2` (FORCE_NIGHT): Forces night mode regardless of time or location.
+   * Android (ForceNightMode reference:
+   * https://developers.google.com/maps/documentation/navigation/android-sdk/reference/com/google/android/libraries/navigation/ForceNightMode):
+   *   - `0` (AUTO): Let the SDK automatically determine day or night.
+   *   - `1` (FORCE_DAY): Force day mode regardless of time or location.
+   *   - `2` (FORCE_NIGHT): Force night mode regardless of time or location.
+   *
+   * iOS (GMSNavigationLightingMode reference:
+   * https://developers.google.com/maps/documentation/navigation/ios-sdk/reference/objc/Enums/GMSNavigationLightingMode):
+   *   - `0` (AUTO): Resets to automatic (SDK-managed) lighting.
+   *   - `1` (FORCE_DAY): Renders the light (day) UI.
+   *   - `2` (FORCE_NIGHT): Renders the dark (night) UI.
+   *
+   * @deprecated Prefer the `navigationNightMode` view prop so the desired mode is applied as early as possible.
    *
    * @example
    * ```typescript

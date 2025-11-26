@@ -317,6 +317,15 @@ You can also add a bare `MapView` that works as a normal map view without naviga
 />
 ```
 
+### Control light and dark modes
+
+Use the `mapColorScheme` prop on both `NavigationView` and `MapView` to force the map tiles into light, dark, or system-following mode.
+
+For the navigation UI, pass the `navigationNightMode` prop to `NavigationView` to configure the initial lighting mode for navigation session.
+
+> [!NOTE]
+> When navigation UI is enabled, `mapColorScheme` does not affect the view styling. To control the style of the navigation UI, use the `navigationNightMode` prop on `NavigationView` instead.
+
 ### Requesting and handling permissions
 
 The Google Navigation SDK React Native library offers functionalities that necessitate specific permissions from the mobile operating system. These include, but are not limited to, location services, background execution, and receiving background location updates.

@@ -50,7 +50,9 @@
 
 - (NavViewController *)initializeViewControllerWithMapViewType:(MapViewType)mapViewType
                                                          mapId:(NSString *)mapId
-                                                stylingOptions:(NSDictionary *)stylingOptions {
+                                                stylingOptions:(NSDictionary *)stylingOptions
+                                                mapColorScheme:(NSNumber *)colorScheme
+                                                     nightMode:(NSNumber *)nightMode {
   // Initialize view controller with the map view type
   _viewController = [[NavViewController alloc] initWithMapViewType:mapViewType];
 
@@ -60,6 +62,14 @@
 
   if (stylingOptions && [stylingOptions count] > 0) {
     [_viewController setStylingOptions:stylingOptions];
+  }
+
+  if (colorScheme) {
+    [_viewController setColorScheme:colorScheme];
+  }
+
+  if (nightMode) {
+    [_viewController setNightMode:nightMode];
   }
 
   [_viewController setNavigationViewCallbacks:self];
@@ -80,6 +90,14 @@
   if (stylingOptions != nil && [stylingOptions count] > 0) {
     [_viewController setStylingOptions:stylingOptions];
   }
+}
+
+- (void)applyMapColorScheme:(NSNumber *)colorScheme {
+  [_viewController setColorScheme:colorScheme];
+}
+
+- (void)applyNightMode:(NSNumber *)nightMode {
+  [_viewController setNightMode:nightMode];
 }
 
 - (void)handleRecenterButtonClick {

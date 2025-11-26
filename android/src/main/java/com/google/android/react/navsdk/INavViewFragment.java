@@ -13,6 +13,7 @@
  */
 package com.google.android.react.navsdk;
 
+import com.google.android.libraries.navigation.ForceNightMode;
 import com.google.android.libraries.navigation.StylingOptions;
 
 public interface INavViewFragment extends IMapViewFragment {
@@ -34,7 +35,7 @@ public interface INavViewFragment extends IMapViewFragment {
 
   void showRouteOverview();
 
-  void setNightModeOption(int jsValue);
+  void setNightModeOption(@ForceNightMode int nightModeOverride);
 
   void setReportIncidentButtonEnabled(boolean enabled);
 

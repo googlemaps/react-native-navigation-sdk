@@ -18,6 +18,7 @@ import React, { useState } from 'react';
 import { Alert, Button, Platform, Text, TextInput, View } from 'react-native';
 import {
   CameraPerspective,
+  NavigationNightMode,
   type NavigationViewController,
   type RoutingOptions,
   TravelMode,
@@ -35,6 +36,8 @@ export interface NavigationControlsProps {
   readonly navigationViewController: NavigationViewController;
   readonly onNavigationDispose?: () => void;
   readonly getCameraPosition: undefined | (() => Promise<CameraPosition>);
+  readonly onNavigationNightModeChange?: (mode: NavigationNightMode) => void;
+  readonly navigationNightMode?: NavigationNightMode;
 }
 
 const NavigationControls: React.FC<NavigationControlsProps> = ({
@@ -42,9 +45,18 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   navigationViewController,
   onNavigationDispose,
   getCameraPosition,
+  onNavigationNightModeChange,
+  navigationNightMode = NavigationNightMode.AUTO,
 }) => {
   const perspectiveOptions = ['Tilted', 'North up', 'Heading up'];
   const nightModeOptions = ['Auto', 'Force Day', 'Force Night'];
+  const nightModeIndex =
+    navigationNightMode === NavigationNightMode.FORCE_DAY
+      ? 1
+      : navigationNightMode === NavigationNightMode.FORCE_NIGHT
+        ? 2
+        : 0;
+  const nightModeLabel = nightModeOptions[nightModeIndex];
   const audioGuidanceOptions = ['Silent', 'Alerts only', 'Alerts and guidance'];
   const [tripProgressBarEnabled, setTripProgressBarEnabled] = useState(false);
   const [reportIncidentButtonEnabled, setReportIncidentButtonEnabled] =
@@ -260,8 +272,13 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   };
 
   const setNightMode = (index: number) => {
-    console.log('setNightMode: ', index);
-    navigationViewController.setNightMode(index);
+    const mode =
+      index === 1
+        ? NavigationNightMode.FORCE_DAY
+        : index === 2
+          ? NavigationNightMode.FORCE_NIGHT
+          : NavigationNightMode.AUTO;
+    onNavigationNightModeChange?.(mode);
   };
 
   const setAudioGuidanceType = (index: number) => {
@@ -484,6 +501,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         <Text>Night mode </Text>
         <SelectDropdown
           data={nightModeOptions}
+          defaultValueByIndex={nightModeIndex}
           onSelect={(_selectedItem, index) => {
             setNightMode(index);
           }}
@@ -491,7 +509,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
             return (
               <View style={ControlStyles.dropdownButton}>
                 <Text style={ControlStyles.dropdownButtonText}>
-                  {selectedItem || 'Select'}
+                  {selectedItem || nightModeLabel}
                 </Text>
               </View>
             );

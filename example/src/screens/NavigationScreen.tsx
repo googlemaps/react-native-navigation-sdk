@@ -23,6 +23,8 @@ import {
   NavigationInitErrorCode,
   NavigationView,
   RouteStatus,
+  MapColorScheme,
+  NavigationNightMode,
   type ArrivalEvent,
   type Circle,
   type LatLng,
@@ -68,6 +70,11 @@ const NavigationScreen = () => {
     useState<MapViewController | null>(null);
   const [navigationViewController, setNavigationViewController] =
     useState<NavigationViewController | null>(null);
+  const [mapColorScheme, setMapColorScheme] = useState<MapColorScheme>(
+    MapColorScheme.FOLLOW_SYSTEM
+  );
+  const [navigationNightMode, setNavigationNightMode] =
+    useState<NavigationNightMode>(NavigationNightMode.AUTO);
 
   const {
     mapViewAutoController,
@@ -301,6 +308,8 @@ const NavigationScreen = () => {
         style={MapStyles.mapView}
         androidStylingOptions={MapStylingOptions.android}
         iOSStylingOptions={MapStylingOptions.iOS}
+        mapColorScheme={mapColorScheme}
+        navigationNightMode={navigationNightMode}
         navigationViewCallbacks={navigationViewCallbacks}
         mapViewCallbacks={mapViewCallbacks}
         onMapViewControllerCreated={setMapViewController}
@@ -319,6 +328,8 @@ const NavigationScreen = () => {
               navigationViewController={navigationViewController}
               getCameraPosition={mapViewController?.getCameraPosition}
               onNavigationDispose={onNavigationDispose}
+              navigationNightMode={navigationNightMode}
+              onNavigationNightModeChange={setNavigationNightMode}
             />
           </OverlayModal>
         )}
@@ -328,7 +339,11 @@ const NavigationScreen = () => {
           visible={overlayType === OverlayType.MapControls}
           closeOverlay={closeOverlay}
         >
-          <MapsControls mapViewController={mapViewController} />
+          <MapsControls
+            mapViewController={mapViewController}
+            mapColorScheme={mapColorScheme}
+            onMapColorSchemeChange={setMapColorScheme}
+          />
         </OverlayModal>
       )}
 

@@ -161,6 +161,18 @@ export interface UISettings {
 }
 
 /**
+ * Defines the color scheme to be applied to the rendered map.
+ */
+export enum MapColorScheme {
+  /** Follows the system or SDK default (automatic). */
+  FOLLOW_SYSTEM = 0,
+  /** Forces the light color scheme. */
+  LIGHT = 1,
+  /** Forces the dark color scheme. */
+  DARK = 2,
+}
+
+/**
  * `MapViewProps` interface provides methods focused on managing map events and state changes.
  */
 export interface MapViewProps {
@@ -175,6 +187,14 @@ export interface MapViewProps {
    * The map ID must be configured in your Google Cloud Console project before use.
    */
   readonly mapId?: string;
+
+  /**
+   * Sets the preferred color scheme for the map view.
+   * Note if NavigationView is used, the `navigationNightMode` prop must be used to control night mode for navigation session.
+   *
+   * Defaults to `ColorScheme.FOLLOW_SYSTEM`.
+   */
+  readonly mapColorScheme?: MapColorScheme;
 
   onMapViewControllerCreated(mapViewController: MapViewController): void;
 }

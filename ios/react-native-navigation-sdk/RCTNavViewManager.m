@@ -102,21 +102,36 @@ RCT_EXPORT_VIEW_PROPERTY(onCircleClick, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onGroundOverlayClick, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onPromptVisibilityChanged, RCTDirectEventBlock);
 
-RCT_CUSTOM_VIEW_PROPERTY(mapInitializationOptions, NSDictionary *, NavView) {
+RCT_CUSTOM_VIEW_PROPERTY(mapOptions, NSDictionary *, NavView) {
   if (json && json != (id)kCFNull) {
-    NSDictionary *mapInitializationOptions = [RCTConvert NSDictionary:json];
+    NSDictionary *mapOptions = [RCTConvert NSDictionary:json];
 
     // Extract all properties and pass them to initialization method
-    NSString *mapId = mapInitializationOptions[@"mapId"];
-    NSDictionary *stylingOptions = mapInitializationOptions[@"navigationStylingOptions"];
-    NSNumber *mapViewTypeNumber = mapInitializationOptions[@"mapViewType"];
+    id mapIdValue = mapOptions[@"mapId"];
+    NSString *mapId = [mapIdValue isKindOfClass:[NSNull class]] ? nil : mapIdValue;
+    id stylingValue = mapOptions[@"navigationStylingOptions"];
+    NSDictionary *stylingOptions =
+        [stylingValue isKindOfClass:[NSNull class]] ? nil : (NSDictionary *)stylingValue;
+    NSNumber *mapViewTypeNumber = mapOptions[@"mapViewType"];
+    id colorSchemeValue = mapOptions[@"mapColorScheme"];
+    NSNumber *mapColorScheme =
+        [colorSchemeValue isKindOfClass:[NSNull class]] ? nil : colorSchemeValue;
+    id nightModeValue = mapOptions[@"navigationNightMode"];
+    NSNumber *nightMode = [nightModeValue isKindOfClass:[NSNull class]] ? nil : nightModeValue;
 
-    if (mapViewTypeNumber) {
+    NavViewController *existingViewController = [view getViewController];
+    if (existingViewController) {
+      [view applyStylingOptions:stylingOptions];
+      [view applyMapColorScheme:mapColorScheme];
+      [view applyNightMode:nightMode];
+    } else if (mapViewTypeNumber) {
       MapViewType mapViewType = (MapViewType)[mapViewTypeNumber integerValue];
       NavViewController *viewController =
           [view initializeViewControllerWithMapViewType:mapViewType
                                                   mapId:mapId
-                                         stylingOptions:stylingOptions];
+                                         stylingOptions:stylingOptions
+                                         mapColorScheme:mapColorScheme
+                                              nightMode:nightMode];
       [self registerViewController:viewController forTag:view.reactTag];
     }
   }

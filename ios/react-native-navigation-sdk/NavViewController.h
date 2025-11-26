@@ -32,6 +32,7 @@ typedef void (^OnArrayResult)(NSArray *_Nullable result);
 - (instancetype)initWithMapViewType:(MapViewType)mapViewType;
 - (void)setStylingOptions:(nonnull NSDictionary *)stylingOptions;
 - (void)setMapId:(NSString *)mapId;
+- (void)setColorScheme:(NSNumber *)colorScheme;
 - (void)getCameraPosition:(OnDictionaryResult)completionBlock;
 - (void)getMyLocation:(OnDictionaryResult)completionBlock;
 - (void)getUiSettings:(OnDictionaryResult)completionBlock;

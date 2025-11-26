@@ -29,9 +29,11 @@ import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapColorScheme;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.libraries.navigation.ForceNightMode;
 import com.google.android.libraries.navigation.NavigationView;
 import com.google.android.libraries.navigation.PromptVisibilityChangedListener;
 import com.google.android.libraries.navigation.StylingOptions;
@@ -49,6 +51,8 @@ public class NavViewFragment extends SupportNavigationFragment
   private MapViewController mMapViewController;
   private GoogleMap mGoogleMap;
   private StylingOptions mStylingOptions;
+  private @MapColorScheme int mapColorScheme = MapColorScheme.FOLLOW_SYSTEM;
+  private @ForceNightMode int nightModeOverride = ForceNightMode.AUTO;
 
   public static NavViewFragment newInstance(
       ReactApplicationContext reactContext, int viewTag, @NonNull GoogleMapOptions mapOptions) {
@@ -79,6 +83,8 @@ public class NavViewFragment extends SupportNavigationFragment
 
           // Setup map listeners with the provided callback
           mMapViewController.setupMapListeners(NavViewFragment.this);
+          applyMapColorSchemeToMap();
+          applyNightModePreference();
 
           emitEvent("onMapReady", null);
 
@@ -131,8 +137,15 @@ public class NavViewFragment extends SupportNavigationFragment
     applyStylingOptions();
   }
 
-  public void setNightModeOption(int jsValue) {
-    super.setForceNightMode(EnumTranslationUtil.getForceNightModeFromJsValue(jsValue));
+  public void setNightModeOption(@ForceNightMode int nightModeOverride) {
+    this.nightModeOverride = nightModeOverride;
+    applyNightModePreference();
+  }
+
+  @Override
+  public void setMapColorScheme(@MapColorScheme int mapColorScheme) {
+    this.mapColorScheme = mapColorScheme;
+    applyMapColorSchemeToMap();
   }
 
   @Override
@@ -189,6 +202,16 @@ public class NavViewFragment extends SupportNavigationFragment
 
   public GoogleMap getGoogleMap() {
     return mGoogleMap;
+  }
+
+  private void applyMapColorSchemeToMap() {
+    if (mMapViewController != null) {
+      mMapViewController.setColorScheme(mapColorScheme);
+    }
+  }
+
+  private void applyNightModePreference() {
+    super.setForceNightMode(nightModeOverride);
   }
 
   private void cleanup() {
