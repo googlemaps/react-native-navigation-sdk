@@ -79,7 +79,12 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
 
-  [_viewCallbacks handleMapReady];
+  // Defer to next run loop to ensure view props are set before calling onMapReady
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (self->_viewCallbacks) {
+      [self->_viewCallbacks handleMapReady];
+    }
+  });
 }
 
 - (void)viewDidLayoutSubviews {
