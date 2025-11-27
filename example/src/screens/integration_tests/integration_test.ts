@@ -15,6 +15,7 @@
  */
 
 import {
+  AudioGuidance,
   TravelMode,
   type MapViewController,
   type NavigationCallbacks,
@@ -39,6 +40,72 @@ interface TestTools {
   expectTrueError: (expectation: string) => void;
 }
 
+const NAVIGATOR_NOT_READY_ERROR_CODE = 'NO_NAVIGATOR_ERROR_CODE';
+const NO_DESTINATIONS_ERROR_CODE = 'NO_DESTINATIONS';
+export const NO_ERRORS_DETECTED_LABEL = 'No errors detected';
+
+type NativeModuleError = {
+  code?: string;
+};
+
+const extractNativeErrorCode = (error: unknown): string | undefined => {
+  if (typeof error === 'object' && error !== null) {
+    const nativeError = error as NativeModuleError;
+    if (typeof nativeError.code === 'string') {
+      return nativeError.code;
+    }
+  }
+  return undefined;
+};
+
+const isNavigatorUnavailableError = (code?: string): boolean =>
+  code === NAVIGATOR_NOT_READY_ERROR_CODE;
+
+const DEFAULT_TEST_WAYPOINT = {
+  title: 'Grace Cathedral',
+  position: {
+    lat: 37.791957,
+    lng: -122.412529,
+  },
+};
+
+const DEFAULT_POLL_RETRY_COUNT = 10;
+const DEFAULT_POLL_RETRY_DELAY_MS = 250;
+
+const waitForCondition = async <T>(
+  callFn: () => Promise<T>,
+  predicate: (value: T) => boolean,
+  attempts = DEFAULT_POLL_RETRY_COUNT,
+  delayMs = DEFAULT_POLL_RETRY_DELAY_MS
+): Promise<T | null> => {
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const result = await callFn();
+    if (predicate(result)) {
+      return result;
+    }
+    await delay(delayMs);
+  }
+  return null;
+};
+
+const waitForTimeAndDistance = async (
+  navigationController: NavigationController,
+  attempts = DEFAULT_POLL_RETRY_COUNT,
+  delayMs = DEFAULT_POLL_RETRY_DELAY_MS
+): Promise<TimeAndDistance | null> =>
+  waitForCondition<TimeAndDistance | null>(
+    () => navigationController.getCurrentTimeAndDistance(),
+    result => result !== null,
+    attempts,
+    delayMs
+  );
+
+const disableVoiceGuidanceForTests = (
+  navigationController: NavigationController
+) => {
+  navigationController.setAudioGuidanceType(AudioGuidance.SILENT);
+};
+
 export const testNavigationSessionInitialization = async (
   testTools: TestTools
 ) => {
@@ -60,6 +127,7 @@ export const testNavigationSessionInitialization = async (
 
   addListeners({
     onNavigationReady: () => {
+      disableVoiceGuidanceForTests(navigationController);
       checkDefaults();
     },
     onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
@@ -93,50 +161,57 @@ export const testMapInitialization = async (testTools: TestTools) => {
     mapViewController.setZoomControlsEnabled(false);
     mapViewController.setMapToolbarEnabled(false);
   }
-  // Timeout here is used to avoid issues on Android.
-  await delay(3000);
+  const uiSettingsAfterDisable = await waitForCondition(
+    () => mapViewController.getUiSettings(),
+    settings =>
+      !settings.isZoomGesturesEnabled &&
+      (Platform.OS !== 'android' || !settings.isMapToolbarEnabled)
+  );
 
-  if ((await mapViewController.getUiSettings()).isCompassEnabled) {
+  if (!uiSettingsAfterDisable) {
+    return expectFalseError(
+      'mapViewController UI settings did not disable as expected'
+    );
+  }
+
+  if (uiSettingsAfterDisable.isCompassEnabled) {
     return expectFalseError(
       'mapViewController.getUiSettings()).isCompassEnabled'
     );
   }
-  if ((await mapViewController.getUiSettings()).isRotateGesturesEnabled) {
+  if (uiSettingsAfterDisable.isRotateGesturesEnabled) {
     return expectFalseError(
       'mapViewController.getUiSettings()).isRotateGesturesEnabled'
     );
   }
-  if ((await mapViewController.getUiSettings()).isScrollGesturesEnabled) {
+  if (uiSettingsAfterDisable.isScrollGesturesEnabled) {
     return expectFalseError(
       'mapViewController.getUiSettings()).isScrollGesturesEnabled'
     );
   }
-  if (
-    (await mapViewController.getUiSettings())
-      .isScrollGesturesEnabledDuringRotateOrZoom
-  ) {
+  if (uiSettingsAfterDisable.isScrollGesturesEnabledDuringRotateOrZoom) {
     return expectFalseError(
       'mapViewController.getUiSettings()).isScrollGesturesEnabledDuringRotateOrZoom'
     );
   }
-  if ((await mapViewController.getUiSettings()).isTiltGesturesEnabled) {
+  if (uiSettingsAfterDisable.isTiltGesturesEnabled) {
     return expectFalseError(
       'mapViewController.getUiSettings()).isTiltGesturesEnabled'
     );
   }
-  if ((await mapViewController.getUiSettings()).isZoomGesturesEnabled) {
+  if (uiSettingsAfterDisable.isZoomGesturesEnabled) {
     return expectFalseError(
       'mapViewController.getUiSettings()).isZoomGesturesEnabled'
     );
   }
 
   if (Platform.OS === 'android') {
-    if ((await mapViewController.getUiSettings()).isZoomControlsEnabled) {
+    if (uiSettingsAfterDisable.isZoomControlsEnabled) {
       return expectFalseError(
         'mapViewController.getUiSettings()).isZoomControlsEnabled'
       );
     }
-    if ((await mapViewController.getUiSettings()).isMapToolbarEnabled) {
+    if (uiSettingsAfterDisable.isMapToolbarEnabled) {
       return expectFalseError(
         'mapViewController.getUiSettings()).isMapToolbarEnabled'
       );
@@ -154,50 +229,57 @@ export const testMapInitialization = async (testTools: TestTools) => {
     mapViewController.setZoomControlsEnabled(true);
     mapViewController.setMapToolbarEnabled(true);
   }
-  // Timeout here is used to avoid issues on Android.
-  await delay(3000);
+  const uiSettingsAfterEnable = await waitForCondition(
+    () => mapViewController.getUiSettings(),
+    settings =>
+      settings.isZoomGesturesEnabled &&
+      (Platform.OS !== 'android' || settings.isMapToolbarEnabled)
+  );
 
-  if (!(await mapViewController.getUiSettings()).isCompassEnabled) {
+  if (!uiSettingsAfterEnable) {
+    return expectFalseError(
+      'mapViewController UI settings did not enable as expected'
+    );
+  }
+
+  if (!uiSettingsAfterEnable.isCompassEnabled) {
     return expectFalseError(
       '!mapViewController.getUiSettings()).isCompassEnabled'
     );
   }
-  if (!(await mapViewController.getUiSettings()).isRotateGesturesEnabled) {
+  if (!uiSettingsAfterEnable.isRotateGesturesEnabled) {
     return expectFalseError(
       '!mapViewController.getUiSettings()).isRotateGesturesEnabled'
     );
   }
-  if (!(await mapViewController.getUiSettings()).isScrollGesturesEnabled) {
+  if (!uiSettingsAfterEnable.isScrollGesturesEnabled) {
     return expectFalseError(
       '!mapViewController.getUiSettings()).isScrollGesturesEnabled'
     );
   }
-  if (
-    !(await mapViewController.getUiSettings())
-      .isScrollGesturesEnabledDuringRotateOrZoom
-  ) {
+  if (!uiSettingsAfterEnable.isScrollGesturesEnabledDuringRotateOrZoom) {
     return expectFalseError(
       '!mapViewController.getUiSettings()).isScrollGesturesEnabledDuringRotateOrZoom'
     );
   }
-  if (!(await mapViewController.getUiSettings()).isTiltGesturesEnabled) {
+  if (!uiSettingsAfterEnable.isTiltGesturesEnabled) {
     return expectFalseError(
       '!mapViewController.getUiSettings()).isTiltGesturesEnabled'
     );
   }
-  if (!(await mapViewController.getUiSettings()).isZoomGesturesEnabled) {
+  if (!uiSettingsAfterEnable.isZoomGesturesEnabled) {
     return expectFalseError(
       '!mapViewController.getUiSettings()).isZoomGesturesEnabled'
     );
   }
 
   if (Platform.OS === 'android') {
-    if (!(await mapViewController.getUiSettings()).isZoomControlsEnabled) {
+    if (!uiSettingsAfterEnable.isZoomControlsEnabled) {
       return expectFalseError(
         '!mapViewController.getUiSettings()).isZoomControlsEnabled'
       );
     }
-    if (!(await mapViewController.getUiSettings()).isMapToolbarEnabled) {
+    if (!uiSettingsAfterEnable.isMapToolbarEnabled) {
       return expectFalseError(
         '!mapViewController.getUiSettings()).isMapToolbarEnabled'
       );
@@ -213,6 +295,7 @@ export const testNavigationToSingleDestination = async (
   const { navigationController, addListeners, passTest, failTest } = testTools;
   addListeners({
     onNavigationReady: async () => {
+      disableVoiceGuidanceForTests(navigationController);
       await navigationController.simulator.simulateLocation({
         lat: 37.4195823,
         lng: -122.0799018,
@@ -221,8 +304,8 @@ export const testNavigationToSingleDestination = async (
         [
           {
             position: {
-              lat: 37.4152112,
-              lng: -122.0813741,
+              lat: 37.418761,
+              lng: -122.080484,
             },
           },
         ],
@@ -234,19 +317,26 @@ export const testNavigationToSingleDestination = async (
       );
       await navigationController.startGuidance();
 
-      // Timeout here is used to avoid issues on Android.
-      setTimeout(() => {
-        navigationController.simulator.simulateLocationsAlongExistingRoute({
-          speedMultiplier: 5,
-        });
-      }, 3000);
+      const routeSegments = await waitForCondition(
+        () => navigationController.getRouteSegments(),
+        segments => segments.length > 0
+      );
+      if (!routeSegments) {
+        return failTest(
+          'Timed out waiting for route segments before starting simulation'
+        );
+      }
+      await navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
+      });
     },
     onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
       console.log(errorCode);
       failTest('onNavigatonInitError');
     },
-    onArrival() {
-      passTest();
+    onArrival: async () => {
+      navigationController.cleanup();
+      return passTest();
     },
   });
   try {
@@ -264,6 +354,7 @@ export const testNavigationToMultipleDestination = async (
   let onArrivalCount = 0;
   addListeners({
     onNavigationReady: async () => {
+      disableVoiceGuidanceForTests(navigationController);
       await navigationController.simulator.simulateLocation({
         lat: 37.4195823,
         lng: -122.0799018,
@@ -272,8 +363,8 @@ export const testNavigationToMultipleDestination = async (
         [
           {
             position: {
-              lat: 37.4178065,
-              lng: -122.0812455,
+              lat: 37.418761,
+              lng: -122.080484,
             },
           },
           {
@@ -291,12 +382,18 @@ export const testNavigationToMultipleDestination = async (
       );
       await navigationController.startGuidance();
 
-      // Timeout here is used to avoid issues on Android.
-      setTimeout(() => {
-        navigationController.simulator.simulateLocationsAlongExistingRoute({
-          speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
-        });
-      }, 3000);
+      const routeSegments = await waitForCondition(
+        () => navigationController.getRouteSegments(),
+        segments => segments.length > 0
+      );
+      if (!routeSegments) {
+        return failTest(
+          'Timed out waiting for route segments before starting simulation'
+        );
+      }
+      await navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
+      });
     },
     onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
       console.log(errorCode);
@@ -305,9 +402,13 @@ export const testNavigationToMultipleDestination = async (
     onArrival: async () => {
       onArrivalCount += 1;
       if (onArrivalCount > 1) {
+        navigationController.cleanup();
         return passTest();
       }
       await navigationController.continueToNextDestination();
+      await navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
+      });
     },
   });
   try {
@@ -329,6 +430,7 @@ export const testRouteSegments = async (testTools: TestTools) => {
   let beginTraveledPath;
   addListeners({
     onNavigationReady: async () => {
+      disableVoiceGuidanceForTests(navigationController);
       await navigationController.simulator.simulateLocation({
         lat: 37.79136614772824,
         lng: -122.41565900473043,
@@ -342,25 +444,25 @@ export const testRouteSegments = async (testTools: TestTools) => {
       });
       await navigationController.startGuidance();
 
-      // Timeout here is used to avoid issues on Android.
-      setTimeout(async () => {
-        const beginRouteSegments =
-          await navigationController.getRouteSegments();
-        const beginCurrentRouteSegment =
-          await navigationController.getCurrentRouteSegment();
-        beginTraveledPath = await navigationController.getTraveledPath();
-
-        if (beginRouteSegments.length === 0) {
-          expectFalseError('beginRouteSegments.length === 0');
-          return;
-        }
-        if (!beginCurrentRouteSegment) {
-          return expectFalseError('!beginCurrentRouteSegment');
-        }
-        navigationController.simulator.simulateLocationsAlongExistingRoute({
-          speedMultiplier: 5,
-        });
-      }, 3000);
+      const beginRouteSegments = await waitForCondition(
+        () => navigationController.getRouteSegments(),
+        segments => segments.length > 0
+      );
+      if (!beginRouteSegments) {
+        expectFalseError('beginRouteSegments.length === 0');
+        return;
+      }
+      const beginCurrentRouteSegment = await waitForCondition(
+        () => navigationController.getCurrentRouteSegment(),
+        segment => segment !== null
+      );
+      if (!beginCurrentRouteSegment) {
+        return expectFalseError('!beginCurrentRouteSegment');
+      }
+      beginTraveledPath = await navigationController.getTraveledPath();
+      await navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: 5,
+      });
     },
     onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
       console.log(errorCode);
@@ -373,6 +475,7 @@ export const testRouteSegments = async (testTools: TestTools) => {
           'endTraveledPath.length <= beginTraveledPath.length'
         );
       }
+      navigationController.cleanup();
       passTest();
     },
   });
@@ -392,9 +495,10 @@ export const testGetCurrentTimeAndDistance = async (testTools: TestTools) => {
     failTest,
     expectFalseError,
   } = testTools;
-  let beginTimeAndDistance: TimeAndDistance;
+  let beginTimeAndDistance: TimeAndDistance | null = null;
   addListeners({
     onNavigationReady: async () => {
+      disableVoiceGuidanceForTests(navigationController);
       await navigationController.simulator.simulateLocation({
         lat: 37.79136614772824,
         lng: -122.41565900473043,
@@ -408,22 +512,21 @@ export const testGetCurrentTimeAndDistance = async (testTools: TestTools) => {
       });
       await navigationController.startGuidance();
 
-      // Timeout here is used to avoid issues on Android.
-      setTimeout(async () => {
-        beginTimeAndDistance =
-          await navigationController.getCurrentTimeAndDistance();
-        if (beginTimeAndDistance.seconds <= 0) {
-          return expectFalseError('beginTimeAndDistance.seconds <= 0');
-        }
-        if (beginTimeAndDistance.meters <= 0) {
-          return expectFalseError('beginTimeAndDistance.meters <= 0');
-        }
-        await navigationController.simulator.simulateLocationsAlongExistingRoute(
-          {
-            speedMultiplier: 5,
-          }
+      beginTimeAndDistance = await waitForTimeAndDistance(navigationController);
+      if (!beginTimeAndDistance) {
+        return failTest(
+          'initialTimeAndDistance is null (navigationController.getCurrentTimeAndDistance())'
         );
-      }, 3000);
+      }
+      if (beginTimeAndDistance.seconds <= 0) {
+        return expectFalseError('beginTimeAndDistance.seconds <= 0');
+      }
+      if (beginTimeAndDistance.meters <= 0) {
+        return expectFalseError('beginTimeAndDistance.meters <= 0');
+      }
+      await navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: 5,
+      });
     },
     onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
       console.log(errorCode);
@@ -431,7 +534,15 @@ export const testGetCurrentTimeAndDistance = async (testTools: TestTools) => {
     },
     onArrival: async () => {
       const endTimeAndDistance =
-        await navigationController.getCurrentTimeAndDistance();
+        await waitForTimeAndDistance(navigationController);
+      if (!endTimeAndDistance) {
+        return expectFalseError(
+          'endTimeAndDistance is null (navigationController.getCurrentTimeAndDistance())'
+        );
+      }
+      if (!beginTimeAndDistance) {
+        return expectFalseError('beginTimeAndDistance is null');
+      }
       if (endTimeAndDistance.meters >= beginTimeAndDistance.meters) {
         return expectFalseError(
           'endTimeAndDistance.meters >= beginTimeAndDistance.meters'
@@ -442,6 +553,7 @@ export const testGetCurrentTimeAndDistance = async (testTools: TestTools) => {
           'endTimeAndDistance.seconds >= beginTimeAndDistance.seconds'
         );
       }
+      navigationController.cleanup();
       passTest();
     },
   });
@@ -467,14 +579,13 @@ export const testMoveCamera = async (testTools: TestTools) => {
     },
   });
 
-  // Timeout here is used to avoid issues on Android.
-  await delay(3000);
-  const hongKongPosition = await mapViewController.getCameraPosition();
-
-  if (
-    roundDown(hongKongPosition.target.lat) !== 22 ||
-    roundDown(hongKongPosition.target.lng) !== 114
-  ) {
+  const hongKongPosition = await waitForCondition(
+    () => mapViewController.getCameraPosition(),
+    position =>
+      roundDown(position.target.lat) === 22 &&
+      roundDown(position.target.lng) === 114
+  );
+  if (!hongKongPosition) {
     expectFalseError(
       'roundDown(hongKongPosition.target.lat) !== 22 || roundDown(hongKongPosition.target.lng) !== 114'
     );
@@ -488,16 +599,15 @@ export const testMoveCamera = async (testTools: TestTools) => {
     },
   });
 
-  // Timeout here is used to avoid issues on Android.
-  await delay(3000);
-  const tokyoPosition = await mapViewController.getCameraPosition();
-
-  if (
-    roundDown(tokyoPosition.target.lat) !== 35 ||
-    roundDown(tokyoPosition.target.lng) !== 139
-  ) {
+  const tokyoPosition = await waitForCondition(
+    () => mapViewController.getCameraPosition(),
+    position =>
+      roundDown(position.target.lat) === 35 &&
+      roundDown(position.target.lng) === 139
+  );
+  if (!tokyoPosition) {
     expectFalseError(
-      'roundDown(hongKongPosition.target.lat) !== 22 || roundDown(hongKongPosition.target.lng) !== 114'
+      'roundDown(tokyoPosition.target.lat) !== 35 || roundDown(tokyoPosition.target.lng) !== 139'
     );
   }
 
@@ -521,15 +631,13 @@ export const testTiltZoomBearingCamera = async (testTools: TestTools) => {
     zoom: 6,
   });
 
-  // Timeout here is used to avoid issues on Android.
-  await delay(3000);
-  const hongKongPosition = await mapViewController.getCameraPosition();
+  const hongKongPosition = await waitForCondition(
+    () => mapViewController.getCameraPosition(),
+    position =>
+      position.bearing === 270 && position.tilt === 20 && position.zoom === 6
+  );
 
-  if (
-    hongKongPosition.bearing !== 270 ||
-    hongKongPosition.tilt !== 20 ||
-    hongKongPosition.zoom !== 6
-  ) {
+  if (!hongKongPosition) {
     expectFalseError(
       'hongKongPosition.bearing !== 270 || hongKongPosition.tilt !== 20 || hongKongPosition.zoom !== 6'
     );
@@ -547,10 +655,12 @@ export const testOnRemainingTimeOrDistanceChanged = async (
       const timeAndDistance =
         await navigationController.getCurrentTimeAndDistance();
       if (timeAndDistance.meters > 0 && timeAndDistance.seconds > 0) {
+        navigationController.cleanup();
         return passTest();
       }
     },
     onNavigationReady: async () => {
+      disableVoiceGuidanceForTests(navigationController);
       await navigationController.simulator.simulateLocation({
         lat: 37.79136614772824,
         lng: -122.41565900473043,
@@ -584,9 +694,11 @@ export const testOnArrival = async (testTools: TestTools) => {
   const { navigationController, addListeners, passTest, failTest } = testTools;
   addListeners({
     onArrival: async () => {
+      navigationController.cleanup();
       passTest();
     },
     onNavigationReady: async () => {
+      disableVoiceGuidanceForTests(navigationController);
       await navigationController.simulator.simulateLocation({
         lat: 37.79136614772824,
         lng: -122.41565900473043,
@@ -599,8 +711,15 @@ export const testOnArrival = async (testTools: TestTools) => {
         },
       });
       await navigationController.startGuidance();
-      // Timeout here is used to avoid issues on Android.
-      await delay(3000);
+      const routeSegments = await waitForCondition(
+        () => navigationController.getRouteSegments(),
+        segments => segments.length > 0
+      );
+      if (!routeSegments) {
+        return failTest(
+          'Timed out waiting for route segments before starting simulation'
+        );
+      }
       await navigationController.simulator.simulateLocationsAlongExistingRoute({
         speedMultiplier: 5,
       });
@@ -622,9 +741,11 @@ export const testOnRouteChanged = async (testTools: TestTools) => {
   const { navigationController, addListeners, passTest, failTest } = testTools;
   addListeners({
     onRouteChanged: async () => {
+      navigationController.cleanup();
       passTest();
     },
     onNavigationReady: async () => {
+      disableVoiceGuidanceForTests(navigationController);
       await navigationController.simulator.simulateLocation({
         lat: 37.79136614772824,
         lng: -122.41565900473043,
@@ -646,6 +767,146 @@ export const testOnRouteChanged = async (testTools: TestTools) => {
       failTest('onNavigatonInitError');
     },
   });
+  try {
+    await navigationController.init();
+  } catch (error) {
+    console.error('Error initializing navigator', error);
+    failTest('navigationController.init() exception');
+  }
+};
+
+export const testNavigationStateGuards = async (testTools: TestTools) => {
+  const { navigationController, passTest, failTest } = testTools;
+
+  const expectNavigatorUnavailableError = async (
+    operationName: string,
+    action: () => Promise<unknown>
+  ): Promise<boolean> => {
+    try {
+      await action();
+      failTest(
+        `Expected ${operationName} to reject when navigator is unavailable`
+      );
+      return false;
+    } catch (error) {
+      const code = extractNativeErrorCode(error);
+      if (!isNavigatorUnavailableError(code)) {
+        failTest(
+          `${operationName} rejected with unexpected error code ${
+            code ?? 'undefined'
+          }`
+        );
+        return false;
+      }
+    }
+    return true;
+  };
+
+  if (
+    !(await expectNavigatorUnavailableError('setDestination', () =>
+      navigationController.setDestination(DEFAULT_TEST_WAYPOINT)
+    ))
+  ) {
+    return;
+  }
+
+  if (
+    !(await expectNavigatorUnavailableError('setDestinations', () =>
+      navigationController.setDestinations([DEFAULT_TEST_WAYPOINT])
+    ))
+  ) {
+    return;
+  }
+
+  if (
+    !(await expectNavigatorUnavailableError('startGuidance', () =>
+      navigationController.startGuidance()
+    ))
+  ) {
+    return;
+  }
+
+  if (
+    !(await expectNavigatorUnavailableError('stopGuidance', () =>
+      navigationController.stopGuidance()
+    ))
+  ) {
+    return;
+  }
+
+  if (
+    !(await expectNavigatorUnavailableError('clearDestinations', () =>
+      navigationController.clearDestinations()
+    ))
+  ) {
+    return;
+  }
+
+  if (
+    !(await expectNavigatorUnavailableError('continueToNextDestination', () =>
+      navigationController.continueToNextDestination()
+    ))
+  ) {
+    return;
+  }
+
+  if (
+    !(await expectNavigatorUnavailableError('cleanup', () =>
+      navigationController.cleanup()
+    ))
+  ) {
+    return;
+  }
+  passTest();
+};
+
+export const testStartGuidanceWithoutDestinations = async (
+  testTools: TestTools
+) => {
+  const { navigationController, addListeners, passTest, failTest } = testTools;
+
+  const expectNoDestinationsError = async (): Promise<boolean> => {
+    try {
+      await navigationController.startGuidance();
+      failTest('Expected startGuidance to reject without destinations');
+      return false;
+    } catch (error) {
+      const code = extractNativeErrorCode(error);
+      if (code !== NO_DESTINATIONS_ERROR_CODE) {
+        failTest(
+          `startGuidance rejected with unexpected error code ${
+            code ?? 'undefined'
+          }`
+        );
+        return false;
+      }
+    }
+    return true;
+  };
+
+  addListeners({
+    onNavigationReady: async () => {
+      disableVoiceGuidanceForTests(navigationController);
+      if (!(await expectNoDestinationsError())) {
+        return;
+      }
+
+      try {
+        await navigationController.cleanup();
+      } catch (error) {
+        console.error('cleanup failed', error);
+        failTest('navigationController.cleanup() failed');
+        return;
+      }
+
+      passTest();
+    },
+    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
+      console.log(errorCode);
+      failTest('onNavigatonInitError');
+    },
+  });
+
   try {
     await navigationController.init();
   } catch (error) {

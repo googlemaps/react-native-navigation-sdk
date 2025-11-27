@@ -34,6 +34,7 @@ typedef void (^NavigationSessionDisposedCallback)(void);
 @property BOOL enableUpdateInfo;
 
 - (BOOL)hasSession;
+- (BOOL)isNavigatorAvailable;
 - (GMSNavigationSession *)getSession;
 + (void)unregisterNavigationSessionReadyCallback;
 + (void)registerNavigationSessionReadyCallback:(NavigationSessionReadyCallback)callback;

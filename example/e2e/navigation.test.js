@@ -20,8 +20,8 @@ import {
   selectTestByName,
   waitForTestToFinish,
   expectSuccess,
+  expectNoErrors,
 } from './shared.js';
-import { element, by, log } from 'detox';
 
 describe('Navigation tests', () => {
   beforeEach(async () => {
@@ -32,6 +32,7 @@ describe('Navigation tests', () => {
     await selectTestByName('testNavigationSessionInitialization');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
+    await expectNoErrors();
     await expectSuccess();
   });
 
@@ -39,6 +40,7 @@ describe('Navigation tests', () => {
     await selectTestByName('testNavigationToSingleDestination');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
+    await expectNoErrors();
     await expectSuccess();
   });
 
@@ -46,28 +48,38 @@ describe('Navigation tests', () => {
     await selectTestByName('testNavigationToMultipleDestination');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
+    await expectNoErrors();
     await expectSuccess();
   });
 
   it('T04 - initialize navigation controller and test route segments', async () => {
     await selectTestByName('testRouteSegments');
     await agreeToTermsAndConditions();
-    const failureMessageLabel = element(by.id('failure_message_label'));
-    const attributes = await failureMessageLabel.getAttributes();
-    log.error(attributes.text);
-    await expect(element(by.id('failure_message_label'))).toHaveText('');
     await waitForTestToFinish();
+    await expectNoErrors();
     await expectSuccess();
   });
 
   it('T05 - initialize navigation controller and test remaining time and distance', async () => {
     await selectTestByName('testGetCurrentTimeAndDistance');
     await agreeToTermsAndConditions();
-    const failureMessageLabel = element(by.id('failure_message_label'));
-    const attributes = await failureMessageLabel.getAttributes();
-    log.error(attributes.text);
-    await expect(element(by.id('failure_message_label'))).toHaveText('');
     await waitForTestToFinish();
+    await expectNoErrors();
+    await expectSuccess();
+  });
+
+  it('T06 - expect navigation controller calls to fail when not initialized', async () => {
+    await selectTestByName('testNavigationStateGuards');
+    await waitForTestToFinish();
+    await expectNoErrors();
+    await expectSuccess();
+  });
+
+  it('T07 - require destinations before starting guidance', async () => {
+    await selectTestByName('testStartGuidanceWithoutDestinations');
+    await agreeToTermsAndConditions();
+    await waitForTestToFinish();
+    await expectNoErrors();
     await expectSuccess();
   });
 });

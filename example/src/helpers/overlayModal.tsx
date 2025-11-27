@@ -29,13 +29,20 @@ interface OverlayModalProps {
   visible: boolean;
   closeOverlay: () => void;
   children: ReactNode;
+  height?: number;
 }
 
 const OverlayModal: React.FC<OverlayModalProps> = ({
   visible,
   closeOverlay,
   children,
+  height: height,
 }) => {
+  const modalContentStyle = [
+    styles.modalContent,
+    height != null ? { height } : null,
+  ];
+
   return (
     <Modal
       transparent={true}
@@ -46,10 +53,11 @@ const OverlayModal: React.FC<OverlayModalProps> = ({
       <TouchableWithoutFeedback onPress={closeOverlay}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <View style={styles.modalContent}>
+            <View style={modalContentStyle}>
               <ScrollView
                 showsVerticalScrollIndicator={true}
                 persistentScrollbar={true}
+                style={styles.scrollContainer}
               >
                 {children}
               </ScrollView>
@@ -86,6 +94,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     padding: 20,
+  },
+  scrollContainer: {
+    flexGrow: 1,
   },
   closeButton: {
     padding: 10,

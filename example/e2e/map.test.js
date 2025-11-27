@@ -19,8 +19,8 @@ import {
   selectTestByName,
   waitForTestToFinish,
   expectSuccess,
+  expectNoErrors,
 } from './shared.js';
-import { element, by, log } from 'detox';
 
 describe('Map view tests', () => {
   beforeEach(async () => {
@@ -30,30 +30,21 @@ describe('Map view tests', () => {
   it('T01 - initialize map and test default values', async () => {
     await selectTestByName('testMapInitialization');
     await waitForTestToFinish();
-    const failureMessageLabel = element(by.id('failure_message_label'));
-    const attributes = await failureMessageLabel.getAttributes();
-    log.error(attributes.text);
-    await expect(element(by.id('failure_message_label'))).toHaveText('');
+    await expectNoErrors();
     await expectSuccess();
   });
 
   it('T02 - initialize map and test move camera', async () => {
     await selectTestByName('testMoveCamera');
     await waitForTestToFinish();
-    const failureMessageLabel = element(by.id('failure_message_label'));
-    const attributes = await failureMessageLabel.getAttributes();
-    log.error(attributes.text);
-    await expect(element(by.id('failure_message_label'))).toHaveText('');
+    await expectNoErrors();
     await expectSuccess();
   });
 
   it('T03 - initialize map and test camera tilt bearing zoom', async () => {
     await selectTestByName('testTiltZoomBearingCamera');
     await waitForTestToFinish();
-    const failureMessageLabel = element(by.id('failure_message_label'));
-    const attributes = await failureMessageLabel.getAttributes();
-    log.error(attributes.text);
-    await expect(element(by.id('failure_message_label'))).toHaveText('');
+    await expectNoErrors();
     await expectSuccess();
   });
 });

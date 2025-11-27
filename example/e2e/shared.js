@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import { device, element, waitFor, by, expect } from 'detox';
+import { device, element, waitFor, by, expect, log } from 'detox';
+
+const NO_ERRORS_DETECTED_LABEL = 'No errors detected';
 
 export const agreeToTermsAndConditions = async () => {
   if (device.getPlatform() === 'ios') {
@@ -37,6 +39,7 @@ export const waitForStepNumber = async number => {
 };
 
 export const waitForTestToFinish = async (timeInMs = 60000) => {
+  await expect(element(by.id('test_status_label'))).toExist();
   await waitFor(element(by.id('test_status_label')))
     .toHaveText(`Test status: Finished`)
     .withTimeout(timeInMs);
@@ -47,6 +50,17 @@ export const expectSuccess = async () => {
     'Test result: Success'
   );
 };
+
+export async function expectNoErrors() {
+  const failureMessageLabel = element(by.id('failure_message_label'));
+  const attributes = await failureMessageLabel.getAttributes();
+  if (attributes.text !== NO_ERRORS_DETECTED_LABEL) {
+    log.error(attributes.text);
+  }
+  await expect(element(by.id('failure_message_label'))).toHaveText(
+    NO_ERRORS_DETECTED_LABEL
+  );
+}
 
 export const initializeIntegrationTestsPage = async () => {
   await device.launchApp({

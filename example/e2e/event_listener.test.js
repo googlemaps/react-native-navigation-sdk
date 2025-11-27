@@ -20,9 +20,10 @@ import {
   selectTestByName,
   waitForTestToFinish,
   expectSuccess,
+  expectNoErrors,
 } from './shared.js';
 
-describe('Even listener tests', () => {
+describe('Event listener tests', () => {
   beforeEach(async () => {
     await initializeIntegrationTestsPage();
   });
@@ -31,6 +32,7 @@ describe('Even listener tests', () => {
     await selectTestByName('testOnRemainingTimeOrDistanceChanged');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
+    await expectNoErrors();
     await expectSuccess();
   });
 
@@ -38,6 +40,7 @@ describe('Even listener tests', () => {
     await selectTestByName('testOnArrival');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
+    await expectNoErrors();
     await expectSuccess();
   });
 
@@ -45,6 +48,7 @@ describe('Even listener tests', () => {
     await selectTestByName('testOnRouteChanged');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
+    await expectNoErrors();
     await expectSuccess();
   });
 });
