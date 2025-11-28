@@ -30,7 +30,10 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/googlemaps/react-native-navigation-sdk.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,cpp}"
-  s.private_header_files = "ios/**/*.h"
+  s.public_header_files = [
+    "ios/react-native-navigation-sdk/NavModule.h",
+    "ios/react-native-navigation-sdk/INavigationCallback.h",
+  ]
 
   s.dependency "React-Core"
   s.dependency "GoogleNavigation", "10.6.0"
