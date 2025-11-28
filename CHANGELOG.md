@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.12.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.11.0...v0.12.0) (2025-11-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* `no_destinations` error string on iOS is changed to `NO_DESTINATIONS`, matching other error code formats and Android implementation
+
+### Features
+
+* support for setting map color schema ([#500](https://github.com/googlemaps/react-native-navigation-sdk/issues/500)) ([6e0cd58](https://github.com/googlemaps/react-native-navigation-sdk/commit/6e0cd587a1a7ce5cefa1e6a592fd74e16a3983d7))
+* support mapId ([#495](https://github.com/googlemaps/react-native-navigation-sdk/issues/495)) ([d639fe4](https://github.com/googlemaps/react-native-navigation-sdk/commit/d639fe4e5f5a9d4a70908a542cb9d0887a41f280))
+* upgrade Android SDK to version 7.2.0 ([#506](https://github.com/googlemaps/react-native-navigation-sdk/issues/506)) ([3032359](https://github.com/googlemaps/react-native-navigation-sdk/commit/3032359e9085a0adbf2a62de52a4c1cf3f3c431d))
+* upgrade iOS SDK to version 10.6.0 ([#507](https://github.com/googlemaps/react-native-navigation-sdk/issues/507)) ([1f17d25](https://github.com/googlemaps/react-native-navigation-sdk/commit/1f17d25f7c16b1c696b1ed4923da6aa656e97dd1))
+
+
+### Bug Fixes
+
+* android view invalidation mechanism ([#505](https://github.com/googlemaps/react-native-navigation-sdk/issues/505)) ([4f770c9](https://github.com/googlemaps/react-native-navigation-sdk/commit/4f770c9c32d61eff19e8b490be172db90d170b7e))
+* iOS navigation session attachment and detachment ([#497](https://github.com/googlemaps/react-native-navigation-sdk/issues/497)) ([cc0aae1](https://github.com/googlemaps/react-native-navigation-sdk/commit/cc0aae12c6294e667b5f561f4f81342ee90143fa))
+* navigation session error handling ([#502](https://github.com/googlemaps/react-native-navigation-sdk/issues/502)) ([a8ddabb](https://github.com/googlemaps/react-native-navigation-sdk/commit/a8ddabbf082c30a00350ace2dda3371d34cf15c7))
+* resolve map view initialization timing issue ([#504](https://github.com/googlemaps/react-native-navigation-sdk/issues/504)) ([3c46f4d](https://github.com/googlemaps/react-native-navigation-sdk/commit/3c46f4d2d16553b4529a3fa6efba1fb929cc8ca0))
+
 ## [0.11.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.10.3...v0.11.0) (2025-10-13)
 
 
