@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 #import <React/RCTBridgeModule.h>
-#import "NavViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
+
+@class NavViewController;  // forward declaration
 
 @interface NavAutoModule : NSObject <RCTBridgeModule>
 @property(nonatomic, strong, nullable) NavViewController *viewController;

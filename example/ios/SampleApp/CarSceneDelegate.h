@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 #import <CarPlay/CarPlay.h>
-#import "BaseCarSceneDelegate.h"
+#import <ReactNativeGoogleMapsNavigation/BaseCarSceneDelegate.h>
 
 @interface CarSceneDelegate : BaseCarSceneDelegate
 @end

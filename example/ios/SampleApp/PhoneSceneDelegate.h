@@ -15,7 +15,6 @@
  */
 #import <React/RCTRootView.h>
 #import <UIKit/UIKit.h>
-#import "AppDelegateCarPlay.h"
 
 @interface PhoneSceneDelegate : UIResponder <UIWindowSceneDelegate>
 
