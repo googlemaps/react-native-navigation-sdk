@@ -30,6 +30,10 @@
   self.moduleName = @"SampleApp";
   self.dependencyProvider = [RCTAppDependencyProvider new];
 
+  // You can add your custom initial props in the dictionary below.
+  // They will be passed down to the ViewController used by React Native.
+  self.initialProps = @{};
+
   // Note: Ensure that you have copied the Keys.plist.sample to Keys.plist
   // and have added the correct API_KEY value to the file.
   //
@@ -39,6 +43,11 @@
   NSString *api_key = [keysDictionary objectForKey:@"API_KEY"];
 
   [GMSServices provideAPIKey:api_key];
+
+  // Set automaticallyLoadReactNativeWindow to NO to prevent RCTAppDelegate from creating the
+  // window. It will be created in PhoneSceneDelegate for the main (phone) screen.
+  self.automaticallyLoadReactNativeWindow = NO;
+
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
@@ -63,6 +72,14 @@
 
 - (void)application:(UIApplication *)application
     didDiscardSceneSessions:(NSSet<UISceneSession *> *)sceneSessions {
+}
+
+- (BOOL)fabricEnabled {
+  return NO;
+}
+
+- (BOOL)bridgelessEnabled {
+  return NO;
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
