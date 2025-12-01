@@ -19,6 +19,7 @@
 #import "CustomTypes.h"
 #import "NavAutoModule.h"
 #import "NavModule.h"
+#import "NavViewController.h"
 
 @implementation BaseCarSceneDelegate
 

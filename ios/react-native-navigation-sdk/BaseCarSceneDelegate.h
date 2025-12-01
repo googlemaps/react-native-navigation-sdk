@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 #import <CarPlay/CarPlay.h>
-#import "NavViewController.h"
+
+NS_ASSUME_NONNULL_BEGIN
+
+@class NavViewController;  // forward declaration
 
 @interface BaseCarSceneDelegate
     : UIResponder <CPTemplateApplicationSceneDelegate, CPMapTemplateDelegate>
@@ -29,3 +32,5 @@
 - (CPMapTemplate *)getTemplate;
 
 @end
+
+NS_ASSUME_NONNULL_END
