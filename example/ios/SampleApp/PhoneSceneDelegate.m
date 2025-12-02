@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 #import "PhoneSceneDelegate.h"
+#import <RCTAppDelegate.h>
 #import <React/RCTRootView.h>
 #import <UIKit/UIKit.h>
-#import "AppDelegateCarPlay.h"
 
 @implementation PhoneSceneDelegate
 
 - (void)scene:(UIScene *)scene
     willConnectToSession:(UISceneSession *)session
                  options:(UISceneConnectionOptions *)connectionOptions {
-  AppDelegateCarPlay *appDelegate =
-      (AppDelegateCarPlay *)[UIApplication sharedApplication].delegate;
+  RCTAppDelegate *appDelegate = (RCTAppDelegate *)[UIApplication sharedApplication].delegate;
   if (!appDelegate) {
     return;
   }
@@ -34,12 +33,18 @@
     return;
   }
 
+  UIView *rootView = [appDelegate.rootViewFactory viewWithModuleName:appDelegate.moduleName
+                                                   initialProperties:appDelegate.initialProps
+                                                       launchOptions:nil];
+  rootView.backgroundColor = [UIColor whiteColor];
+
   UIViewController *rootViewController = [[UIViewController alloc] init];
-  rootViewController.view = appDelegate.rootView;
+  rootViewController.view = rootView;
 
   UIWindow *window = [[UIWindow alloc] initWithWindowScene:windowScene];
   window.rootViewController = rootViewController;
   self.window = window;
+
   [appDelegate setWindow:window];
   [window makeKeyAndVisible];
 }

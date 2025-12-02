@@ -7,6 +7,7 @@
     "android": "react-native run-android",
     "android-release": "react-native run-android --mode release",
     "ios": "react-native run-ios",
+    "ios:carplay": "react-native run-ios --scheme SampleAppCarPlay",
     "ios-release": "react-native run-ios --mode Release",
     "lint": "eslint .",
     "test": "jest",

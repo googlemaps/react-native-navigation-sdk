@@ -12,8 +12,10 @@ This guide explains how to enable and integrate Apple CarPlay with the React Nat
 
 Refer to the [Apple CarPlay Developer Guide](https://developer.apple.com/carplay/) to understand how CarPlay works and to complete the initial setup. Key steps include:
 
-- Adding the CarPlay entitlement to your Xcode project.
-- Creating a separate scene for the CarPlay map and enabling support for multiple scenes.
+- Adding the CarPlay entitlement to your Xcode project
+- Creating a separate scene for the CarPlay map and enabling support for multiple scenes
+
+For a complete implementation example, refer to [AppDelegateCarPlay.m](example/ios/SampleApp/AppDelegateCarPlay.m), [PhoneSceneDelegate.m](example/ios/SampleApp/PhoneSceneDelegate.m) and [CarSceneDelegate.m](example/ios/SampleApp/CarSceneDelegate.m). Pay special attention to how the React Native window is initialized in `PhoneSceneDelegate` when using multiple scenes.
 
 ### SceneDelegate for CarPlay
 
@@ -83,4 +85,10 @@ For a more detailed example, refer to the `NavigationScreen.tsx` in the React Na
 
 ## Example Project
 
-For a fully functional CarPlay implementation, check out the [SampleApp](./example/ios/) Xcode project, which includes the `SampleAppCarPlay` build target. The sample already contains test entitlement so you don't need to request one from Apple to run it.
+For a fully functional CarPlay implementation, check out the [SampleApp](./example/ios/) Xcode project, which includes the `SampleAppCarPlay` build target. The sample already contains test entitlement so you don't need to request one from Apple to run it. 
+
+Start the CarPlay example from the command line:
+
+```bash
+yarn example ios:carplay
+```
