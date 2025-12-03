@@ -21,7 +21,8 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import { Button, View } from 'react-native';
+import { View } from 'react-native';
+import { ExampleAppButton } from '../controls/ExampleAppButton';
 import PagerView, {
   type PagerViewOnPageSelectedEvent,
 } from 'react-native-pager-view';
@@ -313,7 +314,7 @@ const MultipleMapsScreen = () => {
   return arePermissionsApproved ? (
     <View style={[CommonStyles.container, { paddingBottom: insets.bottom }]}>
       <View style={CommonStyles.buttonContainer}>
-        <Button
+        <ExampleAppButton
           title={mapsVisible ? 'Hide maps' : 'Show maps'}
           onPress={() => setMapsVisible(v => !v)}
         />
@@ -322,12 +323,12 @@ const MultipleMapsScreen = () => {
       {mapsVisible && (
         <React.Fragment>
           <View style={ControlStyles.pagerButtons}>
-            <Button
+            <ExampleAppButton
               title="Navigation page"
               onPress={() => goToPage(0)}
               disabled={currentPage === 0}
             />
-            <Button
+            <ExampleAppButton
               title="Map page"
               onPress={() => goToPage(1)}
               disabled={currentPage === 1}
@@ -354,12 +355,15 @@ const MultipleMapsScreen = () => {
                 onNavigationViewControllerCreated={setNavigationViewController1}
               />
               <View style={ControlStyles.controlButtons}>
-                <Button
+                <ExampleAppButton
                   title="Nav (Map 1)"
                   onPress={onShowNavControlsClick}
                   disabled={!navigationInitialized}
                 />
-                <Button title="Map 1" onPress={onShowMapsControlsClick1} />
+                <ExampleAppButton
+                  title="Map 1"
+                  onPress={onShowMapsControlsClick1}
+                />
               </View>
             </View>
             {/* Page 2: MapView */}
@@ -372,7 +376,10 @@ const MultipleMapsScreen = () => {
               />
               {currentPage === 1 && (
                 <View style={ControlStyles.controlButtons}>
-                  <Button title="Map 2" onPress={onShowMapsControlsClick2} />
+                  <ExampleAppButton
+                    title="Map 2"
+                    onPress={onShowMapsControlsClick2}
+                  />
                 </View>
               )}
             </View>

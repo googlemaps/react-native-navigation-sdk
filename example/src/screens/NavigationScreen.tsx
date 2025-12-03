@@ -15,7 +15,8 @@
  */
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Button, View } from 'react-native';
+import { View } from 'react-native';
+import { ExampleAppButton } from '../controls/ExampleAppButton';
 import Snackbar from 'react-native-snackbar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -357,14 +358,17 @@ const NavigationScreen = () => {
       )}
 
       <View style={CommonStyles.buttonRow}>
-        <Button
+        <ExampleAppButton
           title="Navigation"
           onPress={onShowNavControlsClick}
           disabled={!navigationInitialized}
         />
-        <Button title="Maps" onPress={onShowMapsControlsClick} />
+        <ExampleAppButton title="Maps" onPress={onShowMapsControlsClick} />
         {mapViewAutoAvailable && (
-          <Button title="Auto" onPress={onShowAutoMapsControlsClick} />
+          <ExampleAppButton
+            title="Auto"
+            onPress={onShowAutoMapsControlsClick}
+          />
         )}
       </View>
     </View>
