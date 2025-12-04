@@ -26,6 +26,7 @@ import {
   type Marker,
   type Polygon,
   type Polyline,
+  type DragResult,
 } from '..';
 
 export const MapView = (props: MapViewProps): React.JSX.Element => {
@@ -59,6 +60,20 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
   const onMapClick = useCallback(
     ({ nativeEvent: latlng }: { nativeEvent: LatLng }) => {
       props.mapViewCallbacks?.onMapClick?.(latlng);
+    },
+    [props.mapViewCallbacks]
+  );
+
+  const onMapDrag = useCallback(
+    ({ nativeEvent: result }: { nativeEvent: DragResult }) => {
+      props.mapViewCallbacks?.onMapDrag?.(result);
+    },
+    [props.mapViewCallbacks]
+  );
+
+  const onMapDragEnd = useCallback(
+    ({ nativeEvent: result }: { nativeEvent: DragResult }) => {
+      props.mapViewCallbacks?.onMapDragEnd?.(result);
     },
     [props.mapViewCallbacks]
   );
@@ -116,6 +131,8 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
         flex={1}
         fragmentType={FragmentType.MAP}
         onMapClick={onMapClick}
+        onMapDrag={onMapDrag}
+        onMapDragEnd={onMapDragEnd}
         onMapReady={onMapReady}
         onMarkerClick={onMarkerClick}
         onPolylineClick={onPolylineClick}
@@ -123,7 +140,9 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
         onCircleClick={onCircleClick}
         onGroundOverlayClick={onGroundOverlayClick}
         onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
-      />
+      >
+        {props.children}
+      </NavViewManager>
     </View>
   );
 };

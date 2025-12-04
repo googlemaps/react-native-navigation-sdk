@@ -15,7 +15,7 @@
  */
 
 import { NativeModules } from 'react-native';
-import type { Location } from '../../shared/types';
+import type { Location, Point, LatLng, Bounds } from '../../shared/types';
 import { commands, sendCommand } from '../../shared/viewManager';
 import type {
   CameraPosition,
@@ -26,6 +26,7 @@ import type {
   UISettings,
 } from '../types';
 import type {
+  BoundsOptions,
   CircleOptions,
   MapType,
   MapViewController,
@@ -53,6 +54,22 @@ export const getMapViewController = (viewId: number): MapViewController => {
 
     addCircle: async (circleOptions: CircleOptions): Promise<Circle> => {
       return await NavViewModule.addCircle(viewId, circleOptions);
+    },
+
+    coordinateForPoint: async (point: Point): Promise<LatLng> => {
+      return await NavViewModule.coordinateForPoint(viewId, point);
+    },
+
+    pointForCoordinate: async (coordinate: LatLng): Promise<Point> => {
+      return await NavViewModule.pointForCoordinate(viewId, coordinate);
+    },
+
+    fitBounds: async (boundsOptions: BoundsOptions) => {
+      return await NavViewModule.fitBounds(viewId, boundsOptions);
+    },
+
+    getBounds: async (): Promise<Bounds> => {
+      return await NavViewModule.getBounds(viewId);
     },
 
     addMarker: async (markerOptions: MarkerOptions): Promise<Marker> => {

@@ -17,6 +17,7 @@
 #import <React/RCTBridge.h>
 #import <React/RCTComponent.h>
 #import <React/RCTViewManager.h>
+#import <UIKit/UIKit.h>
 #import "CustomTypes.h"
 #import "INavigationViewCallback.h"
 
@@ -27,6 +28,8 @@
 @property(nonatomic, copy) RCTDirectEventBlock onRecenterButtonClick;
 @property(nonatomic, copy) RCTDirectEventBlock onMapReady;
 @property(nonatomic, copy) RCTDirectEventBlock onMapClick;
+@property(nonatomic, copy) RCTDirectEventBlock onMapDrag;
+@property(nonatomic, copy) RCTDirectEventBlock onMapDragEnd;
 @property(nonatomic, copy) RCTDirectEventBlock onMarkerInfoWindowTapped;
 @property(nonatomic, copy) RCTDirectEventBlock onMarkerClick;
 @property(nonatomic, copy) RCTDirectEventBlock onPolylineClick;

@@ -13,6 +13,7 @@
  */
 package com.google.android.react.navsdk;
 
+import android.graphics.Point;
 import android.location.Location;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -22,14 +23,18 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableMap;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.VisibleRegion;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,12 +80,7 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             return;
           }
 
-          LatLng target = cp.target;
-          WritableMap map = Arguments.createMap();
-          map.putDouble("bearing", cp.bearing);
-          map.putDouble("tilt", cp.tilt);
-          map.putDouble("zoom", cp.zoom);
-          map.putMap("target", ObjectTranslationUtil.getMapFromLatLng(target));
+          WritableMap map = ObjectTranslationUtil.getMapFromCameraPosition(cp);
 
           promise.resolve(map);
         });
@@ -107,6 +107,116 @@ public class NavViewModule extends ReactContextBaseJavaModule {
             promise.resolve(null);
             return;
           }
+        });
+  }
+
+  @ReactMethod
+  public void coordinateForPoint(Integer viewId, ReadableMap pointMap, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mNavViewManager.getGoogleMap(viewId) == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          try {
+            float density = getReactApplicationContext().getResources().getDisplayMetrics().density;
+            int x = (int) density * CollectionUtil.getInt("x", pointMap.toHashMap(), 0);
+            int y = (int) density * CollectionUtil.getInt("y", pointMap.toHashMap(), 0);
+            Point point = new Point(x, y);
+            LatLng latLng =
+                mNavViewManager.getGoogleMap(viewId).getProjection().fromScreenLocation(point);
+
+            promise.resolve(ObjectTranslationUtil.getMapFromLatLng(latLng));
+          } catch (Exception e) {
+            promise.resolve(null);
+            return;
+          }
+        });
+  }
+
+  @ReactMethod
+  public void pointForCoordinate(Integer viewId, ReadableMap latLngMap, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mNavViewManager.getGoogleMap(viewId) == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          LatLng latLng = ObjectTranslationUtil.getLatLngFromMap(latLngMap.toHashMap());
+          Point point =
+              mNavViewManager.getGoogleMap(viewId).getProjection().toScreenLocation(latLng);
+          float density = getReactApplicationContext().getResources().getDisplayMetrics().density;
+          point.x = (int) (point.x / density);
+          point.y = (int) (point.y / density);
+
+          promise.resolve(ObjectTranslationUtil.getMapFromPoint(point));
+        });
+  }
+
+  @ReactMethod
+  public void fitBounds(Integer viewId, ReadableMap boundsOptions, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mNavViewManager.getGoogleMap(viewId) == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          LatLng northEast =
+              ObjectTranslationUtil.getLatLngFromMap(
+                  boundsOptions.getMap("bounds").getMap("northEast").toHashMap());
+          LatLng southWest =
+              ObjectTranslationUtil.getLatLngFromMap(
+                  boundsOptions.getMap("bounds").getMap("southWest").toHashMap());
+
+          if (northEast == null || southWest == null) {
+            promise.resolve(null);
+            return;
+          }
+
+          ReadableMap paddingMap = boundsOptions.getMap("padding");
+          if (paddingMap != null) {
+            double density =
+                getReactApplicationContext().getResources().getDisplayMetrics().density;
+            int left = (int) (paddingMap.getInt("left") * density);
+            int top = (int) (paddingMap.getInt("top") * density);
+            int right = (int) (paddingMap.getInt("right") * density);
+            int bottom = (int) (paddingMap.getInt("bottom") * density);
+            mNavViewManager.getGoogleMap(viewId).setPadding(left, top, right, bottom);
+          }
+
+          CameraUpdate cameraUpdate =
+              CameraUpdateFactory.newLatLngBounds(new LatLngBounds(southWest, northEast), 0);
+          mNavViewManager.getGoogleMap(viewId).animateCamera(cameraUpdate);
+
+          promise.resolve(null);
+        });
+  }
+
+  @ReactMethod
+  public void getBounds(Integer viewId, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mNavViewManager.getGoogleMap(viewId) == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          VisibleRegion visibleRegion =
+              mNavViewManager.getGoogleMap(viewId).getProjection().getVisibleRegion();
+          LatLng northEast = visibleRegion.farRight;
+          LatLng southWest = visibleRegion.nearLeft;
+
+          WritableMap northEastMap = ObjectTranslationUtil.getMapFromLatLng(northEast);
+          WritableMap southWestMap = ObjectTranslationUtil.getMapFromLatLng(southWest);
+
+          WritableMap map = Arguments.createMap();
+          map.putMap("northEast", northEastMap);
+          map.putMap("southWest", southWestMap);
+
+          promise.resolve(map);
         });
   }
 

@@ -151,8 +151,7 @@ RCT_EXPORT_MODULE(NavModule);
                                                               }];
 }
 
-RCT_EXPORT_METHOD(initializeNavigator
-                  : (NSDictionary *)options
+RCT_EXPORT_METHOD(initializeNavigator : (NSDictionary *)options
                   // taskRemovedBehaviourValue is Android only value and not used on iOS.
                   : (nonnull NSNumber *)taskRemovedBehaviourValue) {
   dispatch_async(dispatch_get_main_queue(), ^{
@@ -161,9 +160,8 @@ RCT_EXPORT_METHOD(initializeNavigator
   });
 }
 
-RCT_EXPORT_METHOD(cleanup
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(cleanup : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)
+                      reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_session == nil) {
       reject(@"session_not_initialized", @"Navigation session not initialized", nil);
@@ -199,9 +197,8 @@ RCT_EXPORT_METHOD(setTurnByTurnLoggingEnabled : (BOOL)isEnabled) {
   });
 }
 
-RCT_EXPORT_METHOD(getCurrentTimeAndDistance
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getCurrentTimeAndDistance : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     GMSNavigator *navigator = nil;
     if (![self checkNavigatorWithError:reject navigator:&navigator]) {
@@ -221,10 +218,8 @@ RCT_EXPORT_METHOD(getCurrentTimeAndDistance
   });
 }
 
-RCT_EXPORT_METHOD(setAudioGuidanceType
-                  : (nonnull NSNumber *)index resolve
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(setAudioGuidanceType : (nonnull NSNumber *)index resolve : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     GMSNavigator *navigator = nil;
     if (![self checkNavigatorWithError:reject navigator:&navigator]) {
@@ -243,9 +238,8 @@ RCT_EXPORT_METHOD(setAudioGuidanceType
   });
 }
 
-RCT_EXPORT_METHOD(startGuidance
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(startGuidance : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)
+                      reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_destinations != NULL) {
       GMSNavigator *navigator = nil;
@@ -263,9 +257,8 @@ RCT_EXPORT_METHOD(startGuidance
   });
 }
 
-RCT_EXPORT_METHOD(stopGuidance
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(stopGuidance : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)
+                      reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     GMSNavigator *navigator = nil;
     if (![self checkNavigatorWithError:reject navigator:&navigator]) {
@@ -294,9 +287,8 @@ RCT_EXPORT_METHOD(stopLocationSimulation) {
   });
 }
 
-RCT_EXPORT_METHOD(clearDestinations
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(clearDestinations : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     GMSNavigator *navigator = nil;
     if (![self checkNavigatorWithError:reject navigator:&navigator]) {
@@ -309,9 +301,8 @@ RCT_EXPORT_METHOD(clearDestinations
   });
 }
 
-RCT_EXPORT_METHOD(continueToNextDestination
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(continueToNextDestination : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     GMSNavigator *navigator = nil;
     if (![self checkNavigatorWithError:reject navigator:&navigator]) {
@@ -323,12 +314,10 @@ RCT_EXPORT_METHOD(continueToNextDestination
   });
 }
 
-RCT_EXPORT_METHOD(setDestination
-                  : (nonnull NSDictionary *)waypoint routingOptions
-                  : (NSDictionary *)routingOptions displayOptions
-                  : (NSDictionary *)displayOptions resolve
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(setDestination : (nonnull NSDictionary *)waypoint routingOptions : (
+    NSDictionary *)routingOptions displayOptions : (NSDictionary *)
+                      displayOptions resolve : (RCTPromiseResolveBlock)
+                          resolve rejecter : (RCTPromiseRejectBlock)reject) {
   NSArray *waypoints = @[ waypoint ];
   [self setDestinations:waypoints
          routingOptions:routingOptions
@@ -337,12 +326,9 @@ RCT_EXPORT_METHOD(setDestination
                rejecter:reject];
 }
 
-RCT_EXPORT_METHOD(setDestinations
-                  : (nonnull NSArray *)waypoints routingOptions
-                  : (NSDictionary *)routingOptions displayOptions
-                  : (NSDictionary *)displayOptions resolve
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(setDestinations : (nonnull NSArray *)waypoints routingOptions : (NSDictionary *)
+                      routingOptions displayOptions : (NSDictionary *)displayOptions resolve : (
+                          RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject) {
   __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
     __strong typeof(self) strongSelf = weakSelf;
@@ -462,9 +448,8 @@ RCT_EXPORT_METHOD(setBackgroundLocationUpdatesEnabled : (BOOL)isEnabled) {
   });
 }
 
-RCT_EXPORT_METHOD(getCurrentRouteSegment
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getCurrentRouteSegment : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     GMSNavigator *navigator = nil;
     if (![self checkNavigatorWithError:reject navigator:&navigator]) {
@@ -487,9 +472,8 @@ RCT_EXPORT_METHOD(getCurrentRouteSegment
   });
 }
 
-RCT_EXPORT_METHOD(getRouteSegments
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getRouteSegments : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     GMSNavigator *navigator = nil;
     if (![self checkNavigatorWithError:reject navigator:&navigator]) {
@@ -512,9 +496,8 @@ RCT_EXPORT_METHOD(getRouteSegments
   });
 }
 
-RCT_EXPORT_METHOD(getTraveledPath
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getTraveledPath : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     GMSNavigator *navigator = nil;
     if (![self checkNavigatorWithError:reject navigator:&navigator]) {
@@ -531,10 +514,8 @@ RCT_EXPORT_METHOD(getTraveledPath
   });
 }
 
-RCT_EXPORT_METHOD(setSpeedAlertOptions
-                  : (NSDictionary *)thresholds resolve
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(setSpeedAlertOptions : (NSDictionary *)thresholds resolve : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     GMSNavigator *navigator = nil;
     if (![self checkNavigatorWithError:reject navigator:&navigator]) {
@@ -592,9 +573,8 @@ RCT_EXPORT_METHOD(resumeLocationSimulation) {
   });
 }
 
-RCT_EXPORT_METHOD(areTermsAccepted
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(areTermsAccepted : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (GMSNavigationServices.areTermsAndConditionsAccepted == NO) {
       resolve(@"false");
@@ -604,9 +584,8 @@ RCT_EXPORT_METHOD(areTermsAccepted
   });
 }
 
-RCT_EXPORT_METHOD(getNavSDKVersion
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getNavSDKVersion : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     resolve(GMSNavigationServices.navSDKVersion);
   });

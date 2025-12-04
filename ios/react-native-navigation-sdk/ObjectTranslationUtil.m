@@ -220,6 +220,17 @@
   return path;
 }
 
++ (NSDictionary *)transformCameraPositionToDictionary:(GMSCameraPosition *)cam {
+  NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
+  dictionary[@"bearing"] = @(cam.bearing);
+  dictionary[@"tilt"] = @(cam.viewingAngle);
+  dictionary[@"zoom"] = @(cam.zoom);
+
+  dictionary[@"target"] = @{@"lat" : @(cam.target.latitude), @"lng" : @(cam.target.longitude)};
+
+  return dictionary;
+}
+
 + (CLLocationCoordinate2D)getLocationCoordinateFrom:(NSDictionary *)latLngMap {
   double latitude = [[latLngMap objectForKey:@"lat"] doubleValue];
   double longitude = [[latLngMap objectForKey:@"lng"] doubleValue];

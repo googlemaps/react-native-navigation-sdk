@@ -212,6 +212,36 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
     setCustomPaddingEnabled(!customPaddingEnabled);
   };
 
+  const coordinateForPoint = async () => {
+    const cameraPosition = await mapViewController.getCameraPosition();
+    const point = await mapViewController.pointForCoordinate(
+      cameraPosition.target
+    );
+    const coordinate = await mapViewController.coordinateForPoint(point);
+    console.log({ point, coordinate });
+  };
+
+  const pointForCoordinate = async () => {
+    const { target: coordinate } = await mapViewController.getCameraPosition();
+    const point = await mapViewController.pointForCoordinate(coordinate);
+    console.log({ point, coordinate });
+  };
+
+  const fitBounds = async () => {
+    const bounds = await mapViewController.getBounds();
+    bounds.northEast.lat -= 1;
+    bounds.northEast.lng -= 1;
+    bounds.southWest.lat += 1;
+    bounds.southWest.lng += 1;
+
+    await mapViewController.fitBounds({ bounds });
+  };
+
+  const getBounds = async () => {
+    const bounds = await mapViewController.getBounds();
+    console.log(bounds);
+  };
+
   return (
     <View>
       <TextInput
@@ -256,6 +286,10 @@ const MapsControls: React.FC<MapControlsProps> = ({ mapViewController }) => {
         onPress={getIsMyLocationEnabled}
       />
       <Button title="Get camera position" onPress={getCameraPositionClicked} />
+      <Button title="Coordinate for point" onPress={coordinateForPoint} />
+      <Button title="Point for coordinate" onPress={pointForCoordinate} />
+      <Button title="Get bounds" onPress={getBounds} />
+      <Button title="Fit bounds (Shrink edges by 1°)" onPress={fitBounds} />
       <View style={styles.rowContainer}>
         <Text>Location marker</Text>
         <Button

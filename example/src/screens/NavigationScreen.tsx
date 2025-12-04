@@ -39,6 +39,7 @@ import {
   useNavigation,
   useNavigationAuto,
   type CustomNavigationAutoEvent,
+  type DragResult,
 } from '@googlemaps/react-native-navigation-sdk';
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
@@ -284,6 +285,12 @@ const NavigationScreen = () => {
       },
       onMapClick: (latLng: LatLng) => {
         console.log('onMapClick:', latLng);
+      },
+      onMapDrag: (result: DragResult) => {
+        console.log('onMapDrag:', result);
+      },
+      onMapDragEnd: (result: DragResult) => {
+        console.log('onMapDragEnd:', result);
       },
     };
   }, [mapViewController, onMapReady]);

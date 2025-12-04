@@ -26,8 +26,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.common.MapBuilder;
-import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
+import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.google.android.gms.maps.GoogleMap;
 import java.lang.ref.WeakReference;
@@ -38,7 +38,7 @@ import java.util.Objects;
 // NavViewManager is responsible for managing both the regular map fragment as well as the
 // navigation map view fragment.
 //
-public class NavViewManager extends SimpleViewManager<NavViewLayout> {
+public class NavViewManager extends ViewGroupManager<NavViewLayout> {
 
   public static final String REACT_CLASS = "NavViewManager";
 
@@ -528,6 +528,8 @@ public class NavViewManager extends SimpleViewManager<NavViewLayout> {
                     MapBuilder.of("registrationName", "onPromptVisibilityChanged"))
                 .put("onMapReady", MapBuilder.of("registrationName", "onMapReady"))
                 .put("onMapClick", MapBuilder.of("registrationName", "onMapClick"))
+                .put("onMapDrag", MapBuilder.of("registrationName", "onMapDrag"))
+                .put("onMapDragEnd", MapBuilder.of("registrationName", "onMapDragEnd"))
                 .put("onMarkerClick", MapBuilder.of("registrationName", "onMarkerClick"))
                 .put("onPolylineClick", MapBuilder.of("registrationName", "onPolylineClick"))
                 .put("onPolygonClick", MapBuilder.of("registrationName", "onPolygonClick"))

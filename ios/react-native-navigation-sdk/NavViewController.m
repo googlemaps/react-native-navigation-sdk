@@ -15,7 +15,9 @@
  */
 
 #import "NavViewController.h"
+#import <React/RCTConvert.h>
 #import <React/RCTLog.h>
+#import <UIKit/UIKit.h>
 #import "NavModule.h"
 #import "ObjectTranslationUtil.h"
 #import "UIColor+Util.h"
@@ -70,6 +72,16 @@
 - (void)mapView:(GMSMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
   [self.callbacks
       handleMapClick:[ObjectTranslationUtil transformCoordinateToDictionary:coordinate]];
+}
+
+- (void)mapView:(GMSMapView *)mapView didChangeCameraPosition:(GMSCameraPosition *)cameraPosition {
+  [self.callbacks
+      handleMapDrag:[ObjectTranslationUtil transformCameraPositionToDictionary:cameraPosition]];
+}
+
+- (void)mapView:(GMSMapView *)mapView idleAtCameraPosition:(GMSCameraPosition *)cameraPosition {
+  [self.callbacks
+      handleMapDragEnd:[ObjectTranslationUtil transformCameraPositionToDictionary:cameraPosition]];
 }
 
 - (BOOL)mapView:(GMSMapView *)mapView didTapMarker:(GMSMarker *)marker {
@@ -176,17 +188,7 @@
 }
 
 - (void)getCameraPosition:(OnDictionaryResult)completionBlock {
-  GMSCameraPosition *cam = _mapView.camera;
-  CLLocationCoordinate2D cameraPosition = _mapView.camera.target;
-
-  NSMutableDictionary *map = [[NSMutableDictionary alloc] init];
-  map[@"bearing"] = @(cam.bearing);
-  map[@"tilt"] = @(cam.viewingAngle);
-  map[@"zoom"] = @(cam.zoom);
-
-  map[@"target"] = @{@"lat" : @(cameraPosition.latitude), @"lng" : @(cameraPosition.longitude)};
-
-  completionBlock(map);
+  completionBlock([ObjectTranslationUtil transformCameraPositionToDictionary:_mapView.camera]);
 }
 
 - (void)getMyLocation:(OnDictionaryResult)completionBlock {
@@ -484,6 +486,72 @@
   completionBlock([ObjectTranslationUtil transformCircleToDictionary:circle]);
 }
 
+- (void)coordinateForPoint:(NSDictionary *)point result:(OnDictionaryResult)completionBlock {
+  CGPoint cgPoint =
+      CGPointMake([[point objectForKey:@"x"] floatValue], [[point objectForKey:@"y"] floatValue]);
+  CLLocationCoordinate2D coordinate = [_mapView.projection coordinateForPoint:cgPoint];
+
+  NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
+  result[@"lat"] = @(coordinate.latitude);
+  result[@"lng"] = @(coordinate.longitude);
+
+  completionBlock(result);
+}
+
+- (void)pointForCoordinate:(NSDictionary *)coordinate result:(OnDictionaryResult)completionBlock {
+  CLLocationCoordinate2D latLng = [ObjectTranslationUtil getLocationCoordinateFrom:coordinate];
+  CGPoint point = [_mapView.projection pointForCoordinate:latLng];
+
+  NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
+  result[@"x"] = @(point.x);
+  result[@"y"] = @(point.y);
+
+  completionBlock(result);
+}
+
+- (void)fitBounds:(NSDictionary *)boundsOptions result:(OnDictionaryResult)completionBlock {
+  NSDictionary *bounds = [boundsOptions objectForKey:@"bounds"];
+  CLLocationCoordinate2D northEast =
+      [ObjectTranslationUtil getLocationCoordinateFrom:[bounds objectForKey:@"northEast"]];
+  CLLocationCoordinate2D southWest =
+      [ObjectTranslationUtil getLocationCoordinateFrom:[bounds objectForKey:@"southWest"]];
+
+  NSDictionary *padding = [boundsOptions objectForKey:@"padding"];
+  float top = [[padding objectForKey:@"top"] floatValue];
+  float left = [[padding objectForKey:@"left"] floatValue];
+  float bottom = [[padding objectForKey:@"bottom"] floatValue];
+  float right = [[padding objectForKey:@"right"] floatValue];
+  UIEdgeInsets edgeInsets = UIEdgeInsetsMake(top, left, bottom, right);
+
+  GMSCoordinateBounds *coordBounds = [[GMSCoordinateBounds alloc] initWithCoordinate:northEast
+                                                                          coordinate:southWest];
+  [_mapView animateWithCameraUpdate:[GMSCameraUpdate fitBounds:coordBounds
+                                                withEdgeInsets:edgeInsets]];
+
+  completionBlock(nil);
+}
+
+- (void)getBounds:(OnDictionaryResult)completionBlock {
+  GMSVisibleRegion visibleRegion = [_mapView.projection visibleRegion];
+  GMSCoordinateBounds *bounds =
+      [[GMSCoordinateBounds alloc] initWithCoordinate:visibleRegion.nearLeft
+                                           coordinate:visibleRegion.farRight];
+  CLLocationCoordinate2D northEast = bounds.northEast;
+  CLLocationCoordinate2D southWest = bounds.southWest;
+
+  NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
+  result[@"northEast"] = @{
+    @"lat" : @(northEast.latitude),
+    @"lng" : @(northEast.longitude),
+  };
+  result[@"southWest"] = @{
+    @"lat" : @(southWest.latitude),
+    @"lng" : @(southWest.longitude),
+  };
+
+  completionBlock(result);
+}
+
 - (void)addMarker:(NSDictionary *)markerOptions result:(OnDictionaryResult)completionBlock {
   NSDictionary *position = [markerOptions objectForKey:@"position"];
   CLLocationCoordinate2D coordinatePosition =
@@ -504,20 +572,20 @@
 
   marker.userData = @[ [[NSUUID UUID] UUIDString] ];
 
-  marker.map = _mapView;
-
   if ([[markerOptions objectForKey:@"imgPath"] isKindOfClass:[NSString class]]) {
     NSString *imgPath = [markerOptions objectForKey:@"imgPath"];
     if (imgPath) {
       UIImage *icon = [UIImage imageNamed:imgPath];  // Assuming local asset
       marker.icon = icon;
     }
+  } else if ([markerOptions objectForKey:@"imageSrc"]) {
+    NSDictionary *imageSrc = [markerOptions objectForKey:@"imageSrc"];
+    UIImage *icon = [RCTConvert UIImage:imageSrc];
+    marker.icon = icon;
   }
 
   BOOL visible = [[markerOptions objectForKey:@"visible"] boolValue];
-  if (!visible) {
-    marker.map = nil;  // Setting map to nil hides the marker
-  }
+  marker.map = visible ? _mapView : nil;
 
   [_markerList addObject:marker];
 

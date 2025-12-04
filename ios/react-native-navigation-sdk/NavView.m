@@ -107,6 +107,18 @@
   }
 }
 
+- (void)handleMapDrag:(GMSCameraPosition *)cameraPosition {
+  if (self.onMapDrag) {
+    self.onMapDrag(@{@"cameraPosition" : cameraPosition});
+  }
+}
+
+- (void)handleMapDragEnd:(GMSCameraPosition *)cameraPosition {
+  if (self.onMapDragEnd) {
+    self.onMapDragEnd(@{@"cameraPosition" : cameraPosition});
+  }
+}
+
 - (void)handleMarkerInfoWindowTapped:(GMSMarker *)marker {
   if (self.onMarkerInfoWindowTapped) {
     self.onMarkerInfoWindowTapped([ObjectTranslationUtil transformMarkerToDictionary:marker]);

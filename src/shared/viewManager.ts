@@ -22,7 +22,14 @@ import {
   type ViewProps,
 } from 'react-native';
 import type { LatLng } from '.';
-import type { Circle, GroundOverlay, Marker, Polygon, Polyline } from '../maps';
+import type {
+  Circle,
+  DragResult,
+  GroundOverlay,
+  Marker,
+  Polygon,
+  Polyline,
+} from '../maps';
 import type {
   DirectEventHandler,
   Int32,
@@ -70,6 +77,8 @@ export interface NativeNavViewProps extends ViewProps {
   stylingOptions?: unknown | undefined;
   onMapReady?: DirectEventHandler<null>;
   onMapClick?: DirectEventHandler<LatLng>;
+  onMapDrag?: DirectEventHandler<DragResult>;
+  onMapDragEnd?: DirectEventHandler<DragResult>;
   onMarkerClick?: DirectEventHandler<Marker>;
   onPolylineClick?: DirectEventHandler<Polyline>;
   onPolygonClick?: DirectEventHandler<Polygon>;
