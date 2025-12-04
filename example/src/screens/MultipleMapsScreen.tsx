@@ -21,16 +21,20 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import { Button, View } from 'react-native';
+import { View } from 'react-native';
+import { ExampleAppButton } from '../controls/ExampleAppButton';
 import PagerView, {
   type PagerViewOnPageSelectedEvent,
 } from 'react-native-pager-view';
 import Snackbar from 'react-native-snackbar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   NavigationInitErrorCode,
   NavigationView,
   RouteStatus,
+  MapColorScheme,
+  NavigationNightMode,
   type ArrivalEvent,
   type Circle,
   type LatLng,
@@ -50,7 +54,8 @@ import {
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
 import OverlayModal from '../helpers/overlayModal';
-import styles from '../styles';
+import { CommonStyles, ControlStyles } from '../styles/components';
+import { MapStylingOptions } from '../styles/mapStyling';
 import usePermissions from '../checkPermissions';
 
 // Utility function for showing Snackbar
@@ -66,6 +71,7 @@ enum OverlayType {
 }
 
 const MultipleMapsScreen = () => {
+  const insets = useSafeAreaInsets();
   const [mapsVisible, setMapsVisible] = useState(true);
   const { arePermissionsApproved } = usePermissions();
   const [overlayType, setOverlayType] = useState<OverlayType>(OverlayType.None);
@@ -76,14 +82,18 @@ const MultipleMapsScreen = () => {
   const [navigationViewController1, setNavigationViewController1] =
     useState<NavigationViewController | null>(null);
   const [navigationInitialized, setNavigationInitialized] = useState(false);
+  const [mapColorScheme1, setMapColorScheme1] = useState<MapColorScheme>(
+    MapColorScheme.FOLLOW_SYSTEM
+  );
+  const [mapColorScheme2, setMapColorScheme2] = useState<MapColorScheme>(
+    MapColorScheme.FOLLOW_SYSTEM
+  );
+  const [navigationNightMode, setNavigationNightMode] =
+    useState<NavigationNightMode>(NavigationNightMode.AUTO);
   const pagerRef = useRef<PagerView | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const { navigationController, addListeners, removeListeners } =
     useNavigation();
-
-  useEffect(() => {
-    console.log('mapViewController1 changed', mapViewController1);
-  }, [mapViewController1]);
 
   const onArrival = useCallback(
     (event: ArrivalEvent) => {
@@ -315,21 +325,23 @@ const MultipleMapsScreen = () => {
   }, []);
 
   return arePermissionsApproved ? (
-    <View style={styles.container}>
-      <Button
-        title={mapsVisible ? 'Hide maps' : 'Show maps'}
-        onPress={() => setMapsVisible(v => !v)}
-      />
+    <View style={[CommonStyles.container, { paddingBottom: insets.bottom }]}>
+      <View style={CommonStyles.buttonContainer}>
+        <ExampleAppButton
+          title={mapsVisible ? 'Hide maps' : 'Show maps'}
+          onPress={() => setMapsVisible(v => !v)}
+        />
+      </View>
 
       {mapsVisible && (
         <React.Fragment>
-          <View style={styles.pagerButtons}>
-            <Button
+          <View style={ControlStyles.pagerButtons}>
+            <ExampleAppButton
               title="Navigation page"
               onPress={() => goToPage(0)}
               disabled={currentPage === 0}
             />
-            <Button
+            <ExampleAppButton
               title="Map page"
               onPress={() => goToPage(1)}
               disabled={currentPage === 1}
@@ -346,35 +358,25 @@ const MultipleMapsScreen = () => {
               <NavigationView
                 key="navigationView1"
                 style={{ flex: 1 }}
-                androidStylingOptions={{
-                  primaryDayModeThemeColor: '#0076a8',
-                  primaryNightModeThemeColor: '#3400a8',
-                  secondaryDayModeThemeColor: '#0076a8',
-                  secondaryNightModeThemeColor: '#3400a8',
-                  headerLargeManeuverIconColor: '#f65308',
-                  headerSmallManeuverIconColor: '#f65308',
-                  headerDistanceValueTextColor: '#f65308',
-                  headerInstructionsFirstRowTextSize: '18f',
-                }}
-                iOSStylingOptions={{
-                  navigationHeaderPrimaryBackgroundColor: '#0076a8',
-                  navigationHeaderPrimaryBackgroundColorNightMode: '#3400a8',
-                  navigationHeaderSecondaryBackgroundColor: '#0076a8',
-                  navigationHeaderSecondaryBackgroundColorNightMode: '#3400a8',
-                  navigationHeaderDistanceValueTextColor: '#f65308',
-                }}
+                androidStylingOptions={MapStylingOptions.android}
+                iOSStylingOptions={MapStylingOptions.iOS}
+                mapColorScheme={mapColorScheme1}
+                navigationNightMode={navigationNightMode}
                 navigationViewCallbacks={navigationViewCallbacks}
                 mapViewCallbacks={mapViewCallbacks1}
                 onMapViewControllerCreated={setMapViewController1}
                 onNavigationViewControllerCreated={setNavigationViewController1}
               />
-              <View style={styles.controlButtons}>
-                <Button
+              <View style={ControlStyles.controlButtons}>
+                <ExampleAppButton
                   title="Nav (Map 1)"
                   onPress={onShowNavControlsClick}
                   disabled={!navigationInitialized}
                 />
-                <Button title="Map 1" onPress={onShowMapsControlsClick1} />
+                <ExampleAppButton
+                  title="Map 1"
+                  onPress={onShowMapsControlsClick1}
+                />
               </View>
             </View>
             {/* Page 2: MapView */}
@@ -382,11 +384,15 @@ const MultipleMapsScreen = () => {
               <MapView
                 style={{ flex: 1 }}
                 mapViewCallbacks={mapViewCallbacks2}
+                mapColorScheme={mapColorScheme2}
                 onMapViewControllerCreated={setMapViewController2}
               />
               {currentPage === 1 && (
-                <View style={styles.controlButtons}>
-                  <Button title="Map 2" onPress={onShowMapsControlsClick2} />
+                <View style={ControlStyles.controlButtons}>
+                  <ExampleAppButton
+                    title="Map 2"
+                    onPress={onShowMapsControlsClick2}
+                  />
                 </View>
               )}
             </View>
@@ -405,6 +411,8 @@ const MultipleMapsScreen = () => {
                   navigationViewController={navigationViewController1}
                   getCameraPosition={mapViewController1?.getCameraPosition}
                   onNavigationDispose={onNavigationDispose}
+                  navigationNightMode={navigationNightMode}
+                  onNavigationNightModeChange={setNavigationNightMode}
                 />
               </OverlayModal>
             )}
@@ -414,7 +422,11 @@ const MultipleMapsScreen = () => {
               visible={overlayType === OverlayType.MapControls1}
               closeOverlay={closeOverlay}
             >
-              <MapsControls mapViewController={mapViewController1} />
+              <MapsControls
+                mapViewController={mapViewController1}
+                mapColorScheme={mapColorScheme1}
+                onMapColorSchemeChange={setMapColorScheme1}
+              />
             </OverlayModal>
           )}
 
@@ -423,7 +435,11 @@ const MultipleMapsScreen = () => {
               visible={overlayType === OverlayType.MapControls2}
               closeOverlay={closeOverlay}
             >
-              <MapsControls mapViewController={mapViewController2} />
+              <MapsControls
+                mapViewController={mapViewController2}
+                mapColorScheme={mapColorScheme2}
+                onMapColorSchemeChange={setMapColorScheme2}
+              />
             </OverlayModal>
           )}
         </React.Fragment>

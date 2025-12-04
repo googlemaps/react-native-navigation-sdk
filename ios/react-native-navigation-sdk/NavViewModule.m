@@ -37,9 +37,15 @@ static NavViewModule *sharedInstance = nil;
   return sharedInstance;
 }
 
-- (void)attachViewsToNavigationSession:(GMSNavigationSession *)session {
+- (void)attachViewsToNavigationSession {
   for (NavViewController *viewController in self.viewControllers.objectEnumerator) {
-    [viewController attachToNavigationSession:session];
+    [viewController attachToNavigationSessionIfNeeded];
+  }
+}
+
+- (void)navigationSessionDestroyed {
+  for (NavViewController *viewController in self.viewControllers.objectEnumerator) {
+    [viewController navigationSessionDestroyed];
   }
 }
 

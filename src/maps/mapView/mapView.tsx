@@ -18,8 +18,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, findNodeHandle } from 'react-native';
 import { NavViewManager, type LatLng } from '../../shared';
 import {
+  MapColorScheme,
   getMapViewController,
-  FragmentType,
+  MapViewType,
   type Circle,
   type GroundOverlay,
   type MapViewProps,
@@ -129,7 +130,11 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
       <NavViewManager
         ref={onRefAssign}
         flex={1}
-        fragmentType={FragmentType.MAP}
+        mapOptions={{
+          mapViewType: MapViewType.MAP,
+          mapId: props.mapId,
+          mapColorScheme: props.mapColorScheme ?? MapColorScheme.FOLLOW_SYSTEM,
+        }}
         onMapClick={onMapClick}
         onMapDrag={onMapDrag}
         onMapDragEnd={onMapDragEnd}

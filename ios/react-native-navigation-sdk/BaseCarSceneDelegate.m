@@ -16,8 +16,10 @@
 #import "BaseCarSceneDelegate.h"
 #import <CarPlay/CarPlay.h>
 #import <Foundation/Foundation.h>
+#import "CustomTypes.h"
 #import "NavAutoModule.h"
 #import "NavModule.h"
+#import "NavViewController.h"
 
 @implementation BaseCarSceneDelegate
 
@@ -29,8 +31,7 @@
   self.mapTemplate = [self getTemplate];
   self.mapTemplate.mapDelegate = self;
 
-  self.navViewController = [[NavViewController alloc] init];
-  self.navViewController.isNavigationEnabled = YES;
+  self.navViewController = [[NavViewController alloc] initWithMapViewType:NAVIGATION];
   self.carWindow.rootViewController = self.navViewController;
   [self.interfaceController setRootTemplate:self.mapTemplate animated:YES completion:nil];
   [NavModule registerNavigationSessionReadyCallback:^{
@@ -69,7 +70,7 @@
 - (void)attachSession {
   if ([NavModule sharedInstance] != nil && [[NavModule sharedInstance] hasSession] &&
       !_sessionAttached) {
-    [self.navViewController attachToNavigationSession:[[NavModule sharedInstance] getSession]];
+    [self.navViewController attachToNavigationSessionIfNeeded];
     [self.navViewController setHeaderEnabled:NO];
     [self.navViewController setRecenterButtonEnabled:NO];
     [self.navViewController setFooterEnabled:NO];

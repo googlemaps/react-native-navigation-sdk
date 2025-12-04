@@ -25,14 +25,16 @@ import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapColorScheme;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.libraries.navigation.ForceNightMode;
 import com.google.android.libraries.navigation.NavigationView;
 import com.google.android.libraries.navigation.PromptVisibilityChangedListener;
 import com.google.android.libraries.navigation.StylingOptions;
@@ -45,16 +47,58 @@ import com.google.android.libraries.navigation.SupportNavigationFragment;
 public class NavViewFragment extends SupportNavigationFragment
     implements INavViewFragment, INavigationViewCallback {
   private static final String TAG = "NavViewFragment";
+  private int viewTag; // React native view tag.
+  private ReactApplicationContext reactContext;
   private MapViewController mMapViewController;
   private GoogleMap mGoogleMap;
   private StylingOptions mStylingOptions;
+  private @MapColorScheme int mapColorScheme = MapColorScheme.FOLLOW_SYSTEM;
+  private @ForceNightMode int nightModeOverride = ForceNightMode.AUTO;
 
-  private int viewTag; // React native view tag.
-  private ReactApplicationContext reactContext;
+  public static NavViewFragment newInstance(
+      ReactApplicationContext reactContext, int viewTag, @NonNull GoogleMapOptions mapOptions) {
+    NavViewFragment fragment = new NavViewFragment();
+    Bundle args = new Bundle();
+    args.putParcelable("MapOptions", mapOptions);
 
-  public NavViewFragment(ReactApplicationContext reactContext, int viewTag) {
-    this.reactContext = reactContext;
-    this.viewTag = viewTag;
+    fragment.setArguments(args);
+    fragment.reactContext = reactContext;
+    fragment.viewTag = viewTag;
+
+    return fragment;
+  }
+
+  @SuppressLint("MissingPermission")
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+
+    setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
+
+    getMapAsync(
+        googleMap -> {
+          mGoogleMap = googleMap;
+
+          mMapViewController = new MapViewController();
+          mMapViewController.initialize(googleMap, this::requireActivity);
+
+          // Setup map listeners with the provided callback
+          mMapViewController.setupMapListeners(NavViewFragment.this);
+          applyMapColorSchemeToMap();
+          applyNightModePreference();
+
+          emitEvent("onMapReady", null);
+
+          // Request layout to ensure fragment is properly sized
+          View fragmentView = getView();
+          if (fragmentView != null) {
+            fragmentView.requestLayout();
+          }
+
+          setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
+          addOnRecenterButtonClickedListener(onRecenterButtonClickedListener);
+          addPromptVisibilityChangedListener(onPromptVisibilityChangedListener);
+        });
   }
 
   private final NavigationView.OnRecenterButtonClickedListener onRecenterButtonClickedListener =
@@ -75,35 +119,6 @@ public class NavViewFragment extends SupportNavigationFragment
         }
       };
 
-  private String style = "";
-
-  @SuppressLint("MissingPermission")
-  @Override
-  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-    super.onViewCreated(view, savedInstanceState);
-
-    setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
-
-    getMapAsync(
-        new OnMapReadyCallback() {
-          public void onMapReady(GoogleMap googleMap) {
-            mGoogleMap = googleMap;
-
-            mMapViewController = new MapViewController();
-            mMapViewController.initialize(googleMap, () -> requireActivity());
-
-            // Setup map listeners with the provided callback
-            mMapViewController.setupMapListeners(NavViewFragment.this);
-
-            emitEvent("onMapReady", null);
-
-            setNavigationUiEnabled(NavModule.getInstance().getNavigator() != null);
-            addOnRecenterButtonClickedListener(onRecenterButtonClickedListener);
-            addPromptVisibilityChangedListener(onPromptVisibilityChangedListener);
-          }
-        });
-  }
-
   public MapViewController getMapController() {
     return mMapViewController;
   }
@@ -123,8 +138,15 @@ public class NavViewFragment extends SupportNavigationFragment
     applyStylingOptions();
   }
 
-  public void setNightModeOption(int jsValue) {
-    super.setForceNightMode(EnumTranslationUtil.getForceNightModeFromJsValue(jsValue));
+  public void setNightModeOption(@ForceNightMode int nightModeOverride) {
+    this.nightModeOverride = nightModeOverride;
+    applyNightModePreference();
+  }
+
+  @Override
+  public void setMapColorScheme(@MapColorScheme int mapColorScheme) {
+    this.mapColorScheme = mapColorScheme;
+    applyMapColorSchemeToMap();
   }
 
   @Override
@@ -199,6 +221,16 @@ public class NavViewFragment extends SupportNavigationFragment
 
   public GoogleMap getGoogleMap() {
     return mGoogleMap;
+  }
+
+  private void applyMapColorSchemeToMap() {
+    if (mMapViewController != null) {
+      mMapViewController.setColorScheme(mapColorScheme);
+    }
+  }
+
+  private void applyNightModePreference() {
+    super.setForceNightMode(nightModeOverride);
   }
 
   private void cleanup() {

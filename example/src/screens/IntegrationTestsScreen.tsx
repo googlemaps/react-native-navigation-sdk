@@ -16,8 +16,10 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { Button, Text, View } from 'react-native';
+import { Text, View, useWindowDimensions } from 'react-native';
+import { ExampleAppButton } from '../controls/ExampleAppButton';
 import Snackbar from 'react-native-snackbar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   type Circle,
@@ -32,7 +34,7 @@ import {
   NavigationView,
   useNavigation,
 } from '@googlemaps/react-native-navigation-sdk';
-import styles from '../styles';
+import { CommonStyles, ControlStyles } from '../styles/components';
 import OverlayModal from '../helpers/overlayModal';
 import {
   testMapInitialization,
@@ -46,6 +48,9 @@ import {
   testOnRemainingTimeOrDistanceChanged,
   testOnArrival,
   testOnRouteChanged,
+  testNavigationStateGuards,
+  testStartGuidanceWithoutDestinations,
+  NO_ERRORS_DETECTED_LABEL,
 } from './integration_tests/integration_test';
 
 // Utility function for showing Snackbar
@@ -78,9 +83,13 @@ const IntegrationTestsScreen = () => {
   const { navigationController, addListeners, removeListeners } =
     useNavigation();
   const [detoxStepNumber, setDetoxStepNumber] = useState(0);
-  const [failureMessage, setFailuremessage] = useState('');
+  const [failureMessage, setFailuremessage] = useState(
+    NO_ERRORS_DETECTED_LABEL
+  );
   const [navigationViewController, setNavigationViewController] =
     useState<NavigationViewController | null>(null);
+  const insets = useSafeAreaInsets();
+  const windowDimensions = useWindowDimensions();
 
   const onMapReady = useCallback(async () => {
     console.log('Map is ready, initializing navigator...');
@@ -213,6 +222,12 @@ const IntegrationTestsScreen = () => {
       case 'testOnRouteChanged':
         await testOnRouteChanged(getTestTools());
         break;
+      case 'testNavigationStateGuards':
+        await testNavigationStateGuards(getTestTools());
+        break;
+      case 'testStartGuidanceWithoutDestinations':
+        await testStartGuidanceWithoutDestinations(getTestTools());
+        break;
       default:
         resetTestState();
         break;
@@ -226,8 +241,12 @@ const IntegrationTestsScreen = () => {
     return testStatus;
   }, [testStatus, detoxStepNumber]);
 
+  const overlayMinHeight = useMemo(() => {
+    return Math.max(0, windowDimensions.height - insets.top - insets.bottom);
+  }, [windowDimensions.height, insets.top, insets.bottom]);
+
   return (
-    <View style={styles.container}>
+    <View style={[CommonStyles.container, { paddingBottom: insets.bottom }]}>
       <Text>See CONTRIBUTING.md to see how to run integration tests.</Text>
       <View style={{ flex: 6, margin: 5 }}>
         <NavigationView
@@ -241,20 +260,20 @@ const IntegrationTestsScreen = () => {
         <Text testID="test_status_label">Test status: {testStatusString}</Text>
         <Text testID="test_result_label">Test result: {testResult}</Text>
         <Text testID="failure_message_label">{failureMessage}</Text>
-        <Button
+        <ExampleAppButton
           title="Reset"
           onPress={() => {
             resetTestState();
           }}
         />
       </View>
-      <View style={styles.controlButtons}>
-        <Button
+      <View style={ControlStyles.controlButtons}>
+        <ExampleAppButton
           title="Tests"
-          testID="tests_menu_button"
           onPress={() => {
             setIsOverlayOpen(true);
           }}
+          testID="tests_menu_button"
         />
       </View>
       <OverlayModal
@@ -262,83 +281,98 @@ const IntegrationTestsScreen = () => {
         closeOverlay={() => {
           setIsOverlayOpen(false);
         }}
+        height={overlayMinHeight}
       >
-        <Button
+        <ExampleAppButton
           title="testNavigationSessionInitialization"
-          testID="testNavigationSessionInitialization"
           onPress={() => {
             runTest('testNavigationSessionInitialization');
           }}
+          testID="testNavigationSessionInitialization"
         />
-        <Button
+        <ExampleAppButton
           title="testMapInitialization"
-          testID="testMapInitialization"
           onPress={() => {
             runTest('testMapInitialization');
           }}
+          testID="testMapInitialization"
         />
-        <Button
+        <ExampleAppButton
           title="testNavigationToSingleDestination"
-          testID="testNavigationToSingleDestination"
           onPress={() => {
             runTest('testNavigationToSingleDestination');
           }}
+          testID="testNavigationToSingleDestination"
         />
-        <Button
+        <ExampleAppButton
           title="testNavigationToMultipleDestination"
-          testID="testNavigationToMultipleDestination"
           onPress={() => {
             runTest('testNavigationToMultipleDestination');
           }}
+          testID="testNavigationToMultipleDestination"
         />
-        <Button
+        <ExampleAppButton
           title="testRouteSegments"
-          testID="testRouteSegments"
           onPress={() => {
             runTest('testRouteSegments');
           }}
+          testID="testRouteSegments"
         />
-        <Button
+        <ExampleAppButton
           title="testGetCurrentTimeAndDistance"
-          testID="testGetCurrentTimeAndDistance"
           onPress={() => {
             runTest('testGetCurrentTimeAndDistance');
           }}
+          testID="testGetCurrentTimeAndDistance"
         />
-        <Button
+        <ExampleAppButton
           title="testMoveCamera"
-          testID="testMoveCamera"
           onPress={() => {
             runTest('testMoveCamera');
           }}
+          testID="testMoveCamera"
         />
-        <Button
+        <ExampleAppButton
           title="testTiltZoomBearingCamera"
-          testID="testTiltZoomBearingCamera"
           onPress={() => {
             runTest('testTiltZoomBearingCamera');
           }}
+          testID="testTiltZoomBearingCamera"
         />
-        <Button
+        <ExampleAppButton
           title="testOnRemainingTimeOrDistanceChanged"
-          testID="testOnRemainingTimeOrDistanceChanged"
           onPress={() => {
             runTest('testOnRemainingTimeOrDistanceChanged');
           }}
+          testID="testOnRemainingTimeOrDistanceChanged"
         />
-        <Button
+        <ExampleAppButton
           title="testOnArrival"
-          testID="testOnArrival"
           onPress={() => {
             runTest('testOnArrival');
           }}
+          testID="testOnArrival"
         />
-        <Button
+        <ExampleAppButton
           title="testOnRouteChanged"
-          testID="testOnRouteChanged"
           onPress={() => {
             runTest('testOnRouteChanged');
           }}
+          testID="testOnRouteChanged"
+        />
+        <ExampleAppButton
+          title="testNavigationStateGuards"
+          onPress={() => {
+            runTest('testNavigationStateGuards');
+          }}
+          testID="testNavigationStateGuards"
+        />
+        <ExampleAppButton
+          title="testStartGuidanceWithoutDestinations"
+          onPress={() => {
+            runTest('testStartGuidanceWithoutDestinations');
+          }}
+          testID="testStartGuidanceWithoutDestinations"
         />
       </OverlayModal>
     </View>

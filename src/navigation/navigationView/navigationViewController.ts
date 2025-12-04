@@ -56,6 +56,9 @@ export const getNavigationViewController = (
       sendCommand(viewId, commands.showRouteOverview, []);
     },
 
+    /**
+     * @deprecated Prefer the `navigationNightMode` prop on `NavigationView`.
+     */
     setNightMode: (index: number) => {
       sendCommand(viewId, commands.setNightMode, [index]);
     },

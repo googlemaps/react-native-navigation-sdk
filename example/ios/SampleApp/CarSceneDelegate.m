@@ -16,8 +16,8 @@
 #import "CarSceneDelegate.h"
 #import <CarPlay/CarPlay.h>
 #import <Foundation/Foundation.h>
-#import "NavAutoModule.h"
-#import "NavModule.h"
+#import <ReactNativeGoogleMapsNavigation/NavAutoModule.h>
+#import <ReactNativeGoogleMapsNavigation/NavModule.h>
 
 @implementation CarSceneDelegate
 

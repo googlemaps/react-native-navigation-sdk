@@ -287,6 +287,7 @@ in an unbounded widget will cause the application to behave unexpectedly.
 // Permissions must have been granted by this point.
 
 <NavigationView
+    mapId="your-map-id-here" // Optional: Your map ID configured in Google Cloud Console
     androidStylingOptions={{
         primaryDayModeThemeColor: '#34eba8',
         headerDistanceValueTextColor: '#76b5c5',
@@ -310,10 +311,20 @@ You can also add a bare `MapView` that works as a normal map view without naviga
 
 ```tsx
 <MapView
+    mapId="your-map-id-here" // Optional: Your map ID configured in Google Cloud Console
     mapViewCallbacks={mapViewCallbacks}
     onMapViewControllerCreated={setMapViewController}
 />
 ```
+
+### Control light and dark modes
+
+Use the `mapColorScheme` prop on both `NavigationView` and `MapView` to force the map tiles into light, dark, or system-following mode.
+
+For the navigation UI, pass the `navigationNightMode` prop to `NavigationView` to configure the initial lighting mode for navigation session.
+
+> [!NOTE]
+> When navigation UI is enabled, `mapColorScheme` does not affect the view styling. To control the style of the navigation UI, use the `navigationNightMode` prop on `NavigationView` instead.
 
 ### Requesting and handling permissions
 

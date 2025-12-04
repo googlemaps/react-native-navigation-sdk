@@ -20,6 +20,12 @@
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
 
+static NSString *const kNoNavigatorErrorCode = @"NO_NAVIGATOR_ERROR_CODE";
+static NSString *const kNoNavigatorErrorMessage =
+    @"Make sure to initialize the navigator is ready before executing.";
+static NSString *const kNoDestinationsErrorCode = @"NO_DESTINATIONS";
+static NSString *const kNoDestinationsErrorMessage = @"Destinations not set";
+
 @implementation NavModule {
   GMSNavigationSession *_session;
   NSMutableArray<GMSNavigationMutableWaypoint *> *_destinations;
@@ -54,29 +60,20 @@ RCT_EXPORT_MODULE(NavModule);
   return _session != nil;
 }
 
+- (BOOL)isNavigatorAvailable {
+  return self->_session != nil && self->_session.navigator != nil;
+}
+
 - (GMSNavigationSession *)getSession {
   return _session;
 }
 
-- (GMSNavigator *)getNavigatorWithError:(NSString **)error {
-  if (self->_session == nil) {
-    if (error) {
-      *error = @"Navigation session not initialized";
-    }
-    return nil;
-  }
-
-  return self->_session.navigator;
-}
-
 - (BOOL)checkNavigatorWithError:(RCTPromiseRejectBlock)reject navigator:(GMSNavigator **)navigator {
-  NSString *error = nil;
-  *navigator = [self getNavigatorWithError:&error];
-
-  if (error) {
-    reject(@"session_not_initialized", error, nil);
+  if (![self isNavigatorAvailable]) {
+    reject(kNoNavigatorErrorCode, kNoNavigatorErrorMessage, nil);
     return NO;
   }
+  *navigator = self->_session.navigator;
   return YES;
 }
 
@@ -110,7 +107,7 @@ RCT_EXPORT_MODULE(NavModule);
   [self->_session.roadSnappedLocationProvider addListener:self];
 
   NavViewModule *navViewModule = [NavViewModule sharedInstance];
-  [navViewModule attachViewsToNavigationSession:_session];
+  [navViewModule attachViewsToNavigationSession];
 
   [self onNavigationReady];
 }
@@ -164,7 +161,7 @@ RCT_EXPORT_METHOD(cleanup : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromi
                       reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_session == nil) {
-      reject(@"session_not_initialized", @"Navigation session not initialized", nil);
+      reject(kNoNavigatorErrorCode, kNoNavigatorErrorMessage, nil);
       return;
     }
 
@@ -173,6 +170,7 @@ RCT_EXPORT_METHOD(cleanup : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromi
     }
 
     if (self->_session.navigator != nil) {
+      [self->_session.navigator removeListener:self];
       [self->_session.navigator clearDestinations];
       self->_session.navigator.guidanceActive = NO;
       self->_session.navigator.sendsBackgroundNotifications = NO;
@@ -184,6 +182,10 @@ RCT_EXPORT_METHOD(cleanup : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromi
 
     self->_session.started = NO;
     self->_session = nil;
+
+    NavViewModule *navViewModule = [NavViewModule sharedInstance];
+    [navViewModule navigationSessionDestroyed];
+
     if (_navigationSessionDisposedCallback) {
       _navigationSessionDisposedCallback();
     }
@@ -241,18 +243,17 @@ RCT_EXPORT_METHOD(setAudioGuidanceType : (nonnull NSNumber *)index resolve : (
 RCT_EXPORT_METHOD(startGuidance : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)
                       reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
+    GMSNavigator *navigator = nil;
+    if (![self checkNavigatorWithError:reject navigator:&navigator]) {
+      return;
+    }
     if (self->_destinations != NULL) {
-      GMSNavigator *navigator = nil;
-      if (![self checkNavigatorWithError:reject navigator:&navigator]) {
-        return;
-      }
-
       navigator.guidanceActive = YES;
       [self onStartGuidance];
       navigator.sendsBackgroundNotifications = YES;
       resolve(@(YES));
     } else {
-      reject(@"no_destinations", @"Destinations not set", nil);
+      reject(kNoDestinationsErrorCode, kNoDestinationsErrorMessage, nil);
     }
   });
 }

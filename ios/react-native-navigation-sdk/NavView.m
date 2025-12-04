@@ -13,7 +13,9 @@
 // limitations under the License.
 
 #import "NavView.h"
+#import <GoogleMaps/GoogleMaps.h>
 #import "NavViewController.h"
+#import "ObjectTranslationUtil.h"
 
 @interface NavView ()
 
@@ -25,17 +27,11 @@
 
 - (instancetype)initWithFrame:(CGRect)frame {
   self = [super initWithFrame:frame];
-  if (self) {
-    _viewController = [[NavViewController alloc] init];
-  }
   return self;
 }
 
 - (instancetype)initWithCoder:(NSCoder *)coder {
   self = [super initWithCoder:coder];
-  if (self) {
-    _viewController = [[NavViewController alloc] init];
-  }
   return self;
 }
 
@@ -52,12 +48,31 @@
   }
 }
 
-- (NavViewController *)initializeViewControllerWithFragmentType:(FragmentType)fragmentType {
-  // FragmentType 0 = MAP, 1 = NAVIGATION.
-  _viewController.isNavigationEnabled = fragmentType == NAVIGATION;
-  // Test if styling options is not nil
+- (NavViewController *)initializeViewControllerWithMapViewType:(MapViewType)mapViewType
+                                                         mapId:(NSString *)mapId
+                                                stylingOptions:(NSDictionary *)stylingOptions
+                                                mapColorScheme:(NSNumber *)colorScheme
+                                                     nightMode:(NSNumber *)nightMode {
+  // Initialize view controller with the map view type
+  _viewController = [[NavViewController alloc] initWithMapViewType:mapViewType];
 
-  [_viewController setNavigationCallbacks:self];
+  if (mapId) {
+    [_viewController setMapId:mapId];
+  }
+
+  if (stylingOptions && [stylingOptions count] > 0) {
+    [_viewController setStylingOptions:stylingOptions];
+  }
+
+  if (colorScheme) {
+    [_viewController setColorScheme:colorScheme];
+  }
+
+  if (nightMode) {
+    [_viewController setNightMode:nightMode];
+  }
+
+  [_viewController setNavigationViewCallbacks:self];
   [self addSubview:_viewController.view];
 
   _viewController.view.translatesAutoresizingMaskIntoConstraints = NO;
@@ -75,6 +90,14 @@
   if (stylingOptions != nil && [stylingOptions count] > 0) {
     [_viewController setStylingOptions:stylingOptions];
   }
+}
+
+- (void)applyMapColorScheme:(NSNumber *)colorScheme {
+  [_viewController setColorScheme:colorScheme];
+}
+
+- (void)applyNightMode:(NSNumber *)nightMode {
+  [_viewController setNightMode:nightMode];
 }
 
 - (void)handleRecenterButtonClick {
@@ -158,10 +181,24 @@
 
 - (void)willMoveToSuperview:(UIView *)newSuperview {
   [super willMoveToSuperview:newSuperview];
-  if (newSuperview == nil && _viewController && self.cleanupBlock) {
-    // As newSuperview is nil, the view is being removed from its superview, call the cleanup block
-    // provided by the view manager
+  if (newSuperview == nil && _viewController) {
+    // View is being removed from hierarchy, cleanup the view controller
+    [self cleanup];
+  }
+}
+
+- (void)dealloc {
+  [self cleanup];
+}
+
+- (void)cleanup {
+  if (self.cleanupBlock) {
     self.cleanupBlock(self.reactTag);
+    self.cleanupBlock = nil;
+  }
+
+  if (_viewController) {
+    [_viewController.view removeFromSuperview];
     _viewController = nil;
   }
 }

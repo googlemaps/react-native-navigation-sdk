@@ -18,10 +18,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View, findNodeHandle } from 'react-native';
 import { NavViewManager, type LatLng } from '../../shared';
 import { getNavigationViewController } from './navigationViewController';
-import type { NavigationViewProps } from './types';
+import { NavigationNightMode, type NavigationViewProps } from './types';
 import {
+  MapColorScheme,
   getMapViewController,
-  FragmentType,
+  MapViewType,
   type Circle,
   type GroundOverlay,
   type Marker,
@@ -155,12 +156,17 @@ export const NavigationView = (
       <NavViewManager
         ref={onRefAssign}
         flex={1}
-        fragmentType={FragmentType.NAVIGATION}
-        stylingOptions={
-          (Platform.OS === 'android'
-            ? androidStylingOptions
-            : iOSStylingOptions) || {}
-        }
+        mapOptions={{
+          mapViewType: MapViewType.NAVIGATION,
+          mapId: props.mapId,
+          mapColorScheme: props.mapColorScheme ?? MapColorScheme.FOLLOW_SYSTEM,
+          navigationNightMode:
+            props.navigationNightMode ?? NavigationNightMode.AUTO,
+          navigationStylingOptions:
+            (Platform.OS === 'android'
+              ? androidStylingOptions
+              : iOSStylingOptions) || {},
+        }}
         onMapClick={onMapClick}
         onMapDrag={onMapDrag}
         onMapDragEnd={onMapDragEnd}

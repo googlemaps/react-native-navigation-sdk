@@ -16,6 +16,7 @@
 
 #import "NavAutoModule.h"
 #import "NavAutoEventDispatcher.h"
+#import "NavViewController.h"
 
 @implementation NavAutoModule
 

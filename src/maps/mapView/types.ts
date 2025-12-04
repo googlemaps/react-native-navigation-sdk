@@ -152,9 +152,9 @@ export interface BoundsOptions {
 }
 
 /**
- * Defines the type of the map fragment.
+ * Defines the type of the map view.
  */
-export enum FragmentType {
+export enum MapViewType {
   /** Regular Google map view without navigation */
   MAP = 0,
   /** Google map view with navigation */

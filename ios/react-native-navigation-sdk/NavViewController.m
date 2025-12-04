@@ -17,6 +17,7 @@
 #import "NavViewController.h"
 #import <React/RCTLog.h>
 #import <UIKit/UIKit.h>
+#import "CustomTypes.h"
 #import "NavModule.h"
 #import "ObjectTranslationUtil.h"
 #import "UIColor+Util.h"
@@ -33,9 +34,23 @@
   NSMutableArray<GMSCircle *> *_circleList;
   NSMutableArray<GMSGroundOverlay *> *_groundOverlayList;
   NSDictionary *_stylingOptions;
+  NSString *_mapId;
+  NSNumber *_colorScheme;
+  MapViewType _mapViewType;
+  id<INavigationViewCallback> _viewCallbacks;
+  BOOL _isSessionAttached;
+  NSNumber *_isNavigationUIEnabled;
+  NSNumber *_navigationLightingMode;
 }
 
-@synthesize callbacks = _callbacks;
+- (instancetype)initWithMapViewType:(MapViewType)mapViewType {
+  self = [super init];
+  if (self) {
+    _mapViewType = mapViewType;
+    _navigationLightingMode = nil;
+  }
+  return self;
+}
 
 - (void)loadView {
   [super loadView];
@@ -46,67 +61,232 @@
   _circleList = [[NSMutableArray alloc] init];
   _groundOverlayList = [[NSMutableArray alloc] init];
 
-  self->_mapView = [[GMSMapView alloc] initWithFrame:CGRectZero];
+  GMSMapViewOptions *options = [[GMSMapViewOptions alloc] init];
 
-  self.view = self->_mapView;
-  self->_mapView.delegate = self;
-
-  NavModule *navModule = [NavModule sharedInstance];
-  if (navModule != nil && [navModule hasSession]) {
-    [self attachToNavigationSession:[navModule getSession]];
+  if (_mapId && ![_mapId isEqualToString:@""]) {
+    options.mapID = [GMSMapID mapIDWithIdentifier:_mapId];
   }
+
+  _mapView = [[GMSMapView alloc] initWithOptions:options];
+  if (_mapViewType == NAVIGATION) {
+    _mapView.navigationEnabled = YES;
+  }
+  self.view = _mapView;
+  _mapView.delegate = self;
+  [self applyColorScheme];
+  [self applyNavigationLighting];
+}
+
+- (void)viewDidLoad {
+  [super viewDidLoad];
+
+  // Defer to next run loop to ensure view props are set before calling onMapReady
   dispatch_async(dispatch_get_main_queue(), ^{
-    [self.callbacks handleMapReady];
+    if (self->_viewCallbacks) {
+      [self->_viewCallbacks handleMapReady];
+    }
   });
 }
 
+- (void)viewDidLayoutSubviews {
+  [super viewDidLayoutSubviews];
+
+  [self attachToNavigationSessionIfNeeded];
+}
+
+- (BOOL)attachToNavigationSessionIfNeeded {
+  // Only attach if view has proper type, state and dimensions (not zero size)
+  if (_mapViewType != NAVIGATION || _isSessionAttached || _mapView.bounds.size.width == 0 ||
+      _mapView.bounds.size.height == 0) {
+    return NO;
+  }
+
+  NavModule *navModule = [NavModule sharedInstance];
+  if (navModule == nil || ![navModule hasSession]) {
+    return NO;
+  }
+
+  GMSNavigationSession *session = [navModule getSession];
+  if (_mapView == nil || session == nil) {
+    return NO;
+  }
+
+  // `enableNavigationWithSession` returns false if TOS is not accepted.
+  // This should not be possible in normal usage as the NavModule ensures TOS acceptance before
+  // navigation session creation.
+  BOOL result = [_mapView enableNavigationWithSession:session];
+
+  if (result) {
+    _mapView.navigationUIDelegate = self;
+    [self applyStylingOptions];
+
+    [self restoreNavigationUIState];
+
+    _isSessionAttached = YES;
+
+    [self forceInvalidateView];
+  }
+
+  return result;
+}
+
+- (void)forceInvalidateView {
+  if (_mapView) {
+    // Defer to next run loop to ensure view is properly sized
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (self->_mapView) {
+        [self->_mapView setNeedsLayout];
+        [self->_mapView.layer setNeedsDisplay];
+      }
+    });
+  }
+}
+
+- (void)restoreNavigationUIState {
+  if (_mapView) {
+    if (_isNavigationUIEnabled != nil) {
+      _mapView.navigationEnabled = [_isNavigationUIEnabled boolValue];
+    } else {
+      _mapView.navigationEnabled = _mapViewType == NAVIGATION;
+    }
+  }
+}
+
+- (void)navigationSessionDestroyed {
+  _isSessionAttached = NO;
+  if (_mapView) {
+    _mapView.navigationUIDelegate = nil;
+    _mapView.navigationEnabled = NO;
+  }
+}
+
+- (void)cleanup {
+  _isSessionAttached = NO;
+
+  // Remove all delegates to break retain cycles
+  if (_mapView) {
+    _mapView.delegate = nil;
+    _mapView.navigationUIDelegate = nil;
+    _mapView.navigationEnabled = NO;
+    [_mapView clear];
+
+    [_mapView removeFromSuperview];
+    _mapView = nil;
+  }
+
+  // Clear local arrays and set to nil
+  [_markerList removeAllObjects];
+  [_polylineList removeAllObjects];
+  [_polygonList removeAllObjects];
+  [_circleList removeAllObjects];
+  [_groundOverlayList removeAllObjects];
+
+  _markerList = nil;
+  _polylineList = nil;
+  _polygonList = nil;
+  _circleList = nil;
+  _groundOverlayList = nil;
+
+  // Clear callbacks
+  _viewCallbacks = nil;
+}
+
+- (void)dealloc {
+  [self cleanup];
+  [self.view removeFromSuperview];
+  self.view = nil;
+}
+
 - (void)mapViewDidTapRecenterButton:(GMSMapView *)mapView {
-  [self.callbacks handleRecenterButtonClick];
+  [_viewCallbacks handleRecenterButtonClick];
 }
 
 - (void)mapView:(GMSMapView *)mapView didTapInfoWindowOfMarker:(GMSMarker *)marker {
-  [self.callbacks handleMarkerInfoWindowTapped:marker];
+  [_viewCallbacks handleMarkerInfoWindowTapped:marker];
 }
 
 - (void)mapView:(GMSMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
-  [self.callbacks
+  [_viewCallbacks
       handleMapClick:[ObjectTranslationUtil transformCoordinateToDictionary:coordinate]];
 }
 
 - (void)mapView:(GMSMapView *)mapView didChangeCameraPosition:(GMSCameraPosition *)cameraPosition {
-  [self.callbacks
+  [_viewCallbacks
       handleMapDrag:[ObjectTranslationUtil transformCameraPositionToDictionary:cameraPosition]];
 }
 
 - (void)mapView:(GMSMapView *)mapView idleAtCameraPosition:(GMSCameraPosition *)cameraPosition {
-  [self.callbacks
+  [_viewCallbacks
       handleMapDragEnd:[ObjectTranslationUtil transformCameraPositionToDictionary:cameraPosition]];
 }
 
 - (BOOL)mapView:(GMSMapView *)mapView didTapMarker:(GMSMarker *)marker {
-  [self.callbacks handleMarkerClick:marker];
+  [_viewCallbacks handleMarkerClick:marker];
   return FALSE;
 }
 
 - (void)mapView:(GMSMapView *)mapView didTapOverlay:(GMSOverlay *)overlay {
   if ([overlay isKindOfClass:[GMSPolyline class]]) {
     GMSPolyline *polyline = (GMSPolyline *)overlay;
-    [self.callbacks handlePolylineClick:polyline];
+    [_viewCallbacks handlePolylineClick:polyline];
   } else if ([overlay isKindOfClass:[GMSPolygon class]]) {
     GMSPolygon *polygon = (GMSPolygon *)overlay;
-    [self.callbacks handlePolygonClick:polygon];
+    [_viewCallbacks handlePolygonClick:polygon];
   } else if ([overlay isKindOfClass:[GMSCircle class]]) {
     GMSCircle *circle = (GMSCircle *)overlay;
-    [self.callbacks handleCircleClick:circle];
+    [_viewCallbacks handleCircleClick:circle];
   } else if ([overlay isKindOfClass:[GMSGroundOverlay class]]) {
     GMSGroundOverlay *groundOverlay = (GMSGroundOverlay *)overlay;
-    [self.callbacks handleGroundOverlayClick:groundOverlay];
+    [_viewCallbacks handleGroundOverlayClick:groundOverlay];
   }
 }
 
 - (void)setStylingOptions:(nonnull NSDictionary *)stylingOptions {
   _stylingOptions = stylingOptions;
   [self applyStylingOptions];
+}
+
+- (void)setMapId:(NSString *)mapId {
+  _mapId = mapId;
+}
+
+- (void)setColorScheme:(NSNumber *)colorScheme {
+  _colorScheme = colorScheme;
+  [self applyColorScheme];
+  [self applyNavigationLighting];
+}
+
+- (void)applyColorScheme {
+  if (_mapView == nil) {
+    return;
+  }
+  UIUserInterfaceStyle style = UIUserInterfaceStyleUnspecified;
+  if (_colorScheme) {
+    NSInteger colorSchemeValue = [_colorScheme integerValue];
+    if (colorSchemeValue == 1) {
+      style = UIUserInterfaceStyleLight;
+    } else if (colorSchemeValue == 2) {
+      style = UIUserInterfaceStyleDark;
+    }
+  }
+  _mapView.overrideUserInterfaceStyle = style;
+}
+
+- (void)applyNavigationLighting {
+  if (_mapViewType != NAVIGATION || _mapView == nil) {
+    return;
+  }
+
+  if (_navigationLightingMode == nil) {
+    // Allow the SDK to determine the lighting mode automatically.
+    [_mapView setLightingMode:nil];
+    return;
+  }
+
+  GMSNavigationLightingMode mode =
+      (GMSNavigationLightingMode)[_navigationLightingMode integerValue];
+
+  [_mapView setLightingMode:mode];
 }
 
 - (void)applyStylingOptions {
@@ -183,6 +363,10 @@
 }
 
 - (void)setNavigationUIEnabled:(BOOL)isEnabled {
+  if (_mapViewType != NAVIGATION) {
+    return;
+  }
+  _isNavigationUIEnabled = @(isEnabled);
   _mapView.navigationEnabled = isEnabled;
 }
 
@@ -231,13 +415,16 @@
 }
 
 - (void)setNightMode:(NSNumber *)index {
-  // In case index = 0, that means we want to leave the calculation to the
-  // native library depending on time.
-  if ([index isEqual:@1]) {
-    [_mapView setLightingMode:GMSNavigationLightingModeNormal];
-  } else if ([index isEqual:@2]) {
-    [_mapView setLightingMode:GMSNavigationLightingModeLowLight];
+  NSInteger modeValue = index != nil ? [index integerValue] : 0;
+  if (modeValue == 1) {
+    _navigationLightingMode = @(GMSNavigationLightingModeNormal);
+  } else if (modeValue == 2) {
+    _navigationLightingMode = @(GMSNavigationLightingModeLowLight);
+  } else {
+    // Resets to SDK-managed lighting.
+    _navigationLightingMode = nil;
   }
+  [self applyNavigationLighting];
 }
 
 - (void)showRouteOverview {
@@ -261,11 +448,23 @@
 }
 
 - (void)setShowTrafficLightsEnabled:(BOOL)isEnabled {
-  [_mapView.settings setShowsTrafficLights:isEnabled];
+  // setShowsTrafficLights: is deprecated in Google Maps SDK 10.1.0+.
+  // Traffic lights are shown by default.
+  if ([_mapView.settings respondsToSelector:@selector(setShowsTrafficLights:)]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    [_mapView.settings setShowsTrafficLights:isEnabled];
+#pragma clang diagnostic pop
+  }
 }
 
 - (void)setShowStopSignsEnabled:(BOOL)isEnabled {
+  // setShowStopSignsEnabled: is deprecated in Google Maps SDK 10.1.0+.
+  // Stop signs are shown by default.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   [_mapView.settings setShowsStopSigns:isEnabled];
+#pragma clang diagnostic pop
 }
 
 - (void)setMyLocationEnabled:(BOOL)isEnabled {
@@ -293,18 +492,8 @@
 
 #pragma mark - View Controller functions
 
-- (BOOL)attachToNavigationSession:(GMSNavigationSession *)session {
-  if (!_isNavigationEnabled) {
-    return NO;
-  }
-  BOOL result = [_mapView enableNavigationWithSession:session];
-  _mapView.navigationUIDelegate = self;
-  [self applyStylingOptions];
-  return result;
-}
-
 - (void)onPromptVisibilityChange:(BOOL)isVisible {
-  [self.callbacks handlePromptVisibilityChanged:isVisible];
+  [_viewCallbacks handlePromptVisibilityChanged:isVisible];
 }
 
 - (void)preferredContentSizeDidChangeForChildContentContainer:
@@ -315,8 +504,8 @@
        withTransitionCoordinator:(nonnull id<UIViewControllerTransitionCoordinator>)coordinator {
 }
 
-- (void)setNavigationCallbacks:(nonnull id<INavigationViewCallback>)fn {
-  self.callbacks = fn;
+- (void)setNavigationViewCallbacks:(nonnull id<INavigationViewCallback>)fn {
+  _viewCallbacks = fn;
 }
 
 // Maps SDK

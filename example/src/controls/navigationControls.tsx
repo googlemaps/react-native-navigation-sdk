@@ -15,9 +15,11 @@
  */
 
 import React, { useState } from 'react';
-import { Alert, Button, Platform, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Text, TextInput, View } from 'react-native';
+import { ExampleAppButton } from './ExampleAppButton';
 import {
   CameraPerspective,
+  NavigationNightMode,
   type NavigationViewController,
   type RoutingOptions,
   TravelMode,
@@ -28,13 +30,15 @@ import {
 } from '@googlemaps/react-native-navigation-sdk';
 import SelectDropdown from 'react-native-select-dropdown';
 
-import styles from '../styles';
+import { ControlStyles } from '../styles/components';
 
 export interface NavigationControlsProps {
   readonly navigationController: NavigationController;
   readonly navigationViewController: NavigationViewController;
   readonly onNavigationDispose?: () => void;
   readonly getCameraPosition: undefined | (() => Promise<CameraPosition>);
+  readonly onNavigationNightModeChange?: (mode: NavigationNightMode) => void;
+  readonly navigationNightMode?: NavigationNightMode;
 }
 
 const NavigationControls: React.FC<NavigationControlsProps> = ({
@@ -42,9 +46,18 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   navigationViewController,
   onNavigationDispose,
   getCameraPosition,
+  onNavigationNightModeChange,
+  navigationNightMode = NavigationNightMode.AUTO,
 }) => {
   const perspectiveOptions = ['Tilted', 'North up', 'Heading up'];
   const nightModeOptions = ['Auto', 'Force Day', 'Force Night'];
+  const nightModeIndex =
+    navigationNightMode === NavigationNightMode.FORCE_DAY
+      ? 1
+      : navigationNightMode === NavigationNightMode.FORCE_NIGHT
+        ? 2
+        : 0;
+  const nightModeLabel = nightModeOptions[nightModeIndex];
   const audioGuidanceOptions = ['Silent', 'Alerts only', 'Alerts and guidance'];
   const [tripProgressBarEnabled, setTripProgressBarEnabled] = useState(false);
   const [reportIncidentButtonEnabled, setReportIncidentButtonEnabled] =
@@ -200,18 +213,6 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     });
   };
 
-  const toggleTripProgressBarEnabled = (isOn: boolean) => {
-    console.log('setTripProgressBarEnabled', isOn);
-    setTripProgressBarEnabled(isOn);
-    navigationViewController.setTripProgressBarEnabled(isOn);
-  };
-
-  const toggleReportIncidentButtonEnabled = (isOn: boolean) => {
-    console.log('setReportIncidentButtonEnabled', isOn);
-    setReportIncidentButtonEnabled(isOn);
-    navigationViewController.setReportIncidentButtonEnabled(isOn);
-  };
-
   const toggleSpeedLimitIconEnabled = (isOn: boolean) => {
     console.log('setSpeedLimitIconEnabled', isOn);
     setSpeedLimitIconEnabled(isOn);
@@ -272,8 +273,13 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   };
 
   const setNightMode = (index: number) => {
-    console.log('setNightMode: ', index);
-    navigationViewController.setNightMode(index);
+    const mode =
+      index === 1
+        ? NavigationNightMode.FORCE_DAY
+        : index === 2
+          ? NavigationNightMode.FORCE_NIGHT
+          : NavigationNightMode.AUTO;
+    onNavigationNightModeChange?.(mode);
   };
 
   const setAudioGuidanceType = (index: number) => {
@@ -329,7 +335,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     <View>
       <Text>Target</Text>
       <TextInput
-        style={styles.input}
+        style={ControlStyles.input}
         onChangeText={onLatChanged}
         value={latitude}
         placeholder="Latitude"
@@ -337,109 +343,139 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         keyboardType="numeric"
       />
       <TextInput
-        style={styles.input}
+        style={ControlStyles.input}
         onChangeText={onLngChanged}
         value={longitude}
         placeholder="Longitude"
         placeholderTextColor="#000"
         keyboardType="numeric"
       />
-      <Button
+      <ExampleAppButton
         title="Set target from Camera Location"
         onPress={setLocationFromCameraLocation}
       />
-      <Button
+      <ExampleAppButton
         title="Simulate location from target"
         onPress={simulateLocation}
       />
-      <Button title="Set target as Destination" onPress={initWaypoint} />
-      <View style={styles.controlButtonGap} />
-      <Button title="Set multiple destinations" onPress={initWaypoints} />
-      <Button title="Dispose navigation" onPress={disposeNavigation} />
-      <Button
+      <ExampleAppButton
+        title="Set target as Destination"
+        onPress={initWaypoint}
+      />
+      <View style={ControlStyles.controlButtonGap} />
+      <ExampleAppButton
+        title="Set multiple destinations"
+        onPress={initWaypoints}
+      />
+      <ExampleAppButton
+        title="Dispose navigation"
+        onPress={disposeNavigation}
+      />
+      <ExampleAppButton
         title="Continue to next destination"
         onPress={continueToNextDestination}
       />
-      <Button title="Clear Destination" onPress={clearDestinations} />
-      <Button title="Start guidance" onPress={startGuidance} />
-      <Button title="Stop guidance" onPress={stopGuidance} />
-      <Button title="Start updating location" onPress={startUpdatingLocation} />
-      <Button title="Stop updating location" onPress={stopUpdatingLocation} />
-      <Button title="Start simulation" onPress={startSimulation} />
-      <Button title="Stop simulation" onPress={stopSimulation} />
-      <Button title="Pause simulation" onPress={pauseSimulation} />
-      <Button title="Resume simulation" onPress={resumeSimulation} />
-      <Button title="Show route overview" onPress={showRouteOverview} />
-      <Button title="NavSDK version" onPress={getNavSDKVersion} />
-      <Button title="Are terms accepted?" onPress={getAreTermsAccepted} />
-      <Button title="Set speed alert options" onPress={setSpeedAlertOptions} />
-      <Button
+      <ExampleAppButton title="Clear Destination" onPress={clearDestinations} />
+      <ExampleAppButton title="Start guidance" onPress={startGuidance} />
+      <ExampleAppButton title="Stop guidance" onPress={stopGuidance} />
+      <ExampleAppButton
+        title="Start updating location"
+        onPress={startUpdatingLocation}
+      />
+      <ExampleAppButton
+        title="Stop updating location"
+        onPress={stopUpdatingLocation}
+      />
+      <ExampleAppButton title="Start simulation" onPress={startSimulation} />
+      <ExampleAppButton title="Stop simulation" onPress={stopSimulation} />
+      <ExampleAppButton title="Pause simulation" onPress={pauseSimulation} />
+      <ExampleAppButton title="Resume simulation" onPress={resumeSimulation} />
+      <ExampleAppButton
+        title="Show route overview"
+        onPress={showRouteOverview}
+      />
+      <ExampleAppButton title="NavSDK version" onPress={getNavSDKVersion} />
+      <ExampleAppButton
+        title="Are terms accepted?"
+        onPress={getAreTermsAccepted}
+      />
+      <ExampleAppButton
+        title="Set speed alert options"
+        onPress={setSpeedAlertOptions}
+      />
+      <ExampleAppButton
         title="Get current time and distance"
         onPress={getCurrentTimeAndDistanceClicked}
       />
-      <Button
+      <ExampleAppButton
         title="Get current route segment"
         onPress={getCurrentRouteSegment}
       />
-      <Button title="Get route segments" onPress={getRouteSegments} />
-      <Button title="Get traveled path" onPress={getTraveledPath} />
-      <View style={styles.rowContainer}>
-        <Text>Trip progress</Text>
-        <Button
+      <ExampleAppButton title="Get route segments" onPress={getRouteSegments} />
+      <ExampleAppButton title="Get traveled path" onPress={getTraveledPath} />
+      <View style={ControlStyles.rowContainer}>
+        <Text>Toggle trip progress bar</Text>
+        <ExampleAppButton
           title={tripProgressBarEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
-            toggleTripProgressBarEnabled(!tripProgressBarEnabled);
+            setTripProgressBarEnabled(!tripProgressBarEnabled);
+            navigationViewController.setTripProgressBarEnabled(
+              !tripProgressBarEnabled
+            );
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
-        <Text>Report incident button</Text>
-        <Button
+      <View style={ControlStyles.rowContainer}>
+        <Text>Toggle report incident button</Text>
+        <ExampleAppButton
           title={reportIncidentButtonEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
-            toggleReportIncidentButtonEnabled(!reportIncidentButtonEnabled);
+            setReportIncidentButtonEnabled(!reportIncidentButtonEnabled);
+            navigationViewController.setReportIncidentButtonEnabled(
+              !reportIncidentButtonEnabled
+            );
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Speed limit icon</Text>
-        <Button
+        <ExampleAppButton
           title={speedLimitIconEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleSpeedLimitIconEnabled(!speedLimitIconEnabled);
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Speedometer</Text>
-        <Button
+        <ExampleAppButton
           title={speedometerEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleSpeedometerEnabled(!speedometerEnabled);
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Traffic incidents card</Text>
-        <Button
+        <ExampleAppButton
           title={trafficIncidentCardsEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleTrafficIncidentCardsEnabled(!trafficIncidentCardsEnabled);
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Navigation UI</Text>
-        <Button
+        <ExampleAppButton
           title={navigationUiEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleNavigationUiEnabled(!navigationUiEnabled);
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Turn-by-turn logging</Text>
-        <Button
+        <ExampleAppButton
           title={turnByTurnLoggingEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleTurnByTurnLoggingEnabled(!turnByTurnLoggingEnabled);
@@ -447,9 +483,9 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         />
       </View>
       {Platform.OS === 'ios' ? (
-        <View style={styles.rowContainer}>
+        <View style={ControlStyles.rowContainer}>
           <Text>Background location updates</Text>
-          <Button
+          <ExampleAppButton
             title={backgroundLocationUpdatesEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
               toggleBackgroundLocationUpdatesEnabled(
@@ -459,45 +495,46 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           />
         </View>
       ) : null}
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Recenter button</Text>
-        <Button
+        <ExampleAppButton
           title={recenterButtonEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleRecenterButtonEnabled(!recenterButtonEnabled);
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Header enabled</Text>
-        <Button
+        <ExampleAppButton
           title={headerEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleHeaderEnabled(!headerEnabled);
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Footer enabled</Text>
-        <Button
+        <ExampleAppButton
           title={footerEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleFooterEnabled(!footerEnabled);
           }}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Night mode </Text>
         <SelectDropdown
           data={nightModeOptions}
+          defaultValueByIndex={nightModeIndex}
           onSelect={(_selectedItem, index) => {
             setNightMode(index);
           }}
           renderButton={(selectedItem, _isOpened) => {
             return (
-              <View style={styles.dropdownButtonStyle}>
-                <Text style={styles.dropdownButtonTxtStyle}>
-                  {selectedItem || 'Select'}
+              <View style={ControlStyles.dropdownButton}>
+                <Text style={ControlStyles.dropdownButtonText}>
+                  {selectedItem || nightModeLabel}
                 </Text>
               </View>
             );
@@ -505,19 +542,19 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           renderItem={(item, _index, isSelected) => {
             return (
               <View
-                style={{
-                  ...styles.dropdownItemStyle,
-                  ...(isSelected && { backgroundColor: '#D2D9DF' }),
-                }}
+                style={[
+                  ControlStyles.dropdownItem,
+                  isSelected && ControlStyles.dropdownItemSelected,
+                ]}
               >
-                <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
               </View>
             );
           }}
-          dropdownStyle={styles.dropdownMenuStyle}
+          dropdownStyle={ControlStyles.dropdownMenu}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Audio guidance type </Text>
         <SelectDropdown
           data={audioGuidanceOptions}
@@ -526,8 +563,8 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
           renderButton={(selectedItem, _isOpened) => {
             return (
-              <View style={styles.dropdownButtonStyle}>
-                <Text style={styles.dropdownButtonTxtStyle}>
+              <View style={ControlStyles.dropdownButton}>
+                <Text style={ControlStyles.dropdownButtonText}>
                   {selectedItem || 'Select'}
                 </Text>
               </View>
@@ -536,19 +573,19 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           renderItem={(item, _index, isSelected) => {
             return (
               <View
-                style={{
-                  ...styles.dropdownItemStyle,
-                  ...(isSelected && { backgroundColor: '#D2D9DF' }),
-                }}
+                style={[
+                  ControlStyles.dropdownItem,
+                  isSelected && ControlStyles.dropdownItemSelected,
+                ]}
               >
-                <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
               </View>
             );
           }}
-          dropdownStyle={styles.dropdownMenuStyle}
+          dropdownStyle={ControlStyles.dropdownMenu}
         />
       </View>
-      <View style={styles.rowContainer}>
+      <View style={ControlStyles.rowContainer}>
         <Text>Camera perspective</Text>
         <SelectDropdown
           data={perspectiveOptions}
@@ -565,8 +602,8 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           }}
           renderButton={(selectedItem, _isOpened) => {
             return (
-              <View style={styles.dropdownButtonStyle}>
-                <Text style={styles.dropdownButtonTxtStyle}>
+              <View style={ControlStyles.dropdownButton}>
+                <Text style={ControlStyles.dropdownButtonText}>
                   {selectedItem || 'Select'}
                 </Text>
               </View>
@@ -575,16 +612,16 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
           renderItem={(item, _index, isSelected) => {
             return (
               <View
-                style={{
-                  ...styles.dropdownItemStyle,
-                  ...(isSelected && { backgroundColor: '#D2D9DF' }),
-                }}
+                style={[
+                  ControlStyles.dropdownItem,
+                  isSelected && ControlStyles.dropdownItemSelected,
+                ]}
               >
-                <Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
               </View>
             );
           }}
-          dropdownStyle={styles.dropdownMenuStyle}
+          dropdownStyle={ControlStyles.dropdownMenu}
         />
       </View>
     </View>

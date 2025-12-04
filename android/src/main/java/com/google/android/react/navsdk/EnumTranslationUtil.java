@@ -15,6 +15,7 @@ package com.google.android.react.navsdk;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.CameraPerspective;
+import com.google.android.gms.maps.model.MapColorScheme;
 import com.google.android.libraries.navigation.AlternateRoutesStrategy;
 import com.google.android.libraries.navigation.ForceNightMode;
 import com.google.android.libraries.navigation.Navigator;
@@ -89,11 +90,22 @@ public class EnumTranslationUtil {
     }
   }
 
-  public static CustomTypes.FragmentType getFragmentTypeFromJsValue(int jsValue) {
+  public static CustomTypes.MapViewType getMapViewTypeFromJsValue(int jsValue) {
     return switch (jsValue) {
-      case 0 -> CustomTypes.FragmentType.MAP;
-      case 1 -> CustomTypes.FragmentType.NAVIGATION;
-      default -> throw new IllegalStateException("Unexpected FragmentType value: " + jsValue);
+      case 0 -> CustomTypes.MapViewType.MAP;
+      case 1 -> CustomTypes.MapViewType.NAVIGATION;
+      default -> throw new IllegalStateException("Unexpected MapViewType value: " + jsValue);
     };
+  }
+
+  public static @MapColorScheme int getMapColorSchemeFromJsValue(int jsValue) {
+    switch (jsValue) {
+      case 1:
+        return MapColorScheme.LIGHT;
+      case 2:
+        return MapColorScheme.DARK;
+      default:
+        return MapColorScheme.FOLLOW_SYSTEM;
+    }
   }
 }

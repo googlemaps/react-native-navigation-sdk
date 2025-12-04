@@ -15,13 +15,17 @@
  */
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Button, View } from 'react-native';
+import { View } from 'react-native';
+import { ExampleAppButton } from '../controls/ExampleAppButton';
 import Snackbar from 'react-native-snackbar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   NavigationInitErrorCode,
   NavigationView,
   RouteStatus,
+  MapColorScheme,
+  NavigationNightMode,
   type ArrivalEvent,
   type Circle,
   type LatLng,
@@ -44,7 +48,8 @@ import {
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
 import OverlayModal from '../helpers/overlayModal';
-import styles from '../styles';
+import { CommonStyles, MapStyles } from '../styles/components';
+import { MapStylingOptions } from '../styles/mapStyling';
 import usePermissions from '../checkPermissions';
 
 // Utility function for showing Snackbar
@@ -61,11 +66,17 @@ enum OverlayType {
 
 const NavigationScreen = () => {
   const { arePermissionsApproved } = usePermissions();
+  const insets = useSafeAreaInsets();
   const [overlayType, setOverlayType] = useState<OverlayType>(OverlayType.None);
   const [mapViewController, setMapViewController] =
     useState<MapViewController | null>(null);
   const [navigationViewController, setNavigationViewController] =
     useState<NavigationViewController | null>(null);
+  const [mapColorScheme, setMapColorScheme] = useState<MapColorScheme>(
+    MapColorScheme.FOLLOW_SYSTEM
+  );
+  const [navigationNightMode, setNavigationNightMode] =
+    useState<NavigationNightMode>(NavigationNightMode.AUTO);
 
   const {
     mapViewAutoController,
@@ -300,26 +311,13 @@ const NavigationScreen = () => {
   };
 
   return arePermissionsApproved ? (
-    <View style={styles.container}>
+    <View style={[CommonStyles.container, { paddingBottom: insets.bottom }]}>
       <NavigationView
-        style={styles.map_view}
-        androidStylingOptions={{
-          primaryDayModeThemeColor: '#0076a8',
-          primaryNightModeThemeColor: '#3400a8',
-          secondaryDayModeThemeColor: '#0076a8',
-          secondaryNightModeThemeColor: '#3400a8',
-          headerLargeManeuverIconColor: '#f65308',
-          headerSmallManeuverIconColor: '#f65308',
-          headerDistanceValueTextColor: '#f65308',
-          headerInstructionsFirstRowTextSize: '18f',
-        }}
-        iOSStylingOptions={{
-          navigationHeaderPrimaryBackgroundColor: '#0076a8',
-          navigationHeaderPrimaryBackgroundColorNightMode: '#3400a8',
-          navigationHeaderSecondaryBackgroundColor: '#0076a8',
-          navigationHeaderSecondaryBackgroundColorNightMode: '#3400a8',
-          navigationHeaderDistanceValueTextColor: '#f65308',
-        }}
+        style={MapStyles.mapView}
+        androidStylingOptions={MapStylingOptions.android}
+        iOSStylingOptions={MapStylingOptions.iOS}
+        mapColorScheme={mapColorScheme}
+        navigationNightMode={navigationNightMode}
         navigationViewCallbacks={navigationViewCallbacks}
         mapViewCallbacks={mapViewCallbacks}
         onMapViewControllerCreated={setMapViewController}
@@ -338,6 +336,8 @@ const NavigationScreen = () => {
               navigationViewController={navigationViewController}
               getCameraPosition={mapViewController?.getCameraPosition}
               onNavigationDispose={onNavigationDispose}
+              navigationNightMode={navigationNightMode}
+              onNavigationNightModeChange={setNavigationNightMode}
             />
           </OverlayModal>
         )}
@@ -347,7 +347,11 @@ const NavigationScreen = () => {
           visible={overlayType === OverlayType.MapControls}
           closeOverlay={closeOverlay}
         >
-          <MapsControls mapViewController={mapViewController} />
+          <MapsControls
+            mapViewController={mapViewController}
+            mapColorScheme={mapColorScheme}
+            onMapColorSchemeChange={setMapColorScheme}
+          />
         </OverlayModal>
       )}
 
@@ -360,15 +364,18 @@ const NavigationScreen = () => {
         </OverlayModal>
       )}
 
-      <View style={styles.controlButtons}>
-        <Button
+      <View style={CommonStyles.buttonRow}>
+        <ExampleAppButton
           title="Navigation"
           onPress={onShowNavControlsClick}
           disabled={!navigationInitialized}
         />
-        <Button title="Maps" onPress={onShowMapsControlsClick} />
+        <ExampleAppButton title="Maps" onPress={onShowMapsControlsClick} />
         {mapViewAutoAvailable && (
-          <Button title="Auto" onPress={onShowAutoMapsControlsClick} />
+          <ExampleAppButton
+            title="Auto"
+            onPress={onShowAutoMapsControlsClick}
+          />
         )}
       </View>
     </View>

@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   NavigationContainer,
   useIsFocused,
-  useNavigation,
+  useNavigation as useAppNavigation,
   type NavigationProp,
 } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createStackNavigator } from '@react-navigation/stack';
-import { View, Button, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
+import { CommonStyles } from './styles/components';
+import { ExampleAppButton } from './controls/ExampleAppButton';
 import NavigationScreen from './screens/NavigationScreen';
 import MultipleMapsScreen from './screens/MultipleMapsScreen';
+import MapIdScreen from './screens/MapIdScreen';
 import {
   NavigationProvider,
   TaskRemovedBehavior,
-  type TermsAndConditionsDialogOptions,
+  useNavigation,
 } from '@googlemaps/react-native-navigation-sdk';
 import IntegrationTestsScreen from './screens/IntegrationTestsScreen';
 
@@ -36,6 +40,7 @@ export type ScreenNames = [
   'Home',
   'Navigation',
   'Multiple maps',
+  'Map ID',
   'Integration tests',
 ];
 
@@ -43,43 +48,67 @@ export type RootStackParamList = Record<ScreenNames[number], undefined>;
 export type StackNavigation = NavigationProp<RootStackParamList>;
 
 const HomeScreen = () => {
-  const { navigate } = useNavigation<StackNavigation>();
+  const { navigate } = useAppNavigation<StackNavigation>();
   const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
+  const [sdkVersion, setSdkVersion] = useState<string>('');
+
+  const { navigationController } = useNavigation();
+
+  useEffect(() => {
+    const fetchVersion = async () => {
+      try {
+        const version = await navigationController.getNavSDKVersion();
+        setSdkVersion(version);
+      } catch (error) {
+        console.error('Failed to fetch SDK version:', error);
+        setSdkVersion('Unknown');
+      }
+    };
+
+    fetchVersion();
+  }, [navigationController]);
 
   return (
-    <View style={styles.container}>
+    <View style={[CommonStyles.centered, { paddingBottom: insets.bottom }]}>
+      {/* SDK Version Display */}
+      <View style={{ padding: 16, alignItems: 'center' }}>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>
+          Navigation SDK Version: {sdkVersion || 'Loading...'}
+        </Text>
+      </View>
       {/* Spacer */}
-      <View style={styles.container} />
-      <View style={styles.buttonContainer}>
-        <Button
+      <View style={CommonStyles.buttonContainer}>
+        <ExampleAppButton
           title="Navigation"
           onPress={() => isFocused && navigate('Navigation')}
         />
       </View>
-      <View style={styles.buttonContainer}>
-        <Button
+      <View style={CommonStyles.buttonContainer}>
+        <ExampleAppButton
           title="Multiple Maps"
           onPress={() => isFocused && navigate('Multiple maps')}
         />
       </View>
+      <View style={CommonStyles.buttonContainer}>
+        <ExampleAppButton
+          title="Map ID"
+          onPress={() => isFocused && navigate('Map ID')}
+        />
+      </View>
       {/* Spacer */}
-      <View style={styles.container} />
-      <View style={styles.buttonContainer}>
-        <Button
-          color="grey"
+      <View style={CommonStyles.container} />
+      <View style={CommonStyles.buttonContainer}>
+        <ExampleAppButton
           title="Integration Tests"
-          testID="integration_tests_button"
           onPress={() => isFocused && navigate('Integration tests')}
+          backgroundColor="grey"
+          pressedBackgroundColor="darkGrey"
+          testID="integration_tests_button"
         />
       </View>
     </View>
   );
-};
-
-const termsAndConditionsDialogOptions: TermsAndConditionsDialogOptions = {
-  title: 'RN NavSDK Sample',
-  companyName: 'Sample Company',
-  showOnlyDisclaimer: true,
 };
 
 const Stack = createStackNavigator();
@@ -91,7 +120,11 @@ const Stack = createStackNavigator();
 export default function App() {
   return (
     <NavigationProvider
-      termsAndConditionsDialogOptions={termsAndConditionsDialogOptions}
+      termsAndConditionsDialogOptions={{
+        title: 'RN NavSDK Sample',
+        companyName: 'Sample Company',
+        showOnlyDisclaimer: true,
+      }}
       taskRemovedBehavior={TaskRemovedBehavior.CONTINUE_SERVICE}
     >
       <NavigationContainer>
@@ -99,6 +132,7 @@ export default function App() {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Navigation" component={NavigationScreen} />
           <Stack.Screen name="Multiple maps" component={MultipleMapsScreen} />
+          <Stack.Screen name="Map ID" component={MapIdScreen} />
           <Stack.Screen
             name="Integration tests"
             component={IntegrationTestsScreen}
@@ -108,15 +142,3 @@ export default function App() {
     </NavigationProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonContainer: {
-    width: '80%',
-    marginVertical: 8,
-  },
-});

@@ -18,6 +18,7 @@ import static com.google.android.react.navsdk.Command.*;
 import android.view.Choreographer;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -26,10 +27,12 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.common.MapBuilder;
+import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
-import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.libraries.navigation.StylingOptions;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,14 +41,16 @@ import java.util.Objects;
 // NavViewManager is responsible for managing both the regular map fragment as well as the
 // navigation map view fragment.
 //
-public class NavViewManager extends ViewGroupManager<NavViewLayout> {
+public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
   public static final String REACT_CLASS = "NavViewManager";
-
   private static NavViewManager instance;
 
   private final HashMap<Integer, WeakReference<IMapViewFragment>> fragmentMap = new HashMap<>();
   private final HashMap<Integer, Choreographer.FrameCallback> frameCallbackMap = new HashMap<>();
+
+  // Cache the latest options per view so deferred fragment creation uses fresh values.
+  private final HashMap<Integer, ReadableMap> mapOptionsCache = new HashMap<>();
 
   private ReactApplicationContext reactContext;
 
@@ -55,6 +60,48 @@ public class NavViewManager extends ViewGroupManager<NavViewLayout> {
     }
     instance.setReactContext(reactContext);
     return instance;
+  }
+
+  private boolean isFragmentCreated(int viewId) {
+    WeakReference<IMapViewFragment> weakReference = fragmentMap.get(viewId);
+    if (weakReference == null) {
+      return false;
+    }
+    IMapViewFragment fragment = weakReference.get();
+    if (fragment == null) {
+      // Clean up the map entry if the fragment is not available anymore.
+      fragmentMap.remove(viewId);
+      return false;
+    }
+    return true;
+  }
+
+  /** Builds GoogleMapOptions with all configured map settings. */
+  @NonNull
+  private GoogleMapOptions buildGoogleMapOptions(ReadableMap mapOptionsMap) {
+    GoogleMapOptions options = new GoogleMapOptions();
+    if (mapOptionsMap == null) {
+      return options;
+    }
+
+    if (mapOptionsMap.hasKey("mapId") && !mapOptionsMap.isNull("mapId")) {
+      String mapIdFromOptions = mapOptionsMap.getString("mapId");
+      if (mapIdFromOptions != null && !mapIdFromOptions.isEmpty()) {
+        options.mapId(mapIdFromOptions);
+      }
+    }
+
+    if (mapOptionsMap.hasKey("mapType") && !mapOptionsMap.isNull("mapType")) {
+      options.mapType(mapOptionsMap.getInt("mapType"));
+    }
+
+    if (mapOptionsMap.hasKey("mapColorScheme")) {
+      int jsValue =
+          mapOptionsMap.isNull("mapColorScheme") ? 0 : mapOptionsMap.getInt("mapColorScheme");
+      options.mapColorScheme(EnumTranslationUtil.getMapColorSchemeFromJsValue(jsValue));
+    }
+
+    return options;
   }
 
   @NonNull
@@ -67,16 +114,75 @@ public class NavViewManager extends ViewGroupManager<NavViewLayout> {
     this.reactContext = reactContext;
   }
 
-  /** Return a NavViewLayout which will later hold the Fragment */
+  /** Return a FrameLayout which will later hold the Fragment */
   @NonNull
   @Override
-  public NavViewLayout createViewInstance(@NonNull ThemedReactContext reactContext) {
-    return new NavViewLayout(reactContext);
+  public FrameLayout createViewInstance(@NonNull ThemedReactContext reactContext) {
+    FrameLayout frameLayout = new FrameLayout(reactContext);
+    return frameLayout;
+  }
+
+  /**
+   * Ensures the fragment view is properly measured and laid out within its parent FrameLayout. This
+   * is necessary because React Native's layout system doesn't automatically propagate layout to
+   * native fragments.
+   */
+  private void layoutFragmentInView(FrameLayout frameLayout, @Nullable IMapViewFragment fragment) {
+    if (fragment == null || !fragment.isAdded()) {
+      return;
+    }
+
+    int width = frameLayout.getWidth();
+    int height = frameLayout.getHeight();
+    if (width == 0 || height == 0) {
+      return;
+    }
+
+    View fragmentView = fragment.getView();
+    if (fragmentView == null) {
+      return;
+    }
+
+    fragmentView.measure(
+        View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+        View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+    fragmentView.layout(0, 0, width, height);
+  }
+
+  /**
+   * Starts a per-frame layout loop similar to the older implementation to ensure the fragment view
+   * stays in sync with its container size.
+   */
+  private void startLayoutLoop(FrameLayout view) {
+    int viewId = view.getId();
+
+    // Remove existing callback if present
+    Choreographer.FrameCallback existing = frameCallbackMap.get(viewId);
+    if (existing != null) {
+      Choreographer.getInstance().removeFrameCallback(existing);
+    }
+
+    Choreographer.FrameCallback frameCallback =
+        new Choreographer.FrameCallback() {
+          @Override
+          public void doFrame(long frameTimeNanos) {
+            IMapViewFragment fragment = getFragmentForViewId(viewId);
+            if (fragment != null) {
+              layoutFragmentInView(view, fragment);
+              Choreographer.getInstance().postFrameCallback(this);
+            } else {
+              frameCallbackMap.remove(viewId);
+            }
+          }
+        };
+
+    frameCallbackMap.put(viewId, frameCallback);
+    Choreographer.getInstance().postFrameCallback(frameCallback);
   }
 
   /** Clean up fragment when React Native view is destroyed */
   @Override
-  public void onDropViewInstance(@NonNull NavViewLayout view) {
+  public void onDropViewInstance(@NonNull FrameLayout view) {
     super.onDropViewInstance(view);
 
     int viewId = view.getId();
@@ -90,6 +196,7 @@ public class NavViewManager extends ViewGroupManager<NavViewLayout> {
     if (activity == null) return;
 
     WeakReference<IMapViewFragment> weakReference = fragmentMap.remove(viewId);
+    mapOptionsCache.remove(viewId);
     if (weakReference != null) {
       IMapViewFragment fragment = weakReference.get();
       if (fragment != null && fragment.isAdded()) {
@@ -102,31 +209,17 @@ public class NavViewManager extends ViewGroupManager<NavViewLayout> {
     }
   }
 
-  @ReactProp(name = "fragmentType")
-  public void setFragmentType(NavViewLayout view, @Nullable Integer fragmentTypeJsValue) {
-    if (fragmentTypeJsValue != null) {
-      CustomTypes.FragmentType fragmentType =
-          EnumTranslationUtil.getFragmentTypeFromJsValue(fragmentTypeJsValue);
-      view.setFragmentType(fragmentType);
-      createFragmentIfNeeded(view);
-    }
-  }
+  @ReactProp(name = "mapOptions")
+  public void setMapOptions(FrameLayout view, @NonNull ReadableMap mapOptions) {
+    int viewId = view.getId();
+    mapOptionsCache.put(viewId, mapOptions);
 
-  @ReactProp(name = "stylingOptions")
-  public void setStylingOptions(NavViewLayout view, @Nullable ReadableMap options) {
-    if (options != null) {
-      view.setStylingOptions(new StylingOptionsBuilder.Builder(options.toHashMap()).build());
-
-      if (view.isFragmentCreated()) {
-        IMapViewFragment fragment = getFragmentForRoot(view);
-        if (fragment != null) {
-          fragment.setStylingOptions(view.getStylingOptions());
-        }
-        return;
-      }
+    if (isFragmentCreated(viewId)) {
+      updateMapOptionValues(viewId, mapOptions);
+      return;
     }
 
-    createFragmentIfNeeded(view);
+    scheduleFragmentTransaction(view, mapOptions);
   }
 
   /** Map the "create" command to an integer */
@@ -221,14 +314,16 @@ public class NavViewManager extends ViewGroupManager<NavViewLayout> {
     for (WeakReference<IMapViewFragment> weakReference : fragmentMap.values()) {
       IMapViewFragment fragment = weakReference.get();
       if (fragment instanceof INavViewFragment) {
-        fragment.applyStylingOptions();
+        INavViewFragment navFragment = (INavViewFragment) fragment;
+        navFragment.setNavigationUiEnabled(true);
+        navFragment.applyStylingOptions();
       }
     }
   }
 
   @Override
   public void receiveCommand(
-      @NonNull NavViewLayout root, String commandId, @Nullable ReadableArray args) {
+      @NonNull FrameLayout root, String commandId, @Nullable ReadableArray args) {
     super.receiveCommand(root, commandId, args);
     int commandIdInt = Integer.parseInt(commandId);
     Command command = Command.find(commandIdInt);
@@ -270,7 +365,8 @@ public class NavViewManager extends ViewGroupManager<NavViewLayout> {
         navFragment = getNavFragmentForRoot(root);
         if (navFragment != null) {
           assert args != null;
-          navFragment.setNightModeOption(args.getInt(0));
+          int nightModeOverride = EnumTranslationUtil.getForceNightModeFromJsValue(args.getInt(0));
+          navFragment.setNightModeOption(nightModeOverride);
         }
         break;
       case SET_SPEEDOMETER_ENABLED:
@@ -544,111 +640,122 @@ public class NavViewManager extends ViewGroupManager<NavViewLayout> {
     return (Map) eventTypeConstants;
   }
 
-  private void createFragmentIfNeeded(NavViewLayout view) {
-    if (view.isFragmentCreated() || view.getFragmentType() == null) {
+  private void scheduleFragmentTransaction(
+      @NonNull FrameLayout root, @NonNull ReadableMap mapOptions) {
+
+    // Commit the fragment transaction after view is added to the view hierarchy.
+    root.post(() -> tryCommitFragmentTransaction(root, mapOptions));
+  }
+
+  /** Attempt to create/attach the fragment once the parent view has a real size. */
+  private void tryCommitFragmentTransaction(
+      @NonNull FrameLayout root, @NonNull ReadableMap initialMapOptions) {
+    int viewId = root.getId();
+    if (isFragmentCreated(viewId)) {
       return;
     }
 
-    CustomTypes.FragmentType type = view.getFragmentType();
+    ReadableMap latestOptions = mapOptionsCache.get(viewId);
+    ReadableMap optionsToUse = latestOptions != null ? latestOptions : initialMapOptions;
 
-    if (type == CustomTypes.FragmentType.MAP
-        || (type == CustomTypes.FragmentType.NAVIGATION && view.getStylingOptions() != null)) {
-      scheduleFragmentTransaction(view, type);
+    int width = root.getWidth();
+    int height = root.getHeight();
+    if (width == 0 || height == 0) {
+      // Wait for layout to provide a size, then retry without the per-frame choreographer loop.
+      root.post(() -> tryCommitFragmentTransaction(root, optionsToUse));
+      return;
     }
+
+    commitFragmentTransaction(root, optionsToUse);
   }
 
-  private void scheduleFragmentTransaction(
-      NavViewLayout root, CustomTypes.FragmentType fragmentType) {
+  private void updateMapOptionValues(int viewId, @NonNull ReadableMap mapOptions) {
+    IMapViewFragment fragment = getFragmentForViewId(viewId);
+    if (fragment == null) {
+      return;
+    }
 
-    // Commit the fragment transaction after view is added to the view hierarchy.
-    root.post(
-        () -> {
-          if (root.isFragmentCreated()) {
-            return;
-          }
-          commitFragmentTransaction(root, fragmentType);
-          root.setFragmentCreated(true);
-        });
+    if (mapOptions.hasKey("mapColorScheme")) {
+      int jsValue = mapOptions.isNull("mapColorScheme") ? 0 : mapOptions.getInt("mapColorScheme");
+      fragment.setMapColorScheme(EnumTranslationUtil.getMapColorSchemeFromJsValue(jsValue));
+    }
+
+    if (fragment instanceof INavViewFragment
+        && mapOptions.hasKey("navigationStylingOptions")
+        && !mapOptions.isNull("navigationStylingOptions")) {
+      ReadableMap stylingMap = mapOptions.getMap("navigationStylingOptions");
+      if (stylingMap != null) {
+        StylingOptions stylingOptions =
+            new StylingOptionsBuilder.Builder(stylingMap.toHashMap()).build();
+        ((INavViewFragment) fragment).setStylingOptions(stylingOptions);
+      }
+    }
+
+    if (fragment instanceof INavViewFragment && mapOptions.hasKey("navigationNightMode")) {
+      int nightMode =
+          mapOptions.isNull("navigationNightMode") ? 0 : mapOptions.getInt("navigationNightMode");
+      ((INavViewFragment) fragment)
+          .setNightModeOption(EnumTranslationUtil.getForceNightModeFromJsValue(nightMode));
+    }
   }
 
   /** Replace your React Native view with a custom fragment */
   private void commitFragmentTransaction(
-      NavViewLayout view, CustomTypes.FragmentType fragmentType) {
-
-    setupLayout(view);
+      @NonNull FrameLayout view, @NonNull ReadableMap mapOptions) {
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
     if (activity == null) return;
-
     int viewId = view.getId();
     Fragment fragment;
+    IMapViewFragment mapViewFragment;
 
-    if (fragmentType == CustomTypes.FragmentType.MAP) {
-      MapViewFragment mapFragment = new MapViewFragment(reactContext, viewId);
-      fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(mapFragment));
+    CustomTypes.MapViewType mapViewType =
+        EnumTranslationUtil.getMapViewTypeFromJsValue(mapOptions.getInt("mapViewType"));
+
+    GoogleMapOptions googleMapOptions = buildGoogleMapOptions(mapOptions);
+
+    if (mapViewType == CustomTypes.MapViewType.MAP) {
+      MapViewFragment mapFragment =
+          MapViewFragment.newInstance(reactContext, viewId, googleMapOptions);
       fragment = mapFragment;
+      mapViewFragment = mapFragment;
     } else {
-      NavViewFragment navFragment = new NavViewFragment(reactContext, viewId);
-      if (view.getStylingOptions() != null) {
-        navFragment.setStylingOptions(view.getStylingOptions());
+      NavViewFragment navFragment =
+          NavViewFragment.newInstance(reactContext, viewId, googleMapOptions);
+      Integer nightMode = null;
+      if (mapOptions.hasKey("navigationNightMode")) {
+        int jsValue =
+            mapOptions.isNull("navigationNightMode") ? 0 : mapOptions.getInt("navigationNightMode");
+        nightMode = EnumTranslationUtil.getForceNightModeFromJsValue(jsValue);
+        navFragment.setNightModeOption(nightMode);
       }
-      fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(navFragment));
+
+      if (mapOptions.hasKey("navigationStylingOptions")
+          && !mapOptions.isNull("navigationStylingOptions")) {
+        ReadableMap stylingOptionsMap = mapOptions.getMap("navigationStylingOptions");
+        StylingOptions stylingOptions =
+            new StylingOptionsBuilder.Builder(stylingOptionsMap.toHashMap()).build();
+        navFragment.setStylingOptions(stylingOptions);
+      }
+
       fragment = navFragment;
+      mapViewFragment = navFragment;
     }
+
+    fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(mapViewFragment));
 
     activity
         .getSupportFragmentManager()
         .beginTransaction()
         .replace(viewId, fragment, String.valueOf(viewId))
         .commit();
-  }
 
-  /**
-   * Set up the layout for each frame. This official RN way to do this, but a bit hacky, and should
-   * be changed when better solution is found.
-   */
-  public void setupLayout(NavViewLayout view) {
-    int viewId = view.getId();
+    // Start per-frame layout loop to keep fragment sized correctly.
+    startLayoutLoop(view);
 
-    // Remove any existing callback for this viewId
-    Choreographer.FrameCallback existingCallback = frameCallbackMap.get(viewId);
-    if (existingCallback != null) {
-      Choreographer.getInstance().removeFrameCallback(existingCallback);
-    }
-
-    Choreographer.FrameCallback frameCallback =
-        new Choreographer.FrameCallback() {
-          @Override
-          public void doFrame(long frameTimeNanos) {
-            // Check if this view still has a valid fragment before proceeding
-            IMapViewFragment fragment = getFragmentForViewId(viewId);
-            if (fragment != null) {
-              manuallyLayoutChildren(view);
-              view.getViewTreeObserver().dispatchOnGlobalLayout();
-              Choreographer.getInstance().postFrameCallback(this);
-            } else {
-              // Fragment no longer exists or was garbage collected, remove callback and stop
-              frameCallbackMap.remove(viewId);
-            }
-          }
-        };
-
-    frameCallbackMap.put(viewId, frameCallback);
-    Choreographer.getInstance().postFrameCallback(frameCallback);
-  }
-
-  /** Layout all children properly */
-  public void manuallyLayoutChildren(NavViewLayout view) {
-    IMapViewFragment fragment = getFragmentForRoot(view);
-    if (fragment != null && fragment.isAdded()) {
-      View childView = fragment.getView();
-      if (childView != null) {
-        childView.measure(
-            View.MeasureSpec.makeMeasureSpec(view.getMeasuredWidth(), View.MeasureSpec.EXACTLY),
-            View.MeasureSpec.makeMeasureSpec(view.getMeasuredHeight(), View.MeasureSpec.EXACTLY));
-        childView.layout(0, 0, childView.getMeasuredWidth(), childView.getMeasuredHeight());
-      }
-    }
+    // Trigger layout after fragment is added
+    // Post to ensure fragment transaction is complete
+    view.post(() -> layoutFragmentInView(view, mapViewFragment));
   }
 
   public GoogleMap getGoogleMap(int viewId) {
