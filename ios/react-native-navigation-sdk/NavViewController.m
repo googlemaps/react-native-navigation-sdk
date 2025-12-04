@@ -15,7 +15,6 @@
  */
 
 #import "NavViewController.h"
-#import <React/RCTConvert.h>
 #import <React/RCTLog.h>
 #import <UIKit/UIKit.h>
 #import "NavModule.h"
@@ -578,10 +577,6 @@
       UIImage *icon = [UIImage imageNamed:imgPath];  // Assuming local asset
       marker.icon = icon;
     }
-  } else if ([markerOptions objectForKey:@"imageSrc"]) {
-    NSDictionary *imageSrc = [markerOptions objectForKey:@"imageSrc"];
-    UIImage *icon = [RCTConvert UIImage:imageSrc];
-    marker.icon = icon;
   }
 
   BOOL visible = [[markerOptions objectForKey:@"visible"] boolValue];
