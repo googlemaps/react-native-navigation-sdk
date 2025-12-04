@@ -23,8 +23,9 @@ import {
 } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createStackNavigator } from '@react-navigation/stack';
-import { View, Button, Text } from 'react-native';
+import { View, Text } from 'react-native';
 import { CommonStyles } from './styles/components';
+import { ExampleAppButton } from './controls/ExampleAppButton';
 import NavigationScreen from './screens/NavigationScreen';
 import MultipleMapsScreen from './screens/MultipleMapsScreen';
 import MapIdScreen from './screens/MapIdScreen';
@@ -78,19 +79,19 @@ const HomeScreen = () => {
       </View>
       {/* Spacer */}
       <View style={CommonStyles.buttonContainer}>
-        <Button
+        <ExampleAppButton
           title="Navigation"
           onPress={() => isFocused && navigate('Navigation')}
         />
       </View>
       <View style={CommonStyles.buttonContainer}>
-        <Button
+        <ExampleAppButton
           title="Multiple Maps"
           onPress={() => isFocused && navigate('Multiple maps')}
         />
       </View>
       <View style={CommonStyles.buttonContainer}>
-        <Button
+        <ExampleAppButton
           title="Map ID"
           onPress={() => isFocused && navigate('Map ID')}
         />
@@ -98,11 +99,12 @@ const HomeScreen = () => {
       {/* Spacer */}
       <View style={CommonStyles.container} />
       <View style={CommonStyles.buttonContainer}>
-        <Button
-          color="grey"
+        <ExampleAppButton
           title="Integration Tests"
-          testID="integration_tests_button"
           onPress={() => isFocused && navigate('Integration tests')}
+          backgroundColor="grey"
+          pressedBackgroundColor="darkGrey"
+          testID="integration_tests_button"
         />
       </View>
     </View>

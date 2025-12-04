@@ -15,7 +15,8 @@
  */
 
 import React, { useState } from 'react';
-import { Alert, Button, Platform, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Text, TextInput, View } from 'react-native';
+import { ExampleAppButton } from './ExampleAppButton';
 import {
   CameraPerspective,
   NavigationNightMode,
@@ -349,48 +350,72 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         placeholderTextColor="#000"
         keyboardType="numeric"
       />
-      <Button
+      <ExampleAppButton
         title="Set target from Camera Location"
         onPress={setLocationFromCameraLocation}
       />
-      <Button
+      <ExampleAppButton
         title="Simulate location from target"
         onPress={simulateLocation}
       />
-      <Button title="Set target as Destination" onPress={initWaypoint} />
+      <ExampleAppButton
+        title="Set target as Destination"
+        onPress={initWaypoint}
+      />
       <View style={ControlStyles.controlButtonGap} />
-      <Button title="Set multiple destinations" onPress={initWaypoints} />
-      <Button title="Dispose navigation" onPress={disposeNavigation} />
-      <Button
+      <ExampleAppButton
+        title="Set multiple destinations"
+        onPress={initWaypoints}
+      />
+      <ExampleAppButton
+        title="Dispose navigation"
+        onPress={disposeNavigation}
+      />
+      <ExampleAppButton
         title="Continue to next destination"
         onPress={continueToNextDestination}
       />
-      <Button title="Clear Destination" onPress={clearDestinations} />
-      <Button title="Start guidance" onPress={startGuidance} />
-      <Button title="Stop guidance" onPress={stopGuidance} />
-      <Button title="Start updating location" onPress={startUpdatingLocation} />
-      <Button title="Stop updating location" onPress={stopUpdatingLocation} />
-      <Button title="Start simulation" onPress={startSimulation} />
-      <Button title="Stop simulation" onPress={stopSimulation} />
-      <Button title="Pause simulation" onPress={pauseSimulation} />
-      <Button title="Resume simulation" onPress={resumeSimulation} />
-      <Button title="Show route overview" onPress={showRouteOverview} />
-      <Button title="NavSDK version" onPress={getNavSDKVersion} />
-      <Button title="Are terms accepted?" onPress={getAreTermsAccepted} />
-      <Button title="Set speed alert options" onPress={setSpeedAlertOptions} />
-      <Button
+      <ExampleAppButton title="Clear Destination" onPress={clearDestinations} />
+      <ExampleAppButton title="Start guidance" onPress={startGuidance} />
+      <ExampleAppButton title="Stop guidance" onPress={stopGuidance} />
+      <ExampleAppButton
+        title="Start updating location"
+        onPress={startUpdatingLocation}
+      />
+      <ExampleAppButton
+        title="Stop updating location"
+        onPress={stopUpdatingLocation}
+      />
+      <ExampleAppButton title="Start simulation" onPress={startSimulation} />
+      <ExampleAppButton title="Stop simulation" onPress={stopSimulation} />
+      <ExampleAppButton title="Pause simulation" onPress={pauseSimulation} />
+      <ExampleAppButton title="Resume simulation" onPress={resumeSimulation} />
+      <ExampleAppButton
+        title="Show route overview"
+        onPress={showRouteOverview}
+      />
+      <ExampleAppButton title="NavSDK version" onPress={getNavSDKVersion} />
+      <ExampleAppButton
+        title="Are terms accepted?"
+        onPress={getAreTermsAccepted}
+      />
+      <ExampleAppButton
+        title="Set speed alert options"
+        onPress={setSpeedAlertOptions}
+      />
+      <ExampleAppButton
         title="Get current time and distance"
         onPress={getCurrentTimeAndDistanceClicked}
       />
-      <Button
+      <ExampleAppButton
         title="Get current route segment"
         onPress={getCurrentRouteSegment}
       />
-      <Button title="Get route segments" onPress={getRouteSegments} />
-      <Button title="Get traveled path" onPress={getTraveledPath} />
+      <ExampleAppButton title="Get route segments" onPress={getRouteSegments} />
+      <ExampleAppButton title="Get traveled path" onPress={getTraveledPath} />
       <View style={ControlStyles.rowContainer}>
         <Text>Toggle trip progress bar</Text>
-        <Button
+        <ExampleAppButton
           title={tripProgressBarEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             setTripProgressBarEnabled(!tripProgressBarEnabled);
@@ -402,7 +427,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       </View>
       <View style={ControlStyles.rowContainer}>
         <Text>Toggle report incident button</Text>
-        <Button
+        <ExampleAppButton
           title={reportIncidentButtonEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             setReportIncidentButtonEnabled(!reportIncidentButtonEnabled);
@@ -414,7 +439,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       </View>
       <View style={ControlStyles.rowContainer}>
         <Text>Speed limit icon</Text>
-        <Button
+        <ExampleAppButton
           title={speedLimitIconEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleSpeedLimitIconEnabled(!speedLimitIconEnabled);
@@ -423,7 +448,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       </View>
       <View style={ControlStyles.rowContainer}>
         <Text>Speedometer</Text>
-        <Button
+        <ExampleAppButton
           title={speedometerEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleSpeedometerEnabled(!speedometerEnabled);
@@ -432,7 +457,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       </View>
       <View style={ControlStyles.rowContainer}>
         <Text>Traffic incidents card</Text>
-        <Button
+        <ExampleAppButton
           title={trafficIncidentCardsEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleTrafficIncidentCardsEnabled(!trafficIncidentCardsEnabled);
@@ -441,7 +466,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       </View>
       <View style={ControlStyles.rowContainer}>
         <Text>Navigation UI</Text>
-        <Button
+        <ExampleAppButton
           title={navigationUiEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleNavigationUiEnabled(!navigationUiEnabled);
@@ -450,7 +475,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       </View>
       <View style={ControlStyles.rowContainer}>
         <Text>Turn-by-turn logging</Text>
-        <Button
+        <ExampleAppButton
           title={turnByTurnLoggingEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleTurnByTurnLoggingEnabled(!turnByTurnLoggingEnabled);
@@ -460,7 +485,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       {Platform.OS === 'ios' ? (
         <View style={ControlStyles.rowContainer}>
           <Text>Background location updates</Text>
-          <Button
+          <ExampleAppButton
             title={backgroundLocationUpdatesEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
               toggleBackgroundLocationUpdatesEnabled(
@@ -472,7 +497,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       ) : null}
       <View style={ControlStyles.rowContainer}>
         <Text>Recenter button</Text>
-        <Button
+        <ExampleAppButton
           title={recenterButtonEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleRecenterButtonEnabled(!recenterButtonEnabled);
@@ -481,7 +506,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       </View>
       <View style={ControlStyles.rowContainer}>
         <Text>Header enabled</Text>
-        <Button
+        <ExampleAppButton
           title={headerEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleHeaderEnabled(!headerEnabled);
@@ -490,7 +515,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       </View>
       <View style={ControlStyles.rowContainer}>
         <Text>Footer enabled</Text>
-        <Button
+        <ExampleAppButton
           title={footerEnabled ? 'Disable' : 'Enable'}
           onPress={() => {
             toggleFooterEnabled(!footerEnabled);

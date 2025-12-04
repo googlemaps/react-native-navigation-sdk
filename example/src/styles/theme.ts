@@ -42,7 +42,9 @@ export const Colors = {
 
   // Interactive colors
   button: '#2196f3',
+  buttonPressed: '#1c89e1ff',
   buttonDisabled: '#cccccc',
+  buttonText: '#ffffff',
 
   // Dropdown selection colors
   dropdownSelected: '#D2D9DF',

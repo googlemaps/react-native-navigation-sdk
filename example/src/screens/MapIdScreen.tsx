@@ -19,11 +19,11 @@ import {
   View,
   Text,
   TextInput,
-  Button,
   StyleSheet,
   Alert,
   ScrollView,
 } from 'react-native';
+import { ExampleAppButton } from '../controls/ExampleAppButton';
 import { CommonStyles, MapStyles } from '../styles/components';
 import {
   NavigationView,
@@ -226,7 +226,10 @@ const MapIdScreen = () => {
           </View>
 
           <View style={CommonStyles.buttonContainer}>
-            <Button title="Set Map ID and Show Maps" onPress={handleSetMapId} />
+            <ExampleAppButton
+              title="Set Map ID and Show Maps"
+              onPress={handleSetMapId}
+            />
           </View>
 
           <View style={CommonStyles.infoContainer}>
@@ -246,7 +249,7 @@ const MapIdScreen = () => {
             <Text style={CommonStyles.headerText}>
               Map ID: {confirmedMapId || '(Default styling)'}
             </Text>
-            <Button title="Change Map ID" onPress={handleReset} />
+            <ExampleAppButton title="Change Map ID" onPress={handleReset} />
           </View>
 
           {/* NavigationView */}
@@ -254,7 +257,7 @@ const MapIdScreen = () => {
             <View style={styles.mapHeader}>
               <Text style={MapStyles.mapTitle}>Navigation View</Text>
               <View style={styles.headerButtons}>
-                <Button
+                <ExampleAppButton
                   title={
                     navigationUiEnabled ? 'Disable Nav UI' : 'Enable Nav UI'
                   }
@@ -262,7 +265,7 @@ const MapIdScreen = () => {
                     toggleNavigationUiEnabled(!navigationUiEnabled)
                   }
                 />
-                <Button
+                <ExampleAppButton
                   title={getNavigationNightModeLabel()}
                   onPress={cycleNavigationNightMode}
                 />
@@ -298,7 +301,7 @@ const MapIdScreen = () => {
           </View>
 
           <View style={styles.mapColorSchemeCard}>
-            <Button
+            <ExampleAppButton
               title={`Map Color Scheme: ${getMapColorSchemeLabel()}`}
               onPress={cycleMapColorScheme}
             />

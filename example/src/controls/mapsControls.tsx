@@ -16,7 +16,8 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { Button, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
+import { ExampleAppButton } from './ExampleAppButton';
 
 import SelectDropdown from 'react-native-select-dropdown';
 import { ControlStyles } from '../styles/components';
@@ -255,35 +256,41 @@ const MapsControls: React.FC<MapControlsProps> = ({
         placeholderTextColor="#000"
         keyboardType="numeric"
       />
-      <Button title="Move camera" onPress={moveCamera} />
-      <Button
+      <ExampleAppButton title="Move camera" onPress={moveCamera} />
+      <ExampleAppButton
         title="Zoom in"
         onPress={() => {
           setZoom((zoom ?? defaultZoom) + 1);
         }}
       />
-      <Button
+      <ExampleAppButton
         title="Zoom Out"
         onPress={() => {
           setZoom((zoom ?? defaultZoom) - 1);
         }}
       />
-      <Button title="Add marker" onPress={() => addMarker()} />
-      <Button title="Add custom marker" onPress={() => addCustomMarker()} />
-      <Button title="Add circle" onPress={addCircle} />
-      <Button title="Add polyline" onPress={addPolyline} />
-      <Button title="Add polygon" onPress={addPolygon} />
-      <Button title="Clear map view" onPress={clearMapView} />
-      <Button title="Get UI Settings" onPress={getUiSettings} />
-      <Button title="Get My location" onPress={getMyLocation} />
-      <Button
+      <ExampleAppButton title="Add marker" onPress={() => addMarker()} />
+      <ExampleAppButton
+        title="Add custom marker"
+        onPress={() => addCustomMarker()}
+      />
+      <ExampleAppButton title="Add circle" onPress={addCircle} />
+      <ExampleAppButton title="Add polyline" onPress={addPolyline} />
+      <ExampleAppButton title="Add polygon" onPress={addPolygon} />
+      <ExampleAppButton title="Clear map view" onPress={clearMapView} />
+      <ExampleAppButton title="Get UI Settings" onPress={getUiSettings} />
+      <ExampleAppButton title="Get My location" onPress={getMyLocation} />
+      <ExampleAppButton
         title="Get My location enabled"
         onPress={getIsMyLocationEnabled}
       />
-      <Button title="Get camera position" onPress={getCameraPositionClicked} />
+      <ExampleAppButton
+        title="Get camera position"
+        onPress={getCameraPositionClicked}
+      />
       <View style={ControlStyles.rowContainer}>
         <Text>Location marker</Text>
-        <Button
+        <ExampleAppButton
           title={enableLocationMarker ? 'Disable' : 'Enable'}
           onPress={() => {
             setEnableLocationMarker(!enableLocationMarker);
@@ -325,7 +332,7 @@ const MapsControls: React.FC<MapControlsProps> = ({
       <View style={ControlStyles.controlButtonGap} />
       <View style={ControlStyles.rowContainer}>
         <Text>Custom map paddings</Text>
-        <Button
+        <ExampleAppButton
           title={customPaddingEnabled ? 'Disable' : 'Enable'}
           onPress={toggleCustomPadding}
         />

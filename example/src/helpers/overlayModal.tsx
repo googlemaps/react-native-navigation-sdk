@@ -15,15 +15,8 @@
  */
 
 import React, { type ReactNode } from 'react';
-import {
-  View,
-  Modal,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  TouchableWithoutFeedback,
-  ScrollView,
-} from 'react-native';
+import { View, Modal, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { ExampleAppButton } from '../controls/ExampleAppButton';
 
 interface OverlayModalProps {
   visible: boolean;
@@ -50,27 +43,26 @@ const OverlayModal: React.FC<OverlayModalProps> = ({
       animationType="slide"
       onRequestClose={closeOverlay}
     >
-      <TouchableWithoutFeedback onPress={closeOverlay}>
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback>
-            <View style={modalContentStyle}>
-              <ScrollView
-                showsVerticalScrollIndicator={true}
-                persistentScrollbar={true}
-                style={styles.scrollContainer}
-              >
-                {children}
-              </ScrollView>
-              <TouchableOpacity
-                onPress={closeOverlay}
-                style={styles.closeButton}
-              >
-                <Text style={styles.closeButtonText}>Close</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableWithoutFeedback>
+      <View style={styles.overlay}>
+        <Pressable style={styles.overlayTouchable} onPress={closeOverlay} />
+        <View style={modalContentStyle}>
+          <ScrollView
+            showsVerticalScrollIndicator={true}
+            persistentScrollbar={true}
+            style={styles.scrollContainer}
+            contentContainerStyle={styles.scrollContentContainer}
+          >
+            <View style={styles.scrollContent}>{children}</View>
+          </ScrollView>
+          <View style={styles.closeButtonContainer}>
+            <ExampleAppButton
+              title="Close"
+              onPress={closeOverlay}
+              backgroundColor="#dc3545"
+            />
+          </View>
         </View>
-      </TouchableWithoutFeedback>
+      </View>
     </Modal>
   );
 };
@@ -79,6 +71,9 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
+  },
+  overlayTouchable: {
+    ...StyleSheet.absoluteFillObject,
   },
   modalContent: {
     height: '60%',
@@ -98,15 +93,23 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
   },
-  closeButton: {
-    padding: 10,
-    backgroundColor: '#dc3545',
-    borderRadius: 5,
-    alignItems: 'center',
+  scrollContentContainer: {
+    flexGrow: 1,
+    minHeight: '100%',
   },
-  closeButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  scrollContent: {
+    flex: 1,
+  },
+  closeButtonContainer: {
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });
 
