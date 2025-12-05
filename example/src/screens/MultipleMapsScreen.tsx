@@ -49,6 +49,7 @@ import {
   type Polyline,
   useNavigation,
   MapView,
+  type DragResult,
 } from '@googlemaps/react-native-navigation-sdk';
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
@@ -263,6 +264,12 @@ const MultipleMapsScreen = () => {
       onMapClick: (latLng: LatLng) => {
         console.log('Map 1, onMapClick:', latLng);
       },
+      onMapDrag: (result: DragResult) => {
+        console.log('Map 1, onMapDrag:', result);
+      },
+      onMapDragEnd: (result: DragResult) => {
+        console.log('Map 1, onMapDragEnd:', result);
+      },
     }),
     [mapViewController1, onMap1Ready]
   );
@@ -290,6 +297,12 @@ const MultipleMapsScreen = () => {
       },
       onMapClick: (latLng: LatLng) => {
         console.log('Map 2, onMapClick: ', latLng);
+      },
+      onMapDrag: (result: DragResult) => {
+        console.log('Map 2, onMapDrag:', result);
+      },
+      onMapDragEnd: (result: DragResult) => {
+        console.log('Map 2, onMapDragEnd:', result);
       },
     }),
     [mapViewController2]

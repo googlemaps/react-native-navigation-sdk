@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { LatLng, Location } from '../../shared/types';
+import type { LatLng, Location, Point, Bounds } from '../../shared/types';
 import type {
   CameraPosition,
   Circle,
@@ -61,12 +61,16 @@ export interface MarkerOptions {
   alpha?: number;
   /** The rotation of the marker in degrees clockwise about the marker's anchor point. The axis of rotation is perpendicular to the marker. A rotation of 0 corresponds to the default position of the marker. When the marker is flat on the map, the default position is North aligned and the rotation is such that the marker always remains flat on the map. When the marker is a billboard, the default position is pointing up and the rotation is such that the marker is always facing the camera. The default value is 0. */
   rotation?: number;
+  /** Sets the z-index of the marker. */
+  zIndex?: number;
   /** Indicates whether this marker is draggable. False by default. */
   draggable?: boolean;
   /** Indicates whether this marker should be flat against the map true or a billboard facing the camera false. */
   flat?: boolean;
   /** Indicates the visibility of the polygon. True by default. */
   visible?: boolean;
+  /** The ground anchor specifies the point in the icon image that is anchored to the marker’s position on the Earth’s surface. */
+  groundAnchor?: [number, number];
 }
 
 /**
@@ -138,6 +142,16 @@ export interface Padding {
 }
 
 /**
+ * Defines bounds options for a geographical bounds with padding.
+ */
+export interface BoundsOptions {
+  /** Geographical bounds. */
+  bounds: Bounds;
+  /** Padding within the bounds. */
+  padding?: Padding;
+}
+
+/**
  * Defines the type of the map view.
  */
 export enum MapViewType {
@@ -145,6 +159,14 @@ export enum MapViewType {
   MAP = 0,
   /** Google map view with navigation */
   NAVIGATION = 1,
+}
+
+/**
+ * Defines the results of a map drag event.
+ */
+export interface DragResult {
+  /** Camera position. */
+  cameraPosition: CameraPosition;
 }
 
 /**
@@ -192,6 +214,18 @@ export interface MapViewCallbacks {
    * @param latLng position where the click occurred.
    */
   onMapClick?(latLng: LatLng): void;
+
+  /**
+   * Callback invoked repeated when map is being dragged.
+   * @param result The drag result at that instant.
+   */
+  onMapDrag?(result: DragResult): void;
+
+  /**
+   * Callback invoked when map drag ends.
+   * @param result The drag result at that instant.
+   */
+  onMapDragEnd?(result: DragResult): void;
 }
 
 export interface MapViewController {
@@ -230,6 +264,30 @@ export interface MapViewController {
    *                        styling options.
    */
   addCircle(circleOptions: CircleOptions): Promise<Circle>;
+
+  /**
+   * Maps a point coordinate in the map’s view to an Earth coordinate.
+   * @param point - Object specifying the point.
+   */
+  coordinateForPoint(point: Point): Promise<LatLng>;
+
+  /**
+   * Maps an Earth coordinate to a point coordinate in the map’s view.
+   * @param coordinate - Object specifying the coordinate.
+   */
+  pointForCoordinate(coordinate: LatLng): Promise<Point>;
+
+  /**
+   * Transforms the camera such that the specified bounds are centered on screen.
+   * @param boundsOptions - Object specifying the bounds options.
+   */
+  fitBounds(boundsOptions: BoundsOptions): Promise<void>;
+
+  /**
+   * Retrieves the rectangular bounds of the map view.
+   * @param bounds - Object specifying the bounds.
+   */
+  getBounds(): Promise<Bounds>;
 
   /**
    * Add a marker to the map.

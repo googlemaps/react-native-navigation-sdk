@@ -24,6 +24,7 @@ import {
 import type { LatLng } from '.';
 import type {
   Circle,
+  DragResult,
   MapColorScheme,
   GroundOverlay,
   Marker,
@@ -87,6 +88,8 @@ export interface NativeNavViewProps extends ViewProps {
   };
   onMapReady?: DirectEventHandler<null>;
   onMapClick?: DirectEventHandler<LatLng>;
+  onMapDrag?: DirectEventHandler<DragResult>;
+  onMapDragEnd?: DirectEventHandler<DragResult>;
   onMarkerClick?: DirectEventHandler<Marker>;
   onPolylineClick?: DirectEventHandler<Polyline>;
   onPolygonClick?: DirectEventHandler<Polygon>;

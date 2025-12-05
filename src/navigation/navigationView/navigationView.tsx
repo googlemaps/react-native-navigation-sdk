@@ -28,6 +28,7 @@ import {
   type Marker,
   type Polygon,
   type Polyline,
+  type DragResult,
 } from '../../maps';
 
 export const NavigationView = (
@@ -75,6 +76,20 @@ export const NavigationView = (
   const onMapClick = useCallback(
     ({ nativeEvent: latlng }: { nativeEvent: LatLng }) => {
       props.mapViewCallbacks?.onMapClick?.(latlng);
+    },
+    [props.mapViewCallbacks]
+  );
+
+  const onMapDrag = useCallback(
+    ({ nativeEvent: result }: { nativeEvent: DragResult }) => {
+      props.mapViewCallbacks?.onMapDrag?.(result);
+    },
+    [props.mapViewCallbacks]
+  );
+
+  const onMapDragEnd = useCallback(
+    ({ nativeEvent: result }: { nativeEvent: DragResult }) => {
+      props.mapViewCallbacks?.onMapDragEnd?.(result);
     },
     [props.mapViewCallbacks]
   );
@@ -153,6 +168,8 @@ export const NavigationView = (
               : iOSStylingOptions) || {},
         }}
         onMapClick={onMapClick}
+        onMapDrag={onMapDrag}
+        onMapDragEnd={onMapDragEnd}
         onMapReady={onMapReady}
         onMarkerClick={onMarkerClick}
         onPolylineClick={onPolylineClick}

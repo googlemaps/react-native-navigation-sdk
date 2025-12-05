@@ -17,6 +17,7 @@
 import type { StyleProp, ViewStyle } from 'react-native';
 import type { LatLng } from '../shared/types';
 import type { MapViewCallbacks, MapViewController } from './mapView/types';
+import type { PropsWithChildren } from 'react';
 
 /**
  * An immutable class that aggregates all camera position parameters such as
@@ -175,7 +176,7 @@ export enum MapColorScheme {
 /**
  * `MapViewProps` interface provides methods focused on managing map events and state changes.
  */
-export interface MapViewProps {
+export interface MapViewProps extends PropsWithChildren {
   readonly mapViewCallbacks?: MapViewCallbacks;
 
   readonly style?: StyleProp<ViewStyle> | undefined;

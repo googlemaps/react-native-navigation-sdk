@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   type Circle,
+  type DragResult,
   type LatLng,
   type MapViewCallbacks,
   type MapViewController,
@@ -124,6 +125,12 @@ const IntegrationTestsScreen = () => {
       },
       onMapClick: (latLng: LatLng) => {
         console.log('Map 1, onMapClick:', latLng);
+      },
+      onMapDrag: (result: DragResult) => {
+        console.log('Map 1, onMapDrag:', result);
+      },
+      onMapDragEnd: (result: DragResult) => {
+        console.log('Map 1, onMapDragEnd:', result);
       },
     }),
     [mapViewController, onMapReady]

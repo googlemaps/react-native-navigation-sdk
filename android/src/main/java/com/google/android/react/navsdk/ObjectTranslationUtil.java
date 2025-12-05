@@ -13,11 +13,13 @@
  */
 package com.google.android.react.navsdk;
 
+import android.graphics.Point;
 import android.location.Location;
 import android.os.Build;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.LatLng;
@@ -76,6 +78,23 @@ public class ObjectTranslationUtil {
     WritableMap map = Arguments.createMap();
     map.putDouble(Constants.LAT_FIELD_KEY, latLng.latitude);
     map.putDouble(Constants.LNG_FIELD_KEY, latLng.longitude);
+    return map;
+  }
+
+  public static WritableMap getMapFromPoint(Point point) {
+    WritableMap map = Arguments.createMap();
+    map.putDouble(Constants.X_KEY, point.x);
+    map.putDouble(Constants.Y_KEY, point.y);
+    return map;
+  }
+
+  public static WritableMap getMapFromCameraPosition(CameraPosition cameraPosition) {
+    WritableMap map = Arguments.createMap();
+    map.putMap(Constants.TARGET_KEY, getMapFromLatLng(cameraPosition.target));
+    map.putDouble(Constants.BEARING_KEY, cameraPosition.bearing);
+    map.putDouble(Constants.TILT_KEY, cameraPosition.tilt);
+    map.putDouble(Constants.ZOOM_KEY, cameraPosition.zoom);
+
     return map;
   }
 

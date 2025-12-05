@@ -94,6 +94,8 @@ RCT_EXPORT_MODULE();
 RCT_EXPORT_VIEW_PROPERTY(onRecenterButtonClick, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onMapReady, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onMapClick, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onMapDrag, RCTDirectEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onMapDragEnd, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onMarkerInfoWindowTapped, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onMarkerClick, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onPolylineClick, RCTDirectEventBlock);
