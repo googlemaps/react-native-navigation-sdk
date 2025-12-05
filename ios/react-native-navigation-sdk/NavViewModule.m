@@ -66,8 +66,10 @@ static NavViewModule *sharedInstance = nil;
   return viewController;
 }
 
-RCT_EXPORT_METHOD(getCameraPosition : (nonnull NSNumber *)reactTag resolver : (
-    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getCameraPosition
+                  : (nonnull NSNumber *)reactTag resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
@@ -80,8 +82,10 @@ RCT_EXPORT_METHOD(getCameraPosition : (nonnull NSNumber *)reactTag resolver : (
   });
 }
 
-RCT_EXPORT_METHOD(getMyLocation : (nonnull NSNumber *)reactTag resolver : (RCTPromiseResolveBlock)
-                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getMyLocation
+                  : (nonnull NSNumber *)reactTag resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
@@ -94,8 +98,10 @@ RCT_EXPORT_METHOD(getMyLocation : (nonnull NSNumber *)reactTag resolver : (RCTPr
   });
 }
 
-RCT_EXPORT_METHOD(getUiSettings : (nonnull NSNumber *)reactTag resolver : (RCTPromiseResolveBlock)
-                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getUiSettings
+                  : (nonnull NSNumber *)reactTag resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
@@ -108,8 +114,10 @@ RCT_EXPORT_METHOD(getUiSettings : (nonnull NSNumber *)reactTag resolver : (RCTPr
   });
 }
 
-RCT_EXPORT_METHOD(isMyLocationEnabled : (nonnull NSNumber *)reactTag resolver : (
-    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(isMyLocationEnabled
+                  : (nonnull NSNumber *)reactTag resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
@@ -122,9 +130,11 @@ RCT_EXPORT_METHOD(isMyLocationEnabled : (nonnull NSNumber *)reactTag resolver : 
   });
 }
 
-RCT_EXPORT_METHOD(addMarker : (nonnull NSNumber *)reactTag markerOptions : (NSDictionary *)
-                      markerOptions resolver : (RCTPromiseResolveBlock)
-                          resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(addMarker
+                  : (nonnull NSNumber *)reactTag markerOptions
+                  : (NSDictionary *)markerOptions resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
@@ -138,9 +148,11 @@ RCT_EXPORT_METHOD(addMarker : (nonnull NSNumber *)reactTag markerOptions : (NSDi
   });
 }
 
-RCT_EXPORT_METHOD(addPolyline : (nonnull NSNumber *)reactTag polylineOptions : (NSDictionary *)
-                      polylineOptions resolver : (RCTPromiseResolveBlock)
-                          resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(addPolyline
+                  : (nonnull NSNumber *)reactTag polylineOptions
+                  : (NSDictionary *)polylineOptions resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
@@ -154,9 +166,11 @@ RCT_EXPORT_METHOD(addPolyline : (nonnull NSNumber *)reactTag polylineOptions : (
   });
 }
 
-RCT_EXPORT_METHOD(addPolygon : (nonnull NSNumber *)reactTag polygonOptions : (NSDictionary *)
-                      polygonOptions resolver : (RCTPromiseResolveBlock)
-                          resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(addPolygon
+                  : (nonnull NSNumber *)reactTag polygonOptions
+                  : (NSDictionary *)polygonOptions resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
@@ -170,9 +184,11 @@ RCT_EXPORT_METHOD(addPolygon : (nonnull NSNumber *)reactTag polygonOptions : (NS
   });
 }
 
-RCT_EXPORT_METHOD(addCircle : (nonnull NSNumber *)reactTag circleOptions : (NSDictionary *)
-                      circleOptions resolver : (RCTPromiseResolveBlock)
-                          resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(addCircle
+                  : (nonnull NSNumber *)reactTag circleOptions
+                  : (NSDictionary *)circleOptions resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
@@ -186,9 +202,11 @@ RCT_EXPORT_METHOD(addCircle : (nonnull NSNumber *)reactTag circleOptions : (NSDi
   });
 }
 
-RCT_EXPORT_METHOD(coordinateForPoint : (nonnull NSNumber *)reactTag point : (NSDictionary *)
-                      point resolver : (RCTPromiseResolveBlock)
-                          resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(coordinateForPoint
+                  : (nonnull NSNumber *)reactTag point
+                  : (NSDictionary *)point resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
@@ -202,9 +220,11 @@ RCT_EXPORT_METHOD(coordinateForPoint : (nonnull NSNumber *)reactTag point : (NSD
   });
 }
 
-RCT_EXPORT_METHOD(pointForCoordinate : (nonnull NSNumber *)reactTag coordinate : (NSDictionary *)
-                      coordinate resolver : (RCTPromiseResolveBlock)
-                          resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(pointForCoordinate
+                  : (nonnull NSNumber *)reactTag coordinate
+                  : (NSDictionary *)coordinate resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
@@ -218,9 +238,11 @@ RCT_EXPORT_METHOD(pointForCoordinate : (nonnull NSNumber *)reactTag coordinate :
   });
 }
 
-RCT_EXPORT_METHOD(fitBounds : (nonnull NSNumber *)reactTag boundsOptions : (NSDictionary *)
-                      boundsOptions resolver : (RCTPromiseResolveBlock)
-                          resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(fitBounds
+                  : (nonnull NSNumber *)reactTag boundsOptions
+                  : (NSDictionary *)boundsOptions resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
@@ -234,8 +256,10 @@ RCT_EXPORT_METHOD(fitBounds : (nonnull NSNumber *)reactTag boundsOptions : (NSDi
   });
 }
 
-RCT_EXPORT_METHOD(getBounds : (nonnull NSNumber *)reactTag resolver : (RCTPromiseResolveBlock)
-                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getBounds
+                  : (nonnull NSNumber *)reactTag resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
@@ -248,9 +272,11 @@ RCT_EXPORT_METHOD(getBounds : (nonnull NSNumber *)reactTag resolver : (RCTPromis
   });
 }
 
-RCT_EXPORT_METHOD(addGroundOverlay : (nonnull NSNumber *)reactTag overlayOptions : (NSDictionary *)
-                      overlayOptions resolver : (RCTPromiseResolveBlock)
-                          resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(addGroundOverlay
+                  : (nonnull NSNumber *)reactTag overlayOptions
+                  : (NSDictionary *)overlayOptions resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     NavViewController *viewController = [self getViewControllerForTag:reactTag];
     if (viewController) {
