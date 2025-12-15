@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.12.0...v0.12.1) (2025-12-15)
+
+
+### Bug Fixes
+
+* setReportIncidentButtonEnabled for Android ([#520](https://github.com/googlemaps/react-native-navigation-sdk/issues/520)) ([832e62a](https://github.com/googlemaps/react-native-navigation-sdk/commit/832e62a7b198ce881f1b953c9f50d29e299d01cc))
+
 ## [0.12.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.11.0...v0.12.0) (2025-12-02)
 
 
