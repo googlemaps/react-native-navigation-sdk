@@ -627,6 +627,8 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
                     MapBuilder.of("registrationName", "onPromptVisibilityChanged"))
                 .put("onMapReady", MapBuilder.of("registrationName", "onMapReady"))
                 .put("onMapClick", MapBuilder.of("registrationName", "onMapClick"))
+                .put("onMapDrag", MapBuilder.of("registrationName", "onMapDrag"))
+                .put("onMapDragEnd", MapBuilder.of("registrationName", "onMapDragEnd"))
                 .put("onMarkerClick", MapBuilder.of("registrationName", "onMarkerClick"))
                 .put("onPolylineClick", MapBuilder.of("registrationName", "onPolylineClick"))
                 .put("onPolygonClick", MapBuilder.of("registrationName", "onPolygonClick"))

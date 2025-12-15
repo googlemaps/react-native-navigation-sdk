@@ -77,3 +77,23 @@ export interface Location {
    */
   time: number;
 }
+
+/**
+ * An immutable class representing a point on the screen.
+ */
+export interface Point {
+  /** Value representing the x coordinate. */
+  x: number;
+  /** Value representing the y coordinate. */
+  y: number;
+}
+
+/**
+ * An immutable class representing a rectangular bounding box on the Earth’s surface.
+ */
+export interface Bounds {
+  /** The North-East corner of these bounds. */
+  northEast: LatLng;
+  /** The South-West corner of these bounds. */
+  southWest: LatLng;
+}

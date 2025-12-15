@@ -31,6 +31,7 @@
 + (NSDictionary *)transformCircleToDictionary:(GMSCircle *)circle;
 + (NSDictionary *)transformGroundOverlayToDictionary:(GMSGroundOverlay *)groundOverlay;
 + (GMSPath *)transformToPath:(NSArray *)latLngs;
++ (NSDictionary *)transformCameraPositionToDictionary:(GMSCameraPosition *)position;
 + (CLLocationCoordinate2D)getLocationCoordinateFrom:(NSDictionary *)latLngMap;
 + (BOOL)isIdOnUserData:(nullable id)userData;
 @end
