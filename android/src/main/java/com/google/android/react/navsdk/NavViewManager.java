@@ -268,6 +268,9 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     map.put(SET_HEADER_ENABLED.toString(), SET_HEADER_ENABLED.getValue());
     map.put(SET_FOOTER_ENABLED.toString(), SET_FOOTER_ENABLED.getValue());
     map.put(SET_PADDING.toString(), SET_PADDING.getValue());
+    map.put(
+        SET_REPORT_INCIDENT_BUTTON_ENABLED.toString(),
+        SET_REPORT_INCIDENT_BUTTON_ENABLED.getValue());
     return map;
   }
 

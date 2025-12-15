@@ -143,6 +143,11 @@ public class NavViewFragment extends SupportNavigationFragment
   }
 
   @Override
+  public void setReportIncidentButtonEnabled(boolean enabled) {
+    super.setReportIncidentButtonEnabled(enabled);
+  }
+
+  @Override
   public void setMapColorScheme(@MapColorScheme int mapColorScheme) {
     this.mapColorScheme = mapColorScheme;
     applyMapColorSchemeToMap();
