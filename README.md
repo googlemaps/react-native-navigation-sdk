@@ -136,6 +136,17 @@ To set up, specify your API key in the application delegate `ios/Runner/AppDeleg
 
 ```
 
+#### [Expo] Add UIBackgroundModes
+
+In order to use guidance features, add the following to your ``Info.plist``:
+```
+<key>UIBackgroundModes</key>
+<array>
+    <string>location</string>
+    <string>audio</string>
+</array>
+```
+
 ## Usage
 
 ### Initializing Navigation
