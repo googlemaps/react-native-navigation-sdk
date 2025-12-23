@@ -147,7 +147,9 @@ In order to use guidance features, add the following to your ``Info.plist``:
 </array>
 ```
 
-## Initializing Navigation
+## Usage
+
+### Initializing Navigation
 Wrap application with the `NavigationProvider` component. This will provide the necessary context for navigation throughout your app.
 
 ```tsx
