@@ -374,14 +374,12 @@ const MultipleMapsScreen = () => {
                 mapColorScheme={mapColorScheme2}
                 onMapViewControllerCreated={setMapViewController2}
               />
-              {currentPage === 1 && (
-                <View style={ControlStyles.controlButtons}>
-                  <ExampleAppButton
-                    title="Map 2"
-                    onPress={onShowMapsControlsClick2}
-                  />
-                </View>
-              )}
+              <View style={ControlStyles.controlButtons}>
+                <ExampleAppButton
+                  title="Map 2"
+                  onPress={onShowMapsControlsClick2}
+                />
+              </View>
             </View>
           </PagerView>
 

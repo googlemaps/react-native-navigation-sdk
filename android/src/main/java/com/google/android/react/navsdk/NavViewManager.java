@@ -35,6 +35,7 @@ import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.libraries.navigation.StylingOptions;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 
@@ -51,6 +52,9 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
   // Cache the latest options per view so deferred fragment creation uses fresh values.
   private final HashMap<Integer, ReadableMap> mapOptionsCache = new HashMap<>();
+
+  // Track views with pending fragment creation attempts.
+  private final HashSet<Integer> pendingFragments = new HashSet<>();
 
   private ReactApplicationContext reactContext;
 
@@ -187,6 +191,9 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
     int viewId = view.getId();
 
+    pendingFragments.remove(viewId);
+    mapOptionsCache.remove(viewId);
+
     Choreographer.FrameCallback frameCallback = frameCallbackMap.remove(viewId);
     if (frameCallback != null) {
       Choreographer.getInstance().removeFrameCallback(frameCallback);
@@ -196,7 +203,6 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     if (activity == null) return;
 
     WeakReference<IMapViewFragment> weakReference = fragmentMap.remove(viewId);
-    mapOptionsCache.remove(viewId);
     if (weakReference != null) {
       IMapViewFragment fragment = weakReference.get();
       if (fragment != null && fragment.isAdded()) {
@@ -219,7 +225,10 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
       return;
     }
 
-    scheduleFragmentTransaction(view, mapOptions);
+    if (!pendingFragments.contains(viewId)) {
+      pendingFragments.add(viewId);
+      scheduleFragmentTransaction(view);
+    }
   }
 
   /** Map the "create" command to an integer */
@@ -641,33 +650,43 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     return (Map) eventTypeConstants;
   }
 
-  private void scheduleFragmentTransaction(
-      @NonNull FrameLayout root, @NonNull ReadableMap mapOptions) {
-
-    // Commit the fragment transaction after view is added to the view hierarchy.
-    root.post(() -> tryCommitFragmentTransaction(root, mapOptions));
+  private void scheduleFragmentTransaction(@NonNull FrameLayout root) {
+    root.post(() -> tryCommitFragmentTransaction(root));
   }
 
   /** Attempt to create/attach the fragment once the parent view has a real size. */
-  private void tryCommitFragmentTransaction(
-      @NonNull FrameLayout root, @NonNull ReadableMap initialMapOptions) {
+  private void tryCommitFragmentTransaction(@NonNull FrameLayout root) {
     int viewId = root.getId();
+
     if (isFragmentCreated(viewId)) {
       return;
     }
 
-    ReadableMap latestOptions = mapOptionsCache.get(viewId);
-    ReadableMap optionsToUse = latestOptions != null ? latestOptions : initialMapOptions;
-
-    int width = root.getWidth();
-    int height = root.getHeight();
-    if (width == 0 || height == 0) {
-      // Wait for layout to provide a size, then retry without the per-frame choreographer loop.
-      root.post(() -> tryCommitFragmentTransaction(root, optionsToUse));
+    // If pendingFragments does not contain viewId, view was dropped and we should abort retry loop.
+    if (!pendingFragments.contains(viewId)) {
       return;
     }
 
-    commitFragmentTransaction(root, optionsToUse);
+    ReadableMap mapOptions = mapOptionsCache.get(viewId);
+    if (mapOptions == null) {
+      return;
+    }
+
+    // If view is not attached to window, retry later.
+    if (!root.isAttachedToWindow()) {
+      scheduleFragmentTransaction(root);
+      return;
+    }
+
+    // Wait for layout to provide a size
+    int width = root.getWidth();
+    int height = root.getHeight();
+    if (width == 0 || height == 0) {
+      scheduleFragmentTransaction(root);
+      return;
+    }
+
+    commitFragmentTransaction(root, mapOptions);
   }
 
   private void updateMapOptionValues(int viewId, @NonNull ReadableMap mapOptions) {
@@ -693,26 +712,33 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     }
 
     if (fragment instanceof INavViewFragment && mapOptions.hasKey("navigationNightMode")) {
-      int nightMode =
+      int jsValue =
           mapOptions.isNull("navigationNightMode") ? 0 : mapOptions.getInt("navigationNightMode");
       ((INavViewFragment) fragment)
-          .setNightModeOption(EnumTranslationUtil.getForceNightModeFromJsValue(nightMode));
+          .setNightModeOption(EnumTranslationUtil.getForceNightModeFromJsValue(jsValue));
     }
   }
 
-  /** Replace your React Native view with a custom fragment */
+  /**
+   * Attaches the appropriate Map or Navigation fragment to the given parent view. Uses
+   * commitNowAllowingStateLoss for immediate attachment. If FragmentManager is busy, retries
+   * asynchronously by calling scheduleFragmentTransaction.
+   */
   private void commitFragmentTransaction(
       @NonNull FrameLayout view, @NonNull ReadableMap mapOptions) {
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
-    if (activity == null) return;
+    if (activity == null || activity.isFinishing()) {
+      return;
+    }
+
     int viewId = view.getId();
+    String fragmentTag = String.valueOf(viewId);
     Fragment fragment;
     IMapViewFragment mapViewFragment;
 
     CustomTypes.MapViewType mapViewType =
         EnumTranslationUtil.getMapViewTypeFromJsValue(mapOptions.getInt("mapViewType"));
-
     GoogleMapOptions googleMapOptions = buildGoogleMapOptions(mapOptions);
 
     if (mapViewType == CustomTypes.MapViewType.MAP) {
@@ -723,12 +749,10 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     } else {
       NavViewFragment navFragment =
           NavViewFragment.newInstance(reactContext, viewId, googleMapOptions);
-      Integer nightMode = null;
-      if (mapOptions.hasKey("navigationNightMode")) {
-        int jsValue =
-            mapOptions.isNull("navigationNightMode") ? 0 : mapOptions.getInt("navigationNightMode");
-        nightMode = EnumTranslationUtil.getForceNightModeFromJsValue(jsValue);
-        navFragment.setNightModeOption(nightMode);
+
+      if (mapOptions.hasKey("navigationNightMode") && !mapOptions.isNull("navigationNightMode")) {
+        int jsValue = mapOptions.getInt("navigationNightMode");
+        navFragment.setNightModeOption(EnumTranslationUtil.getForceNightModeFromJsValue(jsValue));
       }
 
       if (mapOptions.hasKey("navigationStylingOptions")
@@ -743,19 +767,32 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
       mapViewFragment = navFragment;
     }
 
-    fragmentMap.put(viewId, new WeakReference<IMapViewFragment>(mapViewFragment));
+    // Execute Transaction
+    try {
+      activity
+          .getSupportFragmentManager()
+          .beginTransaction()
+          .replace(viewId, fragment, fragmentTag)
+          .commitNowAllowingStateLoss();
+    } catch (IllegalStateException e) {
+      // FragmentManager is busy or Activity state is invalid.
+      // re-schedule the transaction.
+      scheduleFragmentTransaction(view);
+      return;
+    } catch (Exception e) {
+      // For other unrecoverable errors, simply abort.
+      // Most likely the activity is finishing or destroyed.
+      return;
+    }
 
-    activity
-        .getSupportFragmentManager()
-        .beginTransaction()
-        .replace(viewId, fragment, String.valueOf(viewId))
-        .commit();
+    // Fragment created successfully, update state.
+    pendingFragments.remove(viewId);
+    mapOptionsCache.remove(viewId);
+    fragmentMap.put(viewId, new WeakReference<>(mapViewFragment));
 
     // Start per-frame layout loop to keep fragment sized correctly.
     startLayoutLoop(view);
-
-    // Trigger layout after fragment is added
-    // Post to ensure fragment transaction is complete
+    // Trigger layout after fragment transaction is done.
     view.post(() -> layoutFragmentInView(view, mapViewFragment));
   }
 
