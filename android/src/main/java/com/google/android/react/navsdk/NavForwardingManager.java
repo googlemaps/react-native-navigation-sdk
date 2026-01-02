@@ -14,6 +14,9 @@
 package com.google.android.react.navsdk;
 
 import android.content.Context;
+import android.util.DisplayMetrics;
+import com.google.android.libraries.navigation.NavigationUpdatesOptions;
+import com.google.android.libraries.navigation.NavigationUpdatesOptions.GeneratedStepImagesType;
 import com.google.android.libraries.navigation.Navigator;
 
 /** Starts and stops the forwarding of turn-by-turn nav info from Nav SDK. */
@@ -21,11 +24,19 @@ public class NavForwardingManager {
   /** Registers a service to receive navigation updates from nav info */
   public static void startNavForwarding(
       Navigator navigator, Context context, INavigationCallback navigationCallback) {
+
+    DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+
+    NavigationUpdatesOptions options =
+        NavigationUpdatesOptions.builder()
+            .setNumNextStepsToPreview(Integer.MAX_VALUE)
+            .setGeneratedStepImagesType(GeneratedStepImagesType.BITMAP)
+            .setDisplayMetrics(metrics)
+            .build();
+
     boolean success =
         navigator.registerServiceForNavUpdates(
-            context.getPackageName(),
-            NavInfoReceivingService.class.getName(),
-            /* numNextStepsToPreview= */ Integer.MAX_VALUE); // Send all remaining steps.
+            context.getPackageName(), NavInfoReceivingService.class.getName(), options);
     if (success) {
       navigationCallback.logDebugInfo("Successfully registered service for nav updates");
     } else {

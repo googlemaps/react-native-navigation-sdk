@@ -24,6 +24,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.libraries.mapsplatform.turnbyturn.model.Lane;
+import com.google.android.libraries.mapsplatform.turnbyturn.model.LaneDirection;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
 import com.google.android.libraries.navigation.AlternateRoutesStrategy;
 import com.google.android.libraries.navigation.DisplayOptions;
@@ -103,6 +105,32 @@ public class ObjectTranslationUtil {
     map.putString("exitNumber", stepInfo.getExitNumber());
     map.putString("fullRoadName", stepInfo.getFullRoadName());
     map.putString("instruction", stepInfo.getFullInstructionText());
+
+    List<Lane> lanes = stepInfo.getLanes();
+    if (lanes != null) {
+      WritableArray lanesArr = Arguments.createArray();
+
+      for (Lane lane : lanes) {
+        WritableArray dirArr = Arguments.createArray();
+
+        List<LaneDirection> dirs = lane.laneDirections();
+        if (dirs != null) {
+          for (LaneDirection dir : dirs) {
+            WritableMap dirMap = Arguments.createMap();
+            dirMap.putInt("laneShape", dir.laneShape());
+            dirMap.putBoolean("recommended", dir.isRecommended());
+            dirArr.pushMap(dirMap);
+          }
+        }
+
+        WritableMap laneMap = Arguments.createMap();
+        laneMap.putArray("laneDirections", dirArr);
+        lanesArr.pushMap(laneMap);
+      }
+
+      map.putArray("lanes", lanesArr);
+    }
+
     return map;
   }
 
