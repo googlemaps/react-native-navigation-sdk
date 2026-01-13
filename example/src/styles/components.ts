@@ -235,6 +235,10 @@ export const ControlStyles = StyleSheet.create({
     alignItems: 'center',
   },
 
+  rowLabel: {
+    color: Colors.text,
+  },
+
   // Form inputs
   input: {
     backgroundColor: Colors.surface,

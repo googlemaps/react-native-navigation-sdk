@@ -428,7 +428,9 @@ const NavigationControls = ({
         />
         {Platform.OS === 'ios' && (
           <View style={ControlStyles.rowContainer}>
-            <Text>Background location updates</Text>
+            <Text style={ControlStyles.rowLabel}>
+              Background location updates
+            </Text>
             <ExampleAppButton
               title={backgroundLocationUpdatesEnabled ? 'Disable' : 'Enable'}
               onPress={() => {
@@ -444,7 +446,7 @@ const NavigationControls = ({
       {/* UI Display Options */}
       <Accordion title="UI Display Options">
         <View style={ControlStyles.rowContainer}>
-          <Text>Navigation UI</Text>
+          <Text style={ControlStyles.rowLabel}>Navigation UI</Text>
           <ExampleAppButton
             title={navigationUiEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
@@ -453,7 +455,7 @@ const NavigationControls = ({
           />
         </View>
         <View style={ControlStyles.rowContainer}>
-          <Text>Header enabled</Text>
+          <Text style={ControlStyles.rowLabel}>Header enabled</Text>
           <ExampleAppButton
             title={headerEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
@@ -462,7 +464,7 @@ const NavigationControls = ({
           />
         </View>
         <View style={ControlStyles.rowContainer}>
-          <Text>Footer enabled</Text>
+          <Text style={ControlStyles.rowLabel}>Footer enabled</Text>
           <ExampleAppButton
             title={footerEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
@@ -471,7 +473,7 @@ const NavigationControls = ({
           />
         </View>
         <View style={ControlStyles.rowContainer}>
-          <Text>Trip progress bar</Text>
+          <Text style={ControlStyles.rowLabel}>Trip progress bar</Text>
           <ExampleAppButton
             title={tripProgressBarEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
@@ -483,7 +485,7 @@ const NavigationControls = ({
           />
         </View>
         <View style={ControlStyles.rowContainer}>
-          <Text>Recenter button</Text>
+          <Text style={ControlStyles.rowLabel}>Recenter button</Text>
           <ExampleAppButton
             title={recenterButtonEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
@@ -492,7 +494,7 @@ const NavigationControls = ({
           />
         </View>
         <View style={ControlStyles.rowContainer}>
-          <Text>Report incident button</Text>
+          <Text style={ControlStyles.rowLabel}>Report incident button</Text>
           <ExampleAppButton
             title={reportIncidentButtonEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
@@ -504,7 +506,7 @@ const NavigationControls = ({
           />
         </View>
         <View style={ControlStyles.rowContainer}>
-          <Text>Traffic incidents card</Text>
+          <Text style={ControlStyles.rowLabel}>Traffic incidents card</Text>
           <ExampleAppButton
             title={trafficIncidentCardsEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
@@ -517,7 +519,7 @@ const NavigationControls = ({
       {/* Speed & Safety */}
       <Accordion title="Speed & Safety">
         <View style={ControlStyles.rowContainer}>
-          <Text>Speed limit icon</Text>
+          <Text style={ControlStyles.rowLabel}>Speed limit icon</Text>
           <ExampleAppButton
             title={speedLimitIconEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
@@ -526,7 +528,7 @@ const NavigationControls = ({
           />
         </View>
         <View style={ControlStyles.rowContainer}>
-          <Text>Speedometer</Text>
+          <Text style={ControlStyles.rowLabel}>Speedometer</Text>
           <ExampleAppButton
             title={speedometerEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
@@ -543,7 +545,7 @@ const NavigationControls = ({
       {/* Appearance */}
       <Accordion title="Appearance">
         <View style={ControlStyles.rowContainer}>
-          <Text>Night mode</Text>
+          <Text style={ControlStyles.rowLabel}>Night mode</Text>
           <SelectDropdown
             data={nightModeOptions}
             defaultValueByIndex={nightModeIndex}
@@ -575,7 +577,7 @@ const NavigationControls = ({
           />
         </View>
         <View style={ControlStyles.rowContainer}>
-          <Text>Camera perspective</Text>
+          <Text style={ControlStyles.rowLabel}>Camera perspective</Text>
           <SelectDropdown
             data={perspectiveOptions}
             onSelect={(_selectedItem, index) => {
@@ -618,7 +620,7 @@ const NavigationControls = ({
       {/* Audio & Logging */}
       <Accordion title="Audio & Logging">
         <View style={ControlStyles.rowContainer}>
-          <Text>Audio guidance type</Text>
+          <Text style={ControlStyles.rowLabel}>Audio guidance type</Text>
           <SelectDropdown
             data={audioGuidanceOptions}
             onSelect={(_selectedItem, index) => {
@@ -649,7 +651,7 @@ const NavigationControls = ({
           />
         </View>
         <View style={ControlStyles.rowContainer}>
-          <Text>Turn-by-turn logging</Text>
+          <Text style={ControlStyles.rowLabel}>Turn-by-turn logging</Text>
           <ExampleAppButton
             title={turnByTurnLoggingEnabled ? 'Disable' : 'Enable'}
             onPress={() => {

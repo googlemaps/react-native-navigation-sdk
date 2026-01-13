@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { NativeModules } from 'react-native';
+import { findNodeHandle, NativeModules } from 'react-native';
 import type { Location } from '../../shared/types';
-import { commands, sendCommand } from '../../shared/viewManager';
+import { commands, createControllerContext } from '../../shared/viewManager';
 import type {
   CameraPosition,
   Circle,
@@ -36,32 +36,53 @@ import type {
 } from './types';
 const { NavViewModule } = NativeModules;
 
-export const getMapViewController = (viewId: number): MapViewController => {
-  return {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ViewRef = React.RefObject<any>;
+
+export const getMapViewController = (viewRef: ViewRef): MapViewController => {
+  const { sendCommand } = createControllerContext(viewRef, 'MapViewController');
+
+  // Helper to get viewId, throws if view no longer exists
+  const getViewId = (methodName: string): number => {
+    const viewId = findNodeHandle(viewRef.current) ?? null;
+    if (viewId == null) {
+      throw new Error(
+        `MapViewController.${methodName}() failed - view no longer exists`
+      );
+    }
+    return viewId;
+  };
+
+  const controller: MapViewController = {
     setMapType: (mapType: MapType) => {
-      sendCommand(viewId, commands.setMapType, [mapType]);
+      sendCommand('setMapType', commands.setMapType, [mapType]);
     },
     setMapStyle: (mapStyle: string) => {
-      sendCommand(viewId, commands.setMapStyle, [mapStyle]);
+      sendCommand('setMapStyle', commands.setMapStyle, [mapStyle]);
     },
     setMapToolbarEnabled: (index: boolean) => {
-      sendCommand(viewId, commands.setMapToolbarEnabled, [index]);
+      sendCommand('setMapToolbarEnabled', commands.setMapToolbarEnabled, [
+        index,
+      ]);
     },
     clearMapView: () => {
-      sendCommand(viewId, commands.clearMapView, []);
+      sendCommand('clearMapView', commands.clearMapView, []);
     },
 
     addCircle: async (circleOptions: CircleOptions): Promise<Circle> => {
+      const viewId = getViewId('addCircle');
       return await NavViewModule.addCircle(viewId, circleOptions);
     },
 
     addMarker: async (markerOptions: MarkerOptions): Promise<Marker> => {
+      const viewId = getViewId('addMarker');
       return await NavViewModule.addMarker(viewId, markerOptions);
     },
 
     addPolyline: async (
       polylineOptions: PolylineOptions
     ): Promise<Polyline> => {
+      const viewId = getViewId('addPolyline');
       return await NavViewModule.addPolyline(viewId, {
         ...polylineOptions,
         points: polylineOptions.points || [],
@@ -69,6 +90,7 @@ export const getMapViewController = (viewId: number): MapViewController => {
     },
 
     addPolygon: async (polygonOptions: PolygonOptions): Promise<Polygon> => {
+      const viewId = getViewId('addPolygon');
       return await NavViewModule.addPolygon(viewId, {
         ...polygonOptions,
         holes: polygonOptions.holes || [],
@@ -77,98 +99,131 @@ export const getMapViewController = (viewId: number): MapViewController => {
     },
 
     removeMarker: (id: string) => {
-      sendCommand(viewId, commands.removeMarker, [id]);
+      sendCommand('removeMarker', commands.removeMarker, [id]);
     },
 
     removePolyline: (id: string) => {
-      sendCommand(viewId, commands.removePolyline, [id]);
+      sendCommand('removePolyline', commands.removePolyline, [id]);
     },
 
     removePolygon: (id: string) => {
-      sendCommand(viewId, commands.removePolygon, [id]);
+      sendCommand('removePolygon', commands.removePolygon, [id]);
     },
 
     removeCircle: (id: string) => {
-      sendCommand(viewId, commands.removeCircle, [id]);
+      sendCommand('removeCircle', commands.removeCircle, [id]);
     },
 
     setIndoorEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setIndoorEnabled, [isOn]);
+      sendCommand('setIndoorEnabled', commands.setIndoorEnabled, [isOn]);
     },
 
     setTrafficEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setTrafficEnabled, [isOn]);
+      sendCommand('setTrafficEnabled', commands.setTrafficEnabled, [isOn]);
     },
 
     setCompassEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setCompassEnabled, [isOn]);
+      sendCommand('setCompassEnabled', commands.setCompassEnabled, [isOn]);
     },
 
     setMyLocationButtonEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setMyLocationButtonEnabled, [isOn]);
+      sendCommand(
+        'setMyLocationButtonEnabled',
+        commands.setMyLocationButtonEnabled,
+        [isOn]
+      );
     },
 
     setMyLocationEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setMyLocationEnabled, [isOn]);
-    },
-
-    setRotateGesturesEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setRotateGesturesEnabled, [isOn]);
-    },
-
-    setScrollGesturesEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setScrollGesturesEnabled, [isOn]);
-    },
-
-    setScrollGesturesEnabledDuringRotateOrZoom: (isOn: boolean) => {
-      sendCommand(viewId, commands.setScrollGesturesEnabledDuringRotateOrZoom, [
+      sendCommand('setMyLocationEnabled', commands.setMyLocationEnabled, [
         isOn,
       ]);
     },
 
+    setRotateGesturesEnabled: (isOn: boolean) => {
+      sendCommand(
+        'setRotateGesturesEnabled',
+        commands.setRotateGesturesEnabled,
+        [isOn]
+      );
+    },
+
+    setScrollGesturesEnabled: (isOn: boolean) => {
+      sendCommand(
+        'setScrollGesturesEnabled',
+        commands.setScrollGesturesEnabled,
+        [isOn]
+      );
+    },
+
+    setScrollGesturesEnabledDuringRotateOrZoom: (isOn: boolean) => {
+      sendCommand(
+        'setScrollGesturesEnabledDuringRotateOrZoom',
+        commands.setScrollGesturesEnabledDuringRotateOrZoom,
+        [isOn]
+      );
+    },
+
     setZoomControlsEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setZoomControlsEnabled, [isOn]);
+      sendCommand('setZoomControlsEnabled', commands.setZoomControlsEnabled, [
+        isOn,
+      ]);
     },
 
     setZoomLevel: (level: number) => {
-      sendCommand(viewId, commands.setZoomLevel, [level]);
+      sendCommand('setZoomLevel', commands.setZoomLevel, [level]);
     },
 
     setTiltGesturesEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setTiltGesturesEnabled, [isOn]);
+      sendCommand('setTiltGesturesEnabled', commands.setTiltGesturesEnabled, [
+        isOn,
+      ]);
     },
 
     setZoomGesturesEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setZoomGesturesEnabled, [isOn]);
+      sendCommand('setZoomGesturesEnabled', commands.setZoomGesturesEnabled, [
+        isOn,
+      ]);
     },
 
     setBuildingsEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setBuildingsEnabled, [isOn]);
+      sendCommand('setBuildingsEnabled', commands.setBuildingsEnabled, [isOn]);
     },
 
     getCameraPosition: async (): Promise<CameraPosition> => {
+      const viewId = getViewId('getCameraPosition');
       return await NavViewModule.getCameraPosition(viewId);
     },
 
     getMyLocation: async (): Promise<Location> => {
+      const viewId = getViewId('getMyLocation');
       return await NavViewModule.getMyLocation(viewId);
     },
 
     getUiSettings: async (): Promise<UISettings> => {
+      const viewId = getViewId('getUiSettings');
       return await NavViewModule.getUiSettings(viewId);
     },
 
     isMyLocationEnabled: async (): Promise<boolean> => {
+      const viewId = getViewId('isMyLocationEnabled');
       return await NavViewModule.isMyLocationEnabled(viewId);
     },
 
     moveCamera: (cameraPosition: CameraPosition) => {
-      sendCommand(viewId, commands.moveCamera, [cameraPosition]);
+      sendCommand('moveCamera', commands.moveCamera, [cameraPosition]);
     },
 
     setPadding: (padding: Padding) => {
       const { top = 0, left = 0, bottom = 0, right = 0 } = padding;
-      sendCommand(viewId, commands.setPadding, [top, left, bottom, right]);
+      sendCommand('setPadding', commands.setPadding, [
+        top,
+        left,
+        bottom,
+        right,
+      ]);
     },
   };
+
+  return controller;
 };

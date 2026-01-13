@@ -54,6 +54,7 @@ export const NavigationView = (
     }
   };
 
+  // Create controllers when viewId changes
   useEffect(() => {
     if (!mapViewRef.current) {
       return;
@@ -61,8 +62,10 @@ export const NavigationView = (
     const _viewId = findNodeHandle(mapViewRef.current) || 0;
     if (viewId !== _viewId) {
       setViewId(_viewId);
-      onNavigationViewControllerCreated(getNavigationViewController(_viewId));
-      onMapViewControllerCreated(getMapViewController(_viewId));
+      onNavigationViewControllerCreated(
+        getNavigationViewController(mapViewRef)
+      );
+      onMapViewControllerCreated(getMapViewController(mapViewRef));
     }
   }, [
     androidStylingOptions,

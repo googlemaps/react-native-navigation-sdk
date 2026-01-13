@@ -129,26 +129,34 @@ const MapsControls = ({
   };
 
   const getMyLocation = async () => {
-    const result = await mapViewController.getMyLocation();
-    log(`My location: ${JSON.stringify(result)}`);
+    try {
+      const result = await mapViewController.getMyLocation();
+      log(`My location: ${JSON.stringify(result)}`);
+    } catch (error) {
+      log(`Error getting location: ${error}`);
+    }
   };
 
   const addMarker = async (imgPath?: string) => {
-    const cameraPosition = await mapViewController.getCameraPosition();
+    try {
+      const cameraPosition = await mapViewController.getCameraPosition();
 
-    const marker: Marker = await mapViewController.addMarker({
-      position: cameraPosition.target,
-      visible: true,
-      title: 'Marker test',
-      snippet: 'Marker test',
-      alpha: 0.8,
-      rotation: 0,
-      flat: false,
-      draggable: true,
-      imgPath: imgPath,
-    });
+      const marker: Marker = await mapViewController.addMarker({
+        position: cameraPosition.target,
+        visible: true,
+        title: 'Marker test',
+        snippet: 'Marker test',
+        alpha: 0.8,
+        rotation: 0,
+        flat: false,
+        draggable: true,
+        imgPath: imgPath,
+      });
 
-    log(`Added marker: ${marker.id}`);
+      log(`Added marker: ${marker.id}`);
+    } catch (error) {
+      log(`Error adding marker: ${error}`);
+    }
   };
 
   const addCustomMarker = async () => {
@@ -156,66 +164,78 @@ const MapsControls = ({
   };
 
   const addCircle = async () => {
-    const cameraPosition = await mapViewController.getCameraPosition();
+    try {
+      const cameraPosition = await mapViewController.getCameraPosition();
 
-    const circle: Circle = await mapViewController.addCircle({
-      center: cameraPosition.target,
-      radius: 100,
-      fillColor: '#FFFFFF',
-      strokeColor: '#000000',
-      strokeWidth: 5,
-      visible: true,
-      clickable: true,
-    });
+      const circle: Circle = await mapViewController.addCircle({
+        center: cameraPosition.target,
+        radius: 100,
+        fillColor: '#FFFFFF',
+        strokeColor: '#000000',
+        strokeWidth: 5,
+        visible: true,
+        clickable: true,
+      });
 
-    log(`Added circle: ${circle.id}`);
+      log(`Added circle: ${circle.id}`);
+    } catch (error) {
+      log(`Error adding circle: ${error}`);
+    }
   };
 
   const addPolyline = async () => {
-    const cameraPosition = await mapViewController.getCameraPosition();
+    try {
+      const cameraPosition = await mapViewController.getCameraPosition();
 
-    const latLngs = [];
+      const latLngs = [];
 
-    for (let idx = 0; idx < 100; idx++) {
-      latLngs.push({
-        lat: cameraPosition.target.lat + idx / 10000,
-        lng: cameraPosition.target.lng + idx / 10000,
+      for (let idx = 0; idx < 100; idx++) {
+        latLngs.push({
+          lat: cameraPosition.target.lat + idx / 10000,
+          lng: cameraPosition.target.lng + idx / 10000,
+        });
+      }
+
+      const polyline: Polyline = await mapViewController.addPolyline({
+        points: latLngs,
+        width: 10,
+        color: '#f52525',
+        visible: true,
+        clickable: true,
       });
+
+      log(`Added polyline: ${polyline.id}`);
+    } catch (error) {
+      log(`Error adding polyline: ${error}`);
     }
-
-    const polyline: Polyline = await mapViewController.addPolyline({
-      points: latLngs,
-      width: 10,
-      color: '#f52525',
-      visible: true,
-      clickable: true,
-    });
-
-    log(`Added polyline: ${polyline.id}`);
   };
 
   const addPolygon = async () => {
-    const cameraPosition = await mapViewController.getCameraPosition();
-    const cameraLat = cameraPosition.target.lat;
-    const cameraLng = cameraPosition.target.lng;
-    const delta = 0.05;
-    const bermudaTriangle = [
-      { lat: cameraLat - delta, lng: cameraLng - delta },
-      { lat: cameraLat - delta, lng: cameraLng + delta },
-      { lat: cameraLat + delta, lng: cameraLng + delta },
-      { lat: cameraLat - delta, lng: cameraLng - delta },
-    ];
+    try {
+      const cameraPosition = await mapViewController.getCameraPosition();
+      const cameraLat = cameraPosition.target.lat;
+      const cameraLng = cameraPosition.target.lng;
+      const delta = 0.05;
+      const bermudaTriangle = [
+        { lat: cameraLat - delta, lng: cameraLng - delta },
+        { lat: cameraLat - delta, lng: cameraLng + delta },
+        { lat: cameraLat + delta, lng: cameraLng + delta },
+        { lat: cameraLat - delta, lng: cameraLng - delta },
+      ];
 
-    const polygon: Polygon = await mapViewController.addPolygon({
-      strokeColor: '#FF00FF',
-      fillColor: '#f52525',
-      strokeWidth: 10,
-      visible: true,
-      points: bermudaTriangle,
-      clickable: true,
-    });
+      const polygon: Polygon = await mapViewController.addPolygon({
+        strokeColor: '#FF00FF',
+        fillColor: '#f52525',
+        strokeWidth: 10,
+        visible: true,
+        points: bermudaTriangle,
+        clickable: true,
+      });
 
-    log(`Added polygon: ${polygon.id}`);
+      log(`Added polygon: ${polygon.id}`);
+    } catch (error) {
+      log(`Error adding polygon: ${error}`);
+    }
   };
 
   const clearMapView = () => {
@@ -303,7 +323,7 @@ const MapsControls = ({
       {/* Map Appearance */}
       <Accordion title="Map Appearance">
         <View style={ControlStyles.rowContainer}>
-          <Text>Map type</Text>
+          <Text style={ControlStyles.rowLabel}>Map type</Text>
           <SelectDropdown
             data={mapTypeOptions}
             onSelect={(_selectedItem, index) => {
@@ -334,7 +354,7 @@ const MapsControls = ({
           />
         </View>
         <View style={ControlStyles.rowContainer}>
-          <Text>Map color scheme</Text>
+          <Text style={ControlStyles.rowLabel}>Map color scheme</Text>
           <SelectDropdown
             data={colorSchemeOptions}
             defaultValueByIndex={colorSchemeIndex}
@@ -366,7 +386,7 @@ const MapsControls = ({
           />
         </View>
         <View style={ControlStyles.rowContainer}>
-          <Text>Custom map paddings</Text>
+          <Text style={ControlStyles.rowLabel}>Custom map paddings</Text>
           <ExampleAppButton
             title={customPaddingEnabled ? 'Disable' : 'Enable'}
             onPress={toggleCustomPadding}
@@ -377,7 +397,7 @@ const MapsControls = ({
       {/* Location & UI */}
       <Accordion title="Location & UI Settings">
         <View style={ControlStyles.rowContainer}>
-          <Text>Location marker</Text>
+          <Text style={ControlStyles.rowLabel}>Location marker</Text>
           <ExampleAppButton
             title={enableLocationMarker ? 'Disable' : 'Enable'}
             onPress={() => {
