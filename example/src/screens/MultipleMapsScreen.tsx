@@ -398,6 +398,7 @@ const MultipleMapsScreen = () => {
                   onNavigationDispose={onNavigationDispose}
                   navigationNightMode={navigationNightMode}
                   onNavigationNightModeChange={setNavigationNightMode}
+                  showMessage={showSnackbar}
                 />
               </OverlayModal>
             )}
@@ -411,6 +412,7 @@ const MultipleMapsScreen = () => {
                 mapViewController={mapViewController1}
                 mapColorScheme={mapColorScheme1}
                 onMapColorSchemeChange={setMapColorScheme1}
+                showMessage={showSnackbar}
               />
             </OverlayModal>
           )}
@@ -424,6 +426,7 @@ const MultipleMapsScreen = () => {
                 mapViewController={mapViewController2}
                 mapColorScheme={mapColorScheme2}
                 onMapColorSchemeChange={setMapColorScheme2}
+                showMessage={showSnackbar}
               />
             </OverlayModal>
           )}

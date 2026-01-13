@@ -77,7 +77,6 @@ const HomeScreen = () => {
           Navigation SDK Version: {sdkVersion || 'Loading...'}
         </Text>
       </View>
-      {/* Spacer */}
       <View style={CommonStyles.buttonContainer}>
         <ExampleAppButton
           title="Navigation"
@@ -96,7 +95,6 @@ const HomeScreen = () => {
           onPress={() => isFocused && navigate('Map ID')}
         />
       </View>
-      {/* Spacer */}
       <View style={CommonStyles.container} />
       <View style={CommonStyles.buttonContainer}>
         <ExampleAppButton

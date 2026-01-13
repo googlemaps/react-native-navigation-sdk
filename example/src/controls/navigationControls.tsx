@@ -17,6 +17,7 @@
 import React, { useState } from 'react';
 import { Alert, Platform, Text, TextInput, View } from 'react-native';
 import { ExampleAppButton } from './ExampleAppButton';
+import { Accordion } from './Accordion';
 import {
   CameraPerspective,
   NavigationNightMode,
@@ -32,23 +33,32 @@ import SelectDropdown from 'react-native-select-dropdown';
 
 import { ControlStyles } from '../styles/components';
 
-export interface NavigationControlsProps {
+export type NavigationControlsProps = {
   readonly navigationController: NavigationController;
   readonly navigationViewController: NavigationViewController;
   readonly onNavigationDispose?: () => void;
   readonly getCameraPosition: undefined | (() => Promise<CameraPosition>);
   readonly onNavigationNightModeChange?: (mode: NavigationNightMode) => void;
   readonly navigationNightMode?: NavigationNightMode;
-}
+  readonly showMessage?: (message: string) => void;
+};
 
-const NavigationControls: React.FC<NavigationControlsProps> = ({
+const NavigationControls = ({
   navigationController,
   navigationViewController,
   onNavigationDispose,
   getCameraPosition,
   onNavigationNightModeChange,
   navigationNightMode = NavigationNightMode.AUTO,
-}) => {
+  showMessage,
+}: NavigationControlsProps) => {
+  const log = (message: string) => {
+    if (showMessage) {
+      showMessage(message);
+    } else {
+      console.log(message);
+    }
+  };
   const perspectiveOptions = ['Tilted', 'North up', 'Heading up'];
   const nightModeOptions = ['Auto', 'Force Day', 'Force Night'];
   const nightModeIndex =
@@ -214,61 +224,61 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   };
 
   const toggleSpeedLimitIconEnabled = (isOn: boolean) => {
-    console.log('setSpeedLimitIconEnabled', isOn);
+    log(`Speed limit icon: ${isOn ? 'enabled' : 'disabled'}`);
     setSpeedLimitIconEnabled(isOn);
     navigationViewController.setSpeedLimitIconEnabled(isOn);
   };
 
   const toggleSpeedometerEnabled = (isOn: boolean) => {
-    console.log('setSpeedometerEnabled', isOn);
+    log(`Speedometer: ${isOn ? 'enabled' : 'disabled'}`);
     setSpeedometerEnabled(isOn);
     navigationViewController.setSpeedometerEnabled(isOn);
   };
 
   const toggleNavigationUiEnabled = (isOn: boolean) => {
-    console.log('setNavigationUIEnabled', isOn);
+    log(`Navigation UI: ${isOn ? 'enabled' : 'disabled'}`);
     setNavigationUIEnabled(isOn);
     navigationViewController.setNavigationUIEnabled(isOn);
   };
 
   const toggleTurnByTurnLoggingEnabled = (isOn: boolean) => {
-    console.log('setTurnByTurnLoggingEnabled', isOn);
+    log(`Turn-by-turn logging: ${isOn ? 'enabled' : 'disabled'}`);
     setTurnByTurnLoggingEnabled(isOn);
     navigationController.setTurnByTurnLoggingEnabled(isOn);
   };
 
   const toggleTrafficIncidentCardsEnabled = (isOn: boolean) => {
-    console.log('toggleTrafficIncidentCardsEnabled:', isOn);
+    log(`Traffic incident cards: ${isOn ? 'enabled' : 'disabled'}`);
     setTrafficIncidentCardsEnabled(isOn);
     navigationViewController.setTrafficIncidentCardsEnabled(isOn);
   };
 
   const toggleBackgroundLocationUpdatesEnabled = (isOn: boolean) => {
-    console.log('toggleBackgroundLocationUpdatesEnabled:', isOn);
+    log(`Background location updates: ${isOn ? 'enabled' : 'disabled'}`);
     setBackgroundLocationUpdatesEnabled(isOn);
     navigationController.setBackgroundLocationUpdatesEnabled(isOn);
   };
 
   const toggleRecenterButtonEnabled = (isOn: boolean) => {
-    console.log('toggleRecenterButtonEnabled:', isOn);
+    log(`Recenter button: ${isOn ? 'enabled' : 'disabled'}`);
     setRecenterButtonEnabled(isOn);
     navigationViewController.setRecenterButtonEnabled(isOn);
   };
 
   const toggleHeaderEnabled = (isOn: boolean) => {
-    console.log('toggleHeaderEnabled:', isOn);
+    log(`Header: ${isOn ? 'enabled' : 'disabled'}`);
     setHeaderEnabled(isOn);
     navigationViewController.setHeaderEnabled(isOn);
   };
 
   const toggleFooterEnabled = (isOn: boolean) => {
-    console.log('toggleFooterEnabled:', isOn);
+    log(`Footer: ${isOn ? 'enabled' : 'disabled'}`);
     setFooterEnabled(isOn);
     navigationViewController.setFooterEnabled(isOn);
   };
 
   const showRouteOverview = () => {
-    console.log('showRouteOverview');
+    log('Showing route overview');
     navigationViewController.showRouteOverview();
   };
 
@@ -283,28 +293,29 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   };
 
   const setAudioGuidanceType = (index: number) => {
-    console.log('setAudioGuidanceType: ', index);
+    const types = ['Silent', 'Alerts only', 'Alerts and guidance'];
+    log(`Audio guidance: ${types[index] || index}`);
     navigationController.setAudioGuidanceType(index);
   };
 
   const getCurrentRouteSegment = async () => {
     const result = await navigationController.getCurrentRouteSegment();
-    console.log(result);
+    log(`Route segment: ${JSON.stringify(result)}`);
   };
 
   const getRouteSegments = async () => {
     const result = await navigationController.getRouteSegments();
-    console.log(result);
+    log(`Route segments: ${result.length} segments`);
   };
 
   const getTraveledPath = async () => {
     const result = await navigationController.getTraveledPath();
-    console.log(result);
+    log(`Traveled path: ${result.length} points`);
   };
 
   const getCurrentTimeAndDistanceClicked = async () => {
     const result = await navigationController.getCurrentTimeAndDistance();
-    console.log(result);
+    log(`Time: ${result.seconds}s, Distance: ${result.meters}m`);
   };
 
   const startUpdatingLocation = () => {
@@ -316,11 +327,13 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
   };
 
   const getNavSDKVersion = async () => {
-    console.log(await navigationController.getNavSDKVersion());
+    const version = await navigationController.getNavSDKVersion();
+    log(`NavSDK version: ${version}`);
   };
 
   const getAreTermsAccepted = async () => {
-    console.log(await navigationController.areTermsAccepted());
+    const accepted = await navigationController.areTermsAccepted();
+    log(`Terms accepted: ${accepted}`);
   };
 
   const setSpeedAlertOptions = () => {
@@ -333,297 +346,340 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
 
   return (
     <View>
-      <Text>Target</Text>
-      <TextInput
-        style={ControlStyles.input}
-        onChangeText={onLatChanged}
-        value={latitude}
-        placeholder="Latitude"
-        placeholderTextColor="#000"
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={ControlStyles.input}
-        onChangeText={onLngChanged}
-        value={longitude}
-        placeholder="Longitude"
-        placeholderTextColor="#000"
-        keyboardType="numeric"
-      />
-      <ExampleAppButton
-        title="Set target from Camera Location"
-        onPress={setLocationFromCameraLocation}
-      />
-      <ExampleAppButton
-        title="Simulate location from target"
-        onPress={simulateLocation}
-      />
-      <ExampleAppButton
-        title="Set target as Destination"
-        onPress={initWaypoint}
-      />
-      <View style={ControlStyles.controlButtonGap} />
-      <ExampleAppButton
-        title="Set multiple destinations"
-        onPress={initWaypoints}
-      />
-      <ExampleAppButton
-        title="Dispose navigation"
-        onPress={disposeNavigation}
-      />
-      <ExampleAppButton
-        title="Continue to next destination"
-        onPress={continueToNextDestination}
-      />
-      <ExampleAppButton title="Clear Destination" onPress={clearDestinations} />
-      <ExampleAppButton title="Start guidance" onPress={startGuidance} />
-      <ExampleAppButton title="Stop guidance" onPress={stopGuidance} />
-      <ExampleAppButton
-        title="Start updating location"
-        onPress={startUpdatingLocation}
-      />
-      <ExampleAppButton
-        title="Stop updating location"
-        onPress={stopUpdatingLocation}
-      />
-      <ExampleAppButton title="Start simulation" onPress={startSimulation} />
-      <ExampleAppButton title="Stop simulation" onPress={stopSimulation} />
-      <ExampleAppButton title="Pause simulation" onPress={pauseSimulation} />
-      <ExampleAppButton title="Resume simulation" onPress={resumeSimulation} />
-      <ExampleAppButton
-        title="Show route overview"
-        onPress={showRouteOverview}
-      />
-      <ExampleAppButton title="NavSDK version" onPress={getNavSDKVersion} />
-      <ExampleAppButton
-        title="Are terms accepted?"
-        onPress={getAreTermsAccepted}
-      />
-      <ExampleAppButton
-        title="Set speed alert options"
-        onPress={setSpeedAlertOptions}
-      />
-      <ExampleAppButton
-        title="Get current time and distance"
-        onPress={getCurrentTimeAndDistanceClicked}
-      />
-      <ExampleAppButton
-        title="Get current route segment"
-        onPress={getCurrentRouteSegment}
-      />
-      <ExampleAppButton title="Get route segments" onPress={getRouteSegments} />
-      <ExampleAppButton title="Get traveled path" onPress={getTraveledPath} />
-      <View style={ControlStyles.rowContainer}>
-        <Text>Toggle trip progress bar</Text>
-        <ExampleAppButton
-          title={tripProgressBarEnabled ? 'Disable' : 'Enable'}
-          onPress={() => {
-            setTripProgressBarEnabled(!tripProgressBarEnabled);
-            navigationViewController.setTripProgressBarEnabled(
-              !tripProgressBarEnabled
-            );
-          }}
+      {/* Destination & Routes */}
+      <Accordion title="Destination & Routes">
+        <Text style={{ marginLeft: 16, marginTop: 8 }}>Target Coordinates</Text>
+        <TextInput
+          style={ControlStyles.input}
+          onChangeText={onLatChanged}
+          value={latitude}
+          placeholder="Latitude"
+          placeholderTextColor="#000"
+          keyboardType="numeric"
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Toggle report incident button</Text>
-        <ExampleAppButton
-          title={reportIncidentButtonEnabled ? 'Disable' : 'Enable'}
-          onPress={() => {
-            setReportIncidentButtonEnabled(!reportIncidentButtonEnabled);
-            navigationViewController.setReportIncidentButtonEnabled(
-              !reportIncidentButtonEnabled
-            );
-          }}
+        <TextInput
+          style={ControlStyles.input}
+          onChangeText={onLngChanged}
+          value={longitude}
+          placeholder="Longitude"
+          placeholderTextColor="#000"
+          keyboardType="numeric"
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Speed limit icon</Text>
         <ExampleAppButton
-          title={speedLimitIconEnabled ? 'Disable' : 'Enable'}
-          onPress={() => {
-            toggleSpeedLimitIconEnabled(!speedLimitIconEnabled);
-          }}
+          title="Set target from Camera Location"
+          onPress={setLocationFromCameraLocation}
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Speedometer</Text>
         <ExampleAppButton
-          title={speedometerEnabled ? 'Disable' : 'Enable'}
-          onPress={() => {
-            toggleSpeedometerEnabled(!speedometerEnabled);
-          }}
+          title="Set target as Destination"
+          onPress={initWaypoint}
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Traffic incidents card</Text>
         <ExampleAppButton
-          title={trafficIncidentCardsEnabled ? 'Disable' : 'Enable'}
-          onPress={() => {
-            toggleTrafficIncidentCardsEnabled(!trafficIncidentCardsEnabled);
-          }}
+          title="Set multiple destinations"
+          onPress={initWaypoints}
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Navigation UI</Text>
         <ExampleAppButton
-          title={navigationUiEnabled ? 'Disable' : 'Enable'}
-          onPress={() => {
-            toggleNavigationUiEnabled(!navigationUiEnabled);
-          }}
+          title="Continue to next destination"
+          onPress={continueToNextDestination}
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Turn-by-turn logging</Text>
         <ExampleAppButton
-          title={turnByTurnLoggingEnabled ? 'Disable' : 'Enable'}
-          onPress={() => {
-            toggleTurnByTurnLoggingEnabled(!turnByTurnLoggingEnabled);
-          }}
+          title="Clear Destination"
+          onPress={clearDestinations}
         />
-      </View>
-      {Platform.OS === 'ios' ? (
+      </Accordion>
+
+      {/* Navigation Control */}
+      <Accordion title="Navigation Control">
+        <ExampleAppButton title="Start guidance" onPress={startGuidance} />
+        <ExampleAppButton title="Stop guidance" onPress={stopGuidance} />
+        <ExampleAppButton
+          title="Dispose navigation"
+          onPress={disposeNavigation}
+        />
+        <ExampleAppButton
+          title="Show route overview"
+          onPress={showRouteOverview}
+        />
+      </Accordion>
+
+      {/* Simulation */}
+      <Accordion title="Simulation">
+        <ExampleAppButton
+          title="Simulate location from target"
+          onPress={simulateLocation}
+        />
+        <ExampleAppButton title="Start simulation" onPress={startSimulation} />
+        <ExampleAppButton title="Stop simulation" onPress={stopSimulation} />
+        <ExampleAppButton title="Pause simulation" onPress={pauseSimulation} />
+        <ExampleAppButton
+          title="Resume simulation"
+          onPress={resumeSimulation}
+        />
+      </Accordion>
+
+      {/* Location Updates */}
+      <Accordion title="Location Updates">
+        <ExampleAppButton
+          title="Start updating location"
+          onPress={startUpdatingLocation}
+        />
+        <ExampleAppButton
+          title="Stop updating location"
+          onPress={stopUpdatingLocation}
+        />
+        {Platform.OS === 'ios' && (
+          <View style={ControlStyles.rowContainer}>
+            <Text>Background location updates</Text>
+            <ExampleAppButton
+              title={backgroundLocationUpdatesEnabled ? 'Disable' : 'Enable'}
+              onPress={() => {
+                toggleBackgroundLocationUpdatesEnabled(
+                  !backgroundLocationUpdatesEnabled
+                );
+              }}
+            />
+          </View>
+        )}
+      </Accordion>
+
+      {/* UI Display Options */}
+      <Accordion title="UI Display Options">
         <View style={ControlStyles.rowContainer}>
-          <Text>Background location updates</Text>
+          <Text>Navigation UI</Text>
           <ExampleAppButton
-            title={backgroundLocationUpdatesEnabled ? 'Disable' : 'Enable'}
+            title={navigationUiEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
-              toggleBackgroundLocationUpdatesEnabled(
-                !backgroundLocationUpdatesEnabled
+              toggleNavigationUiEnabled(!navigationUiEnabled);
+            }}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text>Header enabled</Text>
+          <ExampleAppButton
+            title={headerEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
+              toggleHeaderEnabled(!headerEnabled);
+            }}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text>Footer enabled</Text>
+          <ExampleAppButton
+            title={footerEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
+              toggleFooterEnabled(!footerEnabled);
+            }}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text>Trip progress bar</Text>
+          <ExampleAppButton
+            title={tripProgressBarEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
+              setTripProgressBarEnabled(!tripProgressBarEnabled);
+              navigationViewController.setTripProgressBarEnabled(
+                !tripProgressBarEnabled
               );
             }}
           />
         </View>
-      ) : null}
-      <View style={ControlStyles.rowContainer}>
-        <Text>Recenter button</Text>
+        <View style={ControlStyles.rowContainer}>
+          <Text>Recenter button</Text>
+          <ExampleAppButton
+            title={recenterButtonEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
+              toggleRecenterButtonEnabled(!recenterButtonEnabled);
+            }}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text>Report incident button</Text>
+          <ExampleAppButton
+            title={reportIncidentButtonEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
+              setReportIncidentButtonEnabled(!reportIncidentButtonEnabled);
+              navigationViewController.setReportIncidentButtonEnabled(
+                !reportIncidentButtonEnabled
+              );
+            }}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text>Traffic incidents card</Text>
+          <ExampleAppButton
+            title={trafficIncidentCardsEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
+              toggleTrafficIncidentCardsEnabled(!trafficIncidentCardsEnabled);
+            }}
+          />
+        </View>
+      </Accordion>
+
+      {/* Speed & Safety */}
+      <Accordion title="Speed & Safety">
+        <View style={ControlStyles.rowContainer}>
+          <Text>Speed limit icon</Text>
+          <ExampleAppButton
+            title={speedLimitIconEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
+              toggleSpeedLimitIconEnabled(!speedLimitIconEnabled);
+            }}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text>Speedometer</Text>
+          <ExampleAppButton
+            title={speedometerEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
+              toggleSpeedometerEnabled(!speedometerEnabled);
+            }}
+          />
+        </View>
         <ExampleAppButton
-          title={recenterButtonEnabled ? 'Disable' : 'Enable'}
-          onPress={() => {
-            toggleRecenterButtonEnabled(!recenterButtonEnabled);
-          }}
+          title="Set speed alert options"
+          onPress={setSpeedAlertOptions}
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Header enabled</Text>
+      </Accordion>
+
+      {/* Appearance */}
+      <Accordion title="Appearance">
+        <View style={ControlStyles.rowContainer}>
+          <Text>Night mode</Text>
+          <SelectDropdown
+            data={nightModeOptions}
+            defaultValueByIndex={nightModeIndex}
+            onSelect={(_selectedItem, index) => {
+              setNightMode(index);
+            }}
+            renderButton={(selectedItem, _isOpened) => {
+              return (
+                <View style={ControlStyles.dropdownButton}>
+                  <Text style={ControlStyles.dropdownButtonText}>
+                    {selectedItem || nightModeLabel}
+                  </Text>
+                </View>
+              );
+            }}
+            renderItem={(item, _index, isSelected) => {
+              return (
+                <View
+                  style={[
+                    ControlStyles.dropdownItem,
+                    isSelected && ControlStyles.dropdownItemSelected,
+                  ]}
+                >
+                  <Text style={ControlStyles.dropdownItemText}>{item}</Text>
+                </View>
+              );
+            }}
+            dropdownStyle={ControlStyles.dropdownMenu}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text>Camera perspective</Text>
+          <SelectDropdown
+            data={perspectiveOptions}
+            onSelect={(_selectedItem, index) => {
+              let perspective: CameraPerspective;
+              if (index === 0) {
+                perspective = CameraPerspective.TILTED;
+              } else if (index === 1) {
+                perspective = CameraPerspective.TOP_DOWN_NORTH_UP;
+              } else {
+                perspective = CameraPerspective.TOP_DOWN_HEADING_UP;
+              }
+              setFollowingPerspective(perspective);
+            }}
+            renderButton={(selectedItem, _isOpened) => {
+              return (
+                <View style={ControlStyles.dropdownButton}>
+                  <Text style={ControlStyles.dropdownButtonText}>
+                    {selectedItem || 'Select'}
+                  </Text>
+                </View>
+              );
+            }}
+            renderItem={(item, _index, isSelected) => {
+              return (
+                <View
+                  style={[
+                    ControlStyles.dropdownItem,
+                    isSelected && ControlStyles.dropdownItemSelected,
+                  ]}
+                >
+                  <Text style={ControlStyles.dropdownItemText}>{item}</Text>
+                </View>
+              );
+            }}
+            dropdownStyle={ControlStyles.dropdownMenu}
+          />
+        </View>
+      </Accordion>
+
+      {/* Audio & Logging */}
+      <Accordion title="Audio & Logging">
+        <View style={ControlStyles.rowContainer}>
+          <Text>Audio guidance type</Text>
+          <SelectDropdown
+            data={audioGuidanceOptions}
+            onSelect={(_selectedItem, index) => {
+              setAudioGuidanceType(index);
+            }}
+            renderButton={(selectedItem, _isOpened) => {
+              return (
+                <View style={ControlStyles.dropdownButton}>
+                  <Text style={ControlStyles.dropdownButtonText}>
+                    {selectedItem || 'Select'}
+                  </Text>
+                </View>
+              );
+            }}
+            renderItem={(item, _index, isSelected) => {
+              return (
+                <View
+                  style={[
+                    ControlStyles.dropdownItem,
+                    isSelected && ControlStyles.dropdownItemSelected,
+                  ]}
+                >
+                  <Text style={ControlStyles.dropdownItemText}>{item}</Text>
+                </View>
+              );
+            }}
+            dropdownStyle={ControlStyles.dropdownMenu}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text>Turn-by-turn logging</Text>
+          <ExampleAppButton
+            title={turnByTurnLoggingEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
+              toggleTurnByTurnLoggingEnabled(!turnByTurnLoggingEnabled);
+            }}
+          />
+        </View>
+      </Accordion>
+
+      {/* Debug & Info */}
+      <Accordion title="Debug & Info">
+        <ExampleAppButton title="NavSDK version" onPress={getNavSDKVersion} />
         <ExampleAppButton
-          title={headerEnabled ? 'Disable' : 'Enable'}
-          onPress={() => {
-            toggleHeaderEnabled(!headerEnabled);
-          }}
+          title="Are terms accepted?"
+          onPress={getAreTermsAccepted}
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Footer enabled</Text>
         <ExampleAppButton
-          title={footerEnabled ? 'Disable' : 'Enable'}
-          onPress={() => {
-            toggleFooterEnabled(!footerEnabled);
-          }}
+          title="Get current time and distance"
+          onPress={getCurrentTimeAndDistanceClicked}
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Night mode </Text>
-        <SelectDropdown
-          data={nightModeOptions}
-          defaultValueByIndex={nightModeIndex}
-          onSelect={(_selectedItem, index) => {
-            setNightMode(index);
-          }}
-          renderButton={(selectedItem, _isOpened) => {
-            return (
-              <View style={ControlStyles.dropdownButton}>
-                <Text style={ControlStyles.dropdownButtonText}>
-                  {selectedItem || nightModeLabel}
-                </Text>
-              </View>
-            );
-          }}
-          renderItem={(item, _index, isSelected) => {
-            return (
-              <View
-                style={[
-                  ControlStyles.dropdownItem,
-                  isSelected && ControlStyles.dropdownItemSelected,
-                ]}
-              >
-                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
-              </View>
-            );
-          }}
-          dropdownStyle={ControlStyles.dropdownMenu}
+        <ExampleAppButton
+          title="Get current route segment"
+          onPress={getCurrentRouteSegment}
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Audio guidance type </Text>
-        <SelectDropdown
-          data={audioGuidanceOptions}
-          onSelect={(_selectedItem, index) => {
-            setAudioGuidanceType(index);
-          }}
-          renderButton={(selectedItem, _isOpened) => {
-            return (
-              <View style={ControlStyles.dropdownButton}>
-                <Text style={ControlStyles.dropdownButtonText}>
-                  {selectedItem || 'Select'}
-                </Text>
-              </View>
-            );
-          }}
-          renderItem={(item, _index, isSelected) => {
-            return (
-              <View
-                style={[
-                  ControlStyles.dropdownItem,
-                  isSelected && ControlStyles.dropdownItemSelected,
-                ]}
-              >
-                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
-              </View>
-            );
-          }}
-          dropdownStyle={ControlStyles.dropdownMenu}
+        <ExampleAppButton
+          title="Get route segments"
+          onPress={getRouteSegments}
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Camera perspective</Text>
-        <SelectDropdown
-          data={perspectiveOptions}
-          onSelect={(_selectedItem, index) => {
-            let perspective: CameraPerspective;
-            if (index === 0) {
-              perspective = CameraPerspective.TILTED;
-            } else if (index === 1) {
-              perspective = CameraPerspective.TOP_DOWN_NORTH_UP;
-            } else {
-              perspective = CameraPerspective.TOP_DOWN_HEADING_UP;
-            }
-            setFollowingPerspective(perspective);
-          }}
-          renderButton={(selectedItem, _isOpened) => {
-            return (
-              <View style={ControlStyles.dropdownButton}>
-                <Text style={ControlStyles.dropdownButtonText}>
-                  {selectedItem || 'Select'}
-                </Text>
-              </View>
-            );
-          }}
-          renderItem={(item, _index, isSelected) => {
-            return (
-              <View
-                style={[
-                  ControlStyles.dropdownItem,
-                  isSelected && ControlStyles.dropdownItemSelected,
-                ]}
-              >
-                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
-              </View>
-            );
-          }}
-          dropdownStyle={ControlStyles.dropdownMenu}
-        />
-      </View>
+        <ExampleAppButton title="Get traveled path" onPress={getTraveledPath} />
+      </Accordion>
     </View>
   );
 };

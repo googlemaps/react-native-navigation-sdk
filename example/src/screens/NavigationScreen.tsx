@@ -251,18 +251,6 @@ const NavigationScreen = () => {
     console.log('onRecenterButtonClick');
   };
 
-  const onShowNavControlsClick = useCallback(() => {
-    setOverlayType(OverlayType.NavControls);
-  }, [setOverlayType]);
-
-  const onShowMapsControlsClick = useCallback(() => {
-    setOverlayType(OverlayType.MapControls);
-  }, [setOverlayType]);
-
-  const onShowAutoMapsControlsClick = useCallback(() => {
-    setOverlayType(OverlayType.AutoMapControls);
-  }, [setOverlayType]);
-
   const navigationViewCallbacks: NavigationViewCallbacks = {
     onRecenterButtonClick,
     onPromptVisibilityChanged,
@@ -299,10 +287,6 @@ const NavigationScreen = () => {
     };
   }, [mapViewController, onMapReady]);
 
-  const closeOverlay = (): void => {
-    setOverlayType(OverlayType.None);
-  };
-
   return arePermissionsApproved ? (
     <View style={[CommonStyles.container, { paddingBottom: insets.bottom }]}>
       <NavigationView
@@ -317,12 +301,30 @@ const NavigationScreen = () => {
         onNavigationViewControllerCreated={setNavigationViewController}
       />
 
+      <View style={CommonStyles.buttonRow}>
+        <ExampleAppButton
+          title="Navigation"
+          onPress={() => setOverlayType(OverlayType.NavControls)}
+          disabled={!navigationInitialized}
+        />
+        <ExampleAppButton
+          title="Maps"
+          onPress={() => setOverlayType(OverlayType.MapControls)}
+        />
+        {mapViewAutoAvailable && (
+          <ExampleAppButton
+            title="Auto"
+            onPress={() => setOverlayType(OverlayType.AutoMapControls)}
+          />
+        )}
+      </View>
+
       {navigationViewController != null &&
         navigationController != null &&
         navigationInitialized && (
           <OverlayModal
             visible={overlayType === OverlayType.NavControls}
-            closeOverlay={closeOverlay}
+            closeOverlay={() => setOverlayType(OverlayType.None)}
           >
             <NavigationControls
               navigationController={navigationController}
@@ -331,6 +333,7 @@ const NavigationScreen = () => {
               onNavigationDispose={onNavigationDispose}
               navigationNightMode={navigationNightMode}
               onNavigationNightModeChange={setNavigationNightMode}
+              showMessage={showSnackbar}
             />
           </OverlayModal>
         )}
@@ -338,12 +341,13 @@ const NavigationScreen = () => {
       {mapViewController != null && (
         <OverlayModal
           visible={overlayType === OverlayType.MapControls}
-          closeOverlay={closeOverlay}
+          closeOverlay={() => setOverlayType(OverlayType.None)}
         >
           <MapsControls
             mapViewController={mapViewController}
             mapColorScheme={mapColorScheme}
             onMapColorSchemeChange={setMapColorScheme}
+            showMessage={showSnackbar}
           />
         </OverlayModal>
       )}
@@ -351,26 +355,14 @@ const NavigationScreen = () => {
       {mapViewAutoAvailable && mapViewAutoController != null && (
         <OverlayModal
           visible={overlayType === OverlayType.AutoMapControls}
-          closeOverlay={closeOverlay}
+          closeOverlay={() => setOverlayType(OverlayType.None)}
         >
-          <MapsControls mapViewController={mapViewAutoController} />
+          <MapsControls
+            mapViewController={mapViewAutoController}
+            showMessage={showSnackbar}
+          />
         </OverlayModal>
       )}
-
-      <View style={CommonStyles.buttonRow}>
-        <ExampleAppButton
-          title="Navigation"
-          onPress={onShowNavControlsClick}
-          disabled={!navigationInitialized}
-        />
-        <ExampleAppButton title="Maps" onPress={onShowMapsControlsClick} />
-        {mapViewAutoAvailable && (
-          <ExampleAppButton
-            title="Auto"
-            onPress={onShowAutoMapsControlsClick}
-          />
-        )}
-      </View>
     </View>
   ) : (
     <React.Fragment />
