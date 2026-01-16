@@ -69,6 +69,7 @@ export const CommonStyles = StyleSheet.create({
     justifyContent: 'space-evenly',
     marginHorizontal: Spacing.md,
     marginTop: Spacing.md,
+    marginBottom: Spacing.lg,
   },
 
   // Input styles
@@ -232,6 +233,10 @@ export const ControlStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+
+  rowLabel: {
+    color: Colors.text,
   },
 
   // Form inputs

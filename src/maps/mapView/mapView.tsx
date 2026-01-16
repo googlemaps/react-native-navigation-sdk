@@ -46,6 +46,7 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
     }
   };
 
+  // Create controller when viewId changes
   useEffect(() => {
     if (!mapViewRef.current) {
       return;
@@ -53,7 +54,7 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
     const _viewId = findNodeHandle(mapViewRef.current) || 0;
     if (viewId !== _viewId) {
       setViewId(_viewId);
-      onMapViewControllerCreated(getMapViewController(_viewId));
+      onMapViewControllerCreated(getMapViewController(mapViewRef));
     }
   }, [onMapViewControllerCreated, viewId]);
 

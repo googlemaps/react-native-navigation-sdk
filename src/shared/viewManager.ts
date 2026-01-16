@@ -18,6 +18,7 @@ import {
   Platform,
   UIManager,
   requireNativeComponent,
+  findNodeHandle,
   type HostComponent,
   type ViewProps,
 } from 'react-native';
@@ -44,7 +45,48 @@ import type {
 export const viewManagerName =
   Platform.OS === 'android' ? 'NavViewManager' : 'RCTNavView';
 
-export const sendCommand = (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ViewRef = React.RefObject<any>;
+
+/**
+ * Creates a controller context that validates view existence before each command.
+ * Uses findNodeHandle to check if the native view still exists.
+ */
+export const createControllerContext = (
+  viewRef: ViewRef,
+  controllerName: string
+): {
+  sendCommand: (
+    methodName: string,
+    command: number | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    args?: any[]
+  ) => void;
+} => {
+  const wrappedSendCommand = (
+    methodName: string,
+    command: number | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    args?: any[]
+  ): void => {
+    const viewId = findNodeHandle(viewRef.current);
+    if (viewId == null) {
+      console.warn(
+        `[NavSDK] ${controllerName}.${methodName}() skipped - view no longer exists.`
+      );
+      return;
+    }
+    sendCommand(viewId, command, args);
+  };
+
+  return { sendCommand: wrappedSendCommand };
+};
+
+/**
+ * Dispatches a command to a native view manager.
+ * Called from controller context to communicate with native views.
+ */
+const sendCommand = (
   viewId: number,
   command: number | undefined,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

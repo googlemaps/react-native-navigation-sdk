@@ -143,6 +143,9 @@ yarn run example detox:test:ios-release
 ```
 
 Android:
+
+> [!NOTE]
+> Create emulator named "Android_Emulator" first if you don't have one already:
 ```bash
 yarn run example detox:test:android-release
 ```

@@ -18,6 +18,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Text, TextInput, View } from 'react-native';
 import { ExampleAppButton } from './ExampleAppButton';
+import { Accordion } from './Accordion';
 
 import SelectDropdown from 'react-native-select-dropdown';
 import { ControlStyles } from '../styles/components';
@@ -31,19 +32,28 @@ import {
   type Polygon,
 } from '@googlemaps/react-native-navigation-sdk';
 
-export interface MapControlsProps {
+export type MapsControlsProps = {
   readonly mapViewController: MapViewController;
   readonly mapColorScheme?: MapColorScheme;
   readonly onMapColorSchemeChange?: (scheme: MapColorScheme) => void;
-}
+  readonly showMessage?: (message: string) => void;
+};
 
 export const defaultZoom: number = 15;
 
-const MapsControls: React.FC<MapControlsProps> = ({
+const MapsControls = ({
   mapViewController,
   mapColorScheme = MapColorScheme.FOLLOW_SYSTEM,
   onMapColorSchemeChange,
-}) => {
+  showMessage,
+}: MapsControlsProps) => {
+  const log = (message: string) => {
+    if (showMessage) {
+      showMessage(message);
+    } else {
+      console.log(message);
+    }
+  };
   const mapTypeOptions = ['None', 'Normal', 'Satellite', 'Terrain', 'Hybrid'];
   const colorSchemeOptions = ['Follow System', 'Light', 'Dark'];
   const colorSchemeIndex =
@@ -66,7 +76,7 @@ const MapsControls: React.FC<MapControlsProps> = ({
   }, [mapViewController, zoom]);
 
   const setMyLocationButtonEnabled = (isOn: boolean) => {
-    console.log('setMyLocationButtonEnabled', isOn);
+    log(`setMyLocationButtonEnabled: ${isOn}`);
     mapViewController.setMyLocationEnabled(isOn);
     mapViewController.setMyLocationButtonEnabled(isOn);
   };
@@ -81,7 +91,7 @@ const MapsControls: React.FC<MapControlsProps> = ({
   };
 
   const setMapType = (mapType: MapType) => {
-    console.log('setMapType', mapType);
+    log(`setMapType: ${mapType}`);
     mapViewController.setMapType(mapType);
   };
 
@@ -105,40 +115,48 @@ const MapsControls: React.FC<MapControlsProps> = ({
 
   const getCameraPositionClicked = async () => {
     const result = await mapViewController.getCameraPosition();
-    console.log(result);
+    log(`Camera position: ${JSON.stringify(result)}`);
   };
 
   const getUiSettings = async () => {
     const result = await mapViewController.getUiSettings();
-    console.log(result);
+    log(`UI Settings: ${JSON.stringify(result)}`);
   };
 
   const getIsMyLocationEnabled = async () => {
     const result = await mapViewController.isMyLocationEnabled();
-    console.log(result);
+    log(`My location enabled: ${result}`);
   };
 
   const getMyLocation = async () => {
-    const result = await mapViewController.getMyLocation();
-    console.log(result);
+    try {
+      const result = await mapViewController.getMyLocation();
+      log(`My location: ${JSON.stringify(result)}`);
+    } catch (error) {
+      log(`Error getting location: ${error}`);
+    }
   };
 
   const addMarker = async (imgPath?: string) => {
-    const cameraPosition = await mapViewController.getCameraPosition();
+    try {
+      const cameraPosition = await mapViewController.getCameraPosition();
 
-    const marker: Marker = await mapViewController.addMarker({
-      position: cameraPosition.target,
-      visible: true,
-      title: 'Marker test',
-      snippet: 'Marker test',
-      alpha: 0.8,
-      rotation: 0,
-      flat: false,
-      draggable: true,
-      imgPath: imgPath,
-    });
+      const marker: Marker = await mapViewController.addMarker({
+        position: cameraPosition.target,
+        visible: true,
+        title: 'Marker test',
+        snippet: 'Marker test',
+        alpha: 0.8,
+        rotation: 0,
+        flat: false,
+        draggable: true,
+        imgPath: imgPath,
+      });
 
-    console.log(marker);
+      log(`Added marker: ${marker.id}`);
+    } catch (error) {
+      log(`Error adding marker: ${error}`);
+    }
   };
 
   const addCustomMarker = async () => {
@@ -146,66 +164,78 @@ const MapsControls: React.FC<MapControlsProps> = ({
   };
 
   const addCircle = async () => {
-    const cameraPosition = await mapViewController.getCameraPosition();
+    try {
+      const cameraPosition = await mapViewController.getCameraPosition();
 
-    const circle: Circle = await mapViewController.addCircle({
-      center: cameraPosition.target,
-      radius: 100,
-      fillColor: '#FFFFFF',
-      strokeColor: '#000000',
-      strokeWidth: 5,
-      visible: true,
-      clickable: true,
-    });
+      const circle: Circle = await mapViewController.addCircle({
+        center: cameraPosition.target,
+        radius: 100,
+        fillColor: '#FFFFFF',
+        strokeColor: '#000000',
+        strokeWidth: 5,
+        visible: true,
+        clickable: true,
+      });
 
-    console.log(circle);
+      log(`Added circle: ${circle.id}`);
+    } catch (error) {
+      log(`Error adding circle: ${error}`);
+    }
   };
 
   const addPolyline = async () => {
-    const cameraPosition = await mapViewController.getCameraPosition();
+    try {
+      const cameraPosition = await mapViewController.getCameraPosition();
 
-    const latLngs = [];
+      const latLngs = [];
 
-    for (let idx = 0; idx < 100; idx++) {
-      latLngs.push({
-        lat: cameraPosition.target.lat + idx / 10000,
-        lng: cameraPosition.target.lng + idx / 10000,
+      for (let idx = 0; idx < 100; idx++) {
+        latLngs.push({
+          lat: cameraPosition.target.lat + idx / 10000,
+          lng: cameraPosition.target.lng + idx / 10000,
+        });
+      }
+
+      const polyline: Polyline = await mapViewController.addPolyline({
+        points: latLngs,
+        width: 10,
+        color: '#f52525',
+        visible: true,
+        clickable: true,
       });
+
+      log(`Added polyline: ${polyline.id}`);
+    } catch (error) {
+      log(`Error adding polyline: ${error}`);
     }
-
-    const polyline: Polyline = await mapViewController.addPolyline({
-      points: latLngs,
-      width: 10,
-      color: '#f52525',
-      visible: true,
-      clickable: true,
-    });
-
-    console.log(polyline);
   };
 
   const addPolygon = async () => {
-    const cameraPosition = await mapViewController.getCameraPosition();
-    const cameraLat = cameraPosition.target.lat;
-    const cameraLng = cameraPosition.target.lng;
-    const delta = 0.05;
-    const bermudaTriangle = [
-      { lat: cameraLat - delta, lng: cameraLng - delta },
-      { lat: cameraLat - delta, lng: cameraLng + delta },
-      { lat: cameraLat + delta, lng: cameraLng + delta },
-      { lat: cameraLat - delta, lng: cameraLng - delta },
-    ];
+    try {
+      const cameraPosition = await mapViewController.getCameraPosition();
+      const cameraLat = cameraPosition.target.lat;
+      const cameraLng = cameraPosition.target.lng;
+      const delta = 0.05;
+      const bermudaTriangle = [
+        { lat: cameraLat - delta, lng: cameraLng - delta },
+        { lat: cameraLat - delta, lng: cameraLng + delta },
+        { lat: cameraLat + delta, lng: cameraLng + delta },
+        { lat: cameraLat - delta, lng: cameraLng - delta },
+      ];
 
-    const polygon: Polygon = await mapViewController.addPolygon({
-      strokeColor: '#FF00FF',
-      fillColor: '#f52525',
-      strokeWidth: 10,
-      visible: true,
-      points: bermudaTriangle,
-      clickable: true,
-    });
+      const polygon: Polygon = await mapViewController.addPolygon({
+        strokeColor: '#FF00FF',
+        fillColor: '#f52525',
+        strokeWidth: 10,
+        visible: true,
+        points: bermudaTriangle,
+        clickable: true,
+      });
 
-    console.log(polygon);
+      log(`Added polygon: ${polygon.id}`);
+    } catch (error) {
+      log(`Error adding polygon: ${error}`);
+    }
   };
 
   const clearMapView = () => {
@@ -240,135 +270,149 @@ const MapsControls: React.FC<MapControlsProps> = ({
 
   return (
     <View>
-      <TextInput
-        style={ControlStyles.input}
-        onChangeText={onLatChanged}
-        value={latitude}
-        placeholder="Latitude"
-        placeholderTextColor="#000"
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={ControlStyles.input}
-        onChangeText={onLngChanged}
-        value={longitude}
-        placeholder="Longitude"
-        placeholderTextColor="#000"
-        keyboardType="numeric"
-      />
-      <ExampleAppButton title="Move camera" onPress={moveCamera} />
-      <ExampleAppButton
-        title="Zoom in"
-        onPress={() => {
-          setZoom((zoom ?? defaultZoom) + 1);
-        }}
-      />
-      <ExampleAppButton
-        title="Zoom Out"
-        onPress={() => {
-          setZoom((zoom ?? defaultZoom) - 1);
-        }}
-      />
-      <ExampleAppButton title="Add marker" onPress={() => addMarker()} />
-      <ExampleAppButton
-        title="Add custom marker"
-        onPress={() => addCustomMarker()}
-      />
-      <ExampleAppButton title="Add circle" onPress={addCircle} />
-      <ExampleAppButton title="Add polyline" onPress={addPolyline} />
-      <ExampleAppButton title="Add polygon" onPress={addPolygon} />
-      <ExampleAppButton title="Clear map view" onPress={clearMapView} />
-      <ExampleAppButton title="Get UI Settings" onPress={getUiSettings} />
-      <ExampleAppButton title="Get My location" onPress={getMyLocation} />
-      <ExampleAppButton
-        title="Get My location enabled"
-        onPress={getIsMyLocationEnabled}
-      />
-      <ExampleAppButton
-        title="Get camera position"
-        onPress={getCameraPositionClicked}
-      />
-      <View style={ControlStyles.rowContainer}>
-        <Text>Location marker</Text>
+      {/* Camera Controls */}
+      <Accordion title="Camera Controls">
+        <TextInput
+          style={ControlStyles.input}
+          onChangeText={onLatChanged}
+          value={latitude}
+          placeholder="Latitude"
+          placeholderTextColor="#000"
+          keyboardType="numeric"
+        />
+        <TextInput
+          style={ControlStyles.input}
+          onChangeText={onLngChanged}
+          value={longitude}
+          placeholder="Longitude"
+          placeholderTextColor="#000"
+          keyboardType="numeric"
+        />
+        <ExampleAppButton title="Move camera" onPress={moveCamera} />
         <ExampleAppButton
-          title={enableLocationMarker ? 'Disable' : 'Enable'}
+          title="Zoom in"
           onPress={() => {
-            setEnableLocationMarker(!enableLocationMarker);
-            setMyLocationButtonEnabled(!enableLocationMarker);
+            setZoom((zoom ?? defaultZoom) + 1);
           }}
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Map type</Text>
-        <SelectDropdown
-          data={mapTypeOptions}
-          onSelect={(_selectedItem, index) => {
-            setMapType(getDropdownIndexToMapType(index));
-          }}
-          renderButton={(selectedItem, _isOpened) => {
-            return (
-              <View style={ControlStyles.dropdownButton}>
-                <Text style={ControlStyles.dropdownButtonText}>
-                  {selectedItem || 'Select'}
-                </Text>
-              </View>
-            );
-          }}
-          renderItem={(item, _index, isSelected) => {
-            return (
-              <View
-                style={[
-                  ControlStyles.dropdownItem,
-                  isSelected && ControlStyles.dropdownItemSelected,
-                ]}
-              >
-                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
-              </View>
-            );
-          }}
-          dropdownStyle={ControlStyles.dropdownMenu}
-        />
-      </View>
-      <View style={ControlStyles.controlButtonGap} />
-      <View style={ControlStyles.rowContainer}>
-        <Text>Custom map paddings</Text>
         <ExampleAppButton
-          title={customPaddingEnabled ? 'Disable' : 'Enable'}
-          onPress={toggleCustomPadding}
+          title="Zoom Out"
+          onPress={() => {
+            setZoom((zoom ?? defaultZoom) - 1);
+          }}
         />
-      </View>
-      <View style={ControlStyles.rowContainer}>
-        <Text>Map color scheme</Text>
-        <SelectDropdown
-          data={colorSchemeOptions}
-          defaultValueByIndex={colorSchemeIndex}
-          onSelect={(_item, index) => {
-            setMapColorScheme(index);
-          }}
-          renderButton={(selectedItem, _isOpened) => {
-            return (
-              <View style={ControlStyles.dropdownButton}>
-                <Text style={ControlStyles.dropdownButtonText}>
-                  {selectedItem || colorSchemeLabel}
-                </Text>
-              </View>
-            );
-          }}
-          renderItem={(item, _index, isSelected) => {
-            return (
-              <View
-                style={[
-                  ControlStyles.dropdownItem,
-                  isSelected && ControlStyles.dropdownItemSelected,
-                ]}
-              >
-                <Text style={ControlStyles.dropdownItemText}>{item}</Text>
-              </View>
-            );
-          }}
-          dropdownStyle={ControlStyles.dropdownMenu}
+        <ExampleAppButton
+          title="Get camera position"
+          onPress={getCameraPositionClicked}
         />
-      </View>
+      </Accordion>
+
+      {/* Map Overlays */}
+      <Accordion title="Map Overlays">
+        <ExampleAppButton title="Add marker" onPress={() => addMarker()} />
+        <ExampleAppButton
+          title="Add custom marker"
+          onPress={() => addCustomMarker()}
+        />
+        <ExampleAppButton title="Add circle" onPress={addCircle} />
+        <ExampleAppButton title="Add polyline" onPress={addPolyline} />
+        <ExampleAppButton title="Add polygon" onPress={addPolygon} />
+        <ExampleAppButton title="Clear map view" onPress={clearMapView} />
+      </Accordion>
+
+      {/* Map Appearance */}
+      <Accordion title="Map Appearance">
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Map type</Text>
+          <SelectDropdown
+            data={mapTypeOptions}
+            onSelect={(_selectedItem, index) => {
+              setMapType(getDropdownIndexToMapType(index));
+            }}
+            renderButton={(selectedItem, _isOpened) => {
+              return (
+                <View style={ControlStyles.dropdownButton}>
+                  <Text style={ControlStyles.dropdownButtonText}>
+                    {selectedItem || 'Select'}
+                  </Text>
+                </View>
+              );
+            }}
+            renderItem={(item, _index, isSelected) => {
+              return (
+                <View
+                  style={[
+                    ControlStyles.dropdownItem,
+                    isSelected && ControlStyles.dropdownItemSelected,
+                  ]}
+                >
+                  <Text style={ControlStyles.dropdownItemText}>{item}</Text>
+                </View>
+              );
+            }}
+            dropdownStyle={ControlStyles.dropdownMenu}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Map color scheme</Text>
+          <SelectDropdown
+            data={colorSchemeOptions}
+            defaultValueByIndex={colorSchemeIndex}
+            onSelect={(_item, index) => {
+              setMapColorScheme(index);
+            }}
+            renderButton={(selectedItem, _isOpened) => {
+              return (
+                <View style={ControlStyles.dropdownButton}>
+                  <Text style={ControlStyles.dropdownButtonText}>
+                    {selectedItem || colorSchemeLabel}
+                  </Text>
+                </View>
+              );
+            }}
+            renderItem={(item, _index, isSelected) => {
+              return (
+                <View
+                  style={[
+                    ControlStyles.dropdownItem,
+                    isSelected && ControlStyles.dropdownItemSelected,
+                  ]}
+                >
+                  <Text style={ControlStyles.dropdownItemText}>{item}</Text>
+                </View>
+              );
+            }}
+            dropdownStyle={ControlStyles.dropdownMenu}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Custom map paddings</Text>
+          <ExampleAppButton
+            title={customPaddingEnabled ? 'Disable' : 'Enable'}
+            onPress={toggleCustomPadding}
+          />
+        </View>
+      </Accordion>
+
+      {/* Location & UI */}
+      <Accordion title="Location & UI Settings">
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Location marker</Text>
+          <ExampleAppButton
+            title={enableLocationMarker ? 'Disable' : 'Enable'}
+            onPress={() => {
+              setEnableLocationMarker(!enableLocationMarker);
+              setMyLocationButtonEnabled(!enableLocationMarker);
+            }}
+          />
+        </View>
+        <ExampleAppButton title="Get UI Settings" onPress={getUiSettings} />
+        <ExampleAppButton title="Get My location" onPress={getMyLocation} />
+        <ExampleAppButton
+          title="Get My location enabled"
+          onPress={getIsMyLocationEnabled}
+        />
+      </Accordion>
     </View>
   );
 };

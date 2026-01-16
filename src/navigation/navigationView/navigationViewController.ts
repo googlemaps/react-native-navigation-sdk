@@ -13,62 +13,96 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, sendCommand } from '../../shared/viewManager';
+import { commands, createControllerContext } from '../../shared/viewManager';
 import type { CameraPerspective, NavigationViewController } from './types';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ViewRef = React.RefObject<any>;
+
 export const getNavigationViewController = (
-  viewId: number
+  viewRef: ViewRef
 ): NavigationViewController => {
+  const { sendCommand } = createControllerContext(
+    viewRef,
+    'NavigationViewController'
+  );
+
   return {
     setNavigationUIEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setNavigationUIEnabled, [isOn]);
+      sendCommand('setNavigationUIEnabled', commands.setNavigationUIEnabled, [
+        isOn,
+      ]);
     },
 
     setTripProgressBarEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setTripProgressBarEnabled, [isOn]);
+      sendCommand(
+        'setTripProgressBarEnabled',
+        commands.setTripProgressBarEnabled,
+        [isOn]
+      );
     },
 
     setReportIncidentButtonEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setReportIncidentButtonEnabled, [isOn]);
+      sendCommand(
+        'setReportIncidentButtonEnabled',
+        commands.setReportIncidentButtonEnabled,
+        [isOn]
+      );
     },
 
     setSpeedometerEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setSpeedometerEnabled, [isOn]);
+      sendCommand('setSpeedometerEnabled', commands.setSpeedometerEnabled, [
+        isOn,
+      ]);
     },
 
     setSpeedLimitIconEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setSpeedLimitIconEnabled, [isOn]);
+      sendCommand(
+        'setSpeedLimitIconEnabled',
+        commands.setSpeedLimitIconEnabled,
+        [isOn]
+      );
     },
 
     setTrafficIncidentCardsEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setTrafficIncidentCardsEnabled, [isOn]);
+      sendCommand(
+        'setTrafficIncidentCardsEnabled',
+        commands.setTrafficIncidentCardsEnabled,
+        [isOn]
+      );
     },
 
     setHeaderEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setHeaderEnabled, [isOn]);
+      sendCommand('setHeaderEnabled', commands.setHeaderEnabled, [isOn]);
     },
 
     setFooterEnabled: (isOn: boolean) => {
-      sendCommand(viewId, commands.setFooterEnabled, [isOn]);
+      sendCommand('setFooterEnabled', commands.setFooterEnabled, [isOn]);
     },
 
     showRouteOverview: () => {
-      sendCommand(viewId, commands.showRouteOverview, []);
+      sendCommand('showRouteOverview', commands.showRouteOverview, []);
     },
 
     /**
      * @deprecated Prefer the `navigationNightMode` prop on `NavigationView`.
      */
     setNightMode: (index: number) => {
-      sendCommand(viewId, commands.setNightMode, [index]);
+      sendCommand('setNightMode', commands.setNightMode, [index]);
     },
 
     setRecenterButtonEnabled(isEnabled: boolean) {
-      sendCommand(viewId, commands.setRecenterButtonEnabled, [isEnabled]);
+      sendCommand(
+        'setRecenterButtonEnabled',
+        commands.setRecenterButtonEnabled,
+        [isEnabled]
+      );
     },
 
     setFollowingPerspective: (perspective: CameraPerspective) => {
-      sendCommand(viewId, commands.setFollowingPerspective, [perspective]);
+      sendCommand('setFollowingPerspective', commands.setFollowingPerspective, [
+        perspective,
+      ]);
     },
   };
 };

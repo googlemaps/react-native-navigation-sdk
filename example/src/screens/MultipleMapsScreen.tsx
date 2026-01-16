@@ -374,14 +374,12 @@ const MultipleMapsScreen = () => {
                 mapColorScheme={mapColorScheme2}
                 onMapViewControllerCreated={setMapViewController2}
               />
-              {currentPage === 1 && (
-                <View style={ControlStyles.controlButtons}>
-                  <ExampleAppButton
-                    title="Map 2"
-                    onPress={onShowMapsControlsClick2}
-                  />
-                </View>
-              )}
+              <View style={ControlStyles.controlButtons}>
+                <ExampleAppButton
+                  title="Map 2"
+                  onPress={onShowMapsControlsClick2}
+                />
+              </View>
             </View>
           </PagerView>
 
@@ -400,6 +398,7 @@ const MultipleMapsScreen = () => {
                   onNavigationDispose={onNavigationDispose}
                   navigationNightMode={navigationNightMode}
                   onNavigationNightModeChange={setNavigationNightMode}
+                  showMessage={showSnackbar}
                 />
               </OverlayModal>
             )}
@@ -413,6 +412,7 @@ const MultipleMapsScreen = () => {
                 mapViewController={mapViewController1}
                 mapColorScheme={mapColorScheme1}
                 onMapColorSchemeChange={setMapColorScheme1}
+                showMessage={showSnackbar}
               />
             </OverlayModal>
           )}
@@ -426,6 +426,7 @@ const MultipleMapsScreen = () => {
                 mapViewController={mapViewController2}
                 mapColorScheme={mapColorScheme2}
                 onMapColorSchemeChange={setMapColorScheme2}
+                showMessage={showSnackbar}
               />
             </OverlayModal>
           )}
