@@ -118,10 +118,8 @@ RCT_EXPORT_METHOD(clearMapView) {
   });
 }
 
-RCT_EXPORT_METHOD(addMarker
-                  : (NSDictionary *)markerOptions resolver
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(addMarker : (NSDictionary *)markerOptions resolver : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController addMarker:markerOptions
@@ -134,10 +132,8 @@ RCT_EXPORT_METHOD(addMarker
   });
 }
 
-RCT_EXPORT_METHOD(addCircle
-                  : (NSDictionary *)circleOptions resolver
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(addCircle : (NSDictionary *)circleOptions resolver : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController addCircle:circleOptions
@@ -150,10 +146,8 @@ RCT_EXPORT_METHOD(addCircle
   });
 }
 
-RCT_EXPORT_METHOD(addPolyline
-                  : (NSDictionary *)polylineOptions resolver
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(addPolyline : (NSDictionary *)polylineOptions resolver : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController addPolyline:polylineOptions
@@ -166,10 +160,8 @@ RCT_EXPORT_METHOD(addPolyline
   });
 }
 
-RCT_EXPORT_METHOD(addPolygon
-                  : (NSDictionary *)polygonOptions resolver
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(addPolygon : (NSDictionary *)polygonOptions resolver : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController addPolygon:polygonOptions
@@ -278,10 +270,8 @@ RCT_EXPORT_METHOD(setScrollGesturesEnabledDuringRotateOrZoom : (BOOL *)enabled) 
   });
 }
 
-RCT_EXPORT_METHOD(setZoomLevel
-                  : (nonnull NSNumber *)level resolver
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(setZoomLevel : (nonnull NSNumber *)level resolver : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setZoomLevel:level];
@@ -315,9 +305,8 @@ RCT_EXPORT_METHOD(setBuildingsEnabled : (BOOL *)enabled) {
   });
 }
 
-RCT_EXPORT_METHOD(getCameraPosition
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getCameraPosition : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController getCameraPosition:^(NSDictionary *result) {
@@ -329,9 +318,8 @@ RCT_EXPORT_METHOD(getCameraPosition
   });
 }
 
-RCT_EXPORT_METHOD(getMyLocation
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getMyLocation : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)
+                      reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController getMyLocation:^(NSDictionary *_Nullable result) {
@@ -343,9 +331,8 @@ RCT_EXPORT_METHOD(getMyLocation
   });
 }
 
-RCT_EXPORT_METHOD(getUiSettings
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getUiSettings : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)
+                      reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController getUiSettings:^(NSDictionary *_Nullable result) {
@@ -357,9 +344,8 @@ RCT_EXPORT_METHOD(getUiSettings
   });
 }
 
-RCT_EXPORT_METHOD(isMyLocationEnabled
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(isMyLocationEnabled : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController isMyLocationEnabled:^(BOOL result) {
@@ -379,20 +365,16 @@ RCT_EXPORT_METHOD(moveCamera : (NSDictionary *)cameraPosition) {
   });
 }
 
-RCT_EXPORT_METHOD(isAutoScreenAvailable
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(isAutoScreenAvailable : (RCTPromiseResolveBlock)
+                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
   dispatch_async(dispatch_get_main_queue(), ^{
     BOOL hasViewController = self->_viewController != nil;
     resolve([NSNumber numberWithBool:hasViewController]);
   });
 }
 
-RCT_EXPORT_METHOD(setPadding
-                  : (nonnull NSNumber *)top left
-                  : (nonnull NSNumber *)left bottom
-                  : (nonnull NSNumber *)bottom right
-                  : (nonnull NSNumber *)right) {
+RCT_EXPORT_METHOD(setPadding : (nonnull NSNumber *)top left : (nonnull NSNumber *)
+                      left bottom : (nonnull NSNumber *)bottom right : (nonnull NSNumber *)right) {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
       [self->_viewController setPadding:UIEdgeInsetsMake(top.floatValue, left.floatValue,
