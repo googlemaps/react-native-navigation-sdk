@@ -127,11 +127,10 @@ const NavigationControls = ({
       showTrafficLights: true,
     };
 
-    navigationController.setDestination(
-      waypoint,
+    navigationController.setDestination(waypoint, {
       routingOptions,
-      displayOptions
-    );
+      displayOptions,
+    });
   };
 
   const setLocationFromCameraLocation = async () => {
@@ -166,11 +165,10 @@ const NavigationControls = ({
       showTrafficLights: true,
     };
 
-    navigationController.setDestinations(
-      waypoints,
+    navigationController.setDestinations(waypoints, {
       routingOptions,
-      displayOptions
-    );
+      displayOptions,
+    });
   };
 
   const setFollowingPerspective = (index: CameraPerspective) => {

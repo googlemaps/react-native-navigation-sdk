@@ -71,6 +71,14 @@ export const initializeIntegrationTestsPage = async () => {
 };
 
 export const selectTestByName = async name => {
+  await waitFor(element(by.id('tests_menu_button')))
+    .toBeVisible()
+    .withTimeout(10000);
   await element(by.id('tests_menu_button')).tap();
+  // Scroll to make the test button visible before tapping
+  await waitFor(element(by.id(name)))
+    .toBeVisible()
+    .whileElement(by.id('overlay_scroll_view'))
+    .scroll(100, 'down');
   await element(by.id(name)).tap();
 };

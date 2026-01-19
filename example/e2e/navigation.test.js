@@ -82,4 +82,12 @@ describe('Navigation tests', () => {
     await expectNoErrors();
     await expectSuccess();
   });
+
+  it('T08 - setDestinations with both routingOptions and routeTokenOptions should throw error', async () => {
+    await selectTestByName('testRouteTokenOptionsValidation');
+    await agreeToTermsAndConditions();
+    await waitForTestToFinish();
+    await expectNoErrors();
+    await expectSuccess();
+  });
 });

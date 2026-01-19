@@ -310,9 +310,11 @@ export const testNavigationToSingleDestination = async (
           },
         ],
         {
-          travelMode: TravelMode.DRIVING,
-          avoidFerries: true,
-          avoidTolls: false,
+          routingOptions: {
+            travelMode: TravelMode.DRIVING,
+            avoidFerries: true,
+            avoidTolls: false,
+          },
         }
       );
       await navigationController.startGuidance();
@@ -375,9 +377,11 @@ export const testNavigationToMultipleDestination = async (
           },
         ],
         {
-          travelMode: TravelMode.DRIVING,
-          avoidFerries: true,
-          avoidTolls: false,
+          routingOptions: {
+            travelMode: TravelMode.DRIVING,
+            avoidFerries: true,
+            avoidTolls: false,
+          },
         }
       );
       await navigationController.startGuidance();
@@ -904,6 +908,62 @@ export const testStartGuidanceWithoutDestinations = async (
     onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
       console.log(errorCode);
       failTest('onNavigatonInitError');
+    },
+  });
+
+  try {
+    await navigationController.init();
+  } catch (error) {
+    console.error('Error initializing navigator', error);
+    failTest('navigationController.init() exception');
+  }
+};
+
+/**
+ * Tests that providing both routingOptions and routeTokenOptions throws an error.
+ * These options are mutually exclusive and should not be used together.
+ */
+export const testRouteTokenOptionsValidation = async (testTools: TestTools) => {
+  const { navigationController, addListeners, passTest, failTest } = testTools;
+
+  addListeners({
+    onNavigationReady: async () => {
+      disableVoiceGuidanceForTests(navigationController);
+
+      try {
+        // Attempt to provide both routingOptions and routeTokenOptions
+        await navigationController.setDestinations([DEFAULT_TEST_WAYPOINT], {
+          routingOptions: { travelMode: TravelMode.DRIVING },
+          routeTokenOptions: {
+            routeToken: 'some-token',
+            travelMode: TravelMode.DRIVING,
+          },
+        });
+        failTest(
+          'Expected error when both routingOptions and routeTokenOptions provided'
+        );
+      } catch (error) {
+        // Should throw JS error about mutual exclusivity
+        if (
+          error instanceof Error &&
+          error.message.includes(
+            'Only one of routingOptions or routeTokenOptions'
+          )
+        ) {
+          try {
+            await navigationController.cleanup();
+          } catch (cleanupError) {
+            console.error('cleanup failed', cleanupError);
+          }
+          passTest();
+        } else {
+          failTest(`Unexpected error: ${error}`);
+        }
+      }
+    },
+    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
+      console.log(errorCode);
+      failTest(`onNavigationInitError: ${errorCode}`);
     },
   });
 

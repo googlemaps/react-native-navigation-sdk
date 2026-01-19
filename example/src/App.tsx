@@ -29,6 +29,7 @@ import { ExampleAppButton } from './controls/ExampleAppButton';
 import NavigationScreen from './screens/NavigationScreen';
 import MultipleMapsScreen from './screens/MultipleMapsScreen';
 import MapIdScreen from './screens/MapIdScreen';
+import RouteTokenScreen from './screens/RouteTokenScreen';
 import {
   NavigationProvider,
   TaskRemovedBehavior,
@@ -41,6 +42,7 @@ export type ScreenNames = [
   'Navigation',
   'Multiple maps',
   'Map ID',
+  'Route Token',
   'Integration tests',
 ];
 
@@ -70,7 +72,9 @@ const HomeScreen = () => {
   }, [navigationController]);
 
   return (
-    <View style={[CommonStyles.centered, { paddingBottom: insets.bottom }]}>
+    <View
+      style={[CommonStyles.centered, { paddingBottom: insets.bottom + 100 }]}
+    >
       {/* SDK Version Display */}
       <View style={{ padding: 16, alignItems: 'center' }}>
         <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>
@@ -93,6 +97,12 @@ const HomeScreen = () => {
         <ExampleAppButton
           title="Map ID"
           onPress={() => isFocused && navigate('Map ID')}
+        />
+      </View>
+      <View style={CommonStyles.buttonContainer}>
+        <ExampleAppButton
+          title="Route Token"
+          onPress={() => isFocused && navigate('Route Token')}
         />
       </View>
       <View style={CommonStyles.container} />
@@ -131,6 +141,7 @@ export default function App() {
           <Stack.Screen name="Navigation" component={NavigationScreen} />
           <Stack.Screen name="Multiple maps" component={MultipleMapsScreen} />
           <Stack.Screen name="Map ID" component={MapIdScreen} />
+          <Stack.Screen name="Route Token" component={RouteTokenScreen} />
           <Stack.Screen
             name="Integration tests"
             component={IntegrationTestsScreen}

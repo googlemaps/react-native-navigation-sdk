@@ -19,6 +19,7 @@ import com.google.android.gms.maps.model.MapColorScheme;
 import com.google.android.libraries.navigation.AlternateRoutesStrategy;
 import com.google.android.libraries.navigation.ForceNightMode;
 import com.google.android.libraries.navigation.Navigator;
+import com.google.android.libraries.navigation.RoutingOptions;
 
 public class EnumTranslationUtil {
   public static AlternateRoutesStrategy getAlternateRoutesStrategyFromJsValue(int jsValue) {
@@ -106,6 +107,21 @@ public class EnumTranslationUtil {
         return MapColorScheme.DARK;
       default:
         return MapColorScheme.FOLLOW_SYSTEM;
+    }
+  }
+
+  public static @RoutingOptions.TravelMode int getTravelModeFromJsValue(int jsValue) {
+    switch (jsValue) {
+      case 1:
+        return RoutingOptions.TravelMode.CYCLING;
+      case 2:
+        return RoutingOptions.TravelMode.WALKING;
+      case 3:
+        return RoutingOptions.TravelMode.TWO_WHEELER;
+      case 4:
+        return RoutingOptions.TravelMode.TAXI;
+      default:
+        return RoutingOptions.TravelMode.DRIVING;
     }
   }
 }

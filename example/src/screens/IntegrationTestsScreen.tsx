@@ -49,6 +49,7 @@ import {
   testOnRouteChanged,
   testNavigationStateGuards,
   testStartGuidanceWithoutDestinations,
+  testRouteTokenOptionsValidation,
   NO_ERRORS_DETECTED_LABEL,
 } from './integration_tests/integration_test';
 
@@ -221,6 +222,9 @@ const IntegrationTestsScreen = () => {
       case 'testStartGuidanceWithoutDestinations':
         await testStartGuidanceWithoutDestinations(getTestTools());
         break;
+      case 'testRouteTokenOptionsValidation':
+        await testRouteTokenOptionsValidation(getTestTools());
+        break;
       default:
         resetTestState();
         break;
@@ -239,7 +243,9 @@ const IntegrationTestsScreen = () => {
   }, [windowDimensions.height, insets.top, insets.bottom]);
 
   return (
-    <View style={[CommonStyles.container, { paddingBottom: insets.bottom }]}>
+    <View
+      style={[CommonStyles.container, { paddingBottom: insets.bottom + 100 }]}
+    >
       <Text>See CONTRIBUTING.md to see how to run integration tests.</Text>
       <View style={{ flex: 6, margin: 5 }}>
         <NavigationView
@@ -366,6 +372,13 @@ const IntegrationTestsScreen = () => {
             runTest('testStartGuidanceWithoutDestinations');
           }}
           testID="testStartGuidanceWithoutDestinations"
+        />
+        <ExampleAppButton
+          title="testRouteTokenOptionsValidation"
+          onPress={() => {
+            runTest('testRouteTokenOptionsValidation');
+          }}
+          testID="testRouteTokenOptionsValidation"
         />
       </OverlayModal>
     </View>

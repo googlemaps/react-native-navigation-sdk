@@ -324,24 +324,11 @@ RCT_EXPORT_METHOD(continueToNextDestination
   });
 }
 
-RCT_EXPORT_METHOD(setDestination
-                  : (nonnull NSDictionary *)waypoint routingOptions
-                  : (NSDictionary *)routingOptions displayOptions
-                  : (NSDictionary *)displayOptions resolve
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject) {
-  NSArray *waypoints = @[ waypoint ];
-  [self setDestinations:waypoints
-         routingOptions:routingOptions
-         displayOptions:displayOptions
-                resolve:resolve
-               rejecter:reject];
-}
-
 RCT_EXPORT_METHOD(setDestinations
                   : (nonnull NSArray *)waypoints routingOptions
                   : (NSDictionary *)routingOptions displayOptions
-                  : (NSDictionary *)displayOptions resolve
+                  : (NSDictionary *)displayOptions routeTokenOptions
+                  : (NSDictionary *)routeTokenOptions resolve
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
   __weak typeof(self) weakSelf = self;
@@ -400,7 +387,13 @@ RCT_EXPORT_METHOD(setDestinations
       resolve(@(YES));
     };
 
-    if (routingOptions != NULL) {
+    // If route token options are provided, use route token for navigation
+    if (routeTokenOptions != NULL && routeTokenOptions[@"routeToken"] != nil) {
+      [strongSelf configureNavigator:navigator withRouteTokenOptions:routeTokenOptions];
+      [navigator setDestinations:strongSelf->_destinations
+                      routeToken:routeTokenOptions[@"routeToken"]
+                        callback:routeStatusCallback];
+    } else if (routingOptions != NULL) {
       [strongSelf configureNavigator:navigator withRoutingOptions:routingOptions];
       [navigator setDestinations:strongSelf->_destinations
                   routingOptions:[NavModule getRoutingOptions:routingOptions]
@@ -435,6 +428,15 @@ RCT_EXPORT_METHOD(setDestinations
                                                  [options[@"alternateRoutesStrategy"] intValue]];
 
   return routingOptions;
+}
+
+- (void)configureNavigator:(GMSNavigator *)navigator
+     withRouteTokenOptions:(NSDictionary *)routeTokenOptions {
+  if (routeTokenOptions[@"travelMode"] != nil) {
+    NavViewModule *navViewModule = [NavViewModule sharedInstance];
+    [navViewModule
+        setTravelMode:(GMSNavigationTravelMode)[routeTokenOptions[@"travelMode"] intValue]];
+  }
 }
 
 - (void)configureNavigator:(GMSNavigator *)navigator

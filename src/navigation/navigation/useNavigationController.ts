@@ -27,11 +27,10 @@ import {
   type NavigationCallbacks,
   type TermsAndConditionsDialogOptions,
   type NavigationController,
-  type RoutingOptions,
   type SpeedAlertOptions,
   type LocationSimulationOptions,
   TaskRemovedBehavior,
-  type DisplayOptions,
+  type SetDestinationsOptions,
 } from './types';
 import { getRouteStatusFromStringValue } from '../navigationView';
 
@@ -92,25 +91,39 @@ export const useNavigationController = (
 
       setDestination: async (
         waypoint: Waypoint,
-        routingOptions?: RoutingOptions,
-        displayOptions?: DisplayOptions
+        options?: SetDestinationsOptions
       ) => {
-        return await NavModule.setDestination(
-          waypoint,
+        const { routingOptions, displayOptions, routeTokenOptions } =
+          options ?? {};
+        if (routingOptions && routeTokenOptions) {
+          throw new Error(
+            'Only one of routingOptions or routeTokenOptions can be provided, not both.'
+          );
+        }
+        return await NavModule.setDestinations(
+          [waypoint],
           routingOptions,
-          displayOptions
+          displayOptions,
+          routeTokenOptions
         );
       },
 
       setDestinations: async (
         waypoints: Waypoint[],
-        routingOptions?: RoutingOptions,
-        displayOptions?: DisplayOptions
+        options?: SetDestinationsOptions
       ) => {
+        const { routingOptions, displayOptions, routeTokenOptions } =
+          options ?? {};
+        if (routingOptions && routeTokenOptions) {
+          throw new Error(
+            'Only one of routingOptions or routeTokenOptions can be provided, not both.'
+          );
+        }
         return await NavModule.setDestinations(
           waypoints,
           routingOptions,
-          displayOptions
+          displayOptions,
+          routeTokenOptions
         );
       },
 

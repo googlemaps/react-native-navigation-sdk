@@ -47,6 +47,7 @@ const OverlayModal: React.FC<OverlayModalProps> = ({
         <Pressable style={styles.overlayTouchable} onPress={closeOverlay} />
         <View style={modalContentStyle}>
           <ScrollView
+            testID="overlay_scroll_view"
             showsVerticalScrollIndicator={true}
             persistentScrollbar={true}
             style={styles.scrollContainer}

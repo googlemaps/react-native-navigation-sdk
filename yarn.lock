@@ -5086,9 +5086,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"detox@npm:^20.27.6":
-  version: 20.46.0
-  resolution: "detox@npm:20.46.0"
+"detox@npm:^20.46.3":
+  version: 20.46.3
+  resolution: "detox@npm:20.46.3"
   dependencies:
     "@wix-pilot/core": ^3.4.2
     "@wix-pilot/detox": ^1.0.13
@@ -5134,7 +5134,7 @@ __metadata:
       optional: true
   bin:
     detox: local-cli/cli.js
-  checksum: 94ad8295b4f06f2fb7ef29db345ea6b4a5124530e144e84026fa1924373f05f6f33935724e5bee035dcdbbfd48e49a2c8b29b2f3d050f07d3959147c0533cbcc
+  checksum: afe7a0e2f9c005fe66fd630acdf7520287d6b260cac21c00ea49d22c6609496cae59aaa043dcfbe3186350d2a296362be89bf6ca0cf4df7e4cc307cd0af8c74d
   languageName: node
   linkType: hard
 
@@ -9947,7 +9947,7 @@ __metadata:
     "@react-navigation/stack": ^6.4.1
     "@types/jest": ^29.5.14
     "@types/node": ^22.9.0
-    detox: ^20.27.6
+    detox: ^20.46.3
     jest: ^29.7.0
     react: 19.1.0
     react-native: 0.81.1

@@ -227,7 +227,7 @@ try {
     showTrafficLights: true,
   };
 
-  await navigationController.setDestinations([waypoint], routingOptions, displayOptions);
+  await navigationController.setDestinations([waypoint], { routingOptions, displayOptions });
   await navigationController.startGuidance();
 } catch (error) {
   console.error('Error starting navigation', error);
@@ -239,6 +239,33 @@ try {
 > Route calculation is only available after the Navigation SDK has successfully acquired the user's location. If the location is not yet available when trying to set a destination, the SDK will return a RouteStatus.LOCATION_DISABLED status.
 >
 > To avoid this, ensure that the SDK has provided a valid user location before calling the setDestinations function. You can do this by subscribing to the onLocationChanged navigation callback and waiting for the first valid location update.
+
+#### Using Route Tokens
+
+You can use a pre-computed route from the [Routes API](https://developers.google.com/maps/documentation/routes) by providing a route token. This is useful when you want to ensure the navigation follows a specific route that was calculated server-side.
+
+To use a route token:
+
+1. Pass the token using `routeTokenOptions` instead of `routingOptions`
+2. **Important:** The waypoints passed to `setDestinations` must match the waypoints used when generating the route token
+
+```tsx
+const waypoint = {
+  title: 'Destination',
+  position: { lat: 37.7749, lng: -122.4194 },
+};
+
+const routeTokenOptions = {
+  routeToken: 'your-route-token-from-routes-api',
+  travelMode: TravelMode.DRIVING, // Must match the travel mode used to generate the token
+};
+
+await navigationController.setDestinations([waypoint], { routeTokenOptions });
+await navigationController.startGuidance();
+```
+
+> [!IMPORTANT]
+> `routingOptions` and `routeTokenOptions` are mutually exclusive. Providing both will throw an error.
 
 
 #### Adding navigation listeners

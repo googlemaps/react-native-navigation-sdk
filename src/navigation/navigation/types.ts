@@ -28,6 +28,54 @@ import type {
 } from '../types';
 
 /**
+ * Provides options for routing using a route token from the Routes API.
+ *
+ * Route tokens can be obtained from the Google Maps Routes API by setting
+ * `X-Goog-FieldMask` to include `routes.routeToken` in the request.
+ *
+ * When using route token options, you should not provide routing options
+ * as they are mutually exclusive.
+ */
+export interface RouteTokenOptions {
+  /**
+   * The route token string obtained from the Routes API.
+   */
+  routeToken: string;
+
+  /**
+   * The travel mode used when generating the route token.
+   *
+   * This must match the travel mode used to generate the route token.
+   * If there is a mismatch, this travel mode will override the one used
+   * to generate the route token.
+   */
+  travelMode?: TravelMode;
+}
+
+/**
+ * Options for setting destinations on the navigator.
+ *
+ * Either routingOptions or routeTokenOptions can be provided, but not both.
+ */
+export interface SetDestinationsOptions {
+  /**
+   * Options for calculating the route. Cannot be used with routeTokenOptions.
+   */
+  routingOptions?: RoutingOptions;
+
+  /**
+   * Options for displaying navigation elements like destination markers.
+   */
+  displayOptions?: DisplayOptions;
+
+  /**
+   * Options for using a pre-computed route token from the Routes API.
+   * Cannot be used with routingOptions.
+   */
+  routeTokenOptions?: RouteTokenOptions;
+}
+
+/**
  * Defines the options used by the Navigator for calculating a route to a destination.
  */
 export interface RoutingOptions {
@@ -322,11 +370,12 @@ export interface NavigationController {
    * @param waypoint - A Waypoint object, defining a destination or stopover point
    *                   with specific attributes, such as place ID, title, and
    *                   coordinates (latitude and longitude).
+   * @param options - Optional destination options including routing, display, or route token settings.
+   *                  Note: routingOptions and routeTokenOptions are mutually exclusive.
    */
   setDestination(
     waypoint: Waypoint,
-    routingOptions?: RoutingOptions,
-    displayOptions?: DisplayOptions
+    options?: SetDestinationsOptions
   ): Promise<void>;
 
   /**
@@ -334,11 +383,12 @@ export interface NavigationController {
    *
    * @param waypoints - A list of Waypoint objects, each defining a destination
    *                    or stopover point with specific attributes.
+   * @param options - Optional destination options including routing, display, or route token settings.
+   *                  Note: routingOptions and routeTokenOptions are mutually exclusive.
    */
   setDestinations(
     waypoints: Waypoint[],
-    routingOptions?: RoutingOptions,
-    displayOptions?: DisplayOptions
+    options?: SetDestinationsOptions
   ): Promise<void>;
 
   /**

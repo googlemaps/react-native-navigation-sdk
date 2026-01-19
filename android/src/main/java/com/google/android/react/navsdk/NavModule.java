@@ -36,6 +36,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.NavInfo;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
 import com.google.android.libraries.navigation.ArrivalEvent;
+import com.google.android.libraries.navigation.CustomRoutesOptions;
+import com.google.android.libraries.navigation.DisplayOptions;
 import com.google.android.libraries.navigation.ListenableResultFuture;
 import com.google.android.libraries.navigation.NavigationApi;
 import com.google.android.libraries.navigation.NavigationApi.OnTermsResponseListener;
@@ -43,6 +45,7 @@ import com.google.android.libraries.navigation.Navigator;
 import com.google.android.libraries.navigation.RoadSnappedLocationProvider;
 import com.google.android.libraries.navigation.RoadSnappedLocationProvider.LocationListener;
 import com.google.android.libraries.navigation.RouteSegment;
+import com.google.android.libraries.navigation.RoutingOptions;
 import com.google.android.libraries.navigation.SimulationOptions;
 import com.google.android.libraries.navigation.SpeedAlertOptions;
 import com.google.android.libraries.navigation.SpeedAlertSeverity;
@@ -430,21 +433,11 @@ public class NavModule extends ReactContextBaseJavaModule
   }
 
   @ReactMethod
-  public void setDestination(
-      ReadableMap waypoint,
-      @Nullable ReadableMap routingOptions,
-      @Nullable ReadableMap displayOptions,
-      final Promise promise) {
-    WritableArray array = new WritableNativeArray();
-    array.pushMap(waypoint);
-    setDestinations(array, routingOptions, displayOptions, promise);
-  }
-
-  @ReactMethod
   public void setDestinations(
       ReadableArray waypoints,
       @Nullable ReadableMap routingOptions,
       @Nullable ReadableMap displayOptions,
+      @Nullable ReadableMap routeTokenOptions,
       final Promise promise) {
     if (!ensureNavigatorAvailable(promise)) {
       return;
@@ -459,18 +452,38 @@ public class NavModule extends ReactContextBaseJavaModule
       createWaypoint(map);
     }
 
-    if (routingOptions != null) {
-      if (displayOptions != null) {
+    // Get display options if provided
+    DisplayOptions parsedDisplayOptions =
+        displayOptions != null
+            ? ObjectTranslationUtil.getDisplayOptionsFromMap(displayOptions.toHashMap())
+            : null;
+
+    // If route token options are provided, use CustomRoutesOptions
+    if (routeTokenOptions != null) {
+      CustomRoutesOptions customRoutesOptions;
+      try {
+        customRoutesOptions =
+            ObjectTranslationUtil.getCustomRoutesOptionsFromMap(routeTokenOptions.toHashMap());
+      } catch (IllegalStateException e) {
+        promise.reject("routeTokenMalformed", "The route token passed is malformed", e);
+        return;
+      }
+
+      if (parsedDisplayOptions != null) {
         pendingRoute =
-            mNavigator.setDestinations(
-                mWaypoints,
-                ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap()),
-                ObjectTranslationUtil.getDisplayOptionsFromMap(displayOptions.toHashMap()));
+            mNavigator.setDestinations(mWaypoints, customRoutesOptions, parsedDisplayOptions);
       } else {
+        pendingRoute = mNavigator.setDestinations(mWaypoints, customRoutesOptions);
+      }
+    } else if (routingOptions != null) {
+      RoutingOptions parsedRoutingOptions =
+          ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap());
+
+      if (parsedDisplayOptions != null) {
         pendingRoute =
-            mNavigator.setDestinations(
-                mWaypoints,
-                ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap()));
+            mNavigator.setDestinations(mWaypoints, parsedRoutingOptions, parsedDisplayOptions);
+      } else {
+        pendingRoute = mNavigator.setDestinations(mWaypoints, parsedRoutingOptions);
       }
     } else {
       pendingRoute = mNavigator.setDestinations(mWaypoints);
