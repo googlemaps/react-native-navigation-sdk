@@ -485,6 +485,11 @@ public class NavModule extends ReactContextBaseJavaModule
       } else {
         pendingRoute = mNavigator.setDestinations(mWaypoints, parsedRoutingOptions);
       }
+    } else if (parsedDisplayOptions != null) {
+      // No routing options provided: use defaults, but still honor display options if
+      // supplied.
+      pendingRoute =
+          mNavigator.setDestinations(mWaypoints, new RoutingOptions(), parsedDisplayOptions);
     } else {
       pendingRoute = mNavigator.setDestinations(mWaypoints);
     }
