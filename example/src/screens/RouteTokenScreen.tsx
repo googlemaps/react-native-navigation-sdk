@@ -41,9 +41,8 @@ import {
 } from '@googlemaps/react-native-navigation-sdk';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import usePermissions from '../checkPermissions';
-import SelectDropdown from 'react-native-select-dropdown';
 import Snackbar from 'react-native-snackbar';
-import { getRouteToken, type RoutesApiTravelMode } from '../helpers/routesApi';
+import { getRouteToken } from '../helpers/routesApi';
 
 // Fixed locations for the route token example
 const ORIGIN_LOCATION: LatLng = {
@@ -67,7 +66,6 @@ const RouteTokenScreen = () => {
   );
   const [navigationViewController, setNavigationViewController] =
     useState<NavigationViewController | null>(null);
-  const [travelMode, setTravelMode] = useState<TravelMode>(TravelMode.DRIVING);
   // API key for Routes API
   const [apiKey, setApiKey] = useState<string>('');
   const [isFetchingToken, setIsFetchingToken] = useState<boolean>(false);
@@ -75,30 +73,6 @@ const RouteTokenScreen = () => {
   const { arePermissionsApproved } = usePermissions();
   const { navigationController, addListeners, removeListeners } =
     useNavigation();
-
-  const travelModeOptions = [
-    { label: 'Driving', value: TravelMode.DRIVING },
-    { label: 'Cycling', value: TravelMode.CYCLING },
-    { label: 'Walking', value: TravelMode.WALKING },
-    { label: 'Two Wheeler', value: TravelMode.TWO_WHEELER },
-    { label: 'Taxi', value: TravelMode.TAXI },
-  ];
-
-  // Map TravelMode to Routes API travel mode
-  const getRoutesApiTravelMode = (mode: TravelMode): RoutesApiTravelMode => {
-    switch (mode) {
-      case TravelMode.CYCLING:
-        return 'BICYCLE';
-      case TravelMode.WALKING:
-        return 'WALK';
-      case TravelMode.TWO_WHEELER:
-        return 'TWO_WHEELER';
-      case TravelMode.DRIVING:
-      case TravelMode.TAXI:
-      default:
-        return 'DRIVE';
-    }
-  };
 
   const handleFetchRouteToken = useCallback(async () => {
     if (apiKey.trim() === '') {
@@ -108,18 +82,14 @@ const RouteTokenScreen = () => {
 
     setIsFetchingToken(true);
     try {
-      const tokens = await getRouteToken(
+      const token = await getRouteToken(
         apiKey.trim(),
-        [ORIGIN_LOCATION, DESTINATION_LOCATION],
-        { travelMode: getRoutesApiTravelMode(travelMode) }
+        ORIGIN_LOCATION,
+        DESTINATION_LOCATION
       );
 
-      if (tokens.length > 0) {
-        setRouteTokenInput(tokens[0]!);
-        showSnackbar('Route token fetched successfully');
-      } else {
-        Alert.alert('No Route Found', 'The Routes API returned no routes.');
-      }
+      setRouteTokenInput(token);
+      showSnackbar('Route token fetched successfully');
     } catch (error) {
       console.error('Error fetching route token:', error);
       Alert.alert(
@@ -129,7 +99,7 @@ const RouteTokenScreen = () => {
     } finally {
       setIsFetchingToken(false);
     }
-  }, [apiKey, travelMode]);
+  }, [apiKey]);
 
   const handleSetRouteToken = useCallback(() => {
     if (routeTokenInput.trim() === '') {
@@ -159,7 +129,7 @@ const RouteTokenScreen = () => {
 
       const routeTokenOptions: RouteTokenOptions = {
         routeToken: confirmedRouteToken,
-        travelMode: travelMode,
+        travelMode: TravelMode.DRIVING, // Route tokens only support driving mode.
       };
 
       try {
@@ -175,12 +145,7 @@ const RouteTokenScreen = () => {
         );
       }
     }
-  }, [
-    navigationViewController,
-    confirmedRouteToken,
-    travelMode,
-    navigationController,
-  ]);
+  }, [navigationViewController, confirmedRouteToken, navigationController]);
 
   const onNavigationMapReady = useCallback(async () => {
     console.log(
@@ -328,27 +293,6 @@ const RouteTokenScreen = () => {
               </Text>
             </View>
 
-            <View style={CommonStyles.inputContainer}>
-              <Text style={CommonStyles.label}>Travel Mode:</Text>
-              <SelectDropdown
-                data={travelModeOptions}
-                onSelect={selectedItem => setTravelMode(selectedItem.value)}
-                defaultValue={travelModeOptions[0]}
-                renderButton={selectedItem => (
-                  <View style={styles.dropdownButton}>
-                    <Text style={styles.dropdownButtonText}>
-                      {selectedItem?.label || 'Select travel mode'}
-                    </Text>
-                  </View>
-                )}
-                renderItem={item => (
-                  <View style={styles.dropdownItem}>
-                    <Text style={styles.dropdownItemText}>{item.label}</Text>
-                  </View>
-                )}
-              />
-            </View>
-
             <View style={CommonStyles.buttonContainer}>
               {isFetchingToken ? (
                 <ActivityIndicator size="large" color="#4285F4" />
@@ -399,7 +343,7 @@ const RouteTokenScreen = () => {
           <View style={CommonStyles.infoContainer}>
             <Text style={CommonStyles.infoTitle}>Note:</Text>
             <Text style={CommonStyles.infoText}>
-              The travel mode must match what was used to generate the token.
+              Route tokens only support driving mode.
               {'\n\n'}
               The user location will be simulated at the origin when navigation
               starts.
@@ -464,26 +408,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     marginBottom: 10,
-  },
-  dropdownButton: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  dropdownButtonText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  dropdownItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  dropdownItemText: {
-    fontSize: 16,
-    color: '#333',
   },
   sectionContainer: {
     marginBottom: 16,
