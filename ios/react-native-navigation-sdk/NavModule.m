@@ -851,6 +851,22 @@ RCT_EXPORT_METHOD(stopUpdatingLocation) {
   [obj setValue:stepInfo.fullRoadName forKey:@"fullRoadName"];
   [obj setValue:stepInfo.fullInstructionText forKey:@"instruction"];
 
+  if (stepInfo.lanes != nil) {
+    NSMutableArray *lanesArr = [[NSMutableArray alloc] init];
+
+    for (GMSNavigationLane *lane in stepInfo.lanes) {
+      NSMutableArray *dirsArr = [[NSMutableArray alloc] init];
+
+      for (GMSNavigationLaneDirection *dir in lane.laneDirections) {
+        [dirsArr addObject:@{@"laneShape" : @(dir.laneShape), @"recommended" : @(dir.recommended)}];
+      }
+
+      [lanesArr addObject:@{@"laneDirections" : dirsArr}];
+    }
+
+    [obj setObject:lanesArr forKey:@"lanes"];
+  }
+
   return obj;
 }
 
