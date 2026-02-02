@@ -13,7 +13,6 @@
  */
 package com.google.android.react.navsdk;
 
-import android.graphics.Color;
 import com.google.android.libraries.navigation.StylingOptions;
 import java.util.Map;
 
@@ -33,7 +32,10 @@ public class StylingOptionsBuilder {
     }
 
     private int parseColor(String color, Map map) {
-      return Color.parseColor(CollectionUtil.getString(color, map));
+      if (map.containsKey(color)) {
+        return CollectionUtil.getInt(color, map, 0xFF000000);
+      }
+      return 0xFF000000; // Default to opaque black if not present
     }
 
     public StylingOptions build() {

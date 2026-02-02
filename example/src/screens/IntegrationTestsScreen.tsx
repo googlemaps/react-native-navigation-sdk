@@ -18,13 +18,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Text, View, useWindowDimensions } from 'react-native';
 import { ExampleAppButton } from '../controls/ExampleAppButton';
-import Snackbar from 'react-native-snackbar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   type Circle,
   type LatLng,
-  type MapViewCallbacks,
   type MapViewController,
   type Marker,
   type NavigationViewController,
@@ -35,6 +33,7 @@ import {
 } from '@googlemaps/react-native-navigation-sdk';
 import { CommonStyles, ControlStyles } from '../styles/components';
 import OverlayModal from '../helpers/overlayModal';
+import { showSnackbar } from '../helpers/snackbar';
 import {
   testMapInitialization,
   testNavigationToSingleDestination,
@@ -44,6 +43,11 @@ import {
   testGetCurrentTimeAndDistance,
   testMoveCamera,
   testTiltZoomBearingCamera,
+  testMapMarkers,
+  testMapCircles,
+  testMapPolylines,
+  testMapPolygons,
+  testMapGroundOverlays,
   testOnRemainingTimeOrDistanceChanged,
   testOnArrival,
   testOnRouteChanged,
@@ -52,11 +56,6 @@ import {
   testRouteTokenOptionsValidation,
   NO_ERRORS_DETECTED_LABEL,
 } from './integration_tests/integration_test';
-
-// Utility function for showing Snackbar
-const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
-  Snackbar.show({ text, duration });
-};
 
 enum TestRunStatus {
   NotRunning = 'Not running',
@@ -80,8 +79,16 @@ const IntegrationTestsScreen = () => {
     TestRunStatus.NotRunning
   );
   const [testResult, setTestResult] = useState<TestResult>(TestResult.None);
-  const { navigationController, addListeners, removeListeners } =
-    useNavigation();
+
+  // Get navigationController and listener setters from useNavigation hook
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnArrival,
+    setOnRemainingTimeOrDistanceChanged,
+    setOnRouteChanged,
+  } = useNavigation();
+
   const [detoxStepNumber, setDetoxStepNumber] = useState(0);
   const [failureMessage, setFailuremessage] = useState(
     NO_ERRORS_DETECTED_LABEL
@@ -91,8 +98,34 @@ const IntegrationTestsScreen = () => {
   const insets = useSafeAreaInsets();
   const windowDimensions = useWindowDimensions();
 
+  // UI Settings state for props-based testing
+  const [compassEnabled, setCompassEnabled] = useState<boolean | undefined>(
+    undefined
+  );
+  const [rotateGesturesEnabled, setRotateGesturesEnabled] = useState<
+    boolean | undefined
+  >(undefined);
+  const [scrollGesturesEnabled, setScrollGesturesEnabled] = useState<
+    boolean | undefined
+  >(undefined);
+  const [
+    scrollGesturesDuringRotateOrZoomEnabled,
+    setScrollGesturesDuringRotateOrZoomEnabled,
+  ] = useState<boolean | undefined>(undefined);
+  const [tiltGesturesEnabled, setTiltGesturesEnabled] = useState<
+    boolean | undefined
+  >(undefined);
+  const [zoomGesturesEnabled, setZoomGesturesEnabled] = useState<
+    boolean | undefined
+  >(undefined);
+  const [zoomControlsEnabled, setZoomControlsEnabled] = useState<
+    boolean | undefined
+  >(undefined);
+  const [mapToolbarEnabled, setMapToolbarEnabled] = useState<
+    boolean | undefined
+  >(undefined);
+
   const onMapReady = useCallback(async () => {
-    console.log('Map is ready, initializing navigator...');
     try {
       // await navigationController.init();
     } catch (error) {
@@ -101,34 +134,47 @@ const IntegrationTestsScreen = () => {
     }
   }, []);
 
-  const mapViewCallbacks: MapViewCallbacks = useMemo(
-    () => ({
-      onMapReady: onMapReady,
-      onMarkerClick: (marker: Marker) => {
-        console.log('Map 1, onMarkerClick:', marker);
-        mapViewController?.removeMarker(marker.id);
-      },
-      onPolygonClick: (polygon: Polygon) => {
-        console.log('Map 1, onPolygonClick:', polygon);
-        mapViewController?.removePolygon(polygon.id);
-      },
-      onCircleClick: (circle: Circle) => {
-        console.log('Map 1, onCircleClick:', circle);
-        mapViewController?.removeCircle(circle.id);
-      },
-      onPolylineClick: (polyline: Polyline) => {
-        console.log('Map 1, onPolylineClick:', polyline);
-        mapViewController?.removePolyline(polyline.id);
-      },
-      onMarkerInfoWindowTapped: (marker: Marker) => {
-        console.log('Map 1, onMarkerInfoWindowTapped:', marker);
-      },
-      onMapClick: (latLng: LatLng) => {
-        console.log('Map 1, onMapClick:', latLng);
-      },
-    }),
-    [mapViewController, onMapReady]
+  const onMarkerClick = useCallback(
+    (marker: Marker) => {
+      showSnackbar('Marker clicked, removing...');
+      mapViewController?.removeMarker(marker.id);
+    },
+    [mapViewController]
   );
+
+  const onPolygonClick = useCallback(
+    (polygon: Polygon) => {
+      showSnackbar('Polygon clicked, removing...');
+      mapViewController?.removePolygon(polygon.id);
+    },
+    [mapViewController]
+  );
+
+  const onCircleClick = useCallback(
+    (circle: Circle) => {
+      showSnackbar('Circle clicked, removing...');
+      mapViewController?.removeCircle(circle.id);
+    },
+    [mapViewController]
+  );
+
+  const onPolylineClick = useCallback(
+    (polyline: Polyline) => {
+      showSnackbar('Polyline clicked, removing...');
+      mapViewController?.removePolyline(polyline.id);
+    },
+    [mapViewController]
+  );
+
+  const onMarkerInfoWindowTapped = useCallback((_marker: Marker) => {
+    showSnackbar('Marker info window tapped');
+  }, []);
+
+  const onMapClick = useCallback((latLng: LatLng) => {
+    showSnackbar(
+      `Clicked at ${latLng.lat.toFixed(4)}, ${latLng.lng.toFixed(4)}`
+    );
+  }, []);
 
   const passTest = () => {
     setTestStatus(TestRunStatus.Finished);
@@ -167,13 +213,24 @@ const IntegrationTestsScreen = () => {
       navigationController,
       mapViewController,
       navigationViewController,
-      addListeners,
-      removeListeners,
+      setOnNavigationReady,
+      setOnArrival,
+      setOnRemainingTimeOrDistanceChanged,
+      setOnRouteChanged,
       passTest,
       failTest,
       setDetoxStep,
       expectFalseError,
       expectTrueError,
+      // UI settings setters for props-based testing
+      setCompassEnabled,
+      setRotateGesturesEnabled,
+      setScrollGesturesEnabled,
+      setScrollGesturesDuringRotateOrZoomEnabled,
+      setTiltGesturesEnabled,
+      setZoomGesturesEnabled,
+      setZoomControlsEnabled,
+      setMapToolbarEnabled,
     };
   };
 
@@ -206,6 +263,21 @@ const IntegrationTestsScreen = () => {
         break;
       case 'testTiltZoomBearingCamera':
         await testTiltZoomBearingCamera(getTestTools());
+        break;
+      case 'testMapMarkers':
+        await testMapMarkers(getTestTools());
+        break;
+      case 'testMapCircles':
+        await testMapCircles(getTestTools());
+        break;
+      case 'testMapPolylines':
+        await testMapPolylines(getTestTools());
+        break;
+      case 'testMapPolygons':
+        await testMapPolygons(getTestTools());
+        break;
+      case 'testMapGroundOverlays':
+        await testMapGroundOverlays(getTestTools());
         break;
       case 'testOnRemainingTimeOrDistanceChanged':
         await testOnRemainingTimeOrDistanceChanged(getTestTools());
@@ -243,15 +315,29 @@ const IntegrationTestsScreen = () => {
   }, [windowDimensions.height, insets.top, insets.bottom]);
 
   return (
-    <View
-      style={[CommonStyles.container, { paddingBottom: insets.bottom + 100 }]}
-    >
+    <View style={[CommonStyles.container, { paddingBottom: insets.bottom }]}>
       <Text>See CONTRIBUTING.md to see how to run integration tests.</Text>
       <View style={{ flex: 6, margin: 5 }}>
         <NavigationView
-          mapViewCallbacks={mapViewCallbacks}
+          onMapReady={onMapReady}
+          onMarkerClick={onMarkerClick}
+          onPolygonClick={onPolygonClick}
+          onCircleClick={onCircleClick}
+          onPolylineClick={onPolylineClick}
+          onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
+          onMapClick={onMapClick}
           onMapViewControllerCreated={setMapViewController}
           onNavigationViewControllerCreated={setNavigationViewController}
+          compassEnabled={compassEnabled}
+          rotateGesturesEnabled={rotateGesturesEnabled}
+          scrollGesturesEnabled={scrollGesturesEnabled}
+          scrollGesturesDuringRotateOrZoomEnabled={
+            scrollGesturesDuringRotateOrZoomEnabled
+          }
+          tiltGesturesEnabled={tiltGesturesEnabled}
+          zoomGesturesEnabled={zoomGesturesEnabled}
+          zoomControlsEnabled={zoomControlsEnabled}
+          mapToolbarEnabled={mapToolbarEnabled}
         />
       </View>
       <View style={{ flex: 4 }}>
@@ -337,6 +423,41 @@ const IntegrationTestsScreen = () => {
             runTest('testTiltZoomBearingCamera');
           }}
           testID="testTiltZoomBearingCamera"
+        />
+        <ExampleAppButton
+          title="testMapMarkers"
+          onPress={() => {
+            runTest('testMapMarkers');
+          }}
+          testID="testMapMarkers"
+        />
+        <ExampleAppButton
+          title="testMapCircles"
+          onPress={() => {
+            runTest('testMapCircles');
+          }}
+          testID="testMapCircles"
+        />
+        <ExampleAppButton
+          title="testMapPolylines"
+          onPress={() => {
+            runTest('testMapPolylines');
+          }}
+          testID="testMapPolylines"
+        />
+        <ExampleAppButton
+          title="testMapPolygons"
+          onPress={() => {
+            runTest('testMapPolygons');
+          }}
+          testID="testMapPolygons"
+        />
+        <ExampleAppButton
+          title="testMapGroundOverlays"
+          onPress={() => {
+            runTest('testMapGroundOverlays');
+          }}
+          testID="testMapGroundOverlays"
         />
         <ExampleAppButton
           title="testOnRemainingTimeOrDistanceChanged"

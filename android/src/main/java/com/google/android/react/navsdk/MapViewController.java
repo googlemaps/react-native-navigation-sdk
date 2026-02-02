@@ -15,7 +15,6 @@ package com.google.android.react.navsdk;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.graphics.Color;
 import androidx.core.util.Supplier;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -28,6 +27,7 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MapColorScheme;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -43,20 +43,35 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
-public class MapViewController {
+public class MapViewController implements INavigationViewControllerProperties {
   private GoogleMap mGoogleMap;
   private Supplier<Activity> activitySupplier;
   private INavigationViewCallback mNavigationViewCallback;
-  private final List<Marker> markerList = new ArrayList<>();
-  private final List<Polyline> polylineList = new ArrayList<>();
-  private final List<Polygon> polygonList = new ArrayList<>();
-  private final List<GroundOverlay> groundOverlayList = new ArrayList<>();
-  private final List<Circle> circleList = new ArrayList<>();
+
+  // Map storage: key is the effective ID (custom ID if provided, otherwise native ID)
+  private final Map<String, Marker> markerMap = new HashMap<>();
+  private final Map<String, Polyline> polylineMap = new HashMap<>();
+  private final Map<String, Polygon> polygonMap = new HashMap<>();
+  private final Map<String, GroundOverlay> groundOverlayMap = new HashMap<>();
+  private final Map<String, Circle> circleMap = new HashMap<>();
+
+  // Reverse mapping: native ID -> effective ID (for click event handling)
+  private final Map<String, String> markerNativeIdToEffectiveId = new HashMap<>();
+  private final Map<String, String> polylineNativeIdToEffectiveId = new HashMap<>();
+  private final Map<String, String> polygonNativeIdToEffectiveId = new HashMap<>();
+  private final Map<String, String> groundOverlayNativeIdToEffectiveId = new HashMap<>();
+  private final Map<String, String> circleNativeIdToEffectiveId = new HashMap<>();
+
   private String style = "";
+
+  // Zoom level preferences (-1 means use map's current value)
+  private Float minZoomLevelPreference = null;
+  private Float maxZoomLevelPreference = null;
 
   public void initialize(GoogleMap googleMap, Supplier<Activity> activitySupplier) {
     this.mGoogleMap = googleMap;
@@ -89,11 +104,71 @@ public class MapViewController {
     return mGoogleMap;
   }
 
+  /**
+   * Get the effective ID for a marker from its native ID. Returns the custom ID if one was
+   * provided, otherwise returns the native ID.
+   */
+  public String getMarkerEffectiveId(String nativeId) {
+    String effectiveId = markerNativeIdToEffectiveId.get(nativeId);
+    return effectiveId != null ? effectiveId : nativeId;
+  }
+
+  /**
+   * Get the effective ID for a polyline from its native ID. Returns the custom ID if one was
+   * provided, otherwise returns the native ID.
+   */
+  public String getPolylineEffectiveId(String nativeId) {
+    String effectiveId = polylineNativeIdToEffectiveId.get(nativeId);
+    return effectiveId != null ? effectiveId : nativeId;
+  }
+
+  /**
+   * Get the effective ID for a polygon from its native ID. Returns the custom ID if one was
+   * provided, otherwise returns the native ID.
+   */
+  public String getPolygonEffectiveId(String nativeId) {
+    String effectiveId = polygonNativeIdToEffectiveId.get(nativeId);
+    return effectiveId != null ? effectiveId : nativeId;
+  }
+
+  /**
+   * Get the effective ID for a circle from its native ID. Returns the custom ID if one was
+   * provided, otherwise returns the native ID.
+   */
+  public String getCircleEffectiveId(String nativeId) {
+    String effectiveId = circleNativeIdToEffectiveId.get(nativeId);
+    return effectiveId != null ? effectiveId : nativeId;
+  }
+
+  /**
+   * Get the effective ID for a ground overlay from its native ID. Returns the custom ID if one was
+   * provided, otherwise returns the native ID.
+   */
+  public String getGroundOverlayEffectiveId(String nativeId) {
+    String effectiveId = groundOverlayNativeIdToEffectiveId.get(nativeId);
+    return effectiveId != null ? effectiveId : nativeId;
+  }
+
   public Circle addCircle(Map<String, Object> optionsMap) {
     if (mGoogleMap == null) {
       return null;
     }
 
+    // Determine effective ID: use custom ID if provided
+    String customId = CollectionUtil.getString("id", optionsMap);
+
+    // If custom ID provided and object exists, update it instead of recreating
+    if (customId != null && !customId.isEmpty() && circleMap.containsKey(customId)) {
+      Circle existingCircle = circleMap.get(customId);
+      updateCircle(existingCircle, optionsMap);
+      return existingCircle;
+    }
+
+    // Create new circle
+    return createCircle(optionsMap, customId);
+  }
+
+  private Circle createCircle(Map<String, Object> optionsMap, String customId) {
     CircleOptions options = new CircleOptions();
 
     float strokeWidth =
@@ -112,20 +187,52 @@ public class MapViewController {
     boolean clickable = CollectionUtil.getBool("clickable", optionsMap, false);
     options.clickable(clickable);
 
-    String strokeColor = CollectionUtil.getString("strokeColor", optionsMap);
-    if (strokeColor != null) {
-      options.strokeColor(Color.parseColor(strokeColor));
+    if (optionsMap.containsKey("strokeColor")) {
+      int strokeColor = CollectionUtil.getInt("strokeColor", optionsMap, 0);
+      options.strokeColor(strokeColor);
     }
 
-    String fillColor = CollectionUtil.getString("fillColor", optionsMap);
-    if (fillColor != null) {
-      options.fillColor(Color.parseColor(fillColor));
+    if (optionsMap.containsKey("fillColor")) {
+      int fillColor = CollectionUtil.getInt("fillColor", optionsMap, 0);
+      options.fillColor(fillColor);
     }
 
     Circle circle = mGoogleMap.addCircle(options);
-    circleList.add(circle);
+
+    String effectiveId = (customId != null && !customId.isEmpty()) ? customId : circle.getId();
+
+    circleMap.put(effectiveId, circle);
+    circleNativeIdToEffectiveId.put(circle.getId(), effectiveId);
 
     return circle;
+  }
+
+  private void updateCircle(Circle circle, Map<String, Object> optionsMap) {
+    float strokeWidth =
+        Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
+    circle.setStrokeWidth(strokeWidth);
+
+    double radius = CollectionUtil.getDouble("radius", optionsMap, 0.0);
+    circle.setRadius(radius);
+
+    boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
+    circle.setVisible(visible);
+
+    circle.setCenter(
+        ObjectTranslationUtil.getLatLngFromMap((Map<String, Object>) optionsMap.get("center")));
+
+    boolean clickable = CollectionUtil.getBool("clickable", optionsMap, false);
+    circle.setClickable(clickable);
+
+    if (optionsMap.containsKey("strokeColor")) {
+      int strokeColor = CollectionUtil.getInt("strokeColor", optionsMap, 0);
+      circle.setStrokeColor(strokeColor);
+    }
+
+    if (optionsMap.containsKey("fillColor")) {
+      int fillColor = CollectionUtil.getInt("fillColor", optionsMap, 0);
+      circle.setFillColor(fillColor);
+    }
   }
 
   public Marker addMarker(Map<String, Object> optionsMap) {
@@ -133,6 +240,21 @@ public class MapViewController {
       return null;
     }
 
+    // Determine effective ID: use custom ID if provided
+    String customId = CollectionUtil.getString("id", optionsMap);
+
+    // If custom ID provided and object exists, update it instead of recreating
+    if (customId != null && !customId.isEmpty() && markerMap.containsKey(customId)) {
+      Marker existingMarker = markerMap.get(customId);
+      updateMarker(existingMarker, optionsMap);
+      return existingMarker;
+    }
+
+    // Create new marker
+    return createMarker(optionsMap, customId);
+  }
+
+  private Marker createMarker(Map<String, Object> optionsMap, String customId) {
     String imagePath = CollectionUtil.getString("imgPath", optionsMap);
     String title = CollectionUtil.getString("title", optionsMap);
     String snippet = CollectionUtil.getString("snippet", optionsMap);
@@ -145,8 +267,12 @@ public class MapViewController {
 
     MarkerOptions options = new MarkerOptions();
     if (imagePath != null && !imagePath.isEmpty()) {
-      BitmapDescriptor icon = BitmapDescriptorFactory.fromAsset(imagePath);
-      options.icon(icon);
+      try {
+        BitmapDescriptor icon = BitmapDescriptorFactory.fromAsset(imagePath);
+        options.icon(icon);
+      } catch (Exception e) {
+        throw new IllegalArgumentException(JsErrors.INVALID_IMAGE_ERROR_MESSAGE);
+      }
     }
 
     options.position(
@@ -168,9 +294,50 @@ public class MapViewController {
 
     Marker marker = mGoogleMap.addMarker(options);
 
-    markerList.add(marker);
+    String effectiveId = (customId != null && !customId.isEmpty()) ? customId : marker.getId();
+
+    markerMap.put(effectiveId, marker);
+    markerNativeIdToEffectiveId.put(marker.getId(), effectiveId);
 
     return marker;
+  }
+
+  private void updateMarker(Marker marker, Map<String, Object> optionsMap) {
+    String imagePath = CollectionUtil.getString("imgPath", optionsMap);
+    String title = CollectionUtil.getString("title", optionsMap);
+    String snippet = CollectionUtil.getString("snippet", optionsMap);
+    float alpha = Double.valueOf(CollectionUtil.getDouble("alpha", optionsMap, 1)).floatValue();
+    float rotation =
+        Double.valueOf(CollectionUtil.getDouble("rotation", optionsMap, 0)).floatValue();
+    boolean draggable = CollectionUtil.getBool("draggable", optionsMap, false);
+    boolean flat = CollectionUtil.getBool("flat", optionsMap, false);
+    boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
+
+    if (imagePath != null && !imagePath.isEmpty()) {
+      try {
+        BitmapDescriptor icon = BitmapDescriptorFactory.fromAsset(imagePath);
+        marker.setIcon(icon);
+      } catch (Exception e) {
+        throw new IllegalArgumentException(JsErrors.INVALID_IMAGE_ERROR_MESSAGE);
+      }
+    }
+
+    marker.setPosition(
+        ObjectTranslationUtil.getLatLngFromMap((Map<String, Object>) optionsMap.get("position")));
+
+    if (title != null) {
+      marker.setTitle(title);
+    }
+
+    if (snippet != null) {
+      marker.setSnippet(snippet);
+    }
+
+    marker.setFlat(flat);
+    marker.setAlpha(alpha);
+    marker.setRotation(rotation);
+    marker.setDraggable(draggable);
+    marker.setVisible(visible);
   }
 
   public Polyline addPolyline(Map<String, Object> optionsMap) {
@@ -178,6 +345,21 @@ public class MapViewController {
       return null;
     }
 
+    // Determine effective ID: use custom ID if provided
+    String customId = CollectionUtil.getString("id", optionsMap);
+
+    // If custom ID provided and object exists, update it instead of recreating
+    if (customId != null && !customId.isEmpty() && polylineMap.containsKey(customId)) {
+      Polyline existingPolyline = polylineMap.get(customId);
+      updatePolyline(existingPolyline, optionsMap);
+      return existingPolyline;
+    }
+
+    // Create new polyline
+    return createPolyline(optionsMap, customId);
+  }
+
+  private Polyline createPolyline(Map<String, Object> optionsMap, String customId) {
     float width = Double.valueOf(CollectionUtil.getDouble("width", optionsMap, 0)).floatValue();
     boolean clickable = CollectionUtil.getBool("clickable", optionsMap, false);
     boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
@@ -195,9 +377,9 @@ public class MapViewController {
       options.add(latLng);
     }
 
-    String color = CollectionUtil.getString("color", optionsMap);
-    if (color != null) {
-      options.color(Color.parseColor(color));
+    if (optionsMap.containsKey("color")) {
+      int color = CollectionUtil.getInt("color", optionsMap, 0);
+      options.color(color);
     }
 
     options.width(width);
@@ -205,9 +387,40 @@ public class MapViewController {
     options.visible(visible);
 
     Polyline polyline = mGoogleMap.addPolyline(options);
-    polylineList.add(polyline);
+
+    String effectiveId = (customId != null && !customId.isEmpty()) ? customId : polyline.getId();
+
+    polylineMap.put(effectiveId, polyline);
+    polylineNativeIdToEffectiveId.put(polyline.getId(), effectiveId);
 
     return polyline;
+  }
+
+  private void updatePolyline(Polyline polyline, Map<String, Object> optionsMap) {
+    float width = Double.valueOf(CollectionUtil.getDouble("width", optionsMap, 0)).floatValue();
+    boolean clickable = CollectionUtil.getBool("clickable", optionsMap, false);
+    boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
+
+    ArrayList latLngArr = (ArrayList) optionsMap.get("points");
+
+    if (latLngArr != null) {
+      List<LatLng> points = new ArrayList<>();
+      for (int i = 0; i < latLngArr.size(); i++) {
+        Map<String, Object> latLngMap = (Map<String, Object>) latLngArr.get(i);
+        LatLng latLng = createLatLng(latLngMap);
+        points.add(latLng);
+      }
+      polyline.setPoints(points);
+    }
+
+    if (optionsMap.containsKey("color")) {
+      int color = CollectionUtil.getInt("color", optionsMap, 0);
+      polyline.setColor(color);
+    }
+
+    polyline.setWidth(width);
+    polyline.setClickable(clickable);
+    polyline.setVisible(visible);
   }
 
   public Polygon addPolygon(Map<String, Object> optionsMap) {
@@ -215,8 +428,21 @@ public class MapViewController {
       return null;
     }
 
-    String strokeColor = CollectionUtil.getString("strokeColor", optionsMap);
-    String fillColor = CollectionUtil.getString("fillColor", optionsMap);
+    // Determine effective ID: use custom ID if provided
+    String customId = CollectionUtil.getString("id", optionsMap);
+
+    // If custom ID provided and object exists, update it instead of recreating
+    if (customId != null && !customId.isEmpty() && polygonMap.containsKey(customId)) {
+      Polygon existingPolygon = polygonMap.get(customId);
+      updatePolygon(existingPolygon, optionsMap);
+      return existingPolygon;
+    }
+
+    // Create new polygon
+    return createPolygon(optionsMap, customId);
+  }
+
+  private Polygon createPolygon(Map<String, Object> optionsMap, String customId) {
     float strokeWidth =
         Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
     boolean clickable = CollectionUtil.getBool("clickable", optionsMap, false);
@@ -249,12 +475,14 @@ public class MapViewController {
       options.addHole(listHoles);
     }
 
-    if (fillColor != null) {
-      options.fillColor(Color.parseColor(fillColor));
+    if (optionsMap.containsKey("fillColor")) {
+      int fillColor = CollectionUtil.getInt("fillColor", optionsMap, 0);
+      options.fillColor(fillColor);
     }
 
-    if (strokeColor != null) {
-      options.strokeColor(Color.parseColor(strokeColor));
+    if (optionsMap.containsKey("strokeColor")) {
+      int strokeColor = CollectionUtil.getInt("strokeColor", optionsMap, 0);
+      options.strokeColor(strokeColor);
     }
 
     options.strokeWidth(strokeWidth);
@@ -263,9 +491,67 @@ public class MapViewController {
     options.clickable(clickable);
 
     Polygon polygon = mGoogleMap.addPolygon(options);
-    polygonList.add(polygon);
+
+    String effectiveId = (customId != null && !customId.isEmpty()) ? customId : polygon.getId();
+
+    polygonMap.put(effectiveId, polygon);
+    polygonNativeIdToEffectiveId.put(polygon.getId(), effectiveId);
 
     return polygon;
+  }
+
+  private void updatePolygon(Polygon polygon, Map<String, Object> optionsMap) {
+    float strokeWidth =
+        Double.valueOf(CollectionUtil.getDouble("strokeWidth", optionsMap, 0)).floatValue();
+    boolean clickable = CollectionUtil.getBool("clickable", optionsMap, false);
+    boolean geodesic = CollectionUtil.getBool("geodesic", optionsMap, false);
+    boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
+
+    ArrayList latLngArr = (ArrayList) optionsMap.get("points");
+
+    if (latLngArr != null) {
+      List<LatLng> points = new ArrayList<>();
+      for (int i = 0; i < latLngArr.size(); i++) {
+        Map<String, Object> latLngMap = (Map<String, Object>) latLngArr.get(i);
+        LatLng latLng = createLatLng(latLngMap);
+        points.add(latLng);
+      }
+      polygon.setPoints(points);
+    }
+
+    ArrayList holesArr = (ArrayList) optionsMap.get("holes");
+
+    if (holesArr != null) {
+      List<List<LatLng>> holes = new ArrayList<>();
+      for (int i = 0; i < holesArr.size(); i++) {
+        ArrayList arr = (ArrayList) holesArr.get(i);
+        List<LatLng> listHoles = new ArrayList<>();
+
+        for (int j = 0; j < arr.size(); j++) {
+          Map<String, Object> latLngMap = (Map<String, Object>) arr.get(j);
+          LatLng latLng = createLatLng(latLngMap);
+          listHoles.add(latLng);
+        }
+
+        holes.add(listHoles);
+      }
+      polygon.setHoles(holes);
+    }
+
+    if (optionsMap.containsKey("fillColor")) {
+      int fillColor = CollectionUtil.getInt("fillColor", optionsMap, 0);
+      polygon.setFillColor(fillColor);
+    }
+
+    if (optionsMap.containsKey("strokeColor")) {
+      int strokeColor = CollectionUtil.getInt("strokeColor", optionsMap, 0);
+      polygon.setStrokeColor(strokeColor);
+    }
+
+    polygon.setStrokeWidth(strokeWidth);
+    polygon.setVisible(visible);
+    polygon.setGeodesic(geodesic);
+    polygon.setClickable(clickable);
   }
 
   public GroundOverlay addGroundOverlay(Map<String, Object> map) {
@@ -273,89 +559,215 @@ public class MapViewController {
       return null;
     }
 
+    // Determine effective ID: use custom ID if provided
+    String customId = CollectionUtil.getString("id", map);
+
+    // If custom ID provided and object exists, update it instead of recreating
+    if (customId != null && !customId.isEmpty() && groundOverlayMap.containsKey(customId)) {
+      GroundOverlay existingOverlay = groundOverlayMap.get(customId);
+      // GroundOverlay position/bounds cannot be changed after creation,
+      // so we need to check if position-related properties changed
+      if (needsGroundOverlayRecreation(existingOverlay, map)) {
+        // Remove old and create new
+        groundOverlayNativeIdToEffectiveId.remove(existingOverlay.getId());
+        existingOverlay.remove();
+        groundOverlayMap.remove(customId);
+        return createGroundOverlay(map, customId);
+      } else {
+        // Update properties that can be changed
+        updateGroundOverlay(existingOverlay, map);
+        return existingOverlay;
+      }
+    }
+
+    // Create new ground overlay
+    return createGroundOverlay(map, customId);
+  }
+
+  private boolean needsGroundOverlayRecreation(GroundOverlay overlay, Map<String, Object> map) {
+    // GroundOverlay position/bounds and image cannot be changed after creation
+    // Check if any of these would change
     String imagePath = CollectionUtil.getString("imgPath", map);
-    float width = Double.valueOf(CollectionUtil.getDouble("width", map, 0)).floatValue();
-    float height = Double.valueOf(CollectionUtil.getDouble("height", map, 0)).floatValue();
+    if (imagePath != null && !imagePath.isEmpty()) {
+      // Image path specified - would need recreation
+      // (We can't easily compare current image with new path)
+      return true;
+    }
+
+    // Check if bounds or position has changed
+    if (map.containsKey("bounds") || map.containsKey("location")) {
+      // Position/bounds specified - would need recreation
+      return true;
+    }
+
+    return false;
+  }
+
+  private GroundOverlay createGroundOverlay(Map<String, Object> map, String customId) {
+    String imagePath = CollectionUtil.getString("imgPath", map);
     float transparency =
         Double.valueOf(CollectionUtil.getDouble("transparency", map, 0)).floatValue();
+    float bearing = Double.valueOf(CollectionUtil.getDouble("bearing", map, 0)).floatValue();
+    float zIndex = Double.valueOf(CollectionUtil.getDouble("zIndex", map, 0)).floatValue();
     boolean clickable = CollectionUtil.getBool("clickable", map, false);
     boolean visible = CollectionUtil.getBool("visible", map, true);
 
-    Double lat = null;
-    Double lng = null;
-    if (map.containsKey("location")) {
-      Map<String, Object> latlng = (Map<String, Object>) map.get("location");
-      if (latlng.get(Constants.LAT_FIELD_KEY) != null)
-        lat = Double.parseDouble(latlng.get(Constants.LAT_FIELD_KEY).toString());
-      if (latlng.get(Constants.LNG_FIELD_KEY) != null)
-        lng = Double.parseDouble(latlng.get(Constants.LNG_FIELD_KEY).toString());
+    // Get anchor point if specified (default is center: 0.5, 0.5)
+    float anchorU = 0.5f;
+    float anchorV = 0.5f;
+    if (map.containsKey("anchor")) {
+      Map<String, Object> anchor = (Map<String, Object>) map.get("anchor");
+      if (anchor.get("u") != null)
+        anchorU = Double.valueOf(anchor.get("u").toString()).floatValue();
+      if (anchor.get("v") != null)
+        anchorV = Double.valueOf(anchor.get("v").toString()).floatValue();
     }
 
     GroundOverlayOptions options = new GroundOverlayOptions();
+
+    // Set image
     if (imagePath != null && !imagePath.isEmpty()) {
       BitmapDescriptor bitmapDescriptor = BitmapDescriptorFactory.fromAsset(imagePath);
       options.image(bitmapDescriptor);
     }
-    options.position(new LatLng(lat, lng), width, height);
+
+    // Determine positioning method: bounds-based or position-based
+    if (map.containsKey("bounds")) {
+      // Bounds-based positioning
+      Map<String, Object> bounds = (Map<String, Object>) map.get("bounds");
+      Map<String, Object> northEast = (Map<String, Object>) bounds.get("northEast");
+      Map<String, Object> southWest = (Map<String, Object>) bounds.get("southWest");
+
+      double neLat = Double.parseDouble(northEast.get(Constants.LAT_FIELD_KEY).toString());
+      double neLng = Double.parseDouble(northEast.get(Constants.LNG_FIELD_KEY).toString());
+      double swLat = Double.parseDouble(southWest.get(Constants.LAT_FIELD_KEY).toString());
+      double swLng = Double.parseDouble(southWest.get(Constants.LNG_FIELD_KEY).toString());
+
+      LatLngBounds latLngBounds =
+          new LatLngBounds(new LatLng(swLat, swLng), new LatLng(neLat, neLng));
+      options.positionFromBounds(latLngBounds);
+    } else if (map.containsKey("location")) {
+      // Position-based positioning
+      Map<String, Object> latlng = (Map<String, Object>) map.get("location");
+      Double lat = Double.parseDouble(latlng.get(Constants.LAT_FIELD_KEY).toString());
+      Double lng = Double.parseDouble(latlng.get(Constants.LNG_FIELD_KEY).toString());
+
+      float width = Double.valueOf(CollectionUtil.getDouble("width", map, 0)).floatValue();
+      double height = CollectionUtil.getDouble("height", map, -1);
+
+      if (width <= 0) {
+        throw new IllegalArgumentException(JsErrors.INVALID_GROUND_OVERLAY_OPTIONS_MESSAGE);
+      }
+
+      if (height > 0) {
+        options.position(new LatLng(lat, lng), width, (float) height);
+      } else {
+        // Height not specified - preserve aspect ratio
+        options.position(new LatLng(lat, lng), width);
+      }
+    } else {
+      throw new IllegalArgumentException(JsErrors.INVALID_GROUND_OVERLAY_OPTIONS_MESSAGE);
+    }
+
+    options.anchor(anchorU, anchorV);
+    options.bearing(bearing);
     options.transparency(transparency);
+    options.zIndex(zIndex);
     options.clickable(clickable);
     options.visible(visible);
+
     GroundOverlay groundOverlay = mGoogleMap.addGroundOverlay(options);
-    groundOverlayList.add(groundOverlay);
+
+    String effectiveId =
+        (customId != null && !customId.isEmpty()) ? customId : groundOverlay.getId();
+
+    groundOverlayMap.put(effectiveId, groundOverlay);
+    groundOverlayNativeIdToEffectiveId.put(groundOverlay.getId(), effectiveId);
+
     return groundOverlay;
+  }
+
+  private void updateGroundOverlay(GroundOverlay overlay, Map<String, Object> map) {
+    float transparency =
+        Double.valueOf(CollectionUtil.getDouble("transparency", map, 0)).floatValue();
+    float bearing = Double.valueOf(CollectionUtil.getDouble("bearing", map, 0)).floatValue();
+    float zIndex = Double.valueOf(CollectionUtil.getDouble("zIndex", map, 0)).floatValue();
+    boolean clickable = CollectionUtil.getBool("clickable", map, false);
+    boolean visible = CollectionUtil.getBool("visible", map, true);
+
+    overlay.setBearing(bearing);
+    overlay.setTransparency(transparency);
+    overlay.setZIndex(zIndex);
+    overlay.setClickable(clickable);
+    overlay.setVisible(visible);
   }
 
   public void removeMarker(String id) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          for (Marker m : markerList) {
-            if (m.getId().equals(id)) {
-              m.remove();
-              markerList.remove(m);
-              return;
-            }
+          Marker marker = markerMap.get(id);
+          if (marker != null) {
+            markerNativeIdToEffectiveId.remove(marker.getId());
+            marker.remove();
+            markerMap.remove(id);
           }
         });
   }
 
   public void removePolyline(String id) {
-    for (Polyline p : polylineList) {
-      if (p.getId().equals(id)) {
-        p.remove();
-        polylineList.remove(p);
-        return;
-      }
+    Polyline polyline = polylineMap.get(id);
+    if (polyline != null) {
+      polylineNativeIdToEffectiveId.remove(polyline.getId());
+      polyline.remove();
+      polylineMap.remove(id);
     }
   }
 
   public void removePolygon(String id) {
-    for (Polygon p : polygonList) {
-      if (p.getId().equals(id)) {
-        p.remove();
-        polygonList.remove(p);
-        return;
-      }
+    Polygon polygon = polygonMap.get(id);
+    if (polygon != null) {
+      polygonNativeIdToEffectiveId.remove(polygon.getId());
+      polygon.remove();
+      polygonMap.remove(id);
     }
   }
 
   public void removeCircle(String id) {
-    for (Circle c : circleList) {
-      if (c.getId().equals(id)) {
-        c.remove();
-        circleList.remove(c);
-        return;
-      }
+    Circle circle = circleMap.get(id);
+    if (circle != null) {
+      circleNativeIdToEffectiveId.remove(circle.getId());
+      circle.remove();
+      circleMap.remove(id);
     }
   }
 
   public void removeGroundOverlay(String id) {
-    for (GroundOverlay g : groundOverlayList) {
-      if (g.getId().equals(id)) {
-        g.remove();
-        groundOverlayList.remove(g);
-        return;
-      }
+    GroundOverlay groundOverlay = groundOverlayMap.get(id);
+    if (groundOverlay != null) {
+      groundOverlayNativeIdToEffectiveId.remove(groundOverlay.getId());
+      groundOverlay.remove();
+      groundOverlayMap.remove(id);
     }
+  }
+
+  public Map<String, Marker> getMarkerMap() {
+    return markerMap;
+  }
+
+  public Map<String, Circle> getCircleMap() {
+    return circleMap;
+  }
+
+  public Map<String, Polyline> getPolylineMap() {
+    return polylineMap;
+  }
+
+  public Map<String, Polygon> getPolygonMap() {
+    return polygonMap;
+  }
+
+  public Map<String, GroundOverlay> getGroundOverlayMap() {
+    return groundOverlayMap;
   }
 
   public void setMapStyle(String url) {
@@ -379,8 +791,12 @@ public class MapViewController {
             });
   }
 
-  /** Moves the position of the camera to hover over Melbourne. */
+  /** Moves the position of the camera to the specified location. */
   public void moveCamera(Map<String, Object> map) {
+    if (mGoogleMap == null) {
+      return;
+    }
+
     LatLng latLng = ObjectTranslationUtil.getLatLngFromMap((Map<String, Object>) map.get("target"));
 
     float zoom = (float) CollectionUtil.getDouble("zoom", map, 0);
@@ -421,88 +837,138 @@ public class MapViewController {
     }
   }
 
-  public void setIndoorEnabled(boolean isOn) {
+  public void setIndoorEnabled(boolean enabled) {
     if (mGoogleMap != null) {
-      mGoogleMap.setIndoorEnabled(isOn);
+      mGoogleMap.setIndoorEnabled(enabled);
     }
   }
 
-  public void setTrafficEnabled(boolean isOn) {
+  public void setTrafficEnabled(boolean enabled) {
     if (mGoogleMap != null) {
-      mGoogleMap.setTrafficEnabled(isOn);
+      mGoogleMap.setTrafficEnabled(enabled);
     }
   }
 
-  public void setCompassEnabled(boolean isOn) {
+  public void setCompassEnabled(boolean enabled) {
     if (mGoogleMap != null) {
-      mGoogleMap.getUiSettings().setCompassEnabled(isOn);
+      mGoogleMap.getUiSettings().setCompassEnabled(enabled);
     }
   }
 
-  public void setRotateGesturesEnabled(boolean isOn) {
+  public void setRotateGesturesEnabled(boolean enabled) {
     if (mGoogleMap != null) {
-      mGoogleMap.getUiSettings().setRotateGesturesEnabled(isOn);
+      mGoogleMap.getUiSettings().setRotateGesturesEnabled(enabled);
     }
   }
 
-  public void setScrollGesturesEnabled(boolean isOn) {
+  public void setScrollGesturesEnabled(boolean enabled) {
     if (mGoogleMap != null) {
-      mGoogleMap.getUiSettings().setScrollGesturesEnabled(isOn);
+      mGoogleMap.getUiSettings().setScrollGesturesEnabled(enabled);
     }
   }
 
-  public void setScrollGesturesEnabledDuringRotateOrZoom(boolean isOn) {
+  public void setScrollGesturesEnabledDuringRotateOrZoom(boolean enabled) {
     if (mGoogleMap != null) {
-      mGoogleMap.getUiSettings().setScrollGesturesEnabledDuringRotateOrZoom(isOn);
+      mGoogleMap.getUiSettings().setScrollGesturesEnabledDuringRotateOrZoom(enabled);
     }
   }
 
-  public void setTiltGesturesEnabled(boolean isOn) {
+  public void setTiltGesturesEnabled(boolean enabled) {
     if (mGoogleMap != null) {
-      mGoogleMap.getUiSettings().setTiltGesturesEnabled(isOn);
+      mGoogleMap.getUiSettings().setTiltGesturesEnabled(enabled);
     }
   }
 
-  public void setZoomControlsEnabled(boolean isOn) {
+  public void setZoomControlsEnabled(boolean enabled) {
     if (mGoogleMap != null) {
-      mGoogleMap.getUiSettings().setZoomControlsEnabled(isOn);
+      mGoogleMap.getUiSettings().setZoomControlsEnabled(enabled);
     }
   }
 
-  public void setZoomGesturesEnabled(boolean isOn) {
+  @Override
+  public void setMinZoomLevel(float minZoomLevel) {
+    if (mGoogleMap == null) {
+      return;
+    }
+
+    // Get the effective max zoom for comparison
+    float maxZoom =
+        (maxZoomLevelPreference != null && maxZoomLevelPreference >= 0.0f)
+            ? maxZoomLevelPreference
+            : mGoogleMap.getMaxZoomLevel();
+
+    // Validate that min is not greater than max (unless using -1 sentinel)
+    if (minZoomLevel >= 0.0f && minZoomLevel > maxZoom) {
+      throw new IllegalArgumentException(
+          "Minimum zoom level cannot be greater than maximum zoom level");
+    }
+
+    minZoomLevelPreference = minZoomLevel;
+
+    // Use map's current minZoomLevel if -1 is provided
+    float effectiveMin = (minZoomLevel < 0.0f) ? mGoogleMap.getMinZoomLevel() : minZoomLevel;
+    mGoogleMap.setMinZoomPreference(effectiveMin);
+  }
+
+  @Override
+  public void setMaxZoomLevel(float maxZoomLevel) {
+    if (mGoogleMap == null) {
+      return;
+    }
+
+    // Get the effective min zoom for comparison
+    float minZoom =
+        (minZoomLevelPreference != null && minZoomLevelPreference >= 0.0f)
+            ? minZoomLevelPreference
+            : mGoogleMap.getMinZoomLevel();
+
+    // Validate that max is not less than min (unless using -1 sentinel)
+    if (maxZoomLevel >= 0.0f && maxZoomLevel < minZoom) {
+      throw new IllegalArgumentException(
+          "Maximum zoom level cannot be less than minimum zoom level");
+    }
+
+    maxZoomLevelPreference = maxZoomLevel;
+
+    // Use map's current maxZoomLevel if -1 is provided
+    float effectiveMax = (maxZoomLevel < 0.0f) ? mGoogleMap.getMaxZoomLevel() : maxZoomLevel;
+    mGoogleMap.setMaxZoomPreference(effectiveMax);
+  }
+
+  public void setZoomGesturesEnabled(boolean enabled) {
     if (mGoogleMap != null) {
-      mGoogleMap.getUiSettings().setZoomGesturesEnabled(isOn);
+      mGoogleMap.getUiSettings().setZoomGesturesEnabled(enabled);
     }
   }
 
-  public void setBuildingsEnabled(boolean isOn) {
+  public void setBuildingsEnabled(boolean enabled) {
     if (mGoogleMap != null) {
-      mGoogleMap.setBuildingsEnabled(isOn);
+      mGoogleMap.setBuildingsEnabled(enabled);
     }
   }
 
   @SuppressLint("MissingPermission")
-  public void setMyLocationEnabled(boolean isOn) {
+  public void setMyLocationEnabled(boolean enabled) {
     if (mGoogleMap != null) {
-      mGoogleMap.setMyLocationEnabled(isOn);
+      mGoogleMap.setMyLocationEnabled(enabled);
     }
   }
 
-  public void setMapToolbarEnabled(boolean isOn) {
+  public void setMapToolbarEnabled(boolean enabled) {
     if (mGoogleMap != null) {
-      mGoogleMap.getUiSettings().setMapToolbarEnabled(isOn);
+      mGoogleMap.getUiSettings().setMapToolbarEnabled(enabled);
     }
   }
 
   /** Toggles whether the location marker is enabled. */
-  public void setMyLocationButtonEnabled(boolean isOn) {
+  public void setMyLocationButtonEnabled(boolean enabled) {
     if (mGoogleMap == null) {
       return;
     }
 
     UiThreadUtil.runOnUiThread(
         () -> {
-          mGoogleMap.getUiSettings().setMyLocationButtonEnabled(isOn);
+          mGoogleMap.getUiSettings().setMyLocationButtonEnabled(enabled);
         });
   }
 
@@ -528,6 +994,18 @@ public class MapViewController {
     }
 
     mGoogleMap.clear();
+
+    // Clear all internal maps
+    markerMap.clear();
+    polylineMap.clear();
+    polygonMap.clear();
+    groundOverlayMap.clear();
+    circleMap.clear();
+    markerNativeIdToEffectiveId.clear();
+    polylineNativeIdToEffectiveId.clear();
+    polygonNativeIdToEffectiveId.clear();
+    groundOverlayNativeIdToEffectiveId.clear();
+    circleNativeIdToEffectiveId.clear();
   }
 
   public void resetMinMaxZoomLevel() {

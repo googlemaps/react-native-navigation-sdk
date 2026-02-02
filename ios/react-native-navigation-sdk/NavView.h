@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,40 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef NavView_h
+#define NavView_h
 
-#import <React/RCTBridge.h>
-#import <React/RCTComponent.h>
-#import <React/RCTViewManager.h>
+#import <React/RCTViewComponentView.h>
+#import <UIKit/UIKit.h>
 #import "CustomTypes.h"
 #import "INavigationViewCallback.h"
 
 @class NavViewController;
 
-@interface NavView : UIView <INavigationViewCallback>
+NS_ASSUME_NONNULL_BEGIN
 
-@property(nonatomic, copy) RCTDirectEventBlock onRecenterButtonClick;
-@property(nonatomic, copy) RCTDirectEventBlock onMapReady;
-@property(nonatomic, copy) RCTDirectEventBlock onMapClick;
-@property(nonatomic, copy) RCTDirectEventBlock onMarkerInfoWindowTapped;
-@property(nonatomic, copy) RCTDirectEventBlock onMarkerClick;
-@property(nonatomic, copy) RCTDirectEventBlock onPolylineClick;
-@property(nonatomic, copy) RCTDirectEventBlock onPolygonClick;
-@property(nonatomic, copy) RCTDirectEventBlock onCircleClick;
-@property(nonatomic, copy) RCTDirectEventBlock onGroundOverlayClick;
-@property(nonatomic, copy) RCTDirectEventBlock onPromptVisibilityChanged;
+/**
+ * Fabric ComponentView for Google Maps Navigation
+ * This is the new architecture (Fabric) implementation
+ */
+@interface NavView : RCTViewComponentView <INavigationViewCallback>
 
-// Cleanup block that will be called when the view is removed from superview
-@property(nonatomic, copy) void (^cleanupBlock)(NSNumber *reactTag);
-
-- (NavViewController *)initializeViewControllerWithMapViewType:(MapViewType)mapViewType
-                                                         mapId:(NSString *)mapId
-                                                stylingOptions:(NSDictionary *)stylingOptions
-                                                mapColorScheme:(NSNumber *)colorScheme
-                                                     nightMode:(NSNumber *)nightMode;
-
-- (void)applyStylingOptions:(NSDictionary *)stylingOptions;
-- (void)applyMapColorScheme:(NSNumber *)colorScheme;
-- (void)applyNightMode:(NSNumber *)nightMode;
 - (NavViewController *)getViewController;
 
 @end
+
+NS_ASSUME_NONNULL_END
+
+#endif /* NavView_h */

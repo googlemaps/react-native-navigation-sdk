@@ -13,11 +13,16 @@
  */
 package com.google.android.react.navsdk;
 
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Build;
+import android.util.Log;
+import androidx.annotation.Nullable;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.LatLng;
@@ -36,6 +41,64 @@ import java.util.List;
 import java.util.Map;
 
 public class ObjectTranslationUtil {
+
+  /**
+   * Parses a standardized hex color string (#RRGGBBAA format) and returns an Android color int.
+   * This method expects colors in #RRGGBBAA format only (8 characters after #). The JavaScript
+   * layer handles conversion from all React Native color formats to this standardized format using
+   * processColor.
+   *
+   * @param hexString The hex color string in #RRGGBBAA format (e.g., "#FF0000FF")
+   * @return Android color int in AARRGGBB format, or null if invalid
+   */
+  @Nullable
+  public static Integer parseColorFromHexString(@Nullable String hexString) {
+    if (hexString == null || !hexString.startsWith("#")) {
+      return null;
+    }
+
+    String hexValue = hexString.substring(1);
+    int length = hexValue.length();
+
+    // We only support the standardized #RRGGBBAA format (8 hex chars)
+    if (length != 8) {
+      Log.w(
+          "ObjectTranslationUtil",
+          "parseColorFromHexString expects #RRGGBBAA format (8 hex chars), got: " + hexString);
+      return null;
+    }
+
+    try {
+      // #RRGGBBAA - Parse with alpha LAST
+      long value = Long.parseLong(hexValue, 16);
+      int r = (int) ((value & 0xFF000000L) >> 24);
+      int g = (int) ((value & 0x00FF0000L) >> 16);
+      int b = (int) ((value & 0x0000FF00L) >> 8);
+      int a = (int) (value & 0x000000FFL); // Alpha is last
+
+      // Construct Android color int in AARRGGBB format (alpha first)
+      return (a << 24) | (r << 16) | (g << 8) | b;
+
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Converts an Android color int (AARRGGBB format) to standardized hex string (#RRGGBBAA).
+   *
+   * @param colorInt The color in AARRGGBB format (int)
+   * @return A hex string in #RRGGBBAA format (e.g., "#FF0000FF")
+   */
+  public static String colorIntToHexString(int colorInt) {
+    int a = Color.alpha(colorInt);
+    int r = Color.red(colorInt);
+    int g = Color.green(colorInt);
+    int b = Color.blue(colorInt);
+    // Standardized format: #RRGGBBAA (alpha last)
+    return String.format("#%02X%02X%02X%02X", r, g, b, a);
+  }
+
   public static WritableMap getMapFromRouteSegment(RouteSegment routeSegment) {
     WritableMap parentMap = Arguments.createMap();
 
@@ -114,17 +177,18 @@ public class ObjectTranslationUtil {
       options.hideDestinationMarkers(!CollectionUtil.getBool("showDestinationMarkers", map, true));
     }
 
-    // Note: showStopSigns and showTrafficLights are deprecated in Navigation SDK 7.0.0
+    // Note: showStopSigns and showTrafficLights are deprecated in Navigation SDK
+    // 7.0.0
     // and now default to true. These will be removed in SDK 8.0.0
     if (map.containsKey("showStopSigns")) {
       boolean showStopSigns = CollectionUtil.getBool("showStopSigns", map, true);
-      //noinspection deprecation
+      // noinspection deprecation
       options.showStopSigns(showStopSigns);
     }
 
     if (map.containsKey("showTrafficLights")) {
       boolean showTrafficLights = CollectionUtil.getBool("showTrafficLights", map, true);
-      //noinspection deprecation
+      // noinspection deprecation
       options.showTrafficLights(showTrafficLights);
     }
 
@@ -147,9 +211,8 @@ public class ObjectTranslationUtil {
     }
 
     if (map.containsKey("travelMode")) {
-      int travelModeJsValue =
-          CollectionUtil.getInt("travelMode", map, RoutingOptions.TravelMode.DRIVING);
-      options.travelMode(EnumTranslationUtil.getTravelModeFromJsValue(travelModeJsValue));
+      options.travelMode(
+          CollectionUtil.getInt("travelMode", map, RoutingOptions.TravelMode.DRIVING));
     }
 
     if (map.containsKey("routingStrategy")) {
@@ -223,36 +286,52 @@ public class ObjectTranslationUtil {
   }
 
   public static WritableMap getMapFromGroundOverlay(GroundOverlay overlay) {
+    return getMapFromGroundOverlay(overlay, overlay.getId());
+  }
+
+  public static WritableMap getMapFromGroundOverlay(GroundOverlay overlay, String effectiveId) {
     WritableMap map = Arguments.createMap();
 
-    map.putMap("position", ObjectTranslationUtil.getMapFromLatLng(overlay.getPosition()));
+    // Position may be null if created with bounds - calculate from bounds center if so
+    if (overlay.getPosition() != null) {
+      map.putMap("position", ObjectTranslationUtil.getMapFromLatLng(overlay.getPosition()));
+    } else if (overlay.getBounds() != null) {
+      // Calculate position from bounds center
+      map.putMap(
+          "position", ObjectTranslationUtil.getMapFromLatLng(overlay.getBounds().getCenter()));
+    }
 
-    WritableMap mapBounds = Arguments.createMap();
+    // Bounds is always available
+    if (overlay.getBounds() != null) {
+      WritableMap mapBounds = Arguments.createMap();
+      mapBounds.putMap(
+          "northEast", ObjectTranslationUtil.getMapFromLatLng(overlay.getBounds().northeast));
+      mapBounds.putMap(
+          "southWest", ObjectTranslationUtil.getMapFromLatLng(overlay.getBounds().southwest));
+      mapBounds.putMap(
+          "center", ObjectTranslationUtil.getMapFromLatLng(overlay.getBounds().getCenter()));
+      map.putMap("bounds", mapBounds);
+    }
 
-    mapBounds.putMap(
-        "northEast", ObjectTranslationUtil.getMapFromLatLng(overlay.getBounds().northeast));
-    mapBounds.putMap(
-        "southWest", ObjectTranslationUtil.getMapFromLatLng(overlay.getBounds().southwest));
-    mapBounds.putMap(
-        "center", ObjectTranslationUtil.getMapFromLatLng(overlay.getBounds().getCenter()));
-
-    map.putMap("bounds", mapBounds);
-
-    map.putString("id", overlay.getId());
+    map.putString("id", effectiveId);
     map.putDouble("height", overlay.getHeight());
     map.putDouble("width", overlay.getWidth());
     map.putDouble("bearing", overlay.getBearing());
     map.putDouble("transparency", overlay.getTransparency());
-    map.putDouble("zIndex", overlay.getZIndex());
+    map.putInt("zIndex", (int) overlay.getZIndex());
 
     return map;
   }
 
   public static WritableMap getMapFromMarker(Marker marker) {
+    return getMapFromMarker(marker, marker.getId());
+  }
+
+  public static WritableMap getMapFromMarker(Marker marker, String effectiveId) {
     WritableMap map = Arguments.createMap();
 
     map.putMap("position", getMapFromLatLng(marker.getPosition()));
-    map.putString("id", marker.getId());
+    map.putString("id", effectiveId);
     map.putString("title", marker.getTitle());
     map.putDouble("alpha", marker.getAlpha());
     map.putDouble("rotation", marker.getRotation());
@@ -263,10 +342,14 @@ public class ObjectTranslationUtil {
   }
 
   public static WritableMap getMapFromCircle(Circle circle) {
+    return getMapFromCircle(circle, circle.getId());
+  }
+
+  public static WritableMap getMapFromCircle(Circle circle, String effectiveId) {
     WritableMap map = Arguments.createMap();
     map.putMap("center", ObjectTranslationUtil.getMapFromLatLng(circle.getCenter()));
 
-    map.putString("id", circle.getId());
+    map.putString("id", effectiveId);
     map.putInt("fillColor", circle.getFillColor());
     map.putDouble("strokeWidth", circle.getStrokeWidth());
     map.putInt("strokeColor", circle.getStrokeColor());
@@ -277,6 +360,10 @@ public class ObjectTranslationUtil {
   }
 
   public static WritableMap getMapFromPolyline(Polyline polyline) {
+    return getMapFromPolyline(polyline, polyline.getId());
+  }
+
+  public static WritableMap getMapFromPolyline(Polyline polyline, String effectiveId) {
     WritableMap map = Arguments.createMap();
     WritableArray pointsArr = Arguments.createArray();
 
@@ -285,7 +372,7 @@ public class ObjectTranslationUtil {
     }
     map.putArray("points", pointsArr);
 
-    map.putString("id", polyline.getId());
+    map.putString("id", effectiveId);
     map.putInt("color", polyline.getColor());
     map.putDouble("width", polyline.getWidth());
     map.putInt("jointType", polyline.getJointType());
@@ -295,6 +382,10 @@ public class ObjectTranslationUtil {
   }
 
   public static WritableMap getMapFromPolygon(Polygon polygon) {
+    return getMapFromPolygon(polygon, polygon.getId());
+  }
+
+  public static WritableMap getMapFromPolygon(Polygon polygon, String effectiveId) {
 
     WritableMap map = Arguments.createMap();
     WritableArray pointsArr = Arguments.createArray();
@@ -316,7 +407,7 @@ public class ObjectTranslationUtil {
     }
     map.putArray("holes", holesArr);
 
-    map.putString("id", polygon.getId());
+    map.putString("id", effectiveId);
     map.putInt("fillColor", polygon.getFillColor());
     map.putDouble("strokeWidth", polygon.getStrokeWidth());
     map.putInt("strokeColor", polygon.getStrokeColor());
@@ -325,5 +416,52 @@ public class ObjectTranslationUtil {
     map.putBoolean("geodesic", polygon.isGeodesic());
 
     return map;
+  }
+
+  /**
+   * Converts a ReadableMap representing an initial camera position to a CameraPosition object. Used
+   * for setting initial camera when creating a map.
+   *
+   * @param cameraMap ReadableMap with keys: target (lat/lng), zoom, bearing, tilt
+   * @return CameraPosition or null if cameraMap is null or invalid
+   */
+  @Nullable
+  public static CameraPosition getCameraPositionFromMap(@Nullable ReadableMap cameraMap) {
+    if (cameraMap == null) {
+      return null;
+    }
+
+    CameraPosition.Builder builder = new CameraPosition.Builder();
+
+    // Set target (lat/lng)
+    if (cameraMap.hasKey("target") && !cameraMap.isNull("target")) {
+      ReadableMap targetMap = cameraMap.getMap("target");
+      if (targetMap != null
+          && targetMap.hasKey("lat")
+          && targetMap.hasKey("lng")
+          && !targetMap.isNull("lat")
+          && !targetMap.isNull("lng")) {
+        double lat = targetMap.getDouble("lat");
+        double lng = targetMap.getDouble("lng");
+        builder.target(new LatLng(lat, lng));
+      }
+    }
+
+    // Set zoom
+    if (cameraMap.hasKey("zoom") && !cameraMap.isNull("zoom")) {
+      builder.zoom((float) cameraMap.getDouble("zoom"));
+    }
+
+    // Set bearing
+    if (cameraMap.hasKey("bearing") && !cameraMap.isNull("bearing")) {
+      builder.bearing((float) cameraMap.getDouble("bearing"));
+    }
+
+    // Set tilt
+    if (cameraMap.hasKey("tilt") && !cameraMap.isNull("tilt")) {
+      builder.tilt((float) cameraMap.getDouble("tilt"));
+    }
+
+    return builder.build();
   }
 }

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import type { MapViewController } from '../maps';
+import type { MapViewController, MapType, MapColorScheme } from '../maps';
+import type { CameraPerspective, NavigationNightMode } from '../navigation';
 
 /** Defines all callbacks to be emitted by NavViewAuto support. */
 export interface NavigationAutoCallbacks {
@@ -56,4 +57,93 @@ export interface MapViewAutoController extends MapViewController {
    * Queries screen visibility.
    */
   isAutoScreenAvailable(): Promise<boolean>;
+
+  /**
+   * Sets the following perspective for the auto navigation view and enables
+   * camera following mode. This recenters the camera to follow the user's location.
+   *
+   * @param perspective The camera perspective to use when following.
+   */
+  setFollowingPerspective(perspective: CameraPerspective): void;
+
+  /**
+   * Sends a custom message from React Native to the native auto module.
+   * This allows developers to implement custom communication between
+   * the React Native layer and native CarPlay/Android Auto code.
+   *
+   * @param type The message type identifier.
+   * @param data Optional data payload as a record of key-value pairs.
+   */
+  sendCustomMessage(type: string, data?: Record<string, unknown>): void;
+
+  /**
+   * Sets the map type for the auto navigation view.
+   *
+   * @param mapType The map type to set.
+   */
+  setMapType(mapType: MapType): void;
+
+  /**
+   * Sets the map style using a JSON string for the auto navigation view.
+   *
+   * @param mapStyle The JSON map style string.
+   */
+  setMapStyle(mapStyle: string): void;
+
+  /**
+   * Sets the map color scheme for the auto navigation view.
+   *
+   * @param colorScheme The color scheme to set (FOLLOW_SYSTEM=0, LIGHT=1, DARK=2).
+   */
+  setMapColorScheme(colorScheme: MapColorScheme): void;
+
+  /**
+   * Sets the navigation night mode for the auto navigation view.
+   * Controls whether the navigation UI uses day or night styling.
+   *
+   * @param nightMode The night mode to set (AUTO=0, FORCE_DAY=1, FORCE_NIGHT=2).
+   */
+  setNightMode(nightMode: NavigationNightMode): void;
+
+  /**
+   * Enables or disables indoor maps for the auto navigation view.
+   *
+   * @param enabled Whether to enable indoor maps.
+   */
+  setIndoorEnabled(enabled: boolean): void;
+
+  /**
+   * Enables or disables traffic layer for the auto navigation view.
+   *
+   * @param enabled Whether to enable traffic layer.
+   */
+  setTrafficEnabled(enabled: boolean): void;
+
+  /**
+   * Enables or disables compass for the auto navigation view.
+   *
+   * @param enabled Whether to enable compass.
+   */
+  setCompassEnabled(enabled: boolean): void;
+
+  /**
+   * Enables or disables my location indicator for the auto navigation view.
+   *
+   * @param enabled Whether to enable my location indicator.
+   */
+  setMyLocationEnabled(enabled: boolean): void;
+
+  /**
+   * Enables or disables my location button for the auto navigation view.
+   *
+   * @param enabled Whether to enable my location button.
+   */
+  setMyLocationButtonEnabled(enabled: boolean): void;
+
+  /**
+   * Enables or disables 3D buildings for the auto navigation view.
+   *
+   * @param enabled Whether to enable 3D buildings.
+   */
+  setBuildingsEnabled(enabled: boolean): void;
 }

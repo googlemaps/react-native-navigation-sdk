@@ -17,7 +17,7 @@
 #ifndef INavigationCallback_h
 #define INavigationCallback_h
 
-@import GoogleNavigation;
+#import <GoogleNavigation/GoogleNavigation.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -35,7 +35,6 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)onNavigationReady;
 - (void)onNavigationInitError:(NSNumber *)errorCode;
 - (void)onStartGuidance;
-- (void)onRouteStatusResult:(GMSRouteStatus)routeStatus;
 - (void)onReroutingRequestedByOffRoute;
 - (void)onLocationChanged:(NSDictionary *)location;
 - (void)onPromptVisibilityChange:(BOOL)visible;

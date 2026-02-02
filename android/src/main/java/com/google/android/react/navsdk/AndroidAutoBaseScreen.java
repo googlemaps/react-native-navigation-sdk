@@ -21,6 +21,7 @@ import android.graphics.Point;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.car.app.AppManager;
 import androidx.car.app.CarContext;
 import androidx.car.app.Screen;
@@ -41,6 +42,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.libraries.navigation.NavigationViewForAuto;
 import com.google.android.libraries.navigation.StylingOptions;
+import org.json.JSONObject;
 
 // This class streamlines the Android Auto setup process by managing initialization, teardown, and
 // map rendering on the Android Auto display. You can create your own Screen class by extending this
@@ -70,8 +72,33 @@ public abstract class AndroidAutoBaseScreen extends Screen
     // TODO(jokerttu): set styling to the navigationView
   }
 
-  public void onNavigationReady(boolean ready) {
+  /**
+   * Internal method called when navigation session state changes. Handles state management and
+   * delegates to onNavigationReady for UI configuration.
+   */
+  private void onSessionAttached(boolean ready) {
     mNavigationInitialized = ready;
+    onNavigationReady(ready);
+  }
+
+  /**
+   * Called when the navigation session state changes. Override this method in your subclass to
+   * handle navigation ready state changes.
+   *
+   * <p><b>Note:</b> Navigation UI controls like setHeaderEnabled, setFooterEnabled,
+   * setSpeedometerEnabled, etc. are NOT supported on Android Auto's NavigationViewForAuto. These
+   * controls are automatically managed by the Android Auto navigation template.
+   *
+   * <p>The navigation state ({@code mNavigationInitialized}) is already updated before this method
+   * is called.
+   *
+   * @param ready true when navigation session is ready, false when it's no longer available.
+   */
+  protected void onNavigationReady(boolean ready) {
+    // NavigationViewForAuto does not support direct UI control settings like
+    // setHeaderEnabled, setFooterEnabled, setTrafficPromptsEnabled, etc.
+    // These are automatically managed by the Android Auto navigation template.
+    // Override this method in your subclass if you need custom behavior.
   }
 
   public AndroidAutoBaseScreen(@NonNull CarContext carContext) {
@@ -87,7 +114,11 @@ public abstract class AndroidAutoBaseScreen extends Screen
     NavModule.setModuleReadyListener(
         () -> {
           mNavModuleInitialized = true;
-          NavModule.getInstance().registerNavigationReadyListener(this::onNavigationReady);
+          try {
+            NavModule.getInstance().registerNavigationReadyListener(this::onSessionAttached);
+          } catch (IllegalStateException e) {
+            // NavModule not yet initialized, will be registered later
+          }
         });
 
     carContext.getCarService(AppManager.class).setSurfaceCallback(this);
@@ -103,8 +134,9 @@ public abstract class AndroidAutoBaseScreen extends Screen
           if (mNavModuleInitialized) {
             try {
               NavModule.getInstance()
-                  .unRegisterNavigationReadyListener(screenInstance::onNavigationReady);
+                  .unRegisterNavigationReadyListener(screenInstance::onSessionAttached);
             } catch (Exception e) {
+              // Module may have been destroyed, safe to ignore.
             }
           }
         }
@@ -112,13 +144,22 @@ public abstract class AndroidAutoBaseScreen extends Screen
 
   private void registerControllersForAndroidAutoModule() {
     if (mAndroidAutoModuleInitialized && mMapViewController != null) {
-      NavAutoModule.getInstance().androidAutoNavigationScreenInitialized(mMapViewController, this);
+      try {
+        NavAutoModule.getInstance()
+            .androidAutoNavigationScreenInitialized(mMapViewController, this, this);
+      } catch (IllegalStateException e) {
+        // NavAutoModule not yet initialized, will be registered when module becomes ready
+      }
     }
   }
 
   private void unRegisterControllersForAndroidAutoModule() {
     if (mAndroidAutoModuleInitialized) {
-      NavAutoModule.getInstance().androidAutoNavigationScreenDisposed();
+      try {
+        NavAutoModule.getInstance().androidAutoNavigationScreenDisposed();
+      } catch (IllegalStateException e) {
+        // NavAutoModule not initialized, nothing to unregister
+      }
     }
   }
 
@@ -160,8 +201,24 @@ public abstract class AndroidAutoBaseScreen extends Screen
           mMapViewController = new MapViewController();
           mMapViewController.initialize(googleMap, () -> null);
           registerControllersForAndroidAutoModule();
+          onMapViewReady();
           invalidate();
         });
+  }
+
+  /**
+   * Called when the map view has been loaded and is ready. Override this method in your subclass to
+   * configure map settings.
+   *
+   * <p><b>Note:</b> Navigation UI controls like setSpeedometerEnabled, setSpeedLimitIconEnabled,
+   * etc. are NOT supported on Android Auto's NavigationViewForAuto. These controls are
+   * automatically managed by the Android Auto navigation template.
+   */
+  protected void onMapViewReady() {
+    // NavigationViewForAuto does not support direct UI control settings like
+    // setSpeedometerEnabled, setSpeedLimitIconEnabled, etc.
+    // These are automatically managed by the Android Auto navigation template.
+    // Override this method in your subclass if you need custom behavior.
   }
 
   @Override
@@ -198,6 +255,36 @@ public abstract class AndroidAutoBaseScreen extends Screen
     NavAutoModule.getInstance().onCustomNavigationAutoEvent(type, data);
   }
 
+  /**
+   * Called when a custom message is received from React Native via sendCustomMessage.
+   *
+   * <p>Override this method in your subclass to handle custom messages. Use this mechanism to:
+   *
+   * <ul>
+   *   <li>Control Android Auto view templates (e.g., switch between map, list, or grid templates)
+   *   <li>Update map behavior (e.g., change camera position, add/remove markers)
+   *   <li>Trigger navigation actions based on app state
+   *   <li>Synchronize UI state between the phone and Android Auto displays
+   * </ul>
+   *
+   * @param type The message type identifier used to distinguish different message categories.
+   * @param data The message data as a JSONObject, or null if no data was provided or parsing
+   *     failed.
+   */
+  protected void onCustomMessageReceived(String type, @Nullable JSONObject data) {
+    // Empty implementation. Override in subclass.
+  }
+
+  /**
+   * Called by the host when the app needs to provide a template for display in Android Auto.
+   *
+   * <p>This method returns a default {@link NavigationTemplate} with basic map controls. Developers
+   * can override this method to provide a custom template implementation with additional actions,
+   * custom action strips, or other template configurations as needed for their specific use case.
+   *
+   * @return A {@link Template} to be displayed in Android Auto. The default implementation returns
+   *     a {@link NavigationTemplate} with a map action strip containing a PAN action.
+   */
   @NonNull
   @Override
   public Template onGetTemplate() {

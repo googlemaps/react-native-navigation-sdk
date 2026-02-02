@@ -13,33 +13,10 @@
  */
 package com.google.android.react.navsdk;
 
-import com.google.android.libraries.navigation.ForceNightMode;
-import com.google.android.libraries.navigation.StylingOptions;
-
-public interface INavViewFragment extends IMapViewFragment {
+public interface INavViewFragment extends IMapViewFragment, INavigationViewProperties {
   void setNavigationUiEnabled(boolean enableNavigationUi);
 
-  void setTripProgressBarEnabled(boolean enabled);
-
-  void setSpeedometerEnabled(boolean enabled);
-
-  void setSpeedLimitIconEnabled(boolean enabled);
-
-  void setTrafficIncidentCardsEnabled(boolean enabled);
-
-  void setEtaCardEnabled(boolean enabled);
-
-  void setHeaderEnabled(boolean enabled);
-
-  void setRecenterButtonEnabled(boolean enabled);
-
   void showRouteOverview();
-
-  void setNightModeOption(@ForceNightMode int nightModeOverride);
-
-  void setReportIncidentButtonEnabled(boolean enabled);
-
-  void setStylingOptions(StylingOptions stylingOptions);
 
   void applyStylingOptions();
 }

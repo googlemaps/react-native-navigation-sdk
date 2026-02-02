@@ -14,33 +14,38 @@
 package com.google.android.react.navsdk;
 
 import android.location.Location;
+import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.UiThreadUtil;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.WritableNativeArray;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.libraries.navigation.StylingOptions;
+import com.google.maps.android.rn.navsdk.NativeNavAutoModuleSpec;
+import java.util.Map;
+import org.json.JSONObject;
 
 /**
- * This exposes a series of methods that can be called directly from the React Native code. They
- * have been implemented using promises as it's not recommended for them to be synchronous.
+ * TurboModule for Android Auto integration. Manages map operations and UI settings for Android Auto
+ * screens.
  */
-public class NavAutoModule extends ReactContextBaseJavaModule implements INavigationAutoCallback {
-  public static final String REACT_CLASS = "NavAutoModule";
+public class NavAutoModule extends NativeNavAutoModuleSpec
+    implements INavigationAutoCallback, LifecycleEventListener {
+  private static final String TAG = "NavAutoModule";
+  public static final String REACT_CLASS = NAME;
   private static NavAutoModule instance;
   private static ModuleReadyListener moduleReadyListener;
 
@@ -48,6 +53,8 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
   private MapViewController mMapViewController;
   private StylingOptions mStylingOptions;
   private INavigationViewController mNavigationViewController;
+  private AndroidAutoBaseScreen mAutoScreen;
+  private boolean mPendingScreenAvailable = false;
 
   public interface ModuleReadyListener {
     void onModuleReady();
@@ -56,10 +63,8 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
   public NavAutoModule(ReactApplicationContext reactContext) {
     super(reactContext);
     this.reactContext = reactContext;
+    this.reactContext.addLifecycleEventListener(this);
     instance = this;
-    if (moduleReadyListener != null) {
-      moduleReadyListener.onModuleReady();
-    }
   }
 
   @NonNull
@@ -76,17 +81,36 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
     return instance;
   }
 
+  /**
+   * Checks if the NavAutoModule instance exists and has an active React context. Use this to safely
+   * check before calling getInstance() to avoid crashes when React Native hasn't initialized yet.
+   */
+  public static synchronized boolean isInstanceReady() {
+    return instance != null
+        && instance.reactContext != null
+        && instance.reactContext.hasActiveReactInstance();
+  }
+
   public static void setModuleReadyListener(ModuleReadyListener listener) {
     moduleReadyListener = listener;
-    if (instance != null && moduleReadyListener != null) {
+    // Only trigger callback if instance exists AND has an active React context
+    if (instance != null && moduleReadyListener != null && isInstanceReady()) {
       moduleReadyListener.onModuleReady();
     }
   }
 
   public void androidAutoNavigationScreenInitialized(
       MapViewController mapViewController, INavigationViewController navigationViewController) {
+    androidAutoNavigationScreenInitialized(mapViewController, navigationViewController, null);
+  }
+
+  public void androidAutoNavigationScreenInitialized(
+      MapViewController mapViewController,
+      INavigationViewController navigationViewController,
+      @Nullable AndroidAutoBaseScreen autoScreen) {
     mMapViewController = mapViewController;
     mNavigationViewController = navigationViewController;
+    mAutoScreen = autoScreen;
     if (mStylingOptions != null && mNavigationViewController != null) {
       mNavigationViewController.setStylingOptions(mStylingOptions);
     }
@@ -97,10 +121,12 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
     sendScreenState(false);
     mMapViewController = null;
     mNavigationViewController = null;
+    mAutoScreen = null;
   }
 
-  @ReactMethod
-  public void setMapType(int jsValue) {
+  @Override
+  public void setMapType(double mapType) {
+    int jsValue = (int) mapType;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
@@ -110,8 +136,9 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
         });
   }
 
-  @ReactMethod
-  public void setMapStyle(String url) {
+  @Override
+  public void setMapStyle(String mapStyle) {
+    String url = mapStyle;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
@@ -121,19 +148,9 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
         });
   }
 
-  @ReactMethod
-  public void setMapToolbarEnabled(boolean isOn) {
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          if (mMapViewController == null) {
-            return;
-          }
-          mMapViewController.setMapToolbarEnabled(isOn);
-        });
-  }
-
-  @ReactMethod
-  public void addCircle(ReadableMap circleOptionsMap, final Promise promise) {
+  @Override
+  public void addCircle(ReadableMap options, final Promise promise) {
+    ReadableMap circleOptionsMap = options;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
@@ -141,27 +158,33 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
             return;
           }
           Circle circle = mMapViewController.addCircle(circleOptionsMap.toHashMap());
-
-          promise.resolve(ObjectTranslationUtil.getMapFromCircle(circle));
+          String effectiveId = mMapViewController.getCircleEffectiveId(circle.getId());
+          promise.resolve(ObjectTranslationUtil.getMapFromCircle(circle, effectiveId));
         });
   }
 
-  @ReactMethod
-  public void addMarker(ReadableMap markerOptionsMap, final Promise promise) {
+  @Override
+  public void addMarker(ReadableMap options, final Promise promise) {
+    ReadableMap markerOptionsMap = options;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
-          Marker marker = mMapViewController.addMarker(markerOptionsMap.toHashMap());
-
-          promise.resolve(ObjectTranslationUtil.getMapFromMarker(marker));
+          try {
+            Marker marker = mMapViewController.addMarker(markerOptionsMap.toHashMap());
+            String effectiveId = mMapViewController.getMarkerEffectiveId(marker.getId());
+            promise.resolve(ObjectTranslationUtil.getMapFromMarker(marker, effectiveId));
+          } catch (IllegalArgumentException e) {
+            promise.reject(JsErrors.INVALID_IMAGE_ERROR_CODE, e.getMessage());
+          }
         });
   }
 
-  @ReactMethod
-  public void addPolyline(ReadableMap polylineOptionsMap, final Promise promise) {
+  @Override
+  public void addPolyline(ReadableMap options, final Promise promise) {
+    ReadableMap polylineOptionsMap = options;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
@@ -169,13 +192,14 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
             return;
           }
           Polyline polyline = mMapViewController.addPolyline(polylineOptionsMap.toHashMap());
-
-          promise.resolve(ObjectTranslationUtil.getMapFromPolyline(polyline));
+          String effectiveId = mMapViewController.getPolylineEffectiveId(polyline.getId());
+          promise.resolve(ObjectTranslationUtil.getMapFromPolyline(polyline, effectiveId));
         });
   }
 
-  @ReactMethod
-  public void addPolygon(ReadableMap polygonOptionsMap, final Promise promise) {
+  @Override
+  public void addPolygon(ReadableMap options, final Promise promise) {
+    ReadableMap polygonOptionsMap = options;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
@@ -183,167 +207,268 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
             return;
           }
           Polygon polygon = mMapViewController.addPolygon(polygonOptionsMap.toHashMap());
-
-          promise.resolve(ObjectTranslationUtil.getMapFromPolygon(polygon));
+          String effectiveId = mMapViewController.getPolygonEffectiveId(polygon.getId());
+          promise.resolve(ObjectTranslationUtil.getMapFromPolygon(polygon, effectiveId));
         });
   }
 
-  @ReactMethod
-  public void removeCircle(String id) {
+  @Override
+  public void addGroundOverlay(ReadableMap options, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+          try {
+            GroundOverlay overlay = mMapViewController.addGroundOverlay(options.toHashMap());
+            if (overlay == null) {
+              promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+              return;
+            }
+            String effectiveId = mMapViewController.getGroundOverlayEffectiveId(overlay.getId());
+            promise.resolve(ObjectTranslationUtil.getMapFromGroundOverlay(overlay, effectiveId));
+          } catch (IllegalArgumentException e) {
+            promise.reject(JsErrors.INVALID_OPTIONS_ERROR_CODE, e.getMessage());
+          }
+        });
+  }
+
+  @Override
+  public void removeCircle(String id, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
           mMapViewController.removeCircle(id);
+          promise.resolve(null);
         });
   }
 
-  @ReactMethod
-  public void removeMarker(String id) {
+  @Override
+  public void removeMarker(String id, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
           mMapViewController.removeMarker(id);
+          promise.resolve(null);
         });
   }
 
-  @ReactMethod
-  public void removePolyline(String id) {
+  @Override
+  public void removePolyline(String id, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
           mMapViewController.removePolyline(id);
+          promise.resolve(null);
         });
   }
 
-  @ReactMethod
-  public void removePolygon(String id) {
+  @Override
+  public void removePolygon(String id, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
           mMapViewController.removePolygon(id);
+          promise.resolve(null);
         });
   }
 
-  @ReactMethod
-  public void clearMapView() {
+  @Override
+  public void removeGroundOverlay(String id, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+          // Ground overlay removal for Android Auto
+          // This would require MapViewController to implement removeGroundOverlay
+          promise.resolve(null);
+        });
+  }
+
+  @Override
+  public void clearMapView(final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
           mMapViewController.clearMapView();
+          promise.resolve(null);
         });
   }
 
-  @ReactMethod
-  public void setIndoorEnabled(Boolean isOn) {
+  @Override
+  public void setIndoorEnabled(boolean enabled) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setIndoorEnabled(isOn);
+          mMapViewController.setIndoorEnabled(enabled);
         });
   }
 
-  @ReactMethod
-  public void setTrafficEnabled(Boolean isOn) {
+  @Override
+  public void setTrafficEnabled(boolean enabled) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setTrafficEnabled(isOn);
+          mMapViewController.setTrafficEnabled(enabled);
         });
   }
 
-  @ReactMethod
-  public void setCompassEnabled(Boolean isOn) {
+  @Override
+  public void setCompassEnabled(boolean enabled) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setCompassEnabled(isOn);
+          mMapViewController.setCompassEnabled(enabled);
         });
   }
 
-  @ReactMethod
-  public void setMyLocationButtonEnabled(Boolean isOn) {
+  @Override
+  public void setMyLocationButtonEnabled(boolean enabled) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setMyLocationButtonEnabled(isOn);
+          mMapViewController.setMyLocationButtonEnabled(enabled);
         });
   }
 
-  @ReactMethod
-  public void setMyLocationEnabled(Boolean isOn) {
+  @Override
+  public void setMapColorScheme(double colorScheme) {
+    int jsValue = (int) colorScheme;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setMyLocationEnabled(isOn);
+          mMapViewController.setColorScheme(jsValue);
         });
   }
 
-  @ReactMethod
-  public void setRotateGesturesEnabled(Boolean isOn) {
+  @Override
+  public void setNightMode(double nightMode) {
+    int jsValue = (int) nightMode;
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mNavigationViewController == null) {
+            return;
+          }
+          mNavigationViewController.setNightModeOption(
+              EnumTranslationUtil.getForceNightModeFromJsValue(jsValue));
+        });
+  }
+
+  @Override
+  public void setMyLocationEnabled(boolean enabled) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setRotateGesturesEnabled(isOn);
+          mMapViewController.setMyLocationEnabled(enabled);
         });
   }
 
-  @ReactMethod
-  public void setScrollGesturesEnabled(Boolean isOn) {
+  @Override
+  public void setFollowingPerspective(double perspective) {
+    int jsValue = (int) perspective;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setScrollGesturesEnabled(isOn);
+          mMapViewController.setFollowingPerspective(jsValue);
         });
   }
 
-  @ReactMethod
-  public void setScrollGesturesEnabledDuringRotateOrZoom(Boolean isOn) {
+  @Override
+  public void sendCustomMessage(String type, @Nullable String data) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          // Parse the JSON data string if provided
+          JSONObject jsonObject = null;
+          if (data != null && !data.isEmpty()) {
+            try {
+              jsonObject = new org.json.JSONObject(data);
+            } catch (org.json.JSONException e) {
+              Log.e(TAG, "Error parsing custom message data: " + e.getMessage());
+            }
+          }
+
+          // Call the screen's handler method if registered
+          if (mAutoScreen != null) {
+            mAutoScreen.onCustomMessageReceived(type, jsonObject);
+          }
+        });
+  }
+
+  public void setRotateGesturesEnabled(Boolean enabled) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setScrollGesturesEnabledDuringRotateOrZoom(isOn);
+          mMapViewController.setRotateGesturesEnabled(enabled);
         });
   }
 
-  @ReactMethod
-  public void setZoomControlsEnabled(Boolean isOn) {
+  public void setScrollGesturesEnabled(Boolean enabled) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setZoomControlsEnabled(isOn);
+          mMapViewController.setScrollGesturesEnabled(enabled);
         });
   }
 
-  @ReactMethod
-  public void setZoomLevel(final Integer level, final Promise promise) {
+  public void setScrollGesturesEnabledDuringRotateOrZoom(Boolean enabled) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setScrollGesturesEnabledDuringRotateOrZoom(enabled);
+        });
+  }
+
+  public void setZoomControlsEnabled(Boolean enabled) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mMapViewController == null) {
+            return;
+          }
+          mMapViewController.setZoomControlsEnabled(enabled);
+        });
+  }
+
+  @Override
+  public void setZoomLevel(double zoomLevel, final Promise promise) {
+    int level = (int) zoomLevel;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
@@ -356,40 +481,38 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
         });
   }
 
-  @ReactMethod
-  public void setTiltGesturesEnabled(Boolean isOn) {
+  public void setTiltGesturesEnabled(Boolean enabled) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setTiltGesturesEnabled(isOn);
+          mMapViewController.setTiltGesturesEnabled(enabled);
         });
   }
 
-  @ReactMethod
-  public void setZoomGesturesEnabled(Boolean isOn) {
+  public void setZoomGesturesEnabled(Boolean enabled) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setZoomGesturesEnabled(isOn);
+          mMapViewController.setZoomGesturesEnabled(enabled);
         });
   }
 
-  @ReactMethod
-  public void setBuildingsEnabled(Boolean isOn) {
+  @Override
+  public void setBuildingsEnabled(boolean enabled) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setBuildingsEnabled(isOn);
+          mMapViewController.setBuildingsEnabled(enabled);
         });
   }
 
-  @ReactMethod
+  @Override
   public void getCameraPosition(final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
@@ -411,7 +534,7 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
         });
   }
 
-  @ReactMethod
+  @Override
   public void getMyLocation(final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
@@ -429,7 +552,7 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
         });
   }
 
-  @ReactMethod
+  @Override
   public void getUiSettings(final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
@@ -462,7 +585,7 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
         });
   }
 
-  @ReactMethod
+  @Override
   public void isMyLocationEnabled(final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
@@ -475,61 +598,201 @@ public class NavAutoModule extends ReactContextBaseJavaModule implements INaviga
         });
   }
 
-  @ReactMethod
-  public void moveCamera(ReadableMap map) {
+  @Override
+  public void moveCamera(ReadableMap cameraPosition, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
 
-          mMapViewController.moveCamera(map.toHashMap());
+          mMapViewController.moveCamera(cameraPosition.toHashMap());
+          promise.resolve(null);
         });
   }
 
-  @ReactMethod
+  @Override
   public void isAutoScreenAvailable(final Promise promise) {
     promise.resolve(mMapViewController != null);
   }
 
-  @ReactMethod
-  public void setPadding(
-      final Integer top, final Integer left, final Integer bottom, final Integer right) {
+  @Override
+  public void setMapPadding(double top, double left, double bottom, double right) {
+    int topInt = (int) top;
+    int leftInt = (int) left;
+    int bottomInt = (int) bottom;
+    int rightInt = (int) right;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
 
-          mMapViewController.setPadding(top, left, bottom, right);
+          mMapViewController.setPadding(topInt, leftInt, bottomInt, rightInt);
+        });
+  }
+
+  @Override
+  public void getMarkers(final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          WritableArray result = Arguments.createArray();
+          for (Map.Entry<String, Marker> entry : mMapViewController.getMarkerMap().entrySet()) {
+            result.pushMap(
+                ObjectTranslationUtil.getMapFromMarker(entry.getValue(), entry.getKey()));
+          }
+          promise.resolve(result);
+        });
+  }
+
+  @Override
+  public void getCircles(final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          WritableArray result = Arguments.createArray();
+          for (Map.Entry<String, Circle> entry : mMapViewController.getCircleMap().entrySet()) {
+            result.pushMap(
+                ObjectTranslationUtil.getMapFromCircle(entry.getValue(), entry.getKey()));
+          }
+          promise.resolve(result);
+        });
+  }
+
+  @Override
+  public void getPolylines(final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          WritableArray result = Arguments.createArray();
+          for (Map.Entry<String, Polyline> entry : mMapViewController.getPolylineMap().entrySet()) {
+            result.pushMap(
+                ObjectTranslationUtil.getMapFromPolyline(entry.getValue(), entry.getKey()));
+          }
+          promise.resolve(result);
+        });
+  }
+
+  @Override
+  public void getPolygons(final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          WritableArray result = Arguments.createArray();
+          for (Map.Entry<String, Polygon> entry : mMapViewController.getPolygonMap().entrySet()) {
+            result.pushMap(
+                ObjectTranslationUtil.getMapFromPolygon(entry.getValue(), entry.getKey()));
+          }
+          promise.resolve(result);
+        });
+  }
+
+  @Override
+  public void getGroundOverlays(final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          WritableArray result = Arguments.createArray();
+          for (Map.Entry<String, GroundOverlay> entry :
+              mMapViewController.getGroundOverlayMap().entrySet()) {
+            result.pushMap(
+                ObjectTranslationUtil.getMapFromGroundOverlay(entry.getValue(), entry.getKey()));
+          }
+          promise.resolve(result);
         });
   }
 
   public void sendScreenState(boolean available) {
-    WritableNativeArray params = new WritableNativeArray();
-    params.pushBoolean(available);
+    // Check if React context is active and has catalyst instance before emitting events.
+    // This prevents crashes when Android Auto screen initializes before React Native is ready.
+    if (reactContext == null || !reactContext.hasActiveReactInstance()) {
+      Log.w(TAG, "Cannot send screen state: React context is not active, storing pending state");
+      if (available) {
+        mPendingScreenAvailable = true;
+      }
+      return;
+    }
 
-    sendCommandToReactNative("onAutoScreenAvailabilityChanged", params);
+    try {
+      mPendingScreenAvailable = false;
+      emitOnAutoScreenAvailabilityChanged(available);
+    } catch (Exception e) {
+      Log.e(TAG, "Failed to emit screen state, deferring: " + e.getMessage());
+      if (available) {
+        mPendingScreenAvailable = true;
+      }
+    }
   }
 
   @Override
-  public void onCustomNavigationAutoEvent(String type, ReadableMap data) {
-    WritableMap map = Arguments.createMap();
-    map.putString("type", type);
-    map.putMap("data", data);
+  public void onHostResume() {
+    // When React context resumes, trigger the module ready listener if it was set
+    // before the React context was ready. Clear it after calling to avoid duplicate calls.
+    if (moduleReadyListener != null) {
+      Log.i(TAG, "React context resumed, triggering pending module ready listener");
+      ModuleReadyListener listener = moduleReadyListener;
+      moduleReadyListener = null;
+      listener.onModuleReady();
+    }
 
-    WritableNativeArray params = new WritableNativeArray();
-    params.pushMap(map);
-
-    sendCommandToReactNative("onCustomNavigationAutoEvent", params);
+    // Send any pending screen availability state
+    if (mPendingScreenAvailable && mMapViewController != null) {
+      Log.i(TAG, "React context resumed, sending pending screen available state");
+      mPendingScreenAvailable = false;
+      emitOnAutoScreenAvailabilityChanged(true);
+    }
   }
 
-  /** Send command to react native. */
-  private void sendCommandToReactNative(String functionName, @Nullable Object params) {
-    if (reactContext.hasActiveReactInstance()) {
-      reactContext
-          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-          .emit(functionName, params);
+  @Override
+  public void onHostPause() {}
+
+  @Override
+  public void onHostDestroy() {}
+
+  @Override
+  public void onCustomNavigationAutoEvent(String type, ReadableMap data) {
+    // Check if React context is active before emitting events.
+    if (reactContext == null || !reactContext.hasActiveReactInstance()) {
+      Log.w(TAG, "Cannot send custom event: React context is not active");
+      return;
     }
+
+    WritableMap params = Arguments.createMap();
+    params.putString("type", type);
+    if (data != null) {
+      try {
+        // Convert ReadableMap to JSON string for the data field
+        org.json.JSONObject jsonObject = new org.json.JSONObject(data.toHashMap());
+        params.putString("data", jsonObject.toString());
+      } catch (Exception e) {
+        params.putNull("data");
+      }
+    } else {
+      params.putNull("data");
+    }
+
+    emitOnCustomNavigationAutoEvent(params);
   }
 }

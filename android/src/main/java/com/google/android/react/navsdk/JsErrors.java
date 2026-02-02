@@ -24,4 +24,20 @@ public class JsErrors {
 
   public static final String NO_DESTINATIONS_ERROR_CODE = "NO_DESTINATIONS";
   public static final String NO_DESTINATIONS_ERROR_MESSAGE = "Destinations not set";
+
+  public static final String NOT_NAV_VIEW_ERROR_CODE = "NOT_NAV_VIEW";
+  public static final String NOT_NAV_VIEW_ERROR_MESSAGE =
+      "Operation can only be called on a navigation view";
+
+  public static final String NO_VIEW_CONTROLLER_ERROR_CODE = "NO_VIEW_CONTROLLER";
+  public static final String NO_VIEW_CONTROLLER_ERROR_MESSAGE =
+      "No view controller found for the specified nativeID";
+
+  public static final String INVALID_OPTIONS_ERROR_CODE = "INVALID_OPTIONS";
+  public static final String INVALID_GROUND_OVERLAY_OPTIONS_MESSAGE =
+      "Either location (with width) or bounds must be provided for ground overlay";
+
+  public static final String INVALID_IMAGE_ERROR_CODE = "INVALID_IMAGE";
+  public static final String INVALID_IMAGE_ERROR_MESSAGE =
+      "Failed to load image from the provided path";
 }

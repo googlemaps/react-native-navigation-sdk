@@ -21,7 +21,7 @@ import {
   requestMultiple,
   RESULTS,
 } from 'react-native-permissions';
-import Snackbar from 'react-native-snackbar';
+import { showSnackbar, Snackbar } from './helpers/snackbar';
 
 const usePermissions = () => {
   const [arePermissionsApproved, setArePermissionsApproved] = useState(false);
@@ -40,10 +40,10 @@ const usePermissions = () => {
         if (result === RESULTS.GRANTED) {
           setArePermissionsApproved(true);
         } else {
-          Snackbar.show({
-            text: 'Location permissions are needed to proceed with the app. Please re-open and accept.',
-            duration: Snackbar.LENGTH_SHORT,
-          });
+          showSnackbar(
+            'Location permissions are needed to proceed with the app. Please re-open and accept.',
+            Snackbar.LENGTH_SHORT
+          );
         }
       } catch (error) {
         console.error('Error requesting permissions', error);

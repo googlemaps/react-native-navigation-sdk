@@ -21,6 +21,19 @@ import type {
 import type { MapViewProps } from '../../maps/types';
 
 /**
+ * Determines the initial visibility of the navigation UI on map initialization.
+ */
+export enum NavigationUIEnabledPreference {
+  /**
+   * Navigation UI gets enabled if the navigation
+   * session has already been successfully started.
+   */
+  AUTOMATIC = 0,
+  /** Navigation UI is disabled. */
+  DISABLED = 1,
+}
+
+/**
  * The perspective that the camera will be looking at the GoogleMap.
  * Default: TILTED
  */
@@ -31,22 +44,6 @@ export enum CameraPerspective {
   TOP_DOWN_NORTH_UP,
   /** A heading-facing top-down perspective of the camera's target. */
   TOP_DOWN_HEADING_UP,
-}
-
-/** Defines all callbacks to be emitted during navigation. */
-export interface NavigationViewCallbacks {
-  /**
-   * Callback function invoked when the re-center button is clicked.
-   */
-  onRecenterButtonClick?(): void;
-
-  /**
-   * A callback function invoked before a Navigation SDK UI prompt
-   * element is about to appear and as soon as the element is removed.
-   *
-   * @param visible - A boolean indicating whether the prompt is visible.
-   */
-  onPromptVisibilityChanged?(visible: boolean): void;
 }
 
 /**
@@ -64,7 +61,85 @@ export interface NavigationViewProps extends MapViewProps {
    */
   readonly navigationNightMode?: NavigationNightMode;
 
-  readonly navigationViewCallbacks?: NavigationViewCallbacks;
+  /**
+   * Callback function invoked when the re-center button is clicked.
+   */
+  readonly onRecenterButtonClick?: () => void;
+
+  /**
+   * A callback function invoked before a Navigation SDK UI prompt
+   * element is about to appear and as soon as the element is removed.
+   *
+   * @param visible - A boolean indicating whether the prompt is visible.
+   */
+  readonly onPromptVisibilityChanged?: (visible: boolean) => void;
+
+  /**
+   * Determines the initial visibility of the navigation UI on map initialization.
+   *
+   * - `AUTOMATIC`: Navigation UI gets enabled if the navigation session has already been successfully started.
+   * - `DISABLED`: Navigation UI is disabled.
+   *
+   * Defaults to `NavigationUIEnabledPreference.AUTOMATIC` when not provided.
+   */
+  readonly navigationUIEnabledPreference?: NavigationUIEnabledPreference;
+
+  /**
+   * Controls whether the trip progress bar is shown.
+   * Defaults to true.
+   */
+  readonly tripProgressBarEnabled?: boolean;
+
+  /**
+   * Controls interactive disruption callouts and prompt alerts along the route.
+   * When enabled, disruption callouts render and prompt alerts surface as users approach them.
+   * Defaults to true.
+   */
+  readonly trafficPromptsEnabled?: boolean;
+
+  /**
+   * Controls whether disruption info cards can be shown when users tap callouts
+   * (route overview or active navigation).
+   * Keeps the tap-to-expand cards available for disruption details and voting.
+   * Defaults to true.
+   */
+  readonly trafficIncidentCardsEnabled?: boolean;
+
+  /**
+   * Controls whether the navigation header is shown.
+   * Defaults to true.
+   */
+  readonly headerEnabled?: boolean;
+
+  /**
+   * Controls whether the navigation footer is shown.
+   * Defaults to true.
+   */
+  readonly footerEnabled?: boolean;
+
+  /**
+   * Controls whether the speedometer is shown.
+   * Defaults to false.
+   */
+  readonly speedometerEnabled?: boolean;
+
+  /**
+   * Controls whether the speed limit icon is shown.
+   * Defaults to true.
+   */
+  readonly speedLimitIconEnabled?: boolean;
+
+  /**
+   * Controls whether the recenter button is shown.
+   * Defaults to true.
+   */
+  readonly recenterButtonEnabled?: boolean;
+
+  /**
+   * Controls whether the report incident button is shown.
+   * Defaults to true.
+   */
+  readonly reportIncidentButtonEnabled?: boolean;
 
   onNavigationViewControllerCreated(
     navigationViewController: NavigationViewController
@@ -91,118 +166,18 @@ export enum NavigationNightMode {
  */
 export interface NavigationViewController {
   /**
-   * Show or hide the navigation user interface (UI) on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false) the
-   *               navigation user interface.
-   */
-  setNavigationUIEnabled(enabled: boolean): void;
-
-  /**
-   * Show or hide the trip progress information on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false) the trip
-   *               progress information.
-   */
-  setTripProgressBarEnabled(enabled: boolean): void;
-
-  /**
-   * Show or hide the report incident button.
-   *
-   * @param isOn - Indicateswhether the report incident button should be shown.
-   */
-  setReportIncidentButtonEnabled(enabled: boolean): void;
-
-  /**
-   * Show or hide traffic incident cards on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false) traffic
-   *               incident cards on the map.
-   */
-  setTrafficIncidentCardsEnabled(enabled: boolean): void;
-
-  /**
-   * Show or hide navigation header on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false)
-   * navigation header on the map.
-   */
-  setHeaderEnabled(enabled: boolean): void;
-
-  /**
-   * Show or hide navigation footer on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false)
-   * navigation footer on the map.
-   */
-  setFooterEnabled(enabled: boolean): void;
-
-  /**
-   * Enable or disable the speedometer display on the map.
-   *
-   * @param isOn - Indicates whether to enable (true) or disable (false) the
-   *               speedometer display.
-   */
-  setSpeedometerEnabled(enabled: boolean): void;
-
-  /**
-   * Show or hide the speed limit icon on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false) the
-   *               speed limit icon.
-   */
-  setSpeedLimitIconEnabled(enabled: boolean): void;
-
-  /**
    * Shows an overview of the remaining route.
    */
   showRouteOverview(): void;
 
   /**
-   * Sets the night mode setting for the navigation UI.
-   *
-   * This controls whether the navigation UI should be displayed in day or night mode,
-   * affecting the color scheme and visibility of UI elements.
-   *
-   * Android (ForceNightMode reference:
-   * https://developers.google.com/maps/documentation/navigation/android-sdk/reference/com/google/android/libraries/navigation/ForceNightMode):
-   *   - `0` (AUTO): Let the SDK automatically determine day or night.
-   *   - `1` (FORCE_DAY): Force day mode regardless of time or location.
-   *   - `2` (FORCE_NIGHT): Force night mode regardless of time or location.
-   *
-   * iOS (GMSNavigationLightingMode reference:
-   * https://developers.google.com/maps/documentation/navigation/ios-sdk/reference/objc/Enums/GMSNavigationLightingMode):
-   *   - `0` (AUTO): Resets to automatic (SDK-managed) lighting.
-   *   - `1` (FORCE_DAY): Renders the light (day) UI.
-   *   - `2` (FORCE_NIGHT): Renders the dark (night) UI.
-   *
-   * @deprecated Prefer the `navigationNightMode` view prop so the desired mode is applied as early as possible.
-   *
-   * @example
-   * ```typescript
-   * // Auto mode - SDK determines day/night based on location and time
-   * navigationViewController.setNightMode(0);
-   *
-   * // Force day mode
-   * navigationViewController.setNightMode(1);
-   *
-   * // Force night mode
-   * navigationViewController.setNightMode(2);
-   * ```
+   * Enables or disables the navigation UI.
+   * @param enabled - True to enable navigation UI, false to disable it.
    */
-  setNightMode(mode: number): void;
+  setNavigationUIEnabled(enabled: boolean): Promise<void>;
 
   /**
-   * Set the camera perspective mode for the map.
-   *
-   * @param perspective - The desired camera perspective mode.
+   * Sets the camera perspective for navigation.
    */
-  setFollowingPerspective(perspective: CameraPerspective): void;
-
-  /**
-   * Enables/disables the "Recenter" button on the map.
-   *
-   * @param isEnabled - Determines whether the button should be enabled or not.
-   */
-  setRecenterButtonEnabled(isEnabled: boolean): void;
+  setFollowingPerspective(perspective: CameraPerspective): Promise<void>;
 }

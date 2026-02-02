@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef NavViewModule_h
+#define NavViewModule_h
 
-#import <React/RCTBridgeModule.h>
+#import <RNNavigationSdkSpec/RNNavigationSdkSpec.h>
 #import "NavViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface NavViewModule : NSObject <RCTBridgeModule>
-@property(nonatomic, strong) NSMapTable<NSNumber *, NavViewController *> *viewControllers;
-
-- (void)attachViewsToNavigationSession;
+@interface NavViewModule : NativeNavViewModuleSpecBase <NativeNavViewModuleSpec>
+- (void)notifyNavigationSessionReady;
 - (void)navigationSessionDestroyed;
 - (void)informPromptVisibilityChange:(BOOL)visible;
 - (void)setTravelMode:(GMSNavigationTravelMode)travelMode;
@@ -30,6 +30,11 @@ NS_ASSUME_NONNULL_BEGIN
 // Class method to access the singleton instance
 + (instancetype)sharedInstance;
 
+// Class method to access the static viewControllers registry (string-based nativeID)
++ (NSMutableDictionary<NSString *, NavViewController *> *)viewControllersRegistry;
+
 @end
 
 NS_ASSUME_NONNULL_END
+
+#endif /* NavViewModule_h */

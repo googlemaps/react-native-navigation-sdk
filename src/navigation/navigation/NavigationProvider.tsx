@@ -17,16 +17,17 @@
 import React, { createContext, type ReactNode, useContext } from 'react';
 import type {
   NavigationController,
-  NavigationCallbacks,
-  TermsAndConditionsDialogOptions,
   TaskRemovedBehavior,
+  TermsAndConditionsDialogOptions,
 } from './types';
-import { useNavigationController } from './useNavigationController';
+import {
+  useNavigationController,
+  type NavigationListenerSetters,
+} from './useNavigationController';
 
-interface NavigationContextProps {
+interface NavigationContextProps extends NavigationListenerSetters {
   navigationController: NavigationController;
-  addListeners: (listeners: Partial<NavigationCallbacks>) => void;
-  removeListeners: (listeners: Partial<NavigationCallbacks>) => void;
+  removeAllListeners: () => void;
 }
 
 const NavigationContext = createContext<NavigationContextProps | undefined>(
@@ -34,7 +35,15 @@ const NavigationContext = createContext<NavigationContextProps | undefined>(
 );
 
 interface NavigationProviderProps {
+  /**
+   * Options for the Terms and Conditions dialog.
+   * These options will be used when calling showTermsAndConditionsDialog()
+   * unless overridden.
+   */
   termsAndConditionsDialogOptions: TermsAndConditionsDialogOptions;
+  /**
+   * Behavior when task is removed (Android only).
+   */
   taskRemovedBehavior?: TaskRemovedBehavior;
   children: ReactNode;
 }
@@ -44,17 +53,18 @@ export const NavigationProvider = ({
   taskRemovedBehavior,
   children,
 }: NavigationProviderProps): React.JSX.Element => {
-  const { navigationController, addListeners, removeListeners } =
+  const { navigationController, removeAllListeners, ...listenerSetters } =
     useNavigationController(
       termsAndConditionsDialogOptions,
       taskRemovedBehavior
     );
+
   return (
     <NavigationContext.Provider
       value={{
         navigationController,
-        addListeners,
-        removeListeners,
+        removeAllListeners,
+        ...listenerSetters,
       }}
     >
       {children}
@@ -67,12 +77,5 @@ export const useNavigation = (): NavigationContextProps => {
   if (!context) {
     throw new Error('useNavigation must be used within a NavigationProvider');
   }
-  const { navigationController, addListeners, removeListeners } = context;
-
-  // Memoize the return value to ensure stable references
-  return {
-    navigationController,
-    addListeners,
-    removeListeners,
-  };
+  return context;
 };

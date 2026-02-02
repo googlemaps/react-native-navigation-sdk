@@ -17,10 +17,9 @@ import android.location.Location;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.UiThreadUtil;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -30,15 +29,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
-import java.util.HashMap;
+import com.google.maps.android.rn.navsdk.NativeNavViewModuleSpec;
 import java.util.Map;
 
 /**
- * This exposes a series of methods that can be called diretly from the React Native code. They have
- * been implemented using promises as it's not recommended for them to be synchronous.
+ * TurboModule for map view operations. Uses nativeID-based view registry to access view instances.
+ * All methods accept a nativeID string parameter to identify which view to operate on.
  */
-public class NavViewModule extends ReactContextBaseJavaModule {
+public class NavViewModule extends NativeNavViewModuleSpec {
 
+  public static final String REACT_CLASS = NAME;
   private static final String TAG = "NavViewModule";
 
   private NavViewManager mNavViewManager;
@@ -49,26 +49,16 @@ public class NavViewModule extends ReactContextBaseJavaModule {
   }
 
   @Override
-  public String getName() {
-    return "NavViewModule";
-  }
-
-  @Override
-  public Map<String, Object> getConstants() {
-    final Map<String, Object> constants = new HashMap<>();
-    return constants;
-  }
-
-  @ReactMethod
-  public void getCameraPosition(Integer viewId, final Promise promise) {
+  public void getCameraPosition(String nativeID, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap(viewId) == null) {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null || fragment.getGoogleMap() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
 
-          CameraPosition cp = mNavViewManager.getGoogleMap(viewId).getCameraPosition();
+          CameraPosition cp = fragment.getGoogleMap().getCameraPosition();
 
           if (cp == null) {
             promise.resolve(null);
@@ -86,17 +76,18 @@ public class NavViewModule extends ReactContextBaseJavaModule {
         });
   }
 
-  @ReactMethod
-  public void getMyLocation(Integer viewId, final Promise promise) {
+  @Override
+  public void getMyLocation(String nativeID, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap(viewId) == null) {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null || fragment.getGoogleMap() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
 
           try {
-            Location location = mNavViewManager.getGoogleMap(viewId).getMyLocation();
+            Location location = fragment.getGoogleMap().getMyLocation();
             if (location == null) {
               promise.resolve(null);
               return;
@@ -110,16 +101,17 @@ public class NavViewModule extends ReactContextBaseJavaModule {
         });
   }
 
-  @ReactMethod
-  public void getUiSettings(Integer viewId, final Promise promise) {
+  @Override
+  public void getUiSettings(String nativeID, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap(viewId) == null) {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null || fragment.getGoogleMap() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
 
-          UiSettings settings = mNavViewManager.getGoogleMap(viewId).getUiSettings();
+          UiSettings settings = fragment.getGoogleMap().getUiSettings();
 
           if (settings == null) {
             promise.resolve(null);
@@ -143,98 +135,392 @@ public class NavViewModule extends ReactContextBaseJavaModule {
         });
   }
 
-  @ReactMethod
-  public void isMyLocationEnabled(Integer viewId, final Promise promise) {
+  @Override
+  public void isMyLocationEnabled(String nativeID, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (mNavViewManager.getGoogleMap(viewId) == null) {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null || fragment.getGoogleMap() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
 
-          promise.resolve(mNavViewManager.getGoogleMap(viewId).isMyLocationEnabled());
-        });
-  }
-
-  @ReactMethod
-  public void addMarker(int viewId, ReadableMap markerOptionsMap, final Promise promise) {
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          IMapViewFragment fragment = mNavViewManager.getFragmentForViewId(viewId);
-          if (fragment == null) {
-            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-            return;
-          }
-
-          Marker marker = fragment.getMapController().addMarker(markerOptionsMap.toHashMap());
-          promise.resolve(ObjectTranslationUtil.getMapFromMarker(marker));
-        });
-  }
-
-  @ReactMethod
-  public void addPolyline(int viewId, ReadableMap polylineOptionsMap, final Promise promise) {
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          IMapViewFragment fragment = mNavViewManager.getFragmentForViewId(viewId);
-          if (fragment == null) {
-            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-            return;
-          }
-
-          Polyline polyline =
-              fragment.getMapController().addPolyline(polylineOptionsMap.toHashMap());
-          promise.resolve(ObjectTranslationUtil.getMapFromPolyline(polyline));
-        });
-  }
-
-  @ReactMethod
-  public void addPolygon(int viewId, ReadableMap polygonOptionsMap, final Promise promise) {
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          IMapViewFragment fragment = mNavViewManager.getFragmentForViewId(viewId);
-          if (fragment == null) {
-            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-            return;
-          }
-
-          Polygon polygon = fragment.getMapController().addPolygon(polygonOptionsMap.toHashMap());
-          promise.resolve(ObjectTranslationUtil.getMapFromPolygon(polygon));
-        });
-  }
-
-  @ReactMethod
-  public void addCircle(int viewId, ReadableMap circleOptionsMap, final Promise promise) {
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          IMapViewFragment fragment = mNavViewManager.getFragmentForViewId(viewId);
-          if (fragment == null) {
-            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-            return;
-          }
-
-          Circle circle = fragment.getMapController().addCircle(circleOptionsMap.toHashMap());
-          promise.resolve(ObjectTranslationUtil.getMapFromCircle(circle));
-        });
-  }
-
-  @ReactMethod
-  public void addGroundOverlay(int viewId, ReadableMap overlayOptionsMap, final Promise promise) {
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          IMapViewFragment fragment = mNavViewManager.getFragmentForViewId(viewId);
-          if (fragment == null) {
-            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
-            return;
-          }
-
-          GroundOverlay overlay =
-              fragment.getMapController().addGroundOverlay(overlayOptionsMap.toHashMap());
-          promise.resolve(ObjectTranslationUtil.getMapFromGroundOverlay(overlay));
+          promise.resolve(fragment.getGoogleMap().isMyLocationEnabled());
         });
   }
 
   @Override
-  public boolean canOverrideExistingModule() {
-    return true;
+  public void addMarker(String nativeID, ReadableMap options, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          try {
+            MapViewController mapController = fragment.getMapController();
+            Marker marker = mapController.addMarker(options.toHashMap());
+            String effectiveId = mapController.getMarkerEffectiveId(marker.getId());
+            promise.resolve(ObjectTranslationUtil.getMapFromMarker(marker, effectiveId));
+          } catch (IllegalArgumentException e) {
+            promise.reject(JsErrors.INVALID_IMAGE_ERROR_CODE, e.getMessage());
+          }
+        });
+  }
+
+  @Override
+  public void addPolyline(String nativeID, ReadableMap options, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          MapViewController mapController = fragment.getMapController();
+          Polyline polyline = mapController.addPolyline(options.toHashMap());
+          String effectiveId = mapController.getPolylineEffectiveId(polyline.getId());
+          promise.resolve(ObjectTranslationUtil.getMapFromPolyline(polyline, effectiveId));
+        });
+  }
+
+  @Override
+  public void addPolygon(String nativeID, ReadableMap options, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          MapViewController mapController = fragment.getMapController();
+          Polygon polygon = mapController.addPolygon(options.toHashMap());
+          String effectiveId = mapController.getPolygonEffectiveId(polygon.getId());
+          promise.resolve(ObjectTranslationUtil.getMapFromPolygon(polygon, effectiveId));
+        });
+  }
+
+  @Override
+  public void addCircle(String nativeID, ReadableMap options, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          MapViewController mapController = fragment.getMapController();
+          Circle circle = mapController.addCircle(options.toHashMap());
+          String effectiveId = mapController.getCircleEffectiveId(circle.getId());
+          promise.resolve(ObjectTranslationUtil.getMapFromCircle(circle, effectiveId));
+        });
+  }
+
+  @Override
+  public void addGroundOverlay(String nativeID, ReadableMap options, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          try {
+            MapViewController mapController = fragment.getMapController();
+            GroundOverlay overlay = mapController.addGroundOverlay(options.toHashMap());
+            if (overlay == null) {
+              promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+              return;
+            }
+            String effectiveId = mapController.getGroundOverlayEffectiveId(overlay.getId());
+            promise.resolve(ObjectTranslationUtil.getMapFromGroundOverlay(overlay, effectiveId));
+          } catch (IllegalArgumentException e) {
+            promise.reject(JsErrors.INVALID_OPTIONS_ERROR_CODE, e.getMessage());
+          }
+        });
+  }
+
+  @Override
+  public void moveCamera(String nativeID, ReadableMap cameraPosition, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          fragment.getMapController().moveCamera(cameraPosition.toHashMap());
+          promise.resolve(null);
+        });
+  }
+
+  @Override
+  public void showRouteOverview(String nativeID, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          if (fragment instanceof INavViewFragment) {
+            ((INavViewFragment) fragment).showRouteOverview();
+            promise.resolve(null);
+          } else {
+            promise.reject(JsErrors.NOT_NAV_VIEW_ERROR_CODE, JsErrors.NOT_NAV_VIEW_ERROR_MESSAGE);
+          }
+        });
+  }
+
+  @Override
+  public void clearMapView(String nativeID, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          fragment.getMapController().clearMapView();
+          promise.resolve(null);
+        });
+  }
+
+  @Override
+  public void removeMarker(String nativeID, String id, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          fragment.getMapController().removeMarker(id);
+          promise.resolve(null);
+        });
+  }
+
+  @Override
+  public void removePolyline(String nativeID, String id, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          fragment.getMapController().removePolyline(id);
+          promise.resolve(null);
+        });
+  }
+
+  @Override
+  public void removePolygon(String nativeID, String id, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          fragment.getMapController().removePolygon(id);
+          promise.resolve(null);
+        });
+  }
+
+  @Override
+  public void removeCircle(String nativeID, String id, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          fragment.getMapController().removeCircle(id);
+          promise.resolve(null);
+        });
+  }
+
+  @Override
+  public void removeGroundOverlay(String nativeID, String id, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          fragment.getMapController().removeGroundOverlay(id);
+          promise.resolve(null);
+        });
+  }
+
+  @Override
+  public void setZoomLevel(String nativeID, double level, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          fragment.getMapController().setZoomLevel((int) level);
+          promise.resolve(null);
+        });
+  }
+
+  @Override
+  public void setNavigationUIEnabled(String nativeID, boolean enabled, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          if (fragment instanceof INavViewFragment) {
+            ((INavViewFragment) fragment).setNavigationUiEnabled(enabled);
+            promise.resolve(null);
+          } else {
+            promise.reject(JsErrors.NOT_NAV_VIEW_ERROR_CODE, JsErrors.NOT_NAV_VIEW_ERROR_MESSAGE);
+          }
+        });
+  }
+
+  @Override
+  public void setFollowingPerspective(String nativeID, double perspective, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          if (fragment instanceof INavViewFragment) {
+            fragment.getMapController().setFollowingPerspective((int) perspective);
+            promise.resolve(null);
+          } else {
+            promise.reject(JsErrors.NOT_NAV_VIEW_ERROR_CODE, JsErrors.NOT_NAV_VIEW_ERROR_MESSAGE);
+          }
+        });
+  }
+
+  @Override
+  public void getMarkers(String nativeID, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          MapViewController mapController = fragment.getMapController();
+          WritableArray result = Arguments.createArray();
+          for (Map.Entry<String, Marker> entry : mapController.getMarkerMap().entrySet()) {
+            result.pushMap(
+                ObjectTranslationUtil.getMapFromMarker(entry.getValue(), entry.getKey()));
+          }
+          promise.resolve(result);
+        });
+  }
+
+  @Override
+  public void getCircles(String nativeID, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          MapViewController mapController = fragment.getMapController();
+          WritableArray result = Arguments.createArray();
+          for (Map.Entry<String, Circle> entry : mapController.getCircleMap().entrySet()) {
+            result.pushMap(
+                ObjectTranslationUtil.getMapFromCircle(entry.getValue(), entry.getKey()));
+          }
+          promise.resolve(result);
+        });
+  }
+
+  @Override
+  public void getPolylines(String nativeID, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          MapViewController mapController = fragment.getMapController();
+          WritableArray result = Arguments.createArray();
+          for (Map.Entry<String, Polyline> entry : mapController.getPolylineMap().entrySet()) {
+            result.pushMap(
+                ObjectTranslationUtil.getMapFromPolyline(entry.getValue(), entry.getKey()));
+          }
+          promise.resolve(result);
+        });
+  }
+
+  @Override
+  public void getPolygons(String nativeID, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          MapViewController mapController = fragment.getMapController();
+          WritableArray result = Arguments.createArray();
+          for (Map.Entry<String, Polygon> entry : mapController.getPolygonMap().entrySet()) {
+            result.pushMap(
+                ObjectTranslationUtil.getMapFromPolygon(entry.getValue(), entry.getKey()));
+          }
+          promise.resolve(result);
+        });
+  }
+
+  @Override
+  public void getGroundOverlays(String nativeID, final Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
+          if (fragment == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          MapViewController mapController = fragment.getMapController();
+          WritableArray result = Arguments.createArray();
+          for (Map.Entry<String, GroundOverlay> entry :
+              mapController.getGroundOverlayMap().entrySet()) {
+            result.pushMap(
+                ObjectTranslationUtil.getMapFromGroundOverlay(entry.getValue(), entry.getKey()));
+          }
+          promise.resolve(result);
+        });
   }
 }

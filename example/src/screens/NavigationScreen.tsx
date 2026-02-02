@@ -14,47 +14,42 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View } from 'react-native';
 import { ExampleAppButton } from '../controls/ExampleAppButton';
-import Snackbar from 'react-native-snackbar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
-  NavigationInitErrorCode,
   NavigationView,
-  RouteStatus,
   MapColorScheme,
+  CameraPerspective,
   NavigationNightMode,
+  NavigationSessionStatus,
   type ArrivalEvent,
   type Circle,
+  type GroundOverlay,
   type LatLng,
   type Location,
-  type MapViewCallbacks,
   type MapViewController,
   type Marker,
-  type NavigationAutoCallbacks,
-  type NavigationCallbacks,
-  type NavigationViewCallbacks,
   type NavigationViewController,
   type TurnByTurnEvent,
   type Polygon,
   type Polyline,
   useNavigation,
   useNavigationAuto,
-  type CustomNavigationAutoEvent,
 } from '@googlemaps/react-native-navigation-sdk';
 import MapsControls from '../controls/mapsControls';
+import AutoControls from '../controls/autoControls';
 import NavigationControls from '../controls/navigationControls';
+import NavigationActionPath, {
+  ActionPathStep,
+} from '../controls/NavigationActionPath';
 import OverlayModal from '../helpers/overlayModal';
+import { showSnackbar, Snackbar } from '../helpers/snackbar';
 import { CommonStyles, MapStyles } from '../styles/components';
 import { MapStylingOptions } from '../styles/mapStyling';
 import usePermissions from '../checkPermissions';
-
-// Utility function for showing Snackbar
-const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
-  Snackbar.show({ text, duration });
-};
 
 enum OverlayType {
   None = 'None',
@@ -77,144 +72,133 @@ const NavigationScreen = () => {
   const [navigationNightMode, setNavigationNightMode] =
     useState<NavigationNightMode>(NavigationNightMode.AUTO);
 
+  // Map state
+  const [myLocationEnabled, setMyLocationEnabled] = useState(true);
+  const [myLocationButtonEnabled, setMyLocationButtonEnabled] = useState(true);
+
+  // Navigation UI state
+  const [tripProgressBarEnabled, setTripProgressBarEnabled] = useState(false);
+  const [trafficPromptsEnabled, setTrafficPromptsEnabled] = useState(true);
+  const [trafficIncidentCardsEnabled, setTrafficIncidentCardsEnabled] =
+    useState(true);
+  const [headerEnabled, setHeaderEnabled] = useState(true);
+  const [footerEnabled, setFooterEnabled] = useState(true);
+  const [speedometerEnabled, setSpeedometerEnabled] = useState(false);
+  const [speedLimitIconEnabled, setSpeedLimitIconEnabled] = useState(false);
+  const [recenterButtonEnabled, setRecenterButtonEnabled] = useState(true);
+  const [reportIncidentButtonEnabled, setReportIncidentButtonEnabled] =
+    useState(true);
+  const [followingPerspective, setFollowingPerspective] = useState<
+    CameraPerspective | undefined
+  >(undefined);
+
   const {
     mapViewAutoController,
-    addListeners: addAutoListener,
-    removeListeners: removeAutoListeners,
+    setOnAutoScreenAvailabilityChanged,
+    setOnCustomNavigationAutoEvent,
   } = useNavigationAuto();
   const [mapViewAutoAvailable, setMapViewAutoAvailable] =
     useState<boolean>(false);
 
-  const { navigationController, addListeners, removeListeners } =
-    useNavigation();
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnArrival,
+    setOnLocationChanged,
+    setOnRawLocationChanged,
+    setOnRouteChanged,
+    setOnTrafficUpdated,
+    setOnStartGuidance,
+    setOnRemainingTimeOrDistanceChanged,
+    setOnTurnByTurn,
+  } = useNavigation();
 
   const [navigationInitialized, setNavigationInitialized] = useState(false);
+  const [actionPathStep, setActionPathStep] = useState<ActionPathStep>(
+    ActionPathStep.NOT_INITIALIZED
+  );
 
-  const onArrival = useCallback(
-    (event: ArrivalEvent) => {
+  useEffect(() => {
+    if (navigationViewController && followingPerspective !== undefined) {
+      navigationViewController.setFollowingPerspective(followingPerspective);
+    }
+  }, [navigationViewController, followingPerspective]);
+
+  const onNavigationDispose = useCallback(async () => {
+    setNavigationInitialized(false);
+    setActionPathStep(ActionPathStep.NOT_INITIALIZED);
+  }, []);
+
+  const onPromptVisibilityChanged = (_visible: boolean) => {
+    // Prompt visibility changed
+  };
+
+  // Set up navigation event listeners
+  useEffect(() => {
+    setOnNavigationReady(() => {
+      setNavigationInitialized(true);
+      setActionPathStep(ActionPathStep.INITIALIZED);
+    });
+
+    setOnLocationChanged((_location: Location) => {
+      // Location changed
+    });
+
+    setOnRawLocationChanged((_location: Location) => {
+      // Raw location changed
+    });
+
+    setOnRouteChanged(() => showSnackbar('Route Changed'));
+    setOnTrafficUpdated(() => showSnackbar('Traffic Updated'));
+    setOnStartGuidance(() => showSnackbar('Start Guidance'));
+
+    setOnTurnByTurn((_turnByTurn: TurnByTurnEvent[]) => {
+      // Turn by turn event
+    });
+  }, [
+    setOnNavigationReady,
+    setOnLocationChanged,
+    setOnRawLocationChanged,
+    setOnRouteChanged,
+    setOnTrafficUpdated,
+    setOnStartGuidance,
+    setOnTurnByTurn,
+  ]);
+
+  // Set up callbacks that depend on navigationController
+  useEffect(() => {
+    setOnArrival((event: ArrivalEvent) => {
       if (event.isFinalDestination) {
-        console.log('Final destination reached');
         navigationController.stopGuidance();
       } else {
-        console.log('Continuing to the next destination');
         navigationController.continueToNextDestination();
         navigationController.startGuidance();
       }
-
       showSnackbar('Arrived');
-    },
-    [navigationController]
-  );
+    });
 
-  const onNavigationReady = useCallback(() => {
-    console.log('onNavigationReady');
-    setNavigationInitialized(true);
-  }, []);
+    setOnRemainingTimeOrDistanceChanged(timeAndDistance => {
+      const minutes = Math.round(timeAndDistance.seconds / 60);
+      const km = (timeAndDistance.meters / 1000).toFixed(1);
+      console.info(`ETA: ${minutes} min, ${km} km remaining`);
+    });
+  }, [navigationController, setOnArrival, setOnRemainingTimeOrDistanceChanged]);
 
-  const onNavigationDispose = useCallback(async () => {
-    await navigationViewController?.setNavigationUIEnabled(false);
-    setNavigationInitialized(false);
-  }, [navigationViewController]);
+  // Set up auto navigation event listeners
+  useEffect(() => {
+    setOnAutoScreenAvailabilityChanged((available: boolean) => {
+      setMapViewAutoAvailable(available);
+    });
 
-  const onNavigationInitError = useCallback(
-    (errorCode: NavigationInitErrorCode) => {
-      showSnackbar(`Failed to initialize navigation errorCode: ${errorCode}`);
-    },
-    []
-  );
-
-  const onLocationChanged = useCallback((location: Location) => {
-    console.log('onLocationChanged:', location);
-  }, []);
-
-  const onRawLocationChanged = useCallback((location: Location) => {
-    console.log('onRawLocationChanged:', location);
-  }, []);
-
-  const onTurnByTurn = useCallback((turnByTurn: TurnByTurnEvent[]) => {
-    console.log('onTurnByTurn:', turnByTurn);
-  }, []);
-
-  const onRemainingTimeOrDistanceChanged = useCallback(async () => {
-    if (navigationController) {
-      const currentTimeAndDistance =
-        await navigationController.getCurrentTimeAndDistance();
-      console.log(currentTimeAndDistance);
-    }
-    console.log('called onRemainingTimeOrDistanceChanged');
-  }, [navigationController]);
-
-  const onPromptVisibilityChanged = (visible: boolean) => {
-    console.log('Prompt visibility changed to:', visible);
-  };
-
-  const onRouteStatusResult = useCallback((routeStatus: RouteStatus) => {
-    switch (routeStatus) {
-      case RouteStatus.OK:
-        showSnackbar('Route created');
-        break;
-      case RouteStatus.ROUTE_CANCELED:
-        showSnackbar('Error: Route Cancelled');
-        break;
-      case RouteStatus.NO_ROUTE_FOUND:
-        showSnackbar('Error: No Route Found');
-        break;
-      case RouteStatus.NETWORK_ERROR:
-        showSnackbar('Error: Network Error');
-        break;
-      case RouteStatus.LOCATION_DISABLED:
-        showSnackbar('Error: Location Disabled');
-        break;
-      case RouteStatus.LOCATION_UNKNOWN:
-        showSnackbar('Error: Location Unknown');
-        break;
-      case RouteStatus.DUPLICATE_WAYPOINTS_ERROR:
-        showSnackbar('Error: Consecutive duplicate waypoints are not allowed');
-        break;
-      default:
-        console.log('routeStatus: ' + routeStatus);
-        showSnackbar('Error: Starting Guidance Error');
-    }
-  }, []);
-
-  const navigationCallbacks: NavigationCallbacks = useMemo(
-    () => ({
-      onRouteChanged: () => showSnackbar('Route Changed'),
-      onArrival,
-      onNavigationReady,
-      onNavigationInitError,
-      onLocationChanged,
-      onRawLocationChanged,
-      onTrafficUpdated: () => showSnackbar('Traffic Updated'),
-      onRouteStatusResult,
-      onStartGuidance: () => showSnackbar('Start Guidance'),
-      onRemainingTimeOrDistanceChanged,
-      onTurnByTurn,
-    }),
-    [
-      onArrival,
-      onNavigationReady,
-      onNavigationInitError,
-      onLocationChanged,
-      onRawLocationChanged,
-      onRouteStatusResult,
-      onRemainingTimeOrDistanceChanged,
-      onTurnByTurn,
-    ]
-  );
-
-  const navigationAutoCallbacks: NavigationAutoCallbacks = useMemo(
-    () => ({
-      onCustomNavigationAutoEvent: (event: CustomNavigationAutoEvent) => {
-        console.log('onCustomNavigationAutoEvent:', event);
-      },
-      onAutoScreenAvailabilityChanged: (available: boolean) => {
-        console.log('onAutoScreenAvailabilityChanged:', available);
-        setMapViewAutoAvailable(available);
-      },
-    }),
-    []
-  );
+    setOnCustomNavigationAutoEvent(event => {
+      // Show snackbar when custom event is received from Android Auto/CarPlay
+      const dataStr = event.data ? JSON.stringify(event.data) : 'no data';
+      showSnackbar(
+        `Auto event: ${event.type} - ${dataStr}`,
+        Snackbar.LENGTH_LONG
+      );
+    });
+  }, [setOnAutoScreenAvailabilityChanged, setOnCustomNavigationAutoEvent]);
 
   useEffect(() => {
     (async () => {
@@ -223,69 +207,109 @@ const NavigationScreen = () => {
     })();
   }, [mapViewAutoController]);
 
-  useEffect(() => {
-    addListeners(navigationCallbacks);
-    return () => {
-      removeListeners(navigationCallbacks);
-    };
-  }, [navigationCallbacks, addListeners, removeListeners]);
-
-  useEffect(() => {
-    addAutoListener(navigationAutoCallbacks);
-    return () => {
-      removeAutoListeners(navigationAutoCallbacks);
-    };
-  }, [navigationAutoCallbacks, addAutoListener, removeAutoListeners]);
-
   const onMapReady = useCallback(async () => {
-    console.log('Map is ready, initializing navigator...');
-    try {
-      await navigationController.init();
-    } catch (error) {
-      console.error('Error initializing navigator', error);
-      showSnackbar('Error initializing navigator');
+    // First show Terms and Conditions dialog (uses options from NavigationProvider)
+    const termsAccepted =
+      await navigationController.showTermsAndConditionsDialog();
+
+    if (!termsAccepted) {
+      showSnackbar('Terms and conditions not accepted');
+      return;
+    }
+
+    const status = await navigationController.init();
+    if (status !== NavigationSessionStatus.OK) {
+      console.error('Error initializing navigator:', status);
+      showSnackbar(`Error initializing navigator: ${status}`);
     }
   }, [navigationController]);
 
   const onRecenterButtonClick = () => {
-    console.log('onRecenterButtonClick');
+    // Recenter button clicked
   };
 
-  const navigationViewCallbacks: NavigationViewCallbacks = {
-    onRecenterButtonClick,
-    onPromptVisibilityChanged,
-  };
+  const handleInitNavigation = useCallback(async () => {
+    // First show Terms and Conditions dialog (uses options from NavigationProvider)
+    const termsAccepted =
+      await navigationController.showTermsAndConditionsDialog();
 
-  const mapViewCallbacks: MapViewCallbacks = useMemo(() => {
-    return {
-      onMapReady,
-      onMarkerClick: (marker: Marker) => {
-        console.log('onMarkerClick:', marker);
-        showSnackbar('Removing marker in 5 seconds');
-        setTimeout(() => {
-          mapViewController?.removeMarker(marker.id);
-        }, 5000);
-      },
-      onPolygonClick: (polygon: Polygon) => {
-        console.log('onPolygonClick:', polygon);
-        mapViewController?.removePolygon(polygon.id);
-      },
-      onCircleClick: (circle: Circle) => {
-        console.log('onCircleClick:', circle);
-        mapViewController?.removeCircle(circle.id);
-      },
-      onPolylineClick: (polyline: Polyline) => {
-        console.log('onPolylineClick:', polyline);
-        mapViewController?.removePolyline(polyline.id);
-      },
-      onMarkerInfoWindowTapped: (marker: Marker) => {
-        console.log('onMarkerInfoWindowTapped:', marker);
-      },
-      onMapClick: (latLng: LatLng) => {
-        console.log('onMapClick:', latLng);
-      },
-    };
-  }, [mapViewController, onMapReady]);
+    if (!termsAccepted) {
+      showSnackbar('Terms and conditions not accepted');
+      return;
+    }
+
+    const status = await navigationController.init();
+    if (status !== NavigationSessionStatus.OK) {
+      console.error('Error initializing navigator:', status);
+      showSnackbar(`Error initializing navigator: ${status}`);
+      throw new Error(`Navigation init failed: ${status}`);
+    }
+  }, [navigationController]);
+
+  const onShowNavControlsClick = useCallback(() => {
+    setOverlayType(OverlayType.NavControls);
+  }, [setOverlayType]);
+
+  const onShowMapsControlsClick = useCallback(() => {
+    setOverlayType(OverlayType.MapControls);
+  }, [setOverlayType]);
+
+  const onShowAutoMapsControlsClick = useCallback(() => {
+    setOverlayType(OverlayType.AutoMapControls);
+  }, [setOverlayType]);
+
+  // Map view callbacks
+  const onMarkerClick = useCallback(
+    (marker: Marker) => {
+      showSnackbar('Removing marker in 5 seconds');
+      setTimeout(() => {
+        mapViewController?.removeMarker(marker.id);
+      }, 5000);
+    },
+    [mapViewController]
+  );
+
+  const onPolygonClick = useCallback(
+    (polygon: Polygon) => {
+      showSnackbar('Polygon clicked, removing...');
+      mapViewController?.removePolygon(polygon.id);
+    },
+    [mapViewController]
+  );
+
+  const onCircleClick = useCallback(
+    (circle: Circle) => {
+      showSnackbar('Circle clicked, removing...');
+      mapViewController?.removeCircle(circle.id);
+    },
+    [mapViewController]
+  );
+
+  const onPolylineClick = useCallback(
+    (polyline: Polyline) => {
+      showSnackbar('Polyline clicked, removing...');
+      mapViewController?.removePolyline(polyline.id);
+    },
+    [mapViewController]
+  );
+
+  const onGroundOverlayClick = useCallback((groundOverlay: GroundOverlay) => {
+    showSnackbar(`Ground overlay clicked: ${groundOverlay.id}`);
+  }, []);
+
+  const onMarkerInfoWindowTapped = useCallback((_marker: Marker) => {
+    showSnackbar('Marker info window tapped');
+  }, []);
+
+  const onMapClick = useCallback((latLng: LatLng) => {
+    showSnackbar(
+      `Clicked at ${latLng.lat.toFixed(4)}, ${latLng.lng.toFixed(4)}`
+    );
+  }, []);
+
+  const closeOverlay = (): void => {
+    setOverlayType(OverlayType.None);
+  };
 
   return arePermissionsApproved ? (
     <View style={[CommonStyles.container, { paddingBottom: insets.bottom }]}>
@@ -295,36 +319,38 @@ const NavigationScreen = () => {
         iOSStylingOptions={MapStylingOptions.iOS}
         mapColorScheme={mapColorScheme}
         navigationNightMode={navigationNightMode}
-        navigationViewCallbacks={navigationViewCallbacks}
-        mapViewCallbacks={mapViewCallbacks}
+        myLocationEnabled={myLocationEnabled}
+        myLocationButtonEnabled={myLocationButtonEnabled}
+        navigationUIEnabledPreference={0} // 0 = AUTOMATIC
+        tripProgressBarEnabled={tripProgressBarEnabled}
+        trafficPromptsEnabled={trafficPromptsEnabled}
+        trafficIncidentCardsEnabled={trafficIncidentCardsEnabled}
+        headerEnabled={headerEnabled}
+        footerEnabled={footerEnabled}
+        speedometerEnabled={speedometerEnabled}
+        speedLimitIconEnabled={speedLimitIconEnabled}
+        recenterButtonEnabled={recenterButtonEnabled}
+        reportIncidentButtonEnabled={reportIncidentButtonEnabled}
+        onMapReady={onMapReady}
+        onMapClick={onMapClick}
+        onMarkerClick={onMarkerClick}
+        onPolylineClick={onPolylineClick}
+        onPolygonClick={onPolygonClick}
+        onCircleClick={onCircleClick}
+        onGroundOverlayClick={onGroundOverlayClick}
+        onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
+        onRecenterButtonClick={onRecenterButtonClick}
+        onPromptVisibilityChanged={onPromptVisibilityChanged}
         onMapViewControllerCreated={setMapViewController}
         onNavigationViewControllerCreated={setNavigationViewController}
       />
-
-      <View style={CommonStyles.buttonRow}>
-        <ExampleAppButton
-          title="Navigation"
-          onPress={() => setOverlayType(OverlayType.NavControls)}
-          disabled={!navigationInitialized}
-        />
-        <ExampleAppButton
-          title="Maps"
-          onPress={() => setOverlayType(OverlayType.MapControls)}
-        />
-        {mapViewAutoAvailable && (
-          <ExampleAppButton
-            title="Auto"
-            onPress={() => setOverlayType(OverlayType.AutoMapControls)}
-          />
-        )}
-      </View>
 
       {navigationViewController != null &&
         navigationController != null &&
         navigationInitialized && (
           <OverlayModal
             visible={overlayType === OverlayType.NavControls}
-            closeOverlay={() => setOverlayType(OverlayType.None)}
+            closeOverlay={closeOverlay}
           >
             <NavigationControls
               navigationController={navigationController}
@@ -333,7 +359,20 @@ const NavigationScreen = () => {
               onNavigationDispose={onNavigationDispose}
               navigationNightMode={navigationNightMode}
               onNavigationNightModeChange={setNavigationNightMode}
-              showMessage={showSnackbar}
+              onTripProgressBarEnabledChange={setTripProgressBarEnabled}
+              onTrafficPromptsEnabledChange={setTrafficPromptsEnabled}
+              onTrafficIncidentCardsEnabledChange={
+                setTrafficIncidentCardsEnabled
+              }
+              onHeaderEnabledChange={setHeaderEnabled}
+              onFooterEnabledChange={setFooterEnabled}
+              onSpeedometerEnabledChange={setSpeedometerEnabled}
+              onSpeedLimitIconEnabledChange={setSpeedLimitIconEnabled}
+              onRecenterButtonEnabledChange={setRecenterButtonEnabled}
+              onReportIncidentButtonEnabledChange={
+                setReportIncidentButtonEnabled
+              }
+              onFollowingPerspectiveChange={setFollowingPerspective}
             />
           </OverlayModal>
         )}
@@ -341,13 +380,18 @@ const NavigationScreen = () => {
       {mapViewController != null && (
         <OverlayModal
           visible={overlayType === OverlayType.MapControls}
-          closeOverlay={() => setOverlayType(OverlayType.None)}
+          closeOverlay={closeOverlay}
         >
           <MapsControls
             mapViewController={mapViewController}
             mapColorScheme={mapColorScheme}
             onMapColorSchemeChange={setMapColorScheme}
-            showMessage={showSnackbar}
+            myLocationEnabled={myLocationEnabled}
+            myLocationButtonEnabled={myLocationButtonEnabled}
+            onMyLocationChange={(enabled, buttonEnabled) => {
+              setMyLocationEnabled(enabled);
+              setMyLocationButtonEnabled(buttonEnabled);
+            }}
           />
         </OverlayModal>
       )}
@@ -355,14 +399,35 @@ const NavigationScreen = () => {
       {mapViewAutoAvailable && mapViewAutoController != null && (
         <OverlayModal
           visible={overlayType === OverlayType.AutoMapControls}
-          closeOverlay={() => setOverlayType(OverlayType.None)}
+          closeOverlay={closeOverlay}
         >
-          <MapsControls
-            mapViewController={mapViewAutoController}
-            showMessage={showSnackbar}
-          />
+          <AutoControls mapViewAutoController={mapViewAutoController} />
         </OverlayModal>
       )}
+
+      <NavigationActionPath
+        navigationController={navigationController}
+        navigationInitialized={navigationInitialized}
+        onInitNavigation={handleInitNavigation}
+        onNavigationCleanedUp={onNavigationDispose}
+        currentStep={actionPathStep}
+        onStepChange={setActionPathStep}
+      />
+
+      <View style={CommonStyles.buttonRow}>
+        <ExampleAppButton
+          title="Navigation"
+          onPress={onShowNavControlsClick}
+          disabled={!navigationInitialized}
+        />
+        <ExampleAppButton title="Maps" onPress={onShowMapsControlsClick} />
+        {mapViewAutoAvailable && (
+          <ExampleAppButton
+            title="Auto"
+            onPress={onShowAutoMapsControlsClick}
+          />
+        )}
+      </View>
     </View>
   ) : (
     <React.Fragment />

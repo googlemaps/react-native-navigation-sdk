@@ -33,10 +33,13 @@ This repository contains a React Native plugin that provides a [Google Navigatio
 
 The current version of this package has been tested and verified to work with the following React Native versions: 
 
-**0.81.1, 0.80.2, 0.79.6, 0.78.3, 0.77.3, 0.76.9, 0.75.5, 0.74.7**
+**0.81.1, 0.80.2, 0.79.6, 0.78.3, 0.77.3**
 
 > [!IMPORTANT]
-> This package does not yet support React Native's new architecture. Make sure the new architecture is disabled in your project configuration as shown in the [Installation](#installation) section.
+> This package requires React Native 0.77+ with the new architecture (Fabric & TurboModules) enabled. Make sure the new architecture is enabled in your project configuration as shown in the [Installation](#installation) section.
+
+> [!NOTE]
+> For users upgrading from versions prior to 0.14.0, please refer to the [Migration Guide](./MIGRATING.md) for instructions on migrating to the new architecture and updated API.
 
 ## Installation
 
@@ -54,12 +57,12 @@ import { NavigationView } from '@googlemaps/react-native-navigation-sdk';
 
 ### Android
 
-#### Disable new architecture
+#### Enable new architecture
 
-This package does not yet support new architecture. Make sure new architecture is disabled in your `android/gradle.properties` file:
+This package requires React Native's new architecture. Make sure new architecture is enabled in your `android/gradle.properties` file:
 
 ```groovy
-newArchEnabled=false
+newArchEnabled=true
 ```
 
 #### Enable Jetifier
@@ -111,12 +114,12 @@ See example configuration for secrets plugin at example applications [build.grad
 
 ### iOS
 
-#### Disable new architecture
+#### Enable new architecture
 
-This package does not yet support new architecture. Make sure new architecture is disabled in your `ios/Podfile`:
+This package requires React Native's new architecture. Make sure new architecture is enabled in your `ios/Podfile`:
 
 ```ruby
-ENV['RCT_NEW_ARCH_ENABLED'] = '0'
+ENV['RCT_NEW_ARCH_ENABLED'] = '1'
 ```
 
 #### Set Google Maps API Key
@@ -146,19 +149,20 @@ import React from 'react';
 import {
   NavigationProvider,
   TaskRemovedBehavior,
-  type TermsAndConditionsDialogOptions,
 } from '@googlemaps/react-native-navigation-sdk';
-
-const termsAndConditionsDialogOptions: TermsAndConditionsDialogOptions = {
-  title: 'Terms and Conditions Title',
-  companyName: 'Your Company Name',
-  showOnlyDisclaimer: true,
-};
 
 const App = () => {
   return (
     <NavigationProvider
-      termsAndConditionsDialogOptions={termsAndConditionsDialogOptions}
+      termsAndConditionsDialogOptions={{
+        title: 'Terms and Conditions',
+        companyName: 'Your Company Name',
+        showOnlyDisclaimer: false,
+        uiParams: { // Optional UI customization
+          backgroundColor: '#FFFFFF',
+          titleColor: 'rgba(0,0,0,1)',
+        },
+      }}
       taskRemovedBehavior={TaskRemovedBehavior.CONTINUE_SERVICE}
     >
       {/* Add your application components here */}
@@ -168,6 +172,17 @@ const App = () => {
 
 export default App;
 ```
+
+#### Terms and Conditions Dialog Options
+
+The `termsAndConditionsDialogOptions` prop configures the Terms and Conditions dialog that must be shown before navigation can be used:
+
+| Property             | Type                         | Description                                                                    |
+| -------------------- | ---------------------------- | ------------------------------------------------------------------------------ |
+| `title`              | `string`                     | The title of the Terms and Conditions dialog                                   |
+| `companyName`        | `string`                     | Your company name displayed in the dialog                                      |
+| `showOnlyDisclaimer` | `boolean`                    | If `true`, shows only the driver awareness disclaimer                          |
+| `uiParams`           | `TermsAndConditionsUIParams` | Optional UI customization (colors in hex format like `#RRGGBB` or `#AARRGGBB`) |
 
 #### Task Removed Behavior
 
@@ -182,18 +197,68 @@ This prop has only an effect on Android.
 
 You can use the `useNavigation` hook to access the `NavigationController` and control navigation within your components. The `useNavigation` hook also provides methods to add and remove listeners.
 
+#### Showing Terms and Conditions Dialog
+
+Before initializing navigation, you should show the Terms and Conditions dialog to the user. This is required for using the Navigation SDK. The dialog uses the options configured in `NavigationProvider`.
+
+```tsx
+const { navigationController } = useNavigation();
+
+const showTermsDialog = async () => {
+  // Uses options from NavigationProvider by default
+  const accepted = await navigationController.showTermsAndConditionsDialog();
+  return accepted;
+};
+
+// You can also override specific options:
+const showTermsDialogWithOverride = async () => {
+  const accepted = await navigationController.showTermsAndConditionsDialog({
+    showOnlyDisclaimer: true, // Override specific options
+  });
+  return accepted;
+};
+```
+
 #### Initializing Navigation
 
 ```tsx
-...
+import {
+  useNavigation,
+  NavigationSessionStatus,
+} from '@googlemaps/react-native-navigation-sdk';
+
 const { navigationController } = useNavigation();
 
 const initializeNavigation = useCallback(async () => {
-  try {
-    await navigationController.init();
-    console.log('Navigation initialized');
-  } catch (error) {
-    console.error('Error initializing navigation', error);
+  // First show Terms and Conditions dialog (uses options from NavigationProvider)
+  const termsAccepted = await navigationController.showTermsAndConditionsDialog();
+
+  if (!termsAccepted) {
+    console.log('User declined terms');
+    return;
+  }
+
+  // Initialize the navigation session and check the status
+  const status = await navigationController.init();
+  
+  switch (status) {
+    case NavigationSessionStatus.OK:
+      console.log('Navigation initialized successfully');
+      break;
+    case NavigationSessionStatus.NOT_AUTHORIZED:
+      console.error('API key not authorized');
+      break;
+    case NavigationSessionStatus.TERMS_NOT_ACCEPTED:
+      console.error('Terms not accepted');
+      break;
+    case NavigationSessionStatus.LOCATION_PERMISSION_MISSING:
+      console.error('Location permission required');
+      break;
+    case NavigationSessionStatus.NETWORK_ERROR:
+      console.error('Network error');
+      break;
+    default:
+      console.error('Unknown error:', status);
   }
 }, [navigationController]);
 ```
@@ -271,35 +336,41 @@ await navigationController.startGuidance();
 #### Adding navigation listeners
 
 ```tsx
-const { navigationController, addListeners, removeListeners } = useNavigation();
-
-const onArrival = useCallback((event: ArrivalEvent) => {
-    if (event.isFinalDestination) {
-        console.log('Final destination reached');
-        navigationController.stopGuidance();
-    } else {
-        console.log('Continuing to the next destination');
-        navigationController.continueToNextDestination();
-        navigationController.startGuidance();
-    }
-}, [navigationController]);
-
-const navigationCallbacks = useMemo(() => ({
-    onArrival,
-    // Add other callbacks here
-}), [onArrival]);
+const { 
+  navigationController, 
+  removeAllListeners,
+  setOnArrival,
+  setOnRouteChanged,
+  setOnNavigationReady,
+} = useNavigation();
 
 useEffect(() => {
-    addListeners(navigationCallbacks);
-    return () => {
-        removeListeners(navigationCallbacks);
-    };
-}, [navigationCallbacks, addListeners, removeListeners]);
+  setOnArrival((event: ArrivalEvent) => {
+    if (event.isFinalDestination) {
+      console.log('Final destination reached');
+      navigationController.stopGuidance();
+    } else {
+      console.log('Continuing to the next destination');
+      navigationController.continueToNextDestination();
+      navigationController.startGuidance();
+    }
+  });
+  setOnRouteChanged(() => console.log('Route changed'));
+  setOnNavigationReady(() => console.log('Navigation ready'));
+
+  // On cleanup, removeAllListeners() clears all at once.
+  // Alternatively, clear individual listeners: setOnArrival(null)
+  return () => removeAllListeners();
+}, [
+  navigationController,
+  setOnArrival,
+  setOnRouteChanged,
+  setOnNavigationReady,
+  removeAllListeners,
+]);
 ```
 
-See `NavigationCallbacks` interface for a list of available callbacks. 
-
-When removing listeners, ensure you pass the same object that was used when adding them, as multiple listeners can be registered for the same event.
+See [Navigation Listener Setters](#navigation-listener-setters) for a complete list of available listener setters.
 
 ### Add a navigation view
 
@@ -324,11 +395,10 @@ in an unbounded widget will cause the application to behave unexpectedly.
         navigationHeaderPrimaryBackgroundColor: '#34eba8',
         navigationHeaderDistanceValueTextColor: '#76b5c5',
     }}
-    navigationViewCallbacks={navigationViewCallbacks}
-    mapViewCallbacks={mapViewCallbacks}
+    onMapReady={() => console.log('Map is ready')}
+    onRecenterButtonClick={() => console.log('Recenter button clicked')}
     onMapViewControllerCreated={setMapViewController}
     onNavigationViewControllerCreated={setNavigationViewController}
-    termsAndConditionsDialogOptions={termsAndConditionsDialogOptions}
 />
 ```
 
@@ -339,7 +409,8 @@ You can also add a bare `MapView` that works as a normal map view without naviga
 ```tsx
 <MapView
     mapId="your-map-id-here" // Optional: Your map ID configured in Google Cloud Console
-    mapViewCallbacks={mapViewCallbacks}
+    onMapReady={() => console.log('Map is ready')}
+    onMapClick={(latLng) => console.log('Map clicked at', latLng)}
     onMapViewControllerCreated={setMapViewController}
 />
 ```
@@ -387,6 +458,7 @@ const requestPermissions = async () => {
 ```
 
 ### Changing the NavigationView size
+
 By default, `NavigationView` uses all the available space provided to it. To adjust the size of the NavigationView, use the `style` prop.
 
 ```tsx
@@ -405,6 +477,265 @@ This plugin is compatible with both Android Auto and Apple CarPlay infotainment 
 
 - [Android Auto documentation](./ANDROIDAUTO.md)
 - [CarPlay documentation](./CARPLAY.md)
+
+## API Reference
+
+### View Props
+
+Both `NavigationView` and `MapView` support the following props. Props marked with **Nav** are only available on `NavigationView`.
+
+#### Configuration Props
+
+| Prop                            | Type                            | Default         |  Nav  | Description                                                 |
+| ------------------------------- | ------------------------------- | --------------- | :---: | ----------------------------------------------------------- |
+| `style`                         | `ViewStyle`                     | `{ flex: 1 }`   |       | Style applied to the view container                         |
+| `mapId`                         | `string`                        | -               |       | Cloud-based map styling ID from Google Cloud Console        |
+| `mapColorScheme`                | `MapColorScheme`                | `FOLLOW_SYSTEM` |       | Color scheme for map tiles (FOLLOW_SYSTEM, LIGHT, DARK)     |
+| `mapStyle`                      | `string`                        | -               |       | Custom map styling via JSON                                 |
+| `mapPadding`                    | `Padding`                       | -               |       | Padding applied to the map in pixels                        |
+| `initialCameraPosition`         | `CameraPosition`                | -               |       | Initial camera position when map loads                      |
+| `minZoomLevel`                  | `number`                        | -               |       | Minimum allowed zoom level                                  |
+| `maxZoomLevel`                  | `number`                        | -               |       | Maximum allowed zoom level                                  |
+| `navigationNightMode`           | `NavigationNightMode`           | `AUTO`          |   ✓   | Night mode for navigation UI (AUTO, FORCE_DAY, FORCE_NIGHT) |
+| `navigationUIEnabledPreference` | `NavigationUIEnabledPreference` | `AUTOMATIC`     |   ✓   | Initial navigation UI visibility (AUTOMATIC, DISABLED)      |
+| `androidStylingOptions`         | `AndroidStylingOptions`         | -               |   ✓   | Android-specific navigation UI styling                      |
+| `iOSStylingOptions`             | `iOSStylingOptions`             | -               |   ✓   | iOS-specific navigation UI styling                          |
+
+#### UI Control Props
+
+| Prop                          | Type      | Default |  Nav  | Description                                           |
+| ----------------------------- | --------- | ------- | :---: | ----------------------------------------------------- |
+| `compassEnabled`              | `boolean` | `true`  |       | Show compass when map is rotated                      |
+| `mapToolbarEnabled`           | `boolean` | `true`  |       | Show map toolbar (Google Maps button)                 |
+| `myLocationButtonEnabled`     | `boolean` | `true`  |       | Show the my location button                           |
+| `myLocationEnabled`           | `boolean` | `false` |       | Show the my location indicator (requires permissions) |
+| `indoorEnabled`               | `boolean` | `true`  |       | Enable indoor maps                                    |
+| `trafficEnabled`              | `boolean` | `false` |       | Show traffic data on the map                          |
+| `buildingsEnabled`            | `boolean` | `true`  |       | Show 3D buildings                                     |
+| `zoomControlsEnabled`         | `boolean` | `false` |       | Show zoom controls (Android only)                     |
+| `headerEnabled`               | `boolean` | `true`  |   ✓   | Show navigation header with turn-by-turn instructions |
+| `footerEnabled`               | `boolean` | `true`  |   ✓   | Show navigation footer                                |
+| `tripProgressBarEnabled`      | `boolean` | `true`  |   ✓   | Show trip progress bar                                |
+| `speedometerEnabled`          | `boolean` | `false` |   ✓   | Show speedometer                                      |
+| `speedLimitIconEnabled`       | `boolean` | `true`  |   ✓   | Show speed limit icon                                 |
+| `recenterButtonEnabled`       | `boolean` | `true`  |   ✓   | Show recenter button                                  |
+| `reportIncidentButtonEnabled` | `boolean` | `true`  |   ✓   | Show report incident button                           |
+| `trafficPromptsEnabled`       | `boolean` | `true`  |   ✓   | Enable traffic disruption callouts and alerts         |
+| `trafficIncidentCardsEnabled` | `boolean` | `true`  |   ✓   | Enable traffic incident detail cards on tap           |
+
+#### Gesture Props
+
+| Prop                                      | Type      | Default | Description                                  |
+| ----------------------------------------- | --------- | ------- | -------------------------------------------- |
+| `rotateGesturesEnabled`                   | `boolean` | `true`  | Enable rotate gestures                       |
+| `scrollGesturesEnabled`                   | `boolean` | `true`  | Enable scroll/pan gestures                   |
+| `scrollGesturesDuringRotateOrZoomEnabled` | `boolean` | `true`  | Enable scroll gestures during rotate or zoom |
+| `tiltGesturesEnabled`                     | `boolean` | `true`  | Enable tilt gestures                         |
+| `zoomGesturesEnabled`                     | `boolean` | `true`  | Enable zoom gestures                         |
+
+#### Callback Props
+
+| Prop                                | Type                                             |  Nav  | Description                                      |
+| ----------------------------------- | ------------------------------------------------ | :---: | ------------------------------------------------ |
+| `onMapReady`                        | `() => void`                                     |       | Called when the map is ready to use              |
+| `onMapClick`                        | `(latLng: LatLng) => void`                       |       | Called when the map is clicked                   |
+| `onMarkerClick`                     | `(marker: Marker) => void`                       |       | Called when a marker is clicked                  |
+| `onPolylineClick`                   | `(polyline: Polyline) => void`                   |       | Called when a polyline is clicked                |
+| `onPolygonClick`                    | `(polygon: Polygon) => void`                     |       | Called when a polygon is clicked                 |
+| `onCircleClick`                     | `(circle: Circle) => void`                       |       | Called when a circle is clicked                  |
+| `onGroundOverlayClick`              | `(overlay: GroundOverlay) => void`               |       | Called when a ground overlay is clicked          |
+| `onMarkerInfoWindowTapped`          | `(marker: Marker) => void`                       |       | Called when a marker info window is tapped       |
+| `onMapViewControllerCreated`        | `(controller: MapViewController) => void`        |       | Called with the map controller instance          |
+| `onNavigationViewControllerCreated` | `(controller: NavigationViewController) => void` |   ✓   | Called with the navigation controller instance   |
+| `onRecenterButtonClick`             | `() => void`                                     |   ✓   | Called when recenter button is clicked           |
+| `onPromptVisibilityChanged`         | `(visible: boolean) => void`                     |   ✓   | Called when navigation prompt visibility changes |
+
+### MapViewController Methods
+
+The `MapViewController` is provided via the `onMapViewControllerCreated` callback and allows programmatic control of the map.
+
+| Method                                            | Returns                   | Description                                                                                |
+| ------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------ |
+| `clearMapView()`                                  | `void`                    | Clear all markers, polylines, polygons, and circles from the map                           |
+| `addMarker(options: MarkerOptions)`               | `Promise<Marker>`         | Add or update a marker. If `options.id` matches an existing marker, it is updated          |
+| `addPolyline(options: PolylineOptions)`           | `Promise<Polyline>`       | Add or update a polyline. If `options.id` matches an existing polyline, it is updated      |
+| `addPolygon(options: PolygonOptions)`             | `Promise<Polygon>`        | Add or update a polygon. If `options.id` matches an existing polygon, it is updated        |
+| `addCircle(options: CircleOptions)`               | `Promise<Circle>`         | Add or update a circle. If `options.id` matches an existing circle, it is updated          |
+| `addGroundOverlay(options: GroundOverlayOptions)` | `Promise<GroundOverlay>`  | Add or update a ground overlay. If `options.id` matches an existing overlay, it is updated |
+| `removeMarker(id: string)`                        | `void`                    | Remove a marker by its ID                                                                  |
+| `removePolyline(id: string)`                      | `void`                    | Remove a polyline by its ID                                                                |
+| `removePolygon(id: string)`                       | `void`                    | Remove a polygon by its ID                                                                 |
+| `removeCircle(id: string)`                        | `void`                    | Remove a circle by its ID                                                                  |
+| `removeGroundOverlay(id: string)`                 | `void`                    | Remove a ground overlay by its ID                                                          |
+| `moveCamera(position: CameraPosition)`            | `void`                    | Move camera to a new position                                                              |
+| `setZoomLevel(level: number)`                     | `void`                    | Set the map zoom level                                                                     |
+| `setPadding(padding: Padding)`                    | `void`                    | Set padding on the map                                                                     |
+| `getCameraPosition()`                             | `Promise<CameraPosition>` | Get the current camera position                                                            |
+| `getMyLocation()`                                 | `Promise<Location>`       | Get the current user location                                                              |
+| `getUiSettings()`                                 | `Promise<UISettings>`     | Get the current UI settings state                                                          |
+| `isMyLocationEnabled()`                           | `Promise<boolean>`        | Check if my location is enabled                                                            |
+
+### NavigationViewController Methods
+
+The `NavigationViewController` is provided via the `onNavigationViewControllerCreated` callback and allows control of navigation-specific features.
+
+| Method                                                    | Returns         | Description                                                             |
+| --------------------------------------------------------- | --------------- | ----------------------------------------------------------------------- |
+| `showRouteOverview()`                                     | `void`          | Show an overview of the remaining route                                 |
+| `setNavigationUIEnabled(enabled: boolean)`                | `Promise<void>` | Enable or disable the navigation UI                                     |
+| `setFollowingPerspective(perspective: CameraPerspective)` | `Promise<void>` | Set camera perspective (TILTED, TOP_DOWN_NORTH_UP, TOP_DOWN_HEADING_UP) |
+
+### NavigationController (useNavigation hook)
+
+The `useNavigation()` hook provides access to the `NavigationController` and listener setters for navigation events.
+
+```tsx
+import { useNavigation } from '@googlemaps/react-native-navigation-sdk';
+
+const { 
+  navigationController, 
+  removeAllListeners,
+  setOnArrival,
+  setOnRouteChanged,
+  // ... other listener setters
+} = useNavigation();
+```
+
+#### useNavigation Return Values
+
+| Property               | Type                                      | Description                                                                                                                |
+| ---------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `navigationController` | `NavigationController`                    | Controller for navigation operations                                                                                       |
+| `removeAllListeners`   | `() => void`                              | Remove all registered navigation listeners                                                                                 |
+| `setOn[EventName]`     | `(listener \| null \| undefined) => void` | Listener setters for each event (e.g., `setOnArrival`, `setOnRouteChanged`). See [full list](#navigation-listener-setters) |
+
+> [!TIP]
+> To remove a specific listener, pass `null` or `undefined` to its setter: `setOnArrival(null)`
+
+#### NavigationController Methods
+
+| Method                                                                        | Returns                            | Description                                                                                |
+| ----------------------------------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------ |
+| `areTermsAccepted()`                                                          | `Promise<boolean>`                 | Check if terms and conditions have been accepted                                           |
+| `showTermsAndConditionsDialog(optionsOverride?)`                              | `Promise<boolean>`                 | Show Terms and Conditions dialog (uses NavigationProvider options with optional overrides) |
+| `resetTermsAccepted()`                                                        | `Promise<void>`                    | Reset the Terms and Conditions acceptance state                                            |
+| `init()`                                                                      | `Promise<NavigationSessionStatus>` | Initialize the navigation session (returns status)                                         |
+| `cleanup()`                                                                   | `Promise<void>`                    | Clean up the navigation controller                                                         |
+| `getNavSDKVersion()`                                                          | `Promise<string>`                  | Get the Navigation SDK version                                                             |
+| `setDestinations(destinations: Waypoint[], routingOptions?, displayOptions?)` | `Promise<RouteStatus>`             | Set navigation destinations                                                                |
+| `setDestination(waypoint: Waypoint, routingOptions?, displayOptions?)`        | `Promise<RouteStatus>`             | Set a single navigation destination                                                        |
+| `clearDestinations()`                                                         | `Promise<void>`                    | Clear all destinations                                                                     |
+| `continueToNextDestination()`                                                 | `Promise<void>`                    | Navigate to the next destination in the list                                               |
+| `startGuidance()`                                                             | `Promise<void>`                    | Start turn-by-turn navigation guidance                                                     |
+| `stopGuidance()`                                                              | `Promise<void>`                    | Stop navigation guidance                                                                   |
+| `getCurrentTimeAndDistance()`                                                 | `Promise<TimeAndDistance \| null>` | Get time and distance to current destination                                               |
+| `getCurrentRouteSegment()`                                                    | `Promise<RouteSegment \| null>`    | Get the current route segment                                                              |
+| `getRouteSegments()`                                                          | `Promise<RouteSegment[]>`          | Get all route segments                                                                     |
+| `getTraveledPath()`                                                           | `Promise<LatLng[]>`                | Get the path traveled so far                                                               |
+| `setAudioGuidanceType(type: AudioGuidanceType)`                               | `Promise<void>`                    | Set audio guidance type (SILENT, ALERTS_ONLY, VOICE_ALERTS_AND_GUIDANCE)                   |
+| `setSpeedAlertOptions(options: SpeedAlertOptions)`                            | `Promise<void>`                    | Configure speed alert thresholds                                                           |
+| `setAbnormalTerminatingReportingEnabled(enabled: boolean)`                    | `void`                             | Enable/disable abnormal termination reporting                                              |
+| `startUpdatingLocation()`                                                     | `Promise<void>`                    | Start receiving location updates                                                           |
+| `stopUpdatingLocation()`                                                      | `void`                             | Stop receiving location updates                                                            |
+| `setBackgroundLocationUpdatesEnabled(enabled: boolean)`                       | `void`                             | Enable/disable background location updates (iOS only)                                      |
+| `setTurnByTurnLoggingEnabled(enabled: boolean)`                               | `void`                             | Enable/disable turn-by-turn logging                                                        |
+| `simulator`                                                                   | `Simulator`                        | Access the navigation simulator for testing                                                |
+
+#### Simulator Methods
+
+The `Simulator` object is available via `navigationController.simulator` and provides methods for testing navigation without actual GPS movement.
+
+```tsx
+const { navigationController } = useNavigation();
+
+// Simulate driving along the current route at 5x speed
+navigationController.simulator.simulateLocationsAlongExistingRoute({ speedMultiplier: 5 });
+
+// Or set a specific location
+navigationController.simulator.simulateLocation({ lat: 37.7749, lng: -122.4194 });
+```
+
+| Method                                                                      | Returns | Description                                             |
+| --------------------------------------------------------------------------- | ------- | ------------------------------------------------------- |
+| `simulateLocationsAlongExistingRoute(options: { speedMultiplier: number })` | `void`  | Simulate driving along the current route at given speed |
+| `simulateLocation(location: LatLng)`                                        | `void`  | Set user location to a specific coordinate              |
+| `pauseLocationSimulation()`                                                 | `void`  | Pause the current location simulation                   |
+| `resumeLocationSimulation()`                                                | `void`  | Resume a paused location simulation                     |
+| `stopLocationSimulation()`                                                  | `void`  | Stop the current location simulation                    |
+
+#### Navigation Listener Setters
+
+Set listeners using the individual setter functions returned by `useNavigation()`. Each setter accepts a callback, or `null`/`undefined` to clear the listener:
+
+```tsx
+const { setOnArrival, setOnRouteChanged, removeAllListeners } = useNavigation();
+
+useEffect(() => {
+  setOnArrival((event) => {
+    console.log('Arrived at', event.waypoint);
+    if (event.isFinalDestination) {
+      navigationController.stopGuidance();
+    }
+  });
+  setOnRouteChanged(() => console.log('Route changed'));
+  
+  // Use removeAllListeners() to clear all listeners at once on cleanup
+  // Alternatively, clear individual listeners: setOnArrival(null)
+  return () => removeAllListeners();
+}, [setOnArrival, setOnRouteChanged, removeAllListeners]);
+
+// To remove a single listener:
+setOnArrival(null);
+```
+
+| Listener Setter                       | Event Data                                            | Description                                     |
+| ------------------------------------- | ----------------------------------------------------- | ----------------------------------------------- |
+| `setOnStartGuidance`                  | `void`                                                | Called when guidance starts                     |
+| `setOnArrival`                        | `{ waypoint: Waypoint, isFinalDestination: boolean }` | Called when arriving at a destination           |
+| `setOnLocationChanged`                | `{ location: Location }`                              | Called when location changes (road-snapped)     |
+| `setOnRawLocationChanged`             | `{ location: Location }`                              | Called when raw GPS location changes            |
+| `setOnNavigationReady`                | `void`                                                | Called when navigation is ready                 |
+| `setOnNavigationInitError`            | `{ errorCode: NavigationInitErrorCode }`              | Called when navigation initialization fails     |
+| `setOnRouteStatusResult`              | `RouteStatus`                                         | Called with route calculation status            |
+| `setOnRouteChanged`                   | `void`                                                | Called when the route changes                   |
+| `setOnReroutingRequestedByOffRoute`   | `void`                                                | Called when rerouting is triggered by off-route |
+| `setOnTrafficUpdated`                 | `void`                                                | Called when traffic data is updated             |
+| `setOnRemainingTimeOrDistanceChanged` | `void`                                                | Called when remaining time or distance changes  |
+| `setOnTurnByTurn`                     | `{ navInfo: NavInfo }`                                | Called with turn-by-turn navigation info        |
+
+### MapViewAutoController (useNavigationAuto hook)
+
+For Android Auto and CarPlay support, the `useNavigationAuto()` hook provides a `MapViewAutoController` and auto-specific listener setters:
+
+```tsx
+import { useNavigationAuto } from '@googlemaps/react-native-navigation-sdk';
+
+const { 
+  mapViewAutoController, 
+  removeAllListeners,
+  setOnAutoScreenAvailabilityChanged,
+  setOnCustomNavigationAutoEvent,
+} = useNavigationAuto();
+```
+
+#### useNavigationAuto Return Values
+
+| Property                             | Type                                                                          | Description                                 |
+| ------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------- |
+| `mapViewAutoController`              | `MapViewAutoController`                                                       | Controller for auto screen map operations   |
+| `removeAllListeners`                 | `() => void`                                                                  | Remove all registered auto listeners        |
+| `setOnAutoScreenAvailabilityChanged` | `(listener: ((available: boolean) => void) \| null \| undefined) => void`     | Set/clear auto screen availability listener |
+| `setOnCustomNavigationAutoEvent`     | `(listener: ((event: CustomAutoEvent) => void) \| null \| undefined) => void` | Set/clear custom auto event listener        |
+
+The `MapViewAutoController` extends `MapViewController` with additional methods:
+
+| Method                          | Returns            | Description                                              |
+| ------------------------------- | ------------------ | -------------------------------------------------------- |
+| *All MapViewController methods* | -                  | All map control methods from MapViewController           |
+| `cleanup()`                     | `void`             | Clean up the auto screen resources                       |
+| `isAutoScreenAvailable()`       | `Promise<boolean>` | Check if auto screen (Android Auto/CarPlay) is available |
+
+See [Android Auto](./ANDROIDAUTO.md) and [CarPlay](./CARPLAY.md) documentation for platform-specific setup.
 
 ## Known issues
 

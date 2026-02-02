@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#import <React/RCTBridgeModule.h>
+#import <RNNavigationSdkSpec/RNNavigationSdkSpec.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class NavViewController;  // forward declaration
+@class NavViewController;     // forward declaration
+@class BaseCarSceneDelegate;  // forward declaration
 
-@interface NavAutoModule : NSObject <RCTBridgeModule>
+@interface NavAutoModule : NativeNavAutoModuleSpecBase <NativeNavAutoModuleSpec>
 @property(nonatomic, strong, nullable) NavViewController *viewController;
+@property(nonatomic, weak, nullable) BaseCarSceneDelegate *carSceneDelegate;
+@property(nonatomic, assign) BOOL pendingScreenAvailable;
 
 typedef void (^NavAutoModuleReadyCallback)(void);
 
 - (void)registerViewController:(NavViewController *)vc;
+- (void)registerViewController:(NavViewController *)vc
+                      delegate:(nullable BaseCarSceneDelegate *)delegate;
 - (void)unRegisterViewController;
+- (void)onScreenStateChange:(BOOL)visible;
 + (void)registerNavAutoModuleReadyCallback:(NavAutoModuleReadyCallback)callback;
 + (void)unregisterNavAutoModuleReadyCallback;
 - (void)onCustomNavigationAutoEvent:(NSString *)type data:(nullable NSDictionary *)data;

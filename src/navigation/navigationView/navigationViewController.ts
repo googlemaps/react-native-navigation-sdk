@@ -13,96 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, createControllerContext } from '../../shared/viewManager';
 import type { CameraPerspective, NavigationViewController } from './types';
+import NavViewModule from '../../native/NativeNavViewModule';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ViewRef = React.RefObject<any>;
-
+/**
+ * Creates a NavigationViewController for a specific view instance.
+ *
+ * @param nativeID - The string-based nativeID that identifies the view instance.
+ * @returns A NavigationViewController with methods to control the navigation view.
+ */
 export const getNavigationViewController = (
-  viewRef: ViewRef
+  nativeID: string
 ): NavigationViewController => {
-  const { sendCommand } = createControllerContext(
-    viewRef,
-    'NavigationViewController'
-  );
-
   return {
-    setNavigationUIEnabled: (isOn: boolean) => {
-      sendCommand('setNavigationUIEnabled', commands.setNavigationUIEnabled, [
-        isOn,
-      ]);
+    showRouteOverview: async () => {
+      try {
+        await NavViewModule.showRouteOverview(nativeID);
+      } catch (error) {
+        console.error('Error calling showRouteOverview:', error);
+      }
     },
-
-    setTripProgressBarEnabled: (isOn: boolean) => {
-      sendCommand(
-        'setTripProgressBarEnabled',
-        commands.setTripProgressBarEnabled,
-        [isOn]
-      );
+    setNavigationUIEnabled: async (enabled: boolean) => {
+      try {
+        await NavViewModule.setNavigationUIEnabled(nativeID, enabled);
+      } catch (error) {
+        console.error('Error calling setNavigationUIEnabled:', error);
+      }
     },
-
-    setReportIncidentButtonEnabled: (isOn: boolean) => {
-      sendCommand(
-        'setReportIncidentButtonEnabled',
-        commands.setReportIncidentButtonEnabled,
-        [isOn]
-      );
-    },
-
-    setSpeedometerEnabled: (isOn: boolean) => {
-      sendCommand('setSpeedometerEnabled', commands.setSpeedometerEnabled, [
-        isOn,
-      ]);
-    },
-
-    setSpeedLimitIconEnabled: (isOn: boolean) => {
-      sendCommand(
-        'setSpeedLimitIconEnabled',
-        commands.setSpeedLimitIconEnabled,
-        [isOn]
-      );
-    },
-
-    setTrafficIncidentCardsEnabled: (isOn: boolean) => {
-      sendCommand(
-        'setTrafficIncidentCardsEnabled',
-        commands.setTrafficIncidentCardsEnabled,
-        [isOn]
-      );
-    },
-
-    setHeaderEnabled: (isOn: boolean) => {
-      sendCommand('setHeaderEnabled', commands.setHeaderEnabled, [isOn]);
-    },
-
-    setFooterEnabled: (isOn: boolean) => {
-      sendCommand('setFooterEnabled', commands.setFooterEnabled, [isOn]);
-    },
-
-    showRouteOverview: () => {
-      sendCommand('showRouteOverview', commands.showRouteOverview, []);
-    },
-
-    /**
-     * @deprecated Prefer the `navigationNightMode` prop on `NavigationView`.
-     */
-    setNightMode: (index: number) => {
-      sendCommand('setNightMode', commands.setNightMode, [index]);
-    },
-
-    setRecenterButtonEnabled(isEnabled: boolean) {
-      sendCommand(
-        'setRecenterButtonEnabled',
-        commands.setRecenterButtonEnabled,
-        [isEnabled]
-      );
-    },
-
-    setFollowingPerspective: (perspective: CameraPerspective) => {
-      sendCommand('setFollowingPerspective', commands.setFollowingPerspective, [
-        perspective,
-      ]);
+    setFollowingPerspective: async (perspective: CameraPerspective) => {
+      try {
+        await NavViewModule.setFollowingPerspective(nativeID, perspective);
+      } catch (error) {
+        console.error('Error calling setFollowingPerspective:', error);
+      }
     },
   };
 };

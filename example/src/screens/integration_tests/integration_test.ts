@@ -17,10 +17,10 @@
 import {
   AudioGuidance,
   TravelMode,
+  NavigationSessionStatus,
+  type ArrivalEvent,
   type MapViewController,
-  type NavigationCallbacks,
   type NavigationController,
-  type NavigationInitErrorCode,
   type NavigationViewController,
   type TimeAndDistance,
 } from '@googlemaps/react-native-navigation-sdk';
@@ -31,13 +31,30 @@ interface TestTools {
   navigationController: NavigationController;
   mapViewController: MapViewController | null;
   navigationViewController: NavigationViewController | null;
-  addListeners: (listeners: Partial<NavigationCallbacks>) => void;
-  removeListeners: (listeners: Partial<NavigationCallbacks>) => void;
+  setOnNavigationReady: (listener: (() => void) | null | undefined) => void;
+  setOnArrival: (
+    listener: ((arrivalEvent: ArrivalEvent) => void) | null | undefined
+  ) => void;
+  setOnRemainingTimeOrDistanceChanged: (
+    listener: ((timeAndDistance: TimeAndDistance) => void) | null | undefined
+  ) => void;
+  setOnRouteChanged: (listener: (() => void) | null | undefined) => void;
   passTest: () => void;
   failTest: (message: string) => void;
   setDetoxStep: (stepNumber: number) => void;
   expectFalseError: (expectation: string) => void;
   expectTrueError: (expectation: string) => void;
+  // UI settings setters for props-based testing
+  setCompassEnabled: (enabled: boolean | undefined) => void;
+  setRotateGesturesEnabled: (enabled: boolean | undefined) => void;
+  setScrollGesturesEnabled: (enabled: boolean | undefined) => void;
+  setScrollGesturesDuringRotateOrZoomEnabled: (
+    enabled: boolean | undefined
+  ) => void;
+  setTiltGesturesEnabled: (enabled: boolean | undefined) => void;
+  setZoomGesturesEnabled: (enabled: boolean | undefined) => void;
+  setZoomControlsEnabled: (enabled: boolean | undefined) => void;
+  setMapToolbarEnabled: (enabled: boolean | undefined) => void;
 }
 
 const NAVIGATOR_NOT_READY_ERROR_CODE = 'NO_NAVIGATOR_ERROR_CODE';
@@ -60,6 +77,52 @@ const extractNativeErrorCode = (error: unknown): string | undefined => {
 
 const isNavigatorUnavailableError = (code?: string): boolean =>
   code === NAVIGATOR_NOT_READY_ERROR_CODE;
+
+/**
+ * Helper function to reset and show the ToS dialog.
+ * This should be called at the start of tests that require ToS acceptance.
+ * The dialog will block until the user (or Detox) accepts it.
+ *
+ * @param navigationController - The navigation controller
+ * @param failTest - Function to call if acceptance fails
+ * @returns true if ToS was accepted, false otherwise
+ */
+const acceptToS = async (
+  navigationController: NavigationController,
+  failTest: (message: string) => void
+): Promise<boolean> => {
+  // Reset ToS acceptance state to ensure dialog is shown
+  await navigationController.resetTermsAccepted();
+
+  // Show the ToS dialog - Detox will tap the accept button
+  const accepted = await navigationController.showTermsAndConditionsDialog();
+
+  if (!accepted) {
+    failTest('Terms and Conditions were not accepted');
+    return false;
+  }
+
+  return true;
+};
+
+/**
+ * Helper function to initialize navigation after ToS is accepted.
+ *
+ * @param navigationController - The navigation controller
+ * @param failTest - Function to call if initialization fails
+ * @returns true if initialization succeeded, false otherwise
+ */
+const initializeNavigation = async (
+  navigationController: NavigationController,
+  failTest: (message: string) => void
+): Promise<boolean> => {
+  const status = await navigationController.init();
+  if (status !== NavigationSessionStatus.OK) {
+    failTest(`Navigation initialization failed with status: ${status}`);
+    return false;
+  }
+  return true;
+};
 
 const DEFAULT_TEST_WAYPOINT = {
   title: 'Grace Cathedral',
@@ -111,55 +174,64 @@ export const testNavigationSessionInitialization = async (
 ) => {
   const {
     navigationController,
-    addListeners,
+    setOnNavigationReady,
     passTest,
     failTest,
-    setDetoxStep,
-    expectFalseError,
+    expectTrueError,
   } = testTools;
 
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
+  }
+
   const checkDefaults = async () => {
+    // After successful init, terms should be accepted
     if (!(await navigationController.areTermsAccepted())) {
-      return expectFalseError('navigationController.areTermsAccepted()');
+      return expectTrueError('navigationController.areTermsAccepted()');
     }
     passTest();
   };
 
-  addListeners({
-    onNavigationReady: () => {
-      disableVoiceGuidanceForTests(navigationController);
-      checkDefaults();
-    },
-    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
-      console.log(errorCode);
-      failTest('onNavigatonInitError');
-    },
+  setOnNavigationReady(() => {
+    disableVoiceGuidanceForTests(navigationController);
+    checkDefaults();
   });
-  try {
-    await navigationController.init();
-  } catch (error) {
-    console.error('Error initializing navigator', error);
-    failTest('navigationController.init() exception');
-  }
-  // Tell detox to prepare to execute step 1: (confirm t&c dialog)
-  setDetoxStep(1);
+
+  // Now initialize navigation
+  await initializeNavigation(navigationController, failTest);
 };
 
 export const testMapInitialization = async (testTools: TestTools) => {
-  const { mapViewController, passTest, failTest, expectFalseError } = testTools;
+  const {
+    mapViewController,
+    passTest,
+    failTest,
+    expectFalseError,
+    setCompassEnabled,
+    setRotateGesturesEnabled,
+    setScrollGesturesEnabled,
+    setScrollGesturesDuringRotateOrZoomEnabled,
+    setTiltGesturesEnabled,
+    setZoomGesturesEnabled,
+    setZoomControlsEnabled,
+    setMapToolbarEnabled,
+  } = testTools;
   if (!mapViewController) {
     return failTest('mapViewController was expected to exist');
   }
-  mapViewController.setCompassEnabled(false);
-  mapViewController.setRotateGesturesEnabled(false);
-  mapViewController.setScrollGesturesEnabled(false);
-  mapViewController.setScrollGesturesEnabledDuringRotateOrZoom(false);
-  mapViewController.setTiltGesturesEnabled(false);
-  mapViewController.setZoomGesturesEnabled(false);
+
+  // Disable all UI settings via props
+  setCompassEnabled(false);
+  setRotateGesturesEnabled(false);
+  setScrollGesturesEnabled(false);
+  setScrollGesturesDuringRotateOrZoomEnabled(false);
+  setTiltGesturesEnabled(false);
+  setZoomGesturesEnabled(false);
 
   if (Platform.OS === 'android') {
-    mapViewController.setZoomControlsEnabled(false);
-    mapViewController.setMapToolbarEnabled(false);
+    setZoomControlsEnabled(false);
+    setMapToolbarEnabled(false);
   }
   const uiSettingsAfterDisable = await waitForCondition(
     () => mapViewController.getUiSettings(),
@@ -218,16 +290,17 @@ export const testMapInitialization = async (testTools: TestTools) => {
     }
   }
 
-  mapViewController.setCompassEnabled(true);
-  mapViewController.setRotateGesturesEnabled(true);
-  mapViewController.setScrollGesturesEnabled(true);
-  mapViewController.setScrollGesturesEnabledDuringRotateOrZoom(true);
-  mapViewController.setTiltGesturesEnabled(true);
-  mapViewController.setZoomGesturesEnabled(true);
+  // Enable all UI settings via props
+  setCompassEnabled(true);
+  setRotateGesturesEnabled(true);
+  setScrollGesturesEnabled(true);
+  setScrollGesturesDuringRotateOrZoomEnabled(true);
+  setTiltGesturesEnabled(true);
+  setZoomGesturesEnabled(true);
 
   if (Platform.OS === 'android') {
-    mapViewController.setZoomControlsEnabled(true);
-    mapViewController.setMapToolbarEnabled(true);
+    setZoomControlsEnabled(true);
+    setMapToolbarEnabled(true);
   }
   const uiSettingsAfterEnable = await waitForCondition(
     () => mapViewController.getUiSettings(),
@@ -292,281 +365,275 @@ export const testMapInitialization = async (testTools: TestTools) => {
 export const testNavigationToSingleDestination = async (
   testTools: TestTools
 ) => {
-  const { navigationController, addListeners, passTest, failTest } = testTools;
-  addListeners({
-    onNavigationReady: async () => {
-      disableVoiceGuidanceForTests(navigationController);
-      await navigationController.simulator.simulateLocation({
-        lat: 37.4195823,
-        lng: -122.0799018,
-      });
-      await navigationController.setDestinations(
-        [
-          {
-            position: {
-              lat: 37.418761,
-              lng: -122.080484,
-            },
-          },
-        ],
-        {
-          routingOptions: {
-            travelMode: TravelMode.DRIVING,
-            avoidFerries: true,
-            avoidTolls: false,
-          },
-        }
-      );
-      await navigationController.startGuidance();
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnArrival,
+    passTest,
+    failTest,
+  } = testTools;
 
-      const routeSegments = await waitForCondition(
-        () => navigationController.getRouteSegments(),
-        segments => segments.length > 0
-      );
-      if (!routeSegments) {
-        return failTest(
-          'Timed out waiting for route segments before starting simulation'
-        );
-      }
-      await navigationController.simulator.simulateLocationsAlongExistingRoute({
-        speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
-      });
-    },
-    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
-      console.log(errorCode);
-      failTest('onNavigatonInitError');
-    },
-    onArrival: async () => {
-      navigationController.cleanup();
-      return passTest();
-    },
-  });
-  try {
-    await navigationController.init();
-  } catch (error) {
-    console.error('Error initializing navigator', error);
-    failTest('navigationController.init() exception');
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
   }
+
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    await navigationController.simulator.simulateLocation({
+      lat: 37.4195823,
+      lng: -122.0799018,
+    });
+    await navigationController.setDestinations(
+      [
+        {
+          position: {
+            lat: 37.418761,
+            lng: -122.080484,
+          },
+        },
+      ],
+      {
+        routingOptions: {
+          travelMode: TravelMode.DRIVING,
+          avoidFerries: true,
+          avoidTolls: false,
+        },
+      }
+    );
+    await navigationController.startGuidance();
+
+    const routeSegments = await waitForCondition(
+      () => navigationController.getRouteSegments(),
+      segments => segments.length > 0
+    );
+    if (!routeSegments) {
+      return failTest(
+        'Timed out waiting for route segments before starting simulation'
+      );
+    }
+    await navigationController.simulator.simulateLocationsAlongExistingRoute({
+      speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
+    });
+  });
+  setOnArrival(async () => {
+    navigationController.cleanup();
+    return passTest();
+  });
+  await initializeNavigation(navigationController, failTest);
 };
 
 export const testNavigationToMultipleDestination = async (
   testTools: TestTools
 ) => {
-  const { navigationController, addListeners, passTest, failTest } = testTools;
-  let onArrivalCount = 0;
-  addListeners({
-    onNavigationReady: async () => {
-      disableVoiceGuidanceForTests(navigationController);
-      await navigationController.simulator.simulateLocation({
-        lat: 37.4195823,
-        lng: -122.0799018,
-      });
-      await navigationController.setDestinations(
-        [
-          {
-            position: {
-              lat: 37.418761,
-              lng: -122.080484,
-            },
-          },
-          {
-            position: {
-              lat: 37.4177952,
-              lng: -122.0817198,
-            },
-          },
-        ],
-        {
-          routingOptions: {
-            travelMode: TravelMode.DRIVING,
-            avoidFerries: true,
-            avoidTolls: false,
-          },
-        }
-      );
-      await navigationController.startGuidance();
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnArrival,
+    passTest,
+    failTest,
+  } = testTools;
 
-      const routeSegments = await waitForCondition(
-        () => navigationController.getRouteSegments(),
-        segments => segments.length > 0
-      );
-      if (!routeSegments) {
-        return failTest(
-          'Timed out waiting for route segments before starting simulation'
-        );
-      }
-      await navigationController.simulator.simulateLocationsAlongExistingRoute({
-        speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
-      });
-    },
-    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
-      console.log(errorCode);
-      failTest('onNavigatonInitError');
-    },
-    onArrival: async () => {
-      onArrivalCount += 1;
-      if (onArrivalCount > 1) {
-        navigationController.cleanup();
-        return passTest();
-      }
-      await navigationController.continueToNextDestination();
-      await navigationController.simulator.simulateLocationsAlongExistingRoute({
-        speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
-      });
-    },
-  });
-  try {
-    await navigationController.init();
-  } catch (error) {
-    console.error('Error initializing navigator', error);
-    failTest('navigationController.init() exception');
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
   }
+
+  let onArrivalCount = 0;
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    await navigationController.simulator.simulateLocation({
+      lat: 37.4195823,
+      lng: -122.0799018,
+    });
+    await navigationController.setDestinations(
+      [
+        {
+          position: {
+            lat: 37.418761,
+            lng: -122.080484,
+          },
+        },
+        {
+          position: {
+            lat: 37.4177952,
+            lng: -122.0817198,
+          },
+        },
+      ],
+      {
+        routingOptions: {
+          travelMode: TravelMode.DRIVING,
+          avoidFerries: true,
+          avoidTolls: false,
+        },
+      }
+    );
+    await navigationController.startGuidance();
+
+    const routeSegments = await waitForCondition(
+      () => navigationController.getRouteSegments(),
+      segments => segments.length > 0
+    );
+    if (!routeSegments) {
+      return failTest(
+        'Timed out waiting for route segments before starting simulation'
+      );
+    }
+    await navigationController.simulator.simulateLocationsAlongExistingRoute({
+      speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
+    });
+  });
+  setOnArrival(async () => {
+    onArrivalCount += 1;
+    if (onArrivalCount > 1) {
+      navigationController.cleanup();
+      return passTest();
+    }
+    await navigationController.continueToNextDestination();
+    await navigationController.simulator.simulateLocationsAlongExistingRoute({
+      speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
+    });
+  });
+
+  await initializeNavigation(navigationController, failTest);
 };
 
 export const testRouteSegments = async (testTools: TestTools) => {
   const {
     navigationController,
-    addListeners,
+    setOnNavigationReady,
+    setOnArrival,
     passTest,
     failTest,
     expectFalseError,
   } = testTools;
-  let beginTraveledPath;
-  addListeners({
-    onNavigationReady: async () => {
-      disableVoiceGuidanceForTests(navigationController);
-      await navigationController.simulator.simulateLocation({
-        lat: 37.79136614772824,
-        lng: -122.41565900473043,
-      });
-      await navigationController.setDestination({
-        title: 'Grace Cathedral',
-        position: {
-          lat: 37.791957,
-          lng: -122.412529,
-        },
-      });
-      await navigationController.startGuidance();
 
-      const beginRouteSegments = await waitForCondition(
-        () => navigationController.getRouteSegments(),
-        segments => segments.length > 0
-      );
-      if (!beginRouteSegments) {
-        expectFalseError('beginRouteSegments.length === 0');
-        return;
-      }
-      const beginCurrentRouteSegment = await waitForCondition(
-        () => navigationController.getCurrentRouteSegment(),
-        segment => segment !== null
-      );
-      if (!beginCurrentRouteSegment) {
-        return expectFalseError('!beginCurrentRouteSegment');
-      }
-      beginTraveledPath = await navigationController.getTraveledPath();
-      await navigationController.simulator.simulateLocationsAlongExistingRoute({
-        speedMultiplier: 5,
-      });
-    },
-    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
-      console.log(errorCode);
-      failTest('onNavigatonInitError');
-    },
-    onArrival: async () => {
-      const endTraveledPath = await navigationController.getTraveledPath();
-      if (endTraveledPath.length <= beginTraveledPath.length) {
-        return expectFalseError(
-          'endTraveledPath.length <= beginTraveledPath.length'
-        );
-      }
-      navigationController.cleanup();
-      passTest();
-    },
-  });
-  try {
-    await navigationController.init();
-  } catch (error) {
-    console.error('Error initializing navigator', error);
-    failTest('navigationController.init() exception');
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
   }
+  let beginTraveledPath;
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    await navigationController.simulator.simulateLocation({
+      lat: 37.79136614772824,
+      lng: -122.41565900473043,
+    });
+    await navigationController.setDestination({
+      title: 'Grace Cathedral',
+      position: {
+        lat: 37.791957,
+        lng: -122.412529,
+      },
+    });
+    await navigationController.startGuidance();
+
+    const beginRouteSegments = await waitForCondition(
+      () => navigationController.getRouteSegments(),
+      segments => segments.length > 0
+    );
+    if (!beginRouteSegments) {
+      expectFalseError('beginRouteSegments.length === 0');
+      return;
+    }
+    const beginCurrentRouteSegment = await waitForCondition(
+      () => navigationController.getCurrentRouteSegment(),
+      segment => segment !== null
+    );
+    if (!beginCurrentRouteSegment) {
+      return expectFalseError('!beginCurrentRouteSegment');
+    }
+    beginTraveledPath = await navigationController.getTraveledPath();
+    await navigationController.simulator.simulateLocationsAlongExistingRoute({
+      speedMultiplier: 5,
+    });
+  });
+  setOnArrival(async () => {
+    const endTraveledPath = await navigationController.getTraveledPath();
+    if (endTraveledPath.length <= beginTraveledPath.length) {
+      return expectFalseError(
+        'endTraveledPath.length <= beginTraveledPath.length'
+      );
+    }
+    navigationController.cleanup();
+    passTest();
+  });
+  await initializeNavigation(navigationController, failTest);
 };
 
 export const testGetCurrentTimeAndDistance = async (testTools: TestTools) => {
   const {
     navigationController,
-    addListeners,
+    setOnNavigationReady,
+    setOnArrival,
     passTest,
     failTest,
     expectFalseError,
   } = testTools;
-  let beginTimeAndDistance: TimeAndDistance | null = null;
-  addListeners({
-    onNavigationReady: async () => {
-      disableVoiceGuidanceForTests(navigationController);
-      await navigationController.simulator.simulateLocation({
-        lat: 37.79136614772824,
-        lng: -122.41565900473043,
-      });
-      await navigationController.setDestination({
-        title: 'Grace Cathedral',
-        position: {
-          lat: 37.791957,
-          lng: -122.412529,
-        },
-      });
-      await navigationController.startGuidance();
 
-      beginTimeAndDistance = await waitForTimeAndDistance(navigationController);
-      if (!beginTimeAndDistance) {
-        return failTest(
-          'initialTimeAndDistance is null (navigationController.getCurrentTimeAndDistance())'
-        );
-      }
-      if (beginTimeAndDistance.seconds <= 0) {
-        return expectFalseError('beginTimeAndDistance.seconds <= 0');
-      }
-      if (beginTimeAndDistance.meters <= 0) {
-        return expectFalseError('beginTimeAndDistance.meters <= 0');
-      }
-      await navigationController.simulator.simulateLocationsAlongExistingRoute({
-        speedMultiplier: 5,
-      });
-    },
-    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
-      console.log(errorCode);
-      failTest('onNavigatonInitError');
-    },
-    onArrival: async () => {
-      const endTimeAndDistance =
-        await waitForTimeAndDistance(navigationController);
-      if (!endTimeAndDistance) {
-        return expectFalseError(
-          'endTimeAndDistance is null (navigationController.getCurrentTimeAndDistance())'
-        );
-      }
-      if (!beginTimeAndDistance) {
-        return expectFalseError('beginTimeAndDistance is null');
-      }
-      if (endTimeAndDistance.meters >= beginTimeAndDistance.meters) {
-        return expectFalseError(
-          'endTimeAndDistance.meters >= beginTimeAndDistance.meters'
-        );
-      }
-      if (endTimeAndDistance.seconds >= beginTimeAndDistance.seconds) {
-        return expectFalseError(
-          'endTimeAndDistance.seconds >= beginTimeAndDistance.seconds'
-        );
-      }
-      navigationController.cleanup();
-      passTest();
-    },
-  });
-  try {
-    await navigationController.init();
-  } catch (error) {
-    console.error('Error initializing navigator', error);
-    failTest('navigationController.init() exception');
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
   }
+
+  let beginTimeAndDistance: TimeAndDistance | null = null;
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    await navigationController.simulator.simulateLocation({
+      lat: 37.79136614772824,
+      lng: -122.41565900473043,
+    });
+    await navigationController.setDestination({
+      title: 'Grace Cathedral',
+      position: {
+        lat: 37.791957,
+        lng: -122.412529,
+      },
+    });
+    await navigationController.startGuidance();
+
+    beginTimeAndDistance = await waitForTimeAndDistance(navigationController);
+    if (!beginTimeAndDistance) {
+      return failTest(
+        'initialTimeAndDistance is null (navigationController.getCurrentTimeAndDistance())'
+      );
+    }
+    if (beginTimeAndDistance.seconds <= 0) {
+      return expectFalseError('beginTimeAndDistance.seconds <= 0');
+    }
+    if (beginTimeAndDistance.meters <= 0) {
+      return expectFalseError('beginTimeAndDistance.meters <= 0');
+    }
+    await navigationController.simulator.simulateLocationsAlongExistingRoute({
+      speedMultiplier: 5,
+    });
+  });
+  setOnArrival(async () => {
+    const endTimeAndDistance =
+      await waitForTimeAndDistance(navigationController);
+    if (!endTimeAndDistance) {
+      return expectFalseError(
+        'endTimeAndDistance is null (navigationController.getCurrentTimeAndDistance())'
+      );
+    }
+    if (!beginTimeAndDistance) {
+      return expectFalseError('beginTimeAndDistance is null');
+    }
+    if (endTimeAndDistance.meters >= beginTimeAndDistance.meters) {
+      return expectFalseError(
+        'endTimeAndDistance.meters >= beginTimeAndDistance.meters'
+      );
+    }
+    if (endTimeAndDistance.seconds >= beginTimeAndDistance.seconds) {
+      return expectFalseError(
+        'endTimeAndDistance.seconds >= beginTimeAndDistance.seconds'
+      );
+    }
+    navigationController.cleanup();
+    passTest();
+  });
+  await initializeNavigation(navigationController, failTest);
 };
 
 export const testMoveCamera = async (testTools: TestTools) => {
@@ -650,133 +717,583 @@ export const testTiltZoomBearingCamera = async (testTools: TestTools) => {
   passTest();
 };
 
+export const testMapMarkers = async (testTools: TestTools) => {
+  const { mapViewController, passTest, failTest, expectFalseError } = testTools;
+  if (!mapViewController) {
+    return failTest('mapViewController was expected to exist');
+  }
+
+  // Test adding a marker
+  const marker = await mapViewController.addMarker({
+    position: { lat: 37.7749, lng: -122.4194 },
+    title: 'San Francisco',
+    snippet: 'Test marker snippet',
+    alpha: 0.8,
+    rotation: 45,
+  });
+
+  if (!marker.id) {
+    return expectFalseError('marker.id should exist');
+  }
+  if (marker.position.lat !== 37.7749 || marker.position.lng !== -122.4194) {
+    return expectFalseError('marker.position should match input');
+  }
+  if (marker.title !== 'San Francisco') {
+    return expectFalseError('marker.title should be "San Francisco"');
+  }
+
+  // Test getMarkers returns the marker
+  let markers = await mapViewController.getMarkers();
+  if (markers.length !== 1) {
+    return expectFalseError('getMarkers should return 1 marker');
+  }
+  if (markers[0]!.id !== marker.id) {
+    return expectFalseError('getMarkers should return marker with correct id');
+  }
+
+  // Test updating marker with same ID (should update, not create new)
+  const updatedMarker = await mapViewController.addMarker({
+    id: marker.id,
+    position: { lat: 37.7849, lng: -122.4294 },
+    title: 'Updated San Francisco',
+    snippet: 'Updated snippet',
+    alpha: 1.0,
+    rotation: 90,
+  });
+
+  if (updatedMarker.id !== marker.id) {
+    return expectFalseError('updatedMarker.id should match original marker.id');
+  }
+  if (updatedMarker.title !== 'Updated San Francisco') {
+    return expectFalseError(
+      'updatedMarker.title should be "Updated San Francisco"'
+    );
+  }
+
+  // Verify only one marker exists (update, not add)
+  markers = await mapViewController.getMarkers();
+  if (markers.length !== 1) {
+    return expectFalseError(
+      'getMarkers should still return 1 marker after update'
+    );
+  }
+
+  // Test removing marker
+  await mapViewController.removeMarker(marker.id);
+
+  // Verify marker was removed
+  markers = await mapViewController.getMarkers();
+  if (markers.length !== 0) {
+    return expectFalseError('getMarkers should return 0 markers after removal');
+  }
+
+  // Test adding marker with custom image
+  const markerWithIcon = await mapViewController.addMarker({
+    position: { lat: 37.7849, lng: -122.4094 },
+    title: 'Marker with Icon',
+    imgPath: 'circle.png',
+  });
+
+  if (!markerWithIcon.id) {
+    return expectFalseError('markerWithIcon.id should exist');
+  }
+  await mapViewController.removeMarker(markerWithIcon.id);
+
+  passTest();
+};
+
+export const testMapCircles = async (testTools: TestTools) => {
+  const { mapViewController, passTest, failTest, expectFalseError } = testTools;
+  if (!mapViewController) {
+    return failTest('mapViewController was expected to exist');
+  }
+
+  // Test adding a circle
+  const circle = await mapViewController.addCircle({
+    center: { lat: 37.7749, lng: -122.4194 },
+    radius: 1000,
+    strokeWidth: 2,
+    strokeColor: '#FF0000',
+    fillColor: '#00FF0080',
+    clickable: true,
+  });
+
+  if (!circle.id) {
+    return expectFalseError('circle.id should exist');
+  }
+  if (circle.center.lat !== 37.7749 || circle.center.lng !== -122.4194) {
+    return expectFalseError('circle.center should match input');
+  }
+  if (circle.radius !== 1000) {
+    return expectFalseError('circle.radius should be 1000');
+  }
+
+  // Test getCircles returns the circle
+  let circles = await mapViewController.getCircles();
+  if (circles.length !== 1) {
+    return expectFalseError('getCircles should return 1 circle');
+  }
+  if (circles[0]!.id !== circle.id) {
+    return expectFalseError('getCircles should return circle with correct id');
+  }
+
+  // Test updating circle with same ID (should update, not create new)
+  const updatedCircle = await mapViewController.addCircle({
+    id: circle.id,
+    center: { lat: 37.7849, lng: -122.4294 },
+    radius: 2000,
+    strokeWidth: 4,
+    strokeColor: '#00FF00',
+    fillColor: '#FF000080',
+    clickable: false,
+  });
+
+  if (updatedCircle.id !== circle.id) {
+    return expectFalseError('updatedCircle.id should match original circle.id');
+  }
+  if (updatedCircle.radius !== 2000) {
+    return expectFalseError('updatedCircle.radius should be 2000');
+  }
+
+  // Verify only one circle exists (update, not add)
+  circles = await mapViewController.getCircles();
+  if (circles.length !== 1) {
+    return expectFalseError(
+      'getCircles should still return 1 circle after update'
+    );
+  }
+
+  // Test removing circle
+  await mapViewController.removeCircle(circle.id);
+
+  // Verify circle was removed
+  circles = await mapViewController.getCircles();
+  if (circles.length !== 0) {
+    return expectFalseError('getCircles should return 0 circles after removal');
+  }
+
+  passTest();
+};
+
+export const testMapPolylines = async (testTools: TestTools) => {
+  const { mapViewController, passTest, failTest, expectFalseError } = testTools;
+  if (!mapViewController) {
+    return failTest('mapViewController was expected to exist');
+  }
+
+  // Test adding a polyline
+  const polyline = await mapViewController.addPolyline({
+    points: [
+      { lat: 37.7749, lng: -122.4194 },
+      { lat: 37.7849, lng: -122.4094 },
+      { lat: 37.7949, lng: -122.3994 },
+    ],
+    width: 5,
+    color: '#0000FF',
+    clickable: true,
+  });
+
+  if (!polyline.id) {
+    return expectFalseError('polyline.id should exist');
+  }
+  if (!polyline.points || polyline.points.length !== 3) {
+    return expectFalseError('polyline.points should have 3 points');
+  }
+
+  // Test getPolylines returns the polyline
+  let polylines = await mapViewController.getPolylines();
+  if (polylines.length !== 1) {
+    return expectFalseError('getPolylines should return 1 polyline');
+  }
+  if (polylines[0]!.id !== polyline.id) {
+    return expectFalseError(
+      'getPolylines should return polyline with correct id'
+    );
+  }
+
+  // Test updating polyline with same ID (should update, not create new)
+  const updatedPolyline = await mapViewController.addPolyline({
+    id: polyline.id,
+    points: [
+      { lat: 37.7749, lng: -122.4194 },
+      { lat: 37.7949, lng: -122.3994 },
+    ],
+    width: 10,
+    color: '#FF0000',
+    clickable: false,
+  });
+
+  if (updatedPolyline.id !== polyline.id) {
+    return expectFalseError(
+      'updatedPolyline.id should match original polyline.id'
+    );
+  }
+  if (!updatedPolyline.points || updatedPolyline.points.length !== 2) {
+    return expectFalseError('updatedPolyline.points should have 2 points');
+  }
+
+  // Verify only one polyline exists (update, not add)
+  polylines = await mapViewController.getPolylines();
+  if (polylines.length !== 1) {
+    return expectFalseError(
+      'getPolylines should still return 1 polyline after update'
+    );
+  }
+
+  // Test removing polyline
+  await mapViewController.removePolyline(polyline.id);
+
+  // Verify polyline was removed
+  polylines = await mapViewController.getPolylines();
+  if (polylines.length !== 0) {
+    return expectFalseError(
+      'getPolylines should return 0 polylines after removal'
+    );
+  }
+
+  passTest();
+};
+
+export const testMapPolygons = async (testTools: TestTools) => {
+  const { mapViewController, passTest, failTest, expectFalseError } = testTools;
+  if (!mapViewController) {
+    return failTest('mapViewController was expected to exist');
+  }
+
+  // Test adding a polygon
+  const polygon = await mapViewController.addPolygon({
+    points: [
+      { lat: 37.7749, lng: -122.4194 },
+      { lat: 37.7849, lng: -122.4094 },
+      { lat: 37.7849, lng: -122.4294 },
+    ],
+    holes: [],
+    strokeWidth: 2,
+    strokeColor: '#FF0000',
+    fillColor: '#00FF0080',
+    clickable: true,
+    geodesic: false,
+  });
+
+  if (!polygon.id) {
+    return expectFalseError('polygon.id should exist');
+  }
+  // Note: Android SDK may return 4 points (including closing point), iOS returns 3
+  // We check for at least 3 points to account for platform differences
+  if (!polygon.points || polygon.points.length < 3) {
+    return expectFalseError('polygon.points should have at least 3 points');
+  }
+
+  // Test getPolygons returns the polygon
+  let polygons = await mapViewController.getPolygons();
+  if (polygons.length !== 1) {
+    return expectFalseError('getPolygons should return 1 polygon');
+  }
+  if (polygons[0]!.id !== polygon.id) {
+    return expectFalseError(
+      'getPolygons should return polygon with correct id'
+    );
+  }
+
+  // Test updating polygon with same ID (should update, not create new)
+  const updatedPolygon = await mapViewController.addPolygon({
+    id: polygon.id,
+    points: [
+      { lat: 37.7749, lng: -122.4194 },
+      { lat: 37.7949, lng: -122.4094 },
+      { lat: 37.7949, lng: -122.4394 },
+      { lat: 37.7749, lng: -122.4394 },
+    ],
+    holes: [],
+    strokeWidth: 4,
+    strokeColor: '#00FF00',
+    fillColor: '#FF000080',
+    clickable: false,
+    geodesic: true,
+  });
+
+  if (updatedPolygon.id !== polygon.id) {
+    return expectFalseError(
+      'updatedPolygon.id should match original polygon.id'
+    );
+  }
+  // Note: Android SDK may return 5 points (including closing point), iOS returns 4
+  // We check for at least 4 points to account for platform differences
+  if (!updatedPolygon.points || updatedPolygon.points.length < 4) {
+    return expectFalseError(
+      'updatedPolygon.points should have at least 4 points'
+    );
+  }
+
+  // Verify only one polygon exists (update, not add)
+  polygons = await mapViewController.getPolygons();
+  if (polygons.length !== 1) {
+    return expectFalseError(
+      'getPolygons should still return 1 polygon after update'
+    );
+  }
+
+  // Test removing polygon
+  await mapViewController.removePolygon(polygon.id);
+
+  // Verify polygon was removed
+  polygons = await mapViewController.getPolygons();
+  if (polygons.length !== 0) {
+    return expectFalseError(
+      'getPolygons should return 0 polygons after removal'
+    );
+  }
+
+  passTest();
+};
+
+export const testMapGroundOverlays = async (testTools: TestTools) => {
+  const { mapViewController, passTest, failTest, expectFalseError } = testTools;
+  if (!mapViewController) {
+    return failTest('mapViewController was expected to exist');
+  }
+
+  // Test adding ground overlay with position-based method
+  const overlayWithPosition = await mapViewController.addGroundOverlay({
+    imgPath: 'circle.png',
+    location: { lat: 37.7749, lng: -122.4194 },
+    width: 1000, // meters
+    height: 1000, // meters
+    zoomLevel: 14, // for iOS
+    bearing: 0,
+    transparency: 0,
+    clickable: true,
+  });
+
+  if (!overlayWithPosition.id) {
+    return expectFalseError('overlayWithPosition.id should exist');
+  }
+
+  // Test getGroundOverlays returns the overlay
+  let overlays = await mapViewController.getGroundOverlays();
+  if (overlays.length !== 1) {
+    return expectFalseError('getGroundOverlays should return 1 overlay');
+  }
+  if (overlays[0]!.id !== overlayWithPosition.id) {
+    return expectFalseError(
+      'getGroundOverlays should return overlay with correct id'
+    );
+  }
+
+  // Test removing ground overlay
+  await mapViewController.removeGroundOverlay(overlayWithPosition.id);
+
+  // Verify overlay was removed
+  overlays = await mapViewController.getGroundOverlays();
+  if (overlays.length !== 0) {
+    return expectFalseError(
+      'getGroundOverlays should return 0 overlays after removal'
+    );
+  }
+
+  // Test adding ground overlay with bounds-based method
+  const overlayWithBounds = await mapViewController.addGroundOverlay({
+    imgPath: 'circle.png',
+    bounds: {
+      northEast: { lat: 37.78, lng: -122.41 },
+      southWest: { lat: 37.77, lng: -122.43 },
+    },
+    bearing: 45,
+    transparency: 0.2,
+    clickable: true,
+  });
+
+  if (!overlayWithBounds.id) {
+    return expectFalseError('overlayWithBounds.id should exist');
+  }
+  if (!overlayWithBounds.bounds) {
+    return expectFalseError('overlayWithBounds.bounds should exist');
+  }
+
+  // Test updating ground overlay with same ID (note: position/bounds cannot be
+  // changed, so this will recreate the overlay)
+  const updatedOverlay = await mapViewController.addGroundOverlay({
+    id: overlayWithBounds.id,
+    imgPath: 'circle.png',
+    bounds: {
+      northEast: { lat: 37.79, lng: -122.4 },
+      southWest: { lat: 37.76, lng: -122.44 },
+    },
+    bearing: 90,
+    transparency: 0.5,
+    clickable: false,
+  });
+
+  if (updatedOverlay.id !== overlayWithBounds.id) {
+    return expectFalseError(
+      'updatedOverlay.id should match original overlay id'
+    );
+  }
+
+  // Verify only one overlay exists
+  overlays = await mapViewController.getGroundOverlays();
+  if (overlays.length !== 1) {
+    return expectFalseError(
+      'getGroundOverlays should return 1 overlay after update'
+    );
+  }
+
+  // Test removing ground overlay
+  await mapViewController.removeGroundOverlay(overlayWithBounds.id);
+
+  passTest();
+};
+
 export const testOnRemainingTimeOrDistanceChanged = async (
   testTools: TestTools
 ) => {
-  const { navigationController, addListeners, passTest, failTest } = testTools;
-  addListeners({
-    onRemainingTimeOrDistanceChanged: async () => {
-      const timeAndDistance =
-        await navigationController.getCurrentTimeAndDistance();
-      if (timeAndDistance.meters > 0 && timeAndDistance.seconds > 0) {
-        navigationController.cleanup();
-        return passTest();
-      }
-    },
-    onNavigationReady: async () => {
-      disableVoiceGuidanceForTests(navigationController);
-      await navigationController.simulator.simulateLocation({
-        lat: 37.79136614772824,
-        lng: -122.41565900473043,
-      });
-      await navigationController.setDestination({
-        title: 'Grace Cathedral',
-        position: {
-          lat: 37.791957,
-          lng: -122.412529,
-        },
-      });
-      await navigationController.startGuidance();
-      await navigationController.simulator.simulateLocationsAlongExistingRoute({
-        speedMultiplier: 5,
-      });
-    },
-    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
-      console.log(errorCode);
-      failTest('onNavigatonInitError');
-    },
-  });
-  try {
-    await navigationController.init();
-  } catch (error) {
-    console.error('Error initializing navigator', error);
-    failTest('navigationController.init() exception');
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnRemainingTimeOrDistanceChanged,
+    passTest,
+    failTest,
+  } = testTools;
+
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
   }
+
+  setOnRemainingTimeOrDistanceChanged(async timeAndDistance => {
+    if (timeAndDistance.meters > 0 && timeAndDistance.seconds > 0) {
+      navigationController.cleanup();
+      return passTest();
+    }
+  });
+
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    await navigationController.simulator.simulateLocation({
+      lat: 37.79136614772824,
+      lng: -122.41565900473043,
+    });
+    await navigationController.setDestination({
+      title: 'Grace Cathedral',
+      position: {
+        lat: 37.791957,
+        lng: -122.412529,
+      },
+    });
+    await navigationController.startGuidance();
+
+    const routeSegments = await waitForCondition(
+      () => navigationController.getRouteSegments(),
+      segments => segments.length > 0
+    );
+    if (!routeSegments) {
+      return failTest(
+        'Timed out waiting for route segments before starting simulation'
+      );
+    }
+    await navigationController.simulator.simulateLocationsAlongExistingRoute({
+      speedMultiplier: 5,
+    });
+  });
+
+  await initializeNavigation(navigationController, failTest);
 };
 
 export const testOnArrival = async (testTools: TestTools) => {
-  const { navigationController, addListeners, passTest, failTest } = testTools;
-  addListeners({
-    onArrival: async () => {
-      navigationController.cleanup();
-      passTest();
-    },
-    onNavigationReady: async () => {
-      disableVoiceGuidanceForTests(navigationController);
-      await navigationController.simulator.simulateLocation({
-        lat: 37.79136614772824,
-        lng: -122.41565900473043,
-      });
-      await navigationController.setDestination({
-        title: 'Grace Cathedral',
-        position: {
-          lat: 37.791957,
-          lng: -122.412529,
-        },
-      });
-      await navigationController.startGuidance();
-      const routeSegments = await waitForCondition(
-        () => navigationController.getRouteSegments(),
-        segments => segments.length > 0
-      );
-      if (!routeSegments) {
-        return failTest(
-          'Timed out waiting for route segments before starting simulation'
-        );
-      }
-      await navigationController.simulator.simulateLocationsAlongExistingRoute({
-        speedMultiplier: 5,
-      });
-    },
-    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
-      console.log(errorCode);
-      failTest('onNavigatonInitError');
-    },
-  });
-  try {
-    await navigationController.init();
-  } catch (error) {
-    console.error('Error initializing navigator', error);
-    failTest('navigationController.init() exception');
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnArrival,
+    passTest,
+    failTest,
+  } = testTools;
+
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
   }
+
+  setOnArrival(async () => {
+    navigationController.cleanup();
+    passTest();
+  });
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    await navigationController.simulator.simulateLocation({
+      lat: 37.79136614772824,
+      lng: -122.41565900473043,
+    });
+    await navigationController.setDestination({
+      title: 'Grace Cathedral',
+      position: {
+        lat: 37.791957,
+        lng: -122.412529,
+      },
+    });
+    await navigationController.startGuidance();
+    const routeSegments = await waitForCondition(
+      () => navigationController.getRouteSegments(),
+      segments => segments.length > 0
+    );
+    if (!routeSegments) {
+      return failTest(
+        'Timed out waiting for route segments before starting simulation'
+      );
+    }
+    await navigationController.simulator.simulateLocationsAlongExistingRoute({
+      speedMultiplier: 5,
+    });
+  });
+
+  await initializeNavigation(navigationController, failTest);
 };
 
 export const testOnRouteChanged = async (testTools: TestTools) => {
-  const { navigationController, addListeners, passTest, failTest } = testTools;
-  addListeners({
-    onRouteChanged: async () => {
-      navigationController.cleanup();
-      passTest();
-    },
-    onNavigationReady: async () => {
-      disableVoiceGuidanceForTests(navigationController);
-      await navigationController.simulator.simulateLocation({
-        lat: 37.79136614772824,
-        lng: -122.41565900473043,
-      });
-      await navigationController.setDestination({
-        title: 'Grace Cathedral',
-        position: {
-          lat: 37.791957,
-          lng: -122.412529,
-        },
-      });
-      await navigationController.startGuidance();
-      await navigationController.simulator.simulateLocationsAlongExistingRoute({
-        speedMultiplier: 5,
-      });
-    },
-    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
-      console.log(errorCode);
-      failTest('onNavigatonInitError');
-    },
-  });
-  try {
-    await navigationController.init();
-  } catch (error) {
-    console.error('Error initializing navigator', error);
-    failTest('navigationController.init() exception');
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnRouteChanged,
+    passTest,
+    failTest,
+  } = testTools;
+
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
   }
+  setOnRouteChanged(async () => {
+    navigationController.cleanup();
+    passTest();
+  });
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    await navigationController.simulator.simulateLocation({
+      lat: 37.79136614772824,
+      lng: -122.41565900473043,
+    });
+    await navigationController.setDestination({
+      title: 'Grace Cathedral',
+      position: {
+        lat: 37.791957,
+        lng: -122.412529,
+      },
+    });
+    await navigationController.startGuidance();
+
+    const routeSegments = await waitForCondition(
+      () => navigationController.getRouteSegments(),
+      segments => segments.length > 0
+    );
+    if (!routeSegments) {
+      return failTest(
+        'Timed out waiting for route segments before starting simulation'
+      );
+    }
+    await navigationController.simulator.simulateLocationsAlongExistingRoute({
+      speedMultiplier: 5,
+    });
+  });
+  await initializeNavigation(navigationController, failTest);
 };
 
 export const testNavigationStateGuards = async (testTools: TestTools) => {
@@ -867,7 +1384,13 @@ export const testNavigationStateGuards = async (testTools: TestTools) => {
 export const testStartGuidanceWithoutDestinations = async (
   testTools: TestTools
 ) => {
-  const { navigationController, addListeners, passTest, failTest } = testTools;
+  const { navigationController, setOnNavigationReady, passTest, failTest } =
+    testTools;
+
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
+  }
 
   const expectNoDestinationsError = async (): Promise<boolean> => {
     try {
@@ -888,89 +1411,72 @@ export const testStartGuidanceWithoutDestinations = async (
     return true;
   };
 
-  addListeners({
-    onNavigationReady: async () => {
-      disableVoiceGuidanceForTests(navigationController);
-      if (!(await expectNoDestinationsError())) {
-        return;
-      }
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    if (!(await expectNoDestinationsError())) {
+      return;
+    }
 
-      try {
-        await navigationController.cleanup();
-      } catch (error) {
-        console.error('cleanup failed', error);
-        failTest('navigationController.cleanup() failed');
-        return;
-      }
+    try {
+      await navigationController.cleanup();
+    } catch (error) {
+      console.error('Cleanup failed', error);
+      failTest('navigationController.cleanup() failed');
+      return;
+    }
 
-      passTest();
-    },
-    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
-      console.log(errorCode);
-      failTest('onNavigatonInitError');
-    },
+    passTest();
   });
-
-  try {
-    await navigationController.init();
-  } catch (error) {
-    console.error('Error initializing navigator', error);
-    failTest('navigationController.init() exception');
-  }
+  await initializeNavigation(navigationController, failTest);
 };
 
 /**
- * Tests that providing both routingOptions and routeTokenOptions throws an error.
+ * Tests that providing both routingOptions and routeTokenOptions
+ * throws an error.
  * These options are mutually exclusive and should not be used together.
  */
 export const testRouteTokenOptionsValidation = async (testTools: TestTools) => {
-  const { navigationController, addListeners, passTest, failTest } = testTools;
+  const { navigationController, setOnNavigationReady, passTest, failTest } =
+    testTools;
 
-  addListeners({
-    onNavigationReady: async () => {
-      disableVoiceGuidanceForTests(navigationController);
-
-      try {
-        // Attempt to provide both routingOptions and routeTokenOptions
-        await navigationController.setDestinations([DEFAULT_TEST_WAYPOINT], {
-          routingOptions: { travelMode: TravelMode.DRIVING },
-          routeTokenOptions: {
-            routeToken: 'some-token',
-            travelMode: TravelMode.DRIVING,
-          },
-        });
-        failTest(
-          'Expected error when both routingOptions and routeTokenOptions provided'
-        );
-      } catch (error) {
-        // Should throw JS error about mutual exclusivity
-        if (
-          error instanceof Error &&
-          error.message.includes(
-            'Only one of routingOptions or routeTokenOptions'
-          )
-        ) {
-          try {
-            await navigationController.cleanup();
-          } catch (cleanupError) {
-            console.error('cleanup failed', cleanupError);
-          }
-          passTest();
-        } else {
-          failTest(`Unexpected error: ${error}`);
-        }
-      }
-    },
-    onNavigationInitError: (errorCode: NavigationInitErrorCode) => {
-      console.log(errorCode);
-      failTest(`onNavigationInitError: ${errorCode}`);
-    },
-  });
-
-  try {
-    await navigationController.init();
-  } catch (error) {
-    console.error('Error initializing navigator', error);
-    failTest('navigationController.init() exception');
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
   }
+
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+
+    try {
+      // Attempt to provide both routingOptions and routeTokenOptions
+      await navigationController.setDestinations([DEFAULT_TEST_WAYPOINT], {
+        routingOptions: { travelMode: TravelMode.DRIVING },
+        routeTokenOptions: {
+          routeToken: 'some-token',
+          travelMode: TravelMode.DRIVING,
+        },
+      });
+      failTest(
+        'Expected error when both routingOptions and routeTokenOptions provided'
+      );
+    } catch (error) {
+      // Should throw JS error about mutual exclusivity
+      if (
+        error instanceof Error &&
+        error.message.includes(
+          'Only one of routingOptions or routeTokenOptions'
+        )
+      ) {
+        try {
+          await navigationController.cleanup();
+        } catch (cleanupError) {
+          console.error('Cleanup failed', cleanupError);
+        }
+        passTest();
+      } else {
+        failTest(`Unexpected error: ${error}`);
+      }
+    }
+  });
+  await initializeNavigation(navigationController, failTest);
 };

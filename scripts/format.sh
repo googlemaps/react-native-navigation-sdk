@@ -13,4 +13,5 @@ set -e
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
 "$DIR/format-java.sh" "$@"
+"$DIR/format-kotlin.sh" "$@"
 "$DIR/format-objc.sh" "$@"

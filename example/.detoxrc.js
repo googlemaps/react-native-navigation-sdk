@@ -32,6 +32,7 @@ module.exports = {
         'ios/build/Build/Products/Debug-iphonesimulator/SampleApp.app',
       build:
         'xcodebuild -workspace ios/SampleApp.xcworkspace -scheme SampleApp -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
+      start: './scripts/start-metro.sh',
     },
     'ios.release': {
       type: 'ios.app',
@@ -45,6 +46,7 @@ module.exports = {
       binaryPath: 'android/app/build/outputs/apk/debug/app-debug.apk',
       build:
         'cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug',
+      start: './scripts/start-metro.sh',
       reversePorts: [8081],
     },
     'android.release': {

@@ -13,8 +13,15 @@
  */
 package com.google.android.react.navsdk;
 
+import com.google.android.libraries.navigation.ForceNightMode;
 import com.google.android.libraries.navigation.StylingOptions;
 
+/**
+ * Interface for navigation view controller properties that can be set on auto views. These are
+ * navigation-specific UI controls that are separate from map controller properties.
+ */
 public interface INavigationViewController {
   void setStylingOptions(StylingOptions stylingOptions);
+
+  void setNightModeOption(@ForceNightMode int nightMode);
 }

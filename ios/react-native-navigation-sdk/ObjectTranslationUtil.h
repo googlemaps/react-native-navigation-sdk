@@ -15,8 +15,9 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <GoogleNavigation/GoogleNavigation.h>
 #import <UIKit/UIKit.h>
-@import GoogleNavigation;
+#import "UIColor+ColorInt.h"
 
 @interface ObjectTranslationUtil : NSObject
 
@@ -33,4 +34,108 @@
 + (GMSPath *)transformToPath:(NSArray *)latLngs;
 + (CLLocationCoordinate2D)getLocationCoordinateFrom:(NSDictionary *)latLngMap;
 + (BOOL)isIdOnUserData:(nullable id)userData;
+
+// Creation methods for map objects
++ (GMSMarker *)createMarker:(CLLocationCoordinate2D)position
+                      title:(nullable NSString *)title
+                    snippet:(nullable NSString *)snippet
+                      alpha:(float)alpha
+                   rotation:(double)rotation
+                       flat:(BOOL)flat
+                  draggable:(BOOL)draggable
+                       icon:(nullable UIImage *)icon
+                     zIndex:(nullable NSNumber *)zIndex
+                 identifier:(nullable NSString *)identifier;
+
++ (GMSPolyline *)createPolyline:(GMSPath *)path
+                          width:(float)width
+                          color:(nullable UIColor *)color
+                      clickable:(BOOL)clickable
+                         zIndex:(nullable NSNumber *)zIndex
+                     identifier:(nullable NSString *)identifier;
+
++ (GMSPolygon *)createPolygon:(GMSPath *)path
+                        holes:(nullable NSArray<GMSPath *> *)holes
+                    fillColor:(nullable UIColor *)fillColor
+                  strokeColor:(nullable UIColor *)strokeColor
+                  strokeWidth:(float)strokeWidth
+                     geodesic:(BOOL)geodesic
+                    clickable:(BOOL)clickable
+                       zIndex:(nullable NSNumber *)zIndex
+                   identifier:(nullable NSString *)identifier;
+
++ (GMSCircle *)createCircle:(CLLocationCoordinate2D)center
+                     radius:(double)radius
+                strokeWidth:(float)strokeWidth
+                strokeColor:(nullable UIColor *)strokeColor
+                  fillColor:(nullable UIColor *)fillColor
+                  clickable:(BOOL)clickable
+                     zIndex:(nullable NSNumber *)zIndex
+                 identifier:(nullable NSString *)identifier;
+
+// Ground overlay creation with position-based positioning (uses zoomLevel)
++ (GMSGroundOverlay *)createGroundOverlayWithPosition:(CLLocationCoordinate2D)position
+                                                 icon:(UIImage *)icon
+                                            zoomLevel:(CGFloat)zoomLevel
+                                              bearing:(CGFloat)bearing
+                                         transparency:(CGFloat)transparency
+                                               anchor:(CGPoint)anchor
+                                            clickable:(BOOL)clickable
+                                               zIndex:(nullable NSNumber *)zIndex
+                                           identifier:(nullable NSString *)identifier;
+
+// Ground overlay creation with bounds-based positioning
++ (GMSGroundOverlay *)createGroundOverlayWithBounds:(GMSCoordinateBounds *)bounds
+                                               icon:(UIImage *)icon
+                                            bearing:(CGFloat)bearing
+                                       transparency:(CGFloat)transparency
+                                             anchor:(CGPoint)anchor
+                                          clickable:(BOOL)clickable
+                                             zIndex:(nullable NSNumber *)zIndex
+                                         identifier:(nullable NSString *)identifier;
+
+// Update methods for map objects
++ (void)updateMarker:(GMSMarker *)marker
+               title:(nullable NSString *)title
+             snippet:(nullable NSString *)snippet
+               alpha:(float)alpha
+            rotation:(double)rotation
+                flat:(BOOL)flat
+           draggable:(BOOL)draggable
+                icon:(nullable UIImage *)icon
+              zIndex:(nullable NSNumber *)zIndex
+            position:(CLLocationCoordinate2D)position;
+
++ (void)updatePolyline:(GMSPolyline *)polyline
+                  path:(GMSPath *)path
+                 width:(float)width
+                 color:(nullable UIColor *)color
+             clickable:(BOOL)clickable
+                zIndex:(nullable NSNumber *)zIndex;
+
++ (void)updatePolygon:(GMSPolygon *)polygon
+                 path:(GMSPath *)path
+                holes:(nullable NSArray<GMSPath *> *)holes
+            fillColor:(nullable UIColor *)fillColor
+          strokeColor:(nullable UIColor *)strokeColor
+          strokeWidth:(float)strokeWidth
+             geodesic:(BOOL)geodesic
+            clickable:(BOOL)clickable
+               zIndex:(nullable NSNumber *)zIndex;
+
++ (void)updateCircle:(GMSCircle *)circle
+              center:(CLLocationCoordinate2D)center
+              radius:(double)radius
+         strokeWidth:(float)strokeWidth
+         strokeColor:(nullable UIColor *)strokeColor
+           fillColor:(nullable UIColor *)fillColor
+           clickable:(BOOL)clickable
+              zIndex:(nullable NSNumber *)zIndex;
+
++ (void)updateGroundOverlay:(GMSGroundOverlay *)overlay
+                    bearing:(CGFloat)bearing
+               transparency:(CGFloat)transparency
+                  clickable:(BOOL)clickable
+                     zIndex:(nullable NSNumber *)zIndex;
+
 @end

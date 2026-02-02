@@ -16,7 +16,7 @@
 # Script to format or check formatting for Objective-C files in /ios and /example/ios
 
 if [ "$1" = "--check" ]; then
-    find ios example/ios/SampleApp -name "*.m" -o -name "*.h" | xargs clang-format -style=Google --dry-run -Werror
+    find ios example/ios/SampleApp -name "*.mm" -o -name "*.h" | xargs clang-format -style=Google --dry-run -Werror
 else
-    find ios example/ios/SampleApp -name "*.m" -o -name "*.h" | xargs clang-format -style=Google -i
+    find ios example/ios/SampleApp -name "*.mm" -o -name "*.h" | xargs clang-format -style=Google -i
 fi

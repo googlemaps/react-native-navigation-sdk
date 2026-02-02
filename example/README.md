@@ -20,7 +20,9 @@ First, make sure you go through the setup from the main [README](../README.md).
 
 1. Using your preferred terminal, go to example/ios folder and run the command below.
 
-   `RCT_NEW_ARCH_ENABLED=0 pod install`
+   `pod install`
+   
+   Note: This example app requires React Native's new architecture to be enabled (RCT_NEW_ARCH_ENABLED=1), which is configured in the Podfile.
 
 2. Copy the `Keys.plist.sample` file located in `example/ios/SampleApp/` to a new file named `Keys.plist`. This file is git ignored and won't be accidentally committed. In your Google cloud console, add the Google API key to the project and add this newly created API key to the `Keys.plist` file.
 

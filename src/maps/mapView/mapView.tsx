@@ -14,123 +14,110 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, findNodeHandle } from 'react-native';
-import { NavViewManager, type LatLng } from '../../shared';
+import React, { useEffect, useState, useRef } from 'react';
+import { StyleSheet } from 'react-native';
+import { getUniqueMapViewId, useNativeEventCallback } from '../../shared';
 import {
   MapColorScheme,
   getMapViewController,
   MapViewType,
-  type Circle,
-  type GroundOverlay,
   type MapViewProps,
-  type Marker,
-  type Polygon,
-  type Polyline,
 } from '..';
+import NavView from '../../native/NativeNavViewComponent';
+import { NavigationUIEnabledPreference } from '../../navigation';
 
 export const MapView = (props: MapViewProps): React.JSX.Element => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mapViewRef = useRef<any>(null);
-  const [viewId, setViewId] = useState<number | null>(null);
+  const viewCreatedRef = useRef<boolean>(false);
+  const nativeIDRef = useRef<string>(getUniqueMapViewId());
+  const mapViewRef = useRef(null);
 
   const { onMapViewControllerCreated } = props;
 
-  /**
-   * @param ref - The reference to the NavViewManager component.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onRefAssign = (ref: any): void => {
-    if (mapViewRef.current !== ref) {
-      mapViewRef.current = ref;
-    }
-  };
+  // Initialize params once using lazy state initialization
+  const [viewInitializationParams] = useState(() => {
+    const hasInitialCamera = !!props.initialCameraPosition;
+    const hasTarget = hasInitialCamera && !!props.initialCameraPosition?.target;
 
-  // Create controller when viewId changes
+    return {
+      viewType: MapViewType.MAP,
+      mapId: props.mapId,
+      mapType: props.mapType,
+      navigationUIEnabledPreference: NavigationUIEnabledPreference.DISABLED, // navigation UI is always disabled for MapView
+      mapColorScheme: props.mapColorScheme ?? MapColorScheme.FOLLOW_SYSTEM,
+      navigationNightMode: 0, // Not used for MAP views
+      hasCameraPosition: hasInitialCamera,
+      ...(hasInitialCamera && {
+        cameraPosition: {
+          hasTarget,
+          target: props.initialCameraPosition?.target ?? null,
+          bearing: props.initialCameraPosition?.bearing ?? 0.0,
+          tilt: props.initialCameraPosition?.tilt ?? 0.0,
+          zoom: props.initialCameraPosition?.zoom ?? 0.0,
+        },
+      }),
+    };
+  });
+
   useEffect(() => {
-    if (!mapViewRef.current) {
+    if (!mapViewRef.current || viewCreatedRef.current) {
       return;
     }
-    const _viewId = findNodeHandle(mapViewRef.current) || 0;
-    if (viewId !== _viewId) {
-      setViewId(_viewId);
-      onMapViewControllerCreated(getMapViewController(mapViewRef));
-    }
-  }, [onMapViewControllerCreated, viewId]);
+    viewCreatedRef.current = true;
 
-  const onMapClick = useCallback(
-    ({ nativeEvent: latlng }: { nativeEvent: LatLng }) => {
-      props.mapViewCallbacks?.onMapClick?.(latlng);
-    },
-    [props.mapViewCallbacks]
+    // Initialize map view controller with nativeID
+    onMapViewControllerCreated(getMapViewController(nativeIDRef.current));
+  }, [onMapViewControllerCreated, mapViewRef]);
+
+  // Use the new architecture event callback hook
+  const onMapClick = useNativeEventCallback(props.onMapClick);
+  const onMapReady = useNativeEventCallback(props.onMapReady);
+  const onMarkerClick = useNativeEventCallback(props.onMarkerClick);
+  const onPolylineClick = useNativeEventCallback(props.onPolylineClick);
+  const onPolygonClick = useNativeEventCallback(props.onPolygonClick);
+  const onCircleClick = useNativeEventCallback(props.onCircleClick);
+  const onGroundOverlayClick = useNativeEventCallback(
+    props.onGroundOverlayClick
   );
-
-  const onMapReady = useCallback(() => {
-    props.mapViewCallbacks?.onMapReady?.();
-  }, [props.mapViewCallbacks]);
-
-  const onMarkerClick = useCallback(
-    ({ nativeEvent: marker }: { nativeEvent: Marker }) => {
-      props.mapViewCallbacks?.onMarkerClick?.(marker);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onPolylineClick = useCallback(
-    ({ nativeEvent: polyline }: { nativeEvent: Polyline }) => {
-      props.mapViewCallbacks?.onPolylineClick?.(polyline);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onPolygonClick = useCallback(
-    ({ nativeEvent: polygon }: { nativeEvent: Polygon }) => {
-      props.mapViewCallbacks?.onPolygonClick?.(polygon);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onCircleClick = useCallback(
-    ({ nativeEvent: circle }: { nativeEvent: Circle }) => {
-      props.mapViewCallbacks?.onCircleClick?.(circle);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onGroundOverlayClick = useCallback(
-    ({ nativeEvent: groundOverlay }: { nativeEvent: GroundOverlay }) => {
-      props.mapViewCallbacks?.onGroundOverlayClick?.(groundOverlay);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onMarkerInfoWindowTapped = useCallback(
-    ({ nativeEvent: marker }: { nativeEvent: Marker }) => {
-      props.mapViewCallbacks?.onMarkerInfoWindowTapped?.(marker);
-    },
-    [props.mapViewCallbacks]
+  const onMarkerInfoWindowTapped = useNativeEventCallback(
+    props.onMarkerInfoWindowTapped
   );
 
   return (
-    <View style={props.style ?? styles.defaultStyle}>
-      <NavViewManager
-        ref={onRefAssign}
-        flex={1}
-        mapOptions={{
-          mapViewType: MapViewType.MAP,
-          mapId: props.mapId,
-          mapColorScheme: props.mapColorScheme ?? MapColorScheme.FOLLOW_SYSTEM,
-        }}
-        onMapClick={onMapClick}
-        onMapReady={onMapReady}
-        onMarkerClick={onMarkerClick}
-        onPolylineClick={onPolylineClick}
-        onPolygonClick={onPolygonClick}
-        onCircleClick={onCircleClick}
-        onGroundOverlayClick={onGroundOverlayClick}
-        onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
-      />
-    </View>
+    <NavView
+      style={props.style ?? styles.defaultStyle}
+      nativeID={nativeIDRef.current}
+      ref={mapViewRef}
+      viewInitializationParams={viewInitializationParams}
+      mapType={props.mapType}
+      mapColorScheme={props.mapColorScheme ?? MapColorScheme.FOLLOW_SYSTEM}
+      mapPadding={props.mapPadding}
+      mapStyle={props.mapStyle}
+      mapToolbarEnabled={props.mapToolbarEnabled}
+      indoorEnabled={props.indoorEnabled}
+      trafficEnabled={props.trafficEnabled}
+      compassEnabled={props.compassEnabled}
+      myLocationButtonEnabled={props.myLocationButtonEnabled}
+      myLocationEnabled={props.myLocationEnabled}
+      rotateGesturesEnabled={props.rotateGesturesEnabled}
+      scrollGesturesEnabled={props.scrollGesturesEnabled}
+      scrollGesturesEnabledDuringRotateOrZoom={
+        props.scrollGesturesDuringRotateOrZoomEnabled
+      }
+      tiltGesturesEnabled={props.tiltGesturesEnabled}
+      zoomControlsEnabled={props.zoomControlsEnabled}
+      zoomGesturesEnabled={props.zoomGesturesEnabled}
+      buildingsEnabled={props.buildingsEnabled}
+      minZoomLevel={props.minZoomLevel}
+      maxZoomLevel={props.maxZoomLevel}
+      onMapClick={onMapClick}
+      onMapReady={onMapReady}
+      onMarkerClick={onMarkerClick}
+      onPolylineClick={onPolylineClick}
+      onPolygonClick={onPolygonClick}
+      onCircleClick={onCircleClick}
+      onGroundOverlayClick={onGroundOverlayClick}
+      onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
+    />
   );
 };
 

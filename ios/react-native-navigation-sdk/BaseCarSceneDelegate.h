@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 #import <CarPlay/CarPlay.h>
+#import "INavigationViewStateDelegate.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class NavViewController;  // forward declaration
 
-@interface BaseCarSceneDelegate
-    : UIResponder <CPTemplateApplicationSceneDelegate, CPMapTemplateDelegate>
+@interface BaseCarSceneDelegate : UIResponder <CPTemplateApplicationSceneDelegate,
+                                               CPMapTemplateDelegate,
+                                               INavigationViewStateDelegate>
 
 @property(nonatomic, strong) CPInterfaceController *interfaceController;
 @property(nonatomic, strong) CPWindow *carWindow;
@@ -30,6 +32,30 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, assign) BOOL viewControllerRegistered;
 
 - (CPMapTemplate *)getTemplate;
+
+/**
+ * Called when the navigation map view has been loaded and is ready.
+ * Override this method in your subclass to configure map settings that don't require
+ * a navigation session (e.g., recenter button visibility, speedometer).
+ * The default implementation disables recenter button, speedometer, and report incident button.
+ */
+- (void)onMapViewReady;
+
+/**
+ * Called when the navigation session has been successfully attached to the CarPlay map view.
+ * Override this method in your subclass to configure navigation-specific UI settings.
+ * The default implementation disables header and footer, and traffic prompts.
+ */
+- (void)onSessionAttached;
+
+/**
+ * Called when a custom message is received from React Native via sendCustomMessage.
+ * Override this method in your subclass to handle custom messages.
+ *
+ * @param type The message type identifier.
+ * @param data The message data as a dictionary (parsed from JSON), or nil if no data was provided.
+ */
+- (void)onCustomMessageReceived:(NSString *)type data:(nullable NSDictionary *)data;
 
 @end
 

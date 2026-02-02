@@ -13,50 +13,73 @@
  */
 package com.google.android.react.navsdk;
 
-import static com.google.android.react.navsdk.Command.*;
-
 import android.view.Choreographer;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import com.facebook.react.bridge.Dynamic;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.common.MapBuilder;
+import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
+import com.facebook.react.uimanager.ViewManagerDelegate;
 import com.facebook.react.uimanager.annotations.ReactProp;
+import com.facebook.react.viewmanagers.NavViewManagerDelegate;
+import com.facebook.react.viewmanagers.NavViewManagerInterface;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.libraries.navigation.StylingOptions;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 
 // NavViewManager is responsible for managing both the regular map fragment as well as the
 // navigation map view fragment.
 //
-public class NavViewManager extends SimpleViewManager<FrameLayout> {
+@ReactModule(name = NavViewManager.REACT_CLASS)
+public class NavViewManager extends SimpleViewManager<FrameLayout>
+    implements NavViewManagerInterface<FrameLayout> {
 
-  public static final String REACT_CLASS = "NavViewManager";
+  public static final String REACT_CLASS = "NavView";
   private static NavViewManager instance;
+
+  private final ViewManagerDelegate<FrameLayout> mDelegate;
 
   private final HashMap<Integer, WeakReference<IMapViewFragment>> fragmentMap = new HashMap<>();
   private final HashMap<Integer, Choreographer.FrameCallback> frameCallbackMap = new HashMap<>();
 
-  // Cache the latest options per view so deferred fragment creation uses fresh values.
+  // Cache the latest options per view so deferred fragment creation uses fresh
+  // values.
   private final HashMap<Integer, ReadableMap> mapOptionsCache = new HashMap<>();
 
   // Track views with pending fragment creation attempts.
   private final HashSet<Integer> pendingFragments = new HashSet<>();
 
+  // Property sink to buffer both fragment and controller props that arrive before
+  // fragment is created
+  private final HashMap<Integer, ViewPropertiesSink> propertySinkMap = new HashMap<>();
+
+  // nativeID-based view registry for TurboModule access
+  private final HashMap<String, WeakReference<FrameLayout>> viewRegistry = new HashMap<>();
+
   private ReactApplicationContext reactContext;
+
+  public NavViewManager() {
+    mDelegate = new NavViewManagerDelegate<>(this);
+  }
+
+  @Override
+  @Nullable
+  public ViewManagerDelegate<FrameLayout> getDelegate() {
+    return mDelegate;
+  }
 
   public static synchronized NavViewManager getInstance(ReactApplicationContext reactContext) {
     if (instance == null) {
@@ -105,6 +128,19 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
       options.mapColorScheme(EnumTranslationUtil.getMapColorSchemeFromJsValue(jsValue));
     }
 
+    // Set initial camera position if provided
+    if (mapOptionsMap.hasKey("hasCameraPosition")
+        && !mapOptionsMap.isNull("hasCameraPosition")
+        && mapOptionsMap.getBoolean("hasCameraPosition")
+        && mapOptionsMap.hasKey("cameraPosition")
+        && !mapOptionsMap.isNull("cameraPosition")) {
+      ReadableMap cameraMap = mapOptionsMap.getMap("cameraPosition");
+      CameraPosition cameraPosition = ObjectTranslationUtil.getCameraPositionFromMap(cameraMap);
+      if (cameraPosition != null) {
+        options.camera(cameraPosition);
+      }
+    }
+
     return options;
   }
 
@@ -118,10 +154,54 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     this.reactContext = reactContext;
   }
 
-  /** Return a FrameLayout which will later hold the Fragment */
+  /**
+   * Register a view in the nativeID-based registry for TurboModule access. Called when nativeID
+   * prop is set.
+   */
+  public void registerViewByNativeId(String nativeID, FrameLayout view) {
+    if (nativeID != null && !nativeID.isEmpty()) {
+      viewRegistry.put(nativeID, new WeakReference<>(view));
+    }
+  }
+
+  /**
+   * Get a view by its nativeID. Used by TurboModules to access views. Returns null if view not
+   * found or has been garbage collected.
+   */
+  @Nullable
+  public FrameLayout getViewByNativeId(String nativeID) {
+    if (nativeID == null || nativeID.isEmpty()) {
+      return null;
+    }
+    WeakReference<FrameLayout> weakReference = viewRegistry.get(nativeID);
+    if (weakReference == null) {
+      return null;
+    }
+    FrameLayout view = weakReference.get();
+    if (view == null) {
+      // View was garbage collected, clean up
+      viewRegistry.remove(nativeID);
+      return null;
+    }
+    return view;
+  }
+
+  /**
+   * Get the fragment for a view identified by nativeID. Used by TurboModules to perform operations
+   * on specific views.
+   */
+  @Nullable
+  public IMapViewFragment getFragmentByNativeId(String nativeID) {
+    FrameLayout view = getViewByNativeId(nativeID);
+    if (view == null) {
+      return null;
+    }
+    return getFragmentForViewId(view.getId());
+  }
+
   @NonNull
   @Override
-  public FrameLayout createViewInstance(@NonNull ThemedReactContext reactContext) {
+  protected FrameLayout createViewInstance(@NonNull ThemedReactContext context) {
     FrameLayout frameLayout = new FrameLayout(reactContext);
     return frameLayout;
   }
@@ -191,12 +271,30 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
 
     int viewId = view.getId();
 
+    // Clean up pending fragment tracking
     pendingFragments.remove(viewId);
     mapOptionsCache.remove(viewId);
+
+    // Clean up nativeID registry
+    // Find and remove this view from the registry by iterating (inefficient but
+    // rare operation)
+    viewRegistry
+        .entrySet()
+        .removeIf(
+            entry -> {
+              WeakReference<FrameLayout> ref = entry.getValue();
+              return ref == null || ref.get() == null || ref.get() == view;
+            });
 
     Choreographer.FrameCallback frameCallback = frameCallbackMap.remove(viewId);
     if (frameCallback != null) {
       Choreographer.getInstance().removeFrameCallback(frameCallback);
+    }
+
+    // Clean up property sink
+    ViewPropertiesSink sink = propertySinkMap.remove(viewId);
+    if (sink != null) {
+      sink.clear();
     }
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
@@ -215,13 +313,101 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     }
   }
 
-  @ReactProp(name = "mapOptions")
-  public void setMapOptions(FrameLayout view, @NonNull ReadableMap mapOptions) {
+  /** Get fragment properties interface - returns either the real fragment or the property sink. */
+  @NonNull
+  private INavigationViewProperties getNavigationFragmentProperties(int viewId) {
+    IMapViewFragment fragment = getFragmentForViewId(viewId);
+    if (fragment != null && fragment instanceof INavViewFragment) {
+      return (INavViewFragment) fragment;
+    }
+
+    // Return sink to buffer properties
+    ViewPropertiesSink sink = propertySinkMap.get(viewId);
+    if (sink == null) {
+      sink = new ViewPropertiesSink();
+      propertySinkMap.put(viewId, sink);
+    }
+    return sink;
+  }
+
+  /** Get map fragment properties interface - for map-only views. */
+  @NonNull
+  private IMapViewProperties getMapFragmentProperties(int viewId) {
+    IMapViewFragment fragment = getFragmentForViewId(viewId);
+    if (fragment != null) {
+      return fragment;
+    }
+
+    // Return sink to buffer properties
+    ViewPropertiesSink sink = propertySinkMap.get(viewId);
+    if (sink == null) {
+      sink = new ViewPropertiesSink();
+      propertySinkMap.put(viewId, sink);
+    }
+    return sink;
+  }
+
+  /** Get controller properties interface - returns either the real controller or the sink. */
+  @NonNull
+  private INavigationViewControllerProperties getMapControllerProperties(int viewId) {
+    IMapViewFragment fragment = getFragmentForViewId(viewId);
+    if (fragment != null && fragment.getMapController() != null) {
+      return fragment.getMapController();
+    }
+
+    // Return sink to buffer controller properties
+    ViewPropertiesSink sink = propertySinkMap.get(viewId);
+    if (sink == null) {
+      sink = new ViewPropertiesSink();
+      propertySinkMap.put(viewId, sink);
+    }
+    return sink;
+  }
+
+  /**
+   * Apply buffered properties from the unified sink to both fragment and controller, then discard
+   * the sink. This should be called once when the fragment is ready.
+   */
+  private void applyBufferedPropertiesAndClearSinks(int viewId, IMapViewFragment fragment) {
+    ViewPropertiesSink sink = propertySinkMap.remove(viewId);
+    if (sink != null) {
+      // Apply fragment-level properties
+      sink.applyToFragment(fragment);
+
+      // Apply controller-level properties
+      if (fragment.getMapController() != null) {
+        sink.applyToController(fragment.getMapController());
+      }
+
+      sink.clear();
+    }
+  }
+
+  /**
+   * Handle nativeID prop to register views in the registry. This is required for TurboModule
+   * methods to find specific view instances.
+   */
+  @Override
+  public void setNativeId(@NonNull FrameLayout view, @Nullable String nativeId) {
+    super.setNativeId(view, nativeId);
+    if (nativeId != null && !nativeId.isEmpty()) {
+      registerViewByNativeId(nativeId, view);
+    }
+  }
+
+  @Override
+  public void setNativeID(@NonNull FrameLayout view, @Nullable String nativeID) {
+    setNativeId(view, nativeID);
+  }
+
+  @ReactProp(name = "viewInitializationParams")
+  public void setViewInitializationParams(
+      FrameLayout view, @NonNull ReadableMap viewInitializationParams) {
     int viewId = view.getId();
-    mapOptionsCache.put(viewId, mapOptions);
+    mapOptionsCache.put(viewId, viewInitializationParams);
 
     if (isFragmentCreated(viewId)) {
-      updateMapOptionValues(viewId, mapOptions);
+      updateMapOptionValues(viewId, viewInitializationParams);
       return;
     }
 
@@ -231,78 +417,192 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     }
   }
 
-  /** Map the "create" command to an integer */
-  @Nullable
-  @Override
-  public Map<String, Integer> getCommandsMap() {
-    Map<String, Integer> map = new HashMap<>();
-    map.put(MOVE_CAMERA.toString(), MOVE_CAMERA.getValue());
-    map.put(SET_TRIP_PROGRESS_BAR_ENABLED.toString(), SET_TRIP_PROGRESS_BAR_ENABLED.getValue());
-    map.put(SET_NAVIGATION_UI_ENABLED.toString(), SET_NAVIGATION_UI_ENABLED.getValue());
-    map.put(SET_FOLLOWING_PERSPECTIVE.toString(), SET_FOLLOWING_PERSPECTIVE.getValue());
-    map.put(SET_NIGHT_MODE.toString(), SET_NIGHT_MODE.getValue());
-    map.put(SET_SPEEDOMETER_ENABLED.toString(), SET_SPEEDOMETER_ENABLED.getValue());
-    map.put(SET_SPEED_LIMIT_ICON_ENABLED.toString(), SET_SPEED_LIMIT_ICON_ENABLED.getValue());
-    map.put(SET_ZOOM_LEVEL.toString(), SET_ZOOM_LEVEL.getValue());
-    map.put(SET_INDOOR_ENABLED.toString(), SET_INDOOR_ENABLED.getValue());
-    map.put(SET_TRAFFIC_ENABLED.toString(), SET_TRAFFIC_ENABLED.getValue());
-    map.put(SET_COMPASS_ENABLED.toString(), SET_COMPASS_ENABLED.getValue());
-    map.put(SET_MY_LOCATION_BUTTON_ENABLED.toString(), SET_MY_LOCATION_BUTTON_ENABLED.getValue());
-    map.put(SET_MY_LOCATION_ENABLED.toString(), SET_MY_LOCATION_ENABLED.getValue());
-    map.put(SET_ROTATE_GESTURES_ENABLED.toString(), SET_ROTATE_GESTURES_ENABLED.getValue());
-    map.put(SET_SCROLL_GESTURES_ENABLED.toString(), SET_SCROLL_GESTURES_ENABLED.getValue());
-    map.put(
-        SET_SCROLL_GESTURES_ENABLED_DURING_ROTATE_OR_ZOOM.toString(),
-        SET_SCROLL_GESTURES_ENABLED_DURING_ROTATE_OR_ZOOM.getValue());
-    map.put(SET_ZOOM_CONTROLS_ENABLED.toString(), SET_ZOOM_CONTROLS_ENABLED.getValue());
-    map.put(SET_TILT_GESTURES_ENABLED.toString(), SET_TILT_GESTURES_ENABLED.getValue());
-    map.put(SET_ZOOM_GESTURES_ENABLED.toString(), SET_ZOOM_GESTURES_ENABLED.getValue());
-    map.put(SET_BUILDINGS_ENABLED.toString(), SET_BUILDINGS_ENABLED.getValue());
-    map.put(SET_MAP_TYPE.toString(), SET_MAP_TYPE.getValue());
-    map.put(SET_MAP_TOOLBAR_ENABLED.toString(), SET_MAP_TOOLBAR_ENABLED.getValue());
-    map.put(CLEAR_MAP_VIEW.toString(), CLEAR_MAP_VIEW.getValue());
-    map.put(RESET_MIN_MAX_ZOOM_LEVEL.toString(), RESET_MIN_MAX_ZOOM_LEVEL.getValue());
-    map.put(SET_MAP_STYLE.toString(), SET_MAP_STYLE.getValue());
-    map.put(ANIMATE_CAMERA.toString(), ANIMATE_CAMERA.getValue());
-    map.put(
-        SET_TRAFFIC_INCIDENT_CARDS_ENABLED.toString(),
-        SET_TRAFFIC_INCIDENT_CARDS_ENABLED.getValue());
-    map.put(SET_RECENTER_BUTTON_ENABLED.toString(), SET_RECENTER_BUTTON_ENABLED.getValue());
-    map.put(SHOW_ROUTE_OVERVIEW.toString(), SHOW_ROUTE_OVERVIEW.getValue());
-    map.put(REMOVE_MARKER.toString(), REMOVE_MARKER.getValue());
-    map.put(REMOVE_POLYLINE.toString(), REMOVE_POLYLINE.getValue());
-    map.put(REMOVE_POLYGON.toString(), REMOVE_POLYGON.getValue());
-    map.put(REMOVE_CIRCLE.toString(), REMOVE_CIRCLE.getValue());
-    map.put(REMOVE_GROUND_OVERLAY.toString(), REMOVE_GROUND_OVERLAY.getValue());
-    map.put(SET_HEADER_ENABLED.toString(), SET_HEADER_ENABLED.getValue());
-    map.put(SET_FOOTER_ENABLED.toString(), SET_FOOTER_ENABLED.getValue());
-    map.put(SET_PADDING.toString(), SET_PADDING.getValue());
-    map.put(
-        SET_REPORT_INCIDENT_BUTTON_ENABLED.toString(),
-        SET_REPORT_INCIDENT_BUTTON_ENABLED.getValue());
-    return map;
+  // ========== Dynamic Props - Map Appearance ==========
+
+  @ReactProp(name = "mapType")
+  public void setMapType(FrameLayout view, int mapType) {
+    getMapControllerProperties(view.getId()).setMapType(mapType);
   }
 
-  @Nullable
-  public INavViewFragment getNavFragmentForRoot(ViewGroup root) {
-    IMapViewFragment fragment = getFragmentForRoot(root);
+  @ReactProp(name = "mapColorScheme")
+  public void setMapColorScheme(FrameLayout view, int mapColorScheme) {
+    getMapFragmentProperties(view.getId())
+        .setMapColorScheme(EnumTranslationUtil.getMapColorSchemeFromJsValue(mapColorScheme));
+  }
 
+  @ReactProp(name = "navigationNightMode")
+  public void setNavigationNightMode(FrameLayout view, int nightMode) {
+    getNavigationFragmentProperties(view.getId())
+        .setNightModeOption(EnumTranslationUtil.getForceNightModeFromJsValue(nightMode));
+  }
+
+  @ReactProp(name = "mapPadding")
+  public void setMapPadding(FrameLayout view, @Nullable ReadableMap padding) {
+    if (padding != null) {
+      int top = padding.hasKey("top") ? padding.getInt("top") : 0;
+      int left = padding.hasKey("left") ? padding.getInt("left") : 0;
+      int bottom = padding.hasKey("bottom") ? padding.getInt("bottom") : 0;
+      int right = padding.hasKey("right") ? padding.getInt("right") : 0;
+      getMapControllerProperties(view.getId()).setPadding(top, left, bottom, right);
+    }
+  }
+
+  @ReactProp(name = "mapStyle")
+  public void setMapStyle(FrameLayout view, @Nullable String mapStyle) {
+    if (mapStyle != null) {
+      getMapControllerProperties(view.getId()).setMapStyle(mapStyle);
+    }
+  }
+
+  @ReactProp(name = "mapToolbarEnabled", defaultBoolean = true)
+  public void setMapToolbarEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setMapToolbarEnabled(enabled);
+  }
+
+  @ReactProp(name = "indoorEnabled", defaultBoolean = true)
+  public void setIndoorEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setIndoorEnabled(enabled);
+  }
+
+  @ReactProp(name = "trafficEnabled", defaultBoolean = false)
+  public void setTrafficEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setTrafficEnabled(enabled);
+  }
+
+  @ReactProp(name = "compassEnabled", defaultBoolean = true)
+  public void setCompassEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setCompassEnabled(enabled);
+  }
+
+  @ReactProp(name = "buildingsEnabled", defaultBoolean = true)
+  public void setBuildingsEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setBuildingsEnabled(enabled);
+  }
+
+  @ReactProp(name = "minZoomLevel")
+  public void setMinZoomLevel(FrameLayout view, float minZoomLevel) {
+    getMapControllerProperties(view.getId()).setMinZoomLevel(minZoomLevel);
+  }
+
+  @ReactProp(name = "maxZoomLevel")
+  public void setMaxZoomLevel(FrameLayout view, float maxZoomLevel) {
+    getMapControllerProperties(view.getId()).setMaxZoomLevel(maxZoomLevel);
+  }
+
+  // ========== Dynamic Props - Location ==========
+
+  @ReactProp(name = "myLocationEnabled", defaultBoolean = false)
+  public void setMyLocationEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setMyLocationEnabled(enabled);
+  }
+
+  @ReactProp(name = "myLocationButtonEnabled", defaultBoolean = true)
+  public void setMyLocationButtonEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setMyLocationButtonEnabled(enabled);
+  }
+
+  // ========== Dynamic Props - Gestures ==========
+
+  @ReactProp(name = "rotateGesturesEnabled", defaultBoolean = true)
+  public void setRotateGesturesEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setRotateGesturesEnabled(enabled);
+  }
+
+  @ReactProp(name = "scrollGesturesEnabled", defaultBoolean = true)
+  public void setScrollGesturesEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setScrollGesturesEnabled(enabled);
+  }
+
+  @ReactProp(name = "scrollGesturesEnabledDuringRotateOrZoom", defaultBoolean = true)
+  public void setScrollGesturesEnabledDuringRotateOrZoom(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setScrollGesturesEnabledDuringRotateOrZoom(enabled);
+  }
+
+  @ReactProp(name = "tiltGesturesEnabled", defaultBoolean = true)
+  public void setTiltGesturesEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setTiltGesturesEnabled(enabled);
+  }
+
+  @ReactProp(name = "zoomGesturesEnabled", defaultBoolean = true)
+  public void setZoomGesturesEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setZoomGesturesEnabled(enabled);
+  }
+
+  @ReactProp(name = "zoomControlsEnabled", defaultBoolean = true)
+  public void setZoomControlsEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setZoomControlsEnabled(enabled);
+  }
+
+  // ========== Dynamic Props - Navigation UI ==========
+
+  @ReactProp(name = "tripProgressBarEnabled", defaultBoolean = false)
+  public void setTripProgressBarEnabled(FrameLayout view, boolean enabled) {
+    getNavigationFragmentProperties(view.getId()).setTripProgressBarEnabled(enabled);
+  }
+
+  @ReactProp(name = "trafficPromptsEnabled", defaultBoolean = true)
+  public void setTrafficPromptsEnabled(FrameLayout view, boolean enabled) {
+    getNavigationFragmentProperties(view.getId()).setTrafficPromptsEnabled(enabled);
+  }
+
+  @ReactProp(name = "trafficIncidentCardsEnabled", defaultBoolean = true)
+  public void setTrafficIncidentCardsEnabled(FrameLayout view, boolean enabled) {
+    getNavigationFragmentProperties(view.getId()).setTrafficIncidentCardsEnabled(enabled);
+  }
+
+  @ReactProp(name = "headerEnabled", defaultBoolean = true)
+  public void setHeaderEnabled(FrameLayout view, boolean enabled) {
+    getNavigationFragmentProperties(view.getId()).setHeaderEnabled(enabled);
+  }
+
+  @ReactProp(name = "footerEnabled", defaultBoolean = true)
+  public void setFooterEnabled(FrameLayout view, boolean enabled) {
+    getNavigationFragmentProperties(view.getId()).setFooterEnabled(enabled);
+  }
+
+  @ReactProp(name = "speedometerEnabled", defaultBoolean = true)
+  public void setSpeedometerEnabled(FrameLayout view, boolean enabled) {
+    getNavigationFragmentProperties(view.getId()).setSpeedometerEnabled(enabled);
+  }
+
+  @ReactProp(name = "speedLimitIconEnabled", defaultBoolean = true)
+  public void setSpeedLimitIconEnabled(FrameLayout view, boolean enabled) {
+    getNavigationFragmentProperties(view.getId()).setSpeedLimitIconEnabled(enabled);
+  }
+
+  @ReactProp(name = "recenterButtonEnabled", defaultBoolean = true)
+  public void setRecenterButtonEnabled(FrameLayout view, boolean enabled) {
+    getNavigationFragmentProperties(view.getId()).setRecenterButtonEnabled(enabled);
+  }
+
+  @ReactProp(name = "reportIncidentButtonEnabled", defaultBoolean = true)
+  public void setReportIncidentButtonEnabled(FrameLayout view, boolean enabled) {
+    getNavigationFragmentProperties(view.getId()).setReportIncidentButtonEnabled(enabled);
+  }
+
+  @Override
+  @ReactProp(name = "navigationViewStylingOptions")
+  public void setNavigationViewStylingOptions(FrameLayout view, @Nullable Dynamic stylingOptions) {
+    if (stylingOptions != null && !stylingOptions.isNull()) {
+      ReadableMap stylingOptionsMap = stylingOptions.asMap();
+      StylingOptions options =
+          new StylingOptionsBuilder.Builder(stylingOptionsMap.toHashMap()).build();
+      getNavigationFragmentProperties(view.getId()).setStylingOptions(options);
+    }
+  }
+
+  // ========== Helper Methods ==========
+
+  @Nullable
+  private INavViewFragment getNavFragmentForViewId(int viewId) {
+    IMapViewFragment fragment = getFragmentForViewId(viewId);
     if (fragment == null) {
       return null;
     }
-
-    // Check if the fragment is an INavigationViewFragment
     if (fragment instanceof INavViewFragment) {
       return (INavViewFragment) fragment;
-    } else {
-      throw new IllegalStateException("The fragment is not a nav view fragment");
     }
-  }
-
-  @Nullable
-  public IMapViewFragment getFragmentForRoot(ViewGroup root) {
-    int viewId = root.getId();
-    return getFragmentForViewId(viewId);
+    throw new IllegalStateException("The fragment is not a nav view fragment");
   }
 
   @Nullable
@@ -330,292 +630,6 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
         navFragment.setNavigationUiEnabled(true);
         navFragment.applyStylingOptions();
       }
-    }
-  }
-
-  @Override
-  public void receiveCommand(
-      @NonNull FrameLayout root, String commandId, @Nullable ReadableArray args) {
-    super.receiveCommand(root, commandId, args);
-    int commandIdInt = Integer.parseInt(commandId);
-    Command command = Command.find(commandIdInt);
-    assert command != null;
-    IMapViewFragment fragment;
-    INavViewFragment navFragment;
-    switch (command) {
-      case MOVE_CAMERA:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment
-              .getMapController()
-              .moveCamera(Objects.requireNonNull(args.getMap(0)).toHashMap());
-        }
-        break;
-      case SET_TRIP_PROGRESS_BAR_ENABLED:
-        navFragment = getNavFragmentForRoot(root);
-        if (navFragment != null) {
-          assert args != null;
-          navFragment.setTripProgressBarEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_NAVIGATION_UI_ENABLED:
-        navFragment = getNavFragmentForRoot(root);
-        if (navFragment != null) {
-          assert args != null;
-          navFragment.setNavigationUiEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_FOLLOWING_PERSPECTIVE:
-        navFragment = getNavFragmentForRoot(root);
-        if (navFragment != null) {
-          assert args != null;
-          navFragment.getMapController().setFollowingPerspective(args.getInt(0));
-        }
-        break;
-      case SET_NIGHT_MODE:
-        navFragment = getNavFragmentForRoot(root);
-        if (navFragment != null) {
-          assert args != null;
-          int nightModeOverride = EnumTranslationUtil.getForceNightModeFromJsValue(args.getInt(0));
-          navFragment.setNightModeOption(nightModeOverride);
-        }
-        break;
-      case SET_SPEEDOMETER_ENABLED:
-        navFragment = getNavFragmentForRoot(root);
-        if (navFragment != null) {
-          assert args != null;
-          navFragment.setSpeedometerEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_SPEED_LIMIT_ICON_ENABLED:
-        navFragment = getNavFragmentForRoot(root);
-        if (navFragment != null) {
-          assert args != null;
-          navFragment.setSpeedLimitIconEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_ZOOM_LEVEL:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          int level = args.getInt(0);
-          fragment.getMapController().setZoomLevel(level);
-        }
-        break;
-      case SET_INDOOR_ENABLED:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setIndoorEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_TRAFFIC_ENABLED:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setTrafficEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_COMPASS_ENABLED:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setCompassEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_MY_LOCATION_BUTTON_ENABLED:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setCompassEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_MY_LOCATION_ENABLED:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setMyLocationEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_ROTATE_GESTURES_ENABLED:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setRotateGesturesEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_SCROLL_GESTURES_ENABLED:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setScrollGesturesEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_SCROLL_GESTURES_ENABLED_DURING_ROTATE_OR_ZOOM:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment
-              .getMapController()
-              .setScrollGesturesEnabledDuringRotateOrZoom(args.getBoolean(0));
-        }
-        break;
-      case SET_TILT_GESTURES_ENABLED:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setTiltGesturesEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_ZOOM_CONTROLS_ENABLED:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setZoomControlsEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_ZOOM_GESTURES_ENABLED:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setZoomGesturesEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_BUILDINGS_ENABLED:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setBuildingsEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_MAP_TYPE:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setMapType(args.getInt(0));
-        }
-        break;
-      case SET_MAP_TOOLBAR_ENABLED:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().setMapToolbarEnabled(args.getBoolean(0));
-        }
-        break;
-      case CLEAR_MAP_VIEW:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          fragment.getMapController().clearMapView();
-        }
-        break;
-      case RESET_MIN_MAX_ZOOM_LEVEL:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          fragment.getMapController().resetMinMaxZoomLevel();
-        }
-        break;
-      case SET_MAP_STYLE:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.setMapStyle(args.getString(0));
-        }
-        break;
-      case ANIMATE_CAMERA:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment
-              .getMapController()
-              .animateCamera(Objects.requireNonNull(args.getMap(0)).toHashMap());
-        }
-        break;
-      case SET_TRAFFIC_INCIDENT_CARDS_ENABLED:
-        navFragment = getNavFragmentForRoot(root);
-        if (navFragment != null) {
-          assert args != null;
-          navFragment.setTrafficIncidentCardsEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_FOOTER_ENABLED:
-        navFragment = getNavFragmentForRoot(root);
-        if (navFragment != null) {
-          assert args != null;
-          navFragment.setEtaCardEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_HEADER_ENABLED:
-        navFragment = getNavFragmentForRoot(root);
-        if (navFragment != null) {
-          assert args != null;
-          navFragment.setHeaderEnabled(args.getBoolean(0));
-        }
-        break;
-      case SET_RECENTER_BUTTON_ENABLED:
-        navFragment = getNavFragmentForRoot(root);
-        if (navFragment != null) {
-          assert args != null;
-          navFragment.setRecenterButtonEnabled(args.getBoolean(0));
-        }
-        break;
-      case SHOW_ROUTE_OVERVIEW:
-        navFragment = getNavFragmentForRoot(root);
-        if (navFragment != null) {
-          navFragment.showRouteOverview();
-        }
-        break;
-      case REMOVE_MARKER:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().removeMarker(args.getString(0));
-        }
-        break;
-      case REMOVE_POLYLINE:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().removePolyline(args.getString(0));
-        }
-        break;
-      case REMOVE_POLYGON:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().removePolygon(args.getString(0));
-        }
-        break;
-      case REMOVE_CIRCLE:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().removeCircle(args.getString(0));
-        }
-        break;
-      case REMOVE_GROUND_OVERLAY:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment.getMapController().removeGroundOverlay(args.getString(0));
-        }
-        break;
-      case SET_PADDING:
-        fragment = getFragmentForRoot(root);
-        if (fragment != null) {
-          assert args != null;
-          fragment
-              .getMapController()
-              .setPadding(args.getInt(0), args.getInt(1), args.getInt(2), args.getInt(3));
-        }
-        break;
-      case SET_REPORT_INCIDENT_BUTTON_ENABLED:
-        navFragment = getNavFragmentForRoot(root);
-        if (navFragment != null) {
-          assert args != null;
-          navFragment.setReportIncidentButtonEnabled(args.getBoolean(0));
-        }
-        break;
     }
   }
 
@@ -712,10 +726,10 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     }
 
     if (fragment instanceof INavViewFragment && mapOptions.hasKey("navigationNightMode")) {
-      int jsValue =
+      int nightMode =
           mapOptions.isNull("navigationNightMode") ? 0 : mapOptions.getInt("navigationNightMode");
       ((INavViewFragment) fragment)
-          .setNightModeOption(EnumTranslationUtil.getForceNightModeFromJsValue(jsValue));
+          .setNightModeOption(EnumTranslationUtil.getForceNightModeFromJsValue(nightMode));
     }
   }
 
@@ -725,7 +739,7 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
    * asynchronously by calling scheduleFragmentTransaction.
    */
   private void commitFragmentTransaction(
-      @NonNull FrameLayout view, @NonNull ReadableMap mapOptions) {
+      @NonNull FrameLayout view, @NonNull ReadableMap viewInitializationParams) {
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
     if (activity == null || activity.isFinishing()) {
@@ -738,8 +752,9 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     IMapViewFragment mapViewFragment;
 
     CustomTypes.MapViewType mapViewType =
-        EnumTranslationUtil.getMapViewTypeFromJsValue(mapOptions.getInt("mapViewType"));
-    GoogleMapOptions googleMapOptions = buildGoogleMapOptions(mapOptions);
+        EnumTranslationUtil.getMapViewTypeFromJsValue(viewInitializationParams.getInt("viewType"));
+
+    GoogleMapOptions googleMapOptions = buildGoogleMapOptions(viewInitializationParams);
 
     if (mapViewType == CustomTypes.MapViewType.MAP) {
       MapViewFragment mapFragment =
@@ -750,18 +765,35 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
       NavViewFragment navFragment =
           NavViewFragment.newInstance(reactContext, viewId, googleMapOptions);
 
-      if (mapOptions.hasKey("navigationNightMode") && !mapOptions.isNull("navigationNightMode")) {
-        int jsValue = mapOptions.getInt("navigationNightMode");
+      if (viewInitializationParams.hasKey("navigationNightMode")
+          && !viewInitializationParams.isNull("navigationNightMode")) {
+        int jsValue = viewInitializationParams.getInt("navigationNightMode");
         navFragment.setNightModeOption(EnumTranslationUtil.getForceNightModeFromJsValue(jsValue));
       }
 
-      if (mapOptions.hasKey("navigationStylingOptions")
-          && !mapOptions.isNull("navigationStylingOptions")) {
-        ReadableMap stylingOptionsMap = mapOptions.getMap("navigationStylingOptions");
+      if (viewInitializationParams.hasKey("navigationStylingOptions")
+          && !viewInitializationParams.isNull("navigationStylingOptions")) {
+        ReadableMap stylingOptionsMap = viewInitializationParams.getMap("navigationStylingOptions");
         StylingOptions stylingOptions =
             new StylingOptionsBuilder.Builder(stylingOptionsMap.toHashMap()).build();
         navFragment.setStylingOptions(stylingOptions);
       }
+
+      // Apply navigationUIEnabledPreference
+      // 0 = AUTOMATIC (enable if session initialized), 1 = DISABLED
+      boolean navigationUIEnabled = false;
+      if (viewInitializationParams.hasKey("navigationUIEnabledPreference")) {
+        int preference =
+            viewInitializationParams.isNull("navigationUIEnabledPreference")
+                ? 0
+                : viewInitializationParams.getInt("navigationUIEnabledPreference");
+        if (preference == 0) { // AUTOMATIC
+          // Enable if navigation session is initialized
+          navigationUIEnabled = NavModule.getInstance().getNavigator() != null;
+        }
+        // If preference is 1 (DISABLED), navigationUIEnabled stays false
+      }
+      navFragment.setNavigationUiEnabled(navigationUIEnabled);
 
       fragment = navFragment;
       mapViewFragment = navFragment;
@@ -790,8 +822,12 @@ public class NavViewManager extends SimpleViewManager<FrameLayout> {
     mapOptionsCache.remove(viewId);
     fragmentMap.put(viewId, new WeakReference<>(mapViewFragment));
 
+    // Apply any buffered properties that arrived before fragment was created
+    applyBufferedPropertiesAndClearSinks(viewId, mapViewFragment);
+
     // Start per-frame layout loop to keep fragment sized correctly.
     startLayoutLoop(view);
+
     // Trigger layout after fragment transaction is done.
     view.post(() -> layoutFragmentInView(view, mapViewFragment));
   }

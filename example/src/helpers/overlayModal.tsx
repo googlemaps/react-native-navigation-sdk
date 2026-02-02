@@ -92,15 +92,12 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   scrollContainer: {
-    flexGrow: 1,
-  },
-  scrollContentContainer: {
-    flexGrow: 1,
-    minHeight: '100%',
-  },
-  scrollContent: {
     flex: 1,
   },
+  scrollContentContainer: {
+    paddingBottom: 20,
+  },
+  scrollContent: {},
   closeButtonContainer: {
     marginTop: 8,
     shadowColor: '#000',

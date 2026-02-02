@@ -52,7 +52,7 @@ jobs:
       - name: Check Objective-C formatting
         run: ./scripts/format-objc.sh --check
 
-  check-java-formatting:
+  check-java-and-kotlin-formatting:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -83,6 +83,17 @@ jobs:
 
       - name: Check Java formatting
         run: ./scripts/format-java.sh --check
+
+      - name: Download ktfmt
+        run: |
+          KTFMT_VERSION=0.54
+          KTFMT_URL=https://github.com/facebook/ktfmt/releases/download/v${KTFMT_VERSION}/ktfmt-${KTFMT_VERSION}-jar-with-dependencies.jar
+          mkdir -p $HOME/ktfmt
+          curl -L -o $HOME/ktfmt/ktfmt.jar $KTFMT_URL
+
+      - name: Check Kotlin formatting
+        run: |
+          find . -name "*.kt" -not -path "*/build/*" | xargs java -jar $HOME/ktfmt/ktfmt.jar --google-style --dry-run --set-exit-if-changed
 
   test:
     runs-on: ubuntu-latest

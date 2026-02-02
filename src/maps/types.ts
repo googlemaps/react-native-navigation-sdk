@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { StyleProp, ViewStyle } from 'react-native';
+import type { StyleProp, ViewStyle, ColorValue } from 'react-native';
 import type { LatLng } from '../shared/types';
-import type { MapViewCallbacks, MapViewController } from './mapView/types';
+import type { MapViewController, MapViewType, Padding } from './mapView/types';
 
 /**
  * An immutable class that aggregates all camera position parameters such as
@@ -54,18 +54,18 @@ export interface Polygon {
   holes: LatLng[][];
   /** Id of the polygon. The id will be unique amongst all polygons on a map. */
   id: string;
-  /** The fill color of the polygon. The color in hex format (ie. #RRGGBB). */
-  fillColor?: number;
+  /** The fill color of the polygon. */
+  fillColor?: ColorValue;
   /** Sets the width of the stroke of the polygon. The width is defined in pixels. */
   strokeWidth?: number;
-  /** Sets the stroke color of this polygon. The color in hex format (ie. #RRGGBB). */
-  strokeColor?: number;
+  /** Sets the stroke color of this polygon. */
+  strokeColor?: ColorValue;
   /** The joint type for all vertices of the polygon's outline. Mitered join (default): 0, Bevel: 1, Round: 2. */
   strokeJointType?: number;
   /** The zIndex of the polygon. */
   zIndex?: number;
   /** Indicates whether the segments of the polygon should be drawn as geodesics, as opposed to straight lines on the Mercator projection. A geodesic is the shortest path between two points on the Earth's surface. The geodesic curve is constructed assuming the Earth is a sphere. */
-  isGeodesic?: boolean;
+  geodesic?: boolean;
 }
 
 /**
@@ -76,12 +76,12 @@ export interface Circle {
   center: LatLng;
   /** Id of the circle. The id will be unique amongst all circles on a map. */
   id: string;
-  /** The fill color of the circle. The color in hex format (ie. #RRGGBB). */
-  fillColor?: number;
+  /** The fill color of the circle. */
+  fillColor?: ColorValue;
   /** The width of the stroke of the circle. The width is defined in pixels. */
   strokeWidth?: number;
-  /** The stroke color of this circle. The color in hex format (ie. #RRGGBB). */
-  strokeColor?: number;
+  /** The stroke color of this circle. */
+  strokeColor?: ColorValue;
   /** The radius of the circle, specified in meters. It should be zero or greater. */
   radius?: number;
   /** The zIndex of the circle. */
@@ -89,11 +89,33 @@ export interface Circle {
 }
 
 /**
- * A ground overlay.
+ * A ground overlay is an image that is fixed to a map.
+ * Ground overlays are oriented against the Earth's surface rather than the screen.
  */
 export interface GroundOverlay {
   /** Id of the ground overlay. The id will be unique amongst all ground overlays on a map. */
   id: string;
+  /** The location of the anchor point (the point that remains fixed to the position on the ground). */
+  position?: LatLng;
+  /** The bounds of the ground overlay. */
+  bounds?: {
+    /** Northeast corner of the bound. */
+    northEast: LatLng;
+    /** Southwest corner of the bound. */
+    southWest: LatLng;
+    /** Center of the bound. */
+    center: LatLng;
+  };
+  /** The height of the ground overlay in meters. */
+  height?: number;
+  /** The width of the ground overlay in meters. */
+  width?: number;
+  /** The bearing of the ground overlay in degrees clockwise from north. */
+  bearing: number;
+  /** The transparency of the ground overlay (0.0 = opaque, 1.0 = fully transparent). */
+  transparency: number;
+  /** The zIndex of the ground overlay. */
+  zIndex?: number;
 }
 
 /**
@@ -126,8 +148,8 @@ export interface Polyline {
   points: LatLng[];
   /** Id of the polyline. The id will be unique amongst all polylines on a map. */
   id: string;
-  /** The color of this polyline. The color in hex format (ie. #RRGGBB). */
-  color?: number;
+  /** The color of this polyline. */
+  color?: ColorValue;
   /** The width of the stroke of the polyline. The width is defined in pixels. */
   width?: number;
   /** The joint type for all vertices of the polyline. Mitered join (default): 0, Bevel: 1, Round: 2. */
@@ -176,7 +198,46 @@ export enum MapColorScheme {
  * `MapViewProps` interface provides methods focused on managing map events and state changes.
  */
 export interface MapViewProps {
-  readonly mapViewCallbacks?: MapViewCallbacks;
+  /**
+   * Callback function invoked when GoogleMap is ready.
+   */
+  readonly onMapReady?: () => void;
+
+  /**
+   * Callback invoked when clicking a marker on the map.
+   */
+  readonly onMarkerClick?: (marker: Marker) => void;
+
+  /**
+   * Callback invoked when clicking a polyline on the map.
+   */
+  readonly onPolylineClick?: (polyline: Polyline) => void;
+
+  /**
+   * Callback invoked when clicking a polygon on the map.
+   */
+  readonly onPolygonClick?: (polygon: Polygon) => void;
+
+  /**
+   * Callback invoked when clicking a circle on the map.
+   */
+  readonly onCircleClick?: (circle: Circle) => void;
+
+  /**
+   * Callback invoked when tapping on a ground overlay.
+   */
+  readonly onGroundOverlayClick?: (groundOverlay: GroundOverlay) => void;
+
+  /**
+   * Callback invoked when tapping on a marker's info window.
+   */
+  readonly onMarkerInfoWindowTapped?: (marker: Marker) => void;
+
+  /**
+   * Callback invoked when there is a click on the map view.
+   * @param latLng position where the click occurred.
+   */
+  readonly onMapClick?: (latLng: LatLng) => void;
 
   readonly style?: StyleProp<ViewStyle> | undefined;
 
@@ -195,6 +256,122 @@ export interface MapViewProps {
    * Defaults to `ColorScheme.FOLLOW_SYSTEM`.
    */
   readonly mapColorScheme?: MapColorScheme;
+
+  /**
+   * The type of map tiles to display.
+   */
+  readonly mapType?: MapViewType;
+
+  /**
+   * Sets padding on the map in pixels.
+   */
+  readonly mapPadding?: Padding;
+
+  /**
+   * Night mode setting for the map.
+   * Only affects regular maps. For navigation maps, use `navigationNightMode`.
+   * @deprecated Use mapColorScheme instead.
+   */
+  readonly nightMode?: number;
+
+  /**
+   * Custom map styling via JSON.
+   */
+  readonly mapStyle?: string;
+
+  /**
+   * Controls whether the map toolbar (Google Maps button) is enabled.
+   * Defaults to true.
+   */
+  readonly mapToolbarEnabled?: boolean;
+
+  /**
+   * Controls whether indoor maps are shown.
+   * Defaults to true.
+   */
+  readonly indoorEnabled?: boolean;
+
+  /**
+   * Controls whether traffic data is shown on the map.
+   * Defaults to false.
+   */
+  readonly trafficEnabled?: boolean;
+
+  /**
+   * Controls whether the compass is enabled.
+   * Defaults to true.
+   */
+  readonly compassEnabled?: boolean;
+
+  /**
+   * Controls whether the my location button is enabled.
+   * Defaults to true.
+   */
+  readonly myLocationButtonEnabled?: boolean;
+
+  /**
+   * Controls whether the my location indicator is enabled.
+   * Requires location permissions.
+   * Defaults to false.
+   */
+  readonly myLocationEnabled?: boolean;
+
+  /**
+   * Controls whether rotate gestures are enabled.
+   * Defaults to true.
+   */
+  readonly rotateGesturesEnabled?: boolean;
+
+  /**
+   * Controls whether scroll gestures are enabled.
+   * Defaults to true.
+   */
+  readonly scrollGesturesEnabled?: boolean;
+
+  /**
+   * Controls whether scroll gestures are enabled during rotate or zoom.
+   * Defaults to true.
+   */
+  readonly scrollGesturesDuringRotateOrZoomEnabled?: boolean;
+
+  /**
+   * Controls whether tilt gestures are enabled.
+   * Defaults to true.
+   */
+  readonly tiltGesturesEnabled?: boolean;
+
+  /**
+   * Controls whether zoom gestures are enabled.
+   * Defaults to true.
+   */
+  readonly zoomGesturesEnabled?: boolean;
+
+  /**
+   * Controls whether zoom controls are shown.
+   * Defaults to false.
+   */
+  readonly zoomControlsEnabled?: boolean;
+
+  /**
+   * Controls whether 3D buildings are shown.
+   * Defaults to true.
+   */
+  readonly buildingsEnabled?: boolean;
+
+  /**
+   * Sets the minimum zoom level.
+   */
+  readonly minZoomLevel?: number;
+
+  /**
+   * Sets the maximum zoom level.
+   */
+  readonly maxZoomLevel?: number;
+
+  /**
+   * Initial camera position for the map.
+   */
+  readonly initialCameraPosition?: CameraPosition;
 
   onMapViewControllerCreated(mapViewController: MapViewController): void;
 }

@@ -95,32 +95,41 @@ public class MapViewFragment extends SupportMapFragment
 
   @Override
   public void onMarkerClick(Marker marker) {
-    emitEvent("onMarkerClick", ObjectTranslationUtil.getMapFromMarker(marker));
+    String effectiveId = mMapViewController.getMarkerEffectiveId(marker.getId());
+    emitEvent("onMarkerClick", ObjectTranslationUtil.getMapFromMarker(marker, effectiveId));
   }
 
   @Override
   public void onPolylineClick(Polyline polyline) {
-    emitEvent("onPolylineClick", ObjectTranslationUtil.getMapFromPolyline(polyline));
+    String effectiveId = mMapViewController.getPolylineEffectiveId(polyline.getId());
+    emitEvent("onPolylineClick", ObjectTranslationUtil.getMapFromPolyline(polyline, effectiveId));
   }
 
   @Override
   public void onPolygonClick(Polygon polygon) {
-    emitEvent("onPolygonClick", ObjectTranslationUtil.getMapFromPolygon(polygon));
+    String effectiveId = mMapViewController.getPolygonEffectiveId(polygon.getId());
+    emitEvent("onPolygonClick", ObjectTranslationUtil.getMapFromPolygon(polygon, effectiveId));
   }
 
   @Override
   public void onCircleClick(Circle circle) {
-    emitEvent("onCircleClick", ObjectTranslationUtil.getMapFromCircle(circle));
+    String effectiveId = mMapViewController.getCircleEffectiveId(circle.getId());
+    emitEvent("onCircleClick", ObjectTranslationUtil.getMapFromCircle(circle, effectiveId));
   }
 
   @Override
   public void onGroundOverlayClick(GroundOverlay groundOverlay) {
-    emitEvent("onGroundOverlayClick", ObjectTranslationUtil.getMapFromGroundOverlay(groundOverlay));
+    String effectiveId = mMapViewController.getGroundOverlayEffectiveId(groundOverlay.getId());
+    emitEvent(
+        "onGroundOverlayClick",
+        ObjectTranslationUtil.getMapFromGroundOverlay(groundOverlay, effectiveId));
   }
 
   @Override
   public void onMarkerInfoWindowTapped(Marker marker) {
-    emitEvent("onMarkerInfoWindowTapped", ObjectTranslationUtil.getMapFromMarker(marker));
+    String effectiveId = mMapViewController.getMarkerEffectiveId(marker.getId());
+    emitEvent(
+        "onMarkerInfoWindowTapped", ObjectTranslationUtil.getMapFromMarker(marker, effectiveId));
   }
 
   @Override

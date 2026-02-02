@@ -13,38 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RouteStatus } from './types';
 
-export const getRouteStatusFromStringValue = (value: string): RouteStatus => {
-  switch (value) {
-    case 'OK':
-      return RouteStatus.OK;
-
-    case 'NO_ROUTE_FOUND':
-      return RouteStatus.NO_ROUTE_FOUND;
-
-    case 'NETWORK_ERROR':
-      return RouteStatus.NETWORK_ERROR;
-
-    case 'QUOTA_CHECK_FAILED':
-      return RouteStatus.QUOTA_CHECK_FAILED;
-
-    case 'ROUTE_CANCELED':
-      return RouteStatus.ROUTE_CANCELED;
-
-    case 'LOCATION_DISABLED':
-      return RouteStatus.LOCATION_DISABLED;
-
-    case 'LOCATION_UNKNOWN':
-      return RouteStatus.LOCATION_UNKNOWN;
-
-    case 'WAYPOINT_ERROR':
-      return RouteStatus.WAYPOINT_ERROR;
-
-    case 'DUPLICATE_WAYPOINTS_ERROR':
-      return RouteStatus.DUPLICATE_WAYPOINTS_ERROR;
-
-    default:
-      return RouteStatus.UNKNOWN;
-  }
-};
+// This file previously contained enum conversion utilities.
+// With string enums, native values now directly match TypeScript enum values,
+// so no conversion is needed.

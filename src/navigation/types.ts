@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import type { ColorValue } from 'react-native';
 import type { LatLng } from '../shared/types';
 
 /**
@@ -182,50 +183,56 @@ export enum Style {
  */
 export enum RouteStatus {
   /** A route to the destination was successfully calculated. */
-  OK,
+  OK = 'OK',
   /** A route to the destination could not be calculated. */
-  NO_ROUTE_FOUND,
+  NO_ROUTE_FOUND = 'NO_ROUTE_FOUND',
   /** A route to the destination could not be calculated because of a network error. */
-  NETWORK_ERROR,
+  NETWORK_ERROR = 'NETWORK_ERROR',
   /** A route to the destination could not be calculated because of insufficient quota. */
-  QUOTA_CHECK_FAILED,
+  QUOTA_CHECK_FAILED = 'QUOTA_CHECK_FAILED',
   /** The route calculation was canceled in favor of a newer one. */
-  ROUTE_CANCELED,
+  ROUTE_CANCELED = 'ROUTE_CANCELED',
   /** A route could not be calculated because the device location was not obtained in time. */
-  LOCATION_DISABLED,
+  LOCATION_DISABLED = 'LOCATION_DISABLED',
   /** A route could not be calculated because the location could not be resolved in time. */
-  LOCATION_UNKNOWN,
+  LOCATION_UNKNOWN = 'LOCATION_UNKNOWN',
   /**
    * The navigator could not calculate a route because the request contained an unrecognized
    * waypoint, or too many waypoints. For example, a waypoint may be unrecognized if it contains a
    * stale or invalid place ID.
    */
-  WAYPOINT_ERROR,
+  WAYPOINT_ERROR = 'WAYPOINT_ERROR',
   /** An invalid place it was used to define the route, check if that exists or if that has expired. */
-  INVALID_PLACE_ID,
+  INVALID_PLACE_ID = 'INVALID_PLACE_ID',
   /** The route could not be calculated because consecutive duplicate waypoints were provided. */
-  DUPLICATE_WAYPOINTS_ERROR,
+  DUPLICATE_WAYPOINTS_ERROR = 'DUPLICATE_WAYPOINTS_ERROR',
   /** An unknown error has happened to generate the route. */
-  UNKNOWN,
+  UNKNOWN = 'UNKNOWN',
 }
 
 /**
- * An ErrorCode is a status code returned by when trying to retrieve the Navigator
- * but that could not be successfully obtained.
+ * A status code returned when initializing the navigation session.
+ * Similar to RouteStatus, this returns a status value rather than throwing an exception.
+ *
+ * The string values match the error codes returned from the native SDK.
  */
-export enum NavigationInitErrorCode {
+export enum NavigationSessionStatus {
+  /** Navigation session was initialized successfully. */
+  OK = 'ok',
   /**
    * The API key you supplied is not authorized to use the Navigation API. You may need to request
    * provisioning of the Navigation SDK through your Google Maps APIs representative. Your app
    * should fall back to another navigation mechanism if this code is received.
    */
-  NOT_AUTHORIZED = 1,
+  NOT_AUTHORIZED = 'notAuthorized',
   /** The user has not accepted Google's Navigation terms. */
-  TERMS_NOT_ACCEPTED,
+  TERMS_NOT_ACCEPTED = 'termsNotAccepted',
   /** The Navigation API is unable to access the internet. */
-  NETWORK_ERROR,
+  NETWORK_ERROR = 'networkError',
   /** The app was not allowed to access the device's location or permission is yet to be granted. */
-  LOCATION_PERMISSION_MISSING,
+  LOCATION_PERMISSION_MISSING = 'locationPermissionMissing',
+  /** An unknown error occurred during initialization. */
+  UNKNOWN_ERROR = 'unknownError',
 }
 
 /**
@@ -328,4 +335,22 @@ export interface TimeAndDistance {
   meters: number;
   /** Seconds remaining to get to the destination waypoint */
   seconds: number;
+}
+
+/**
+ * UI customization parameters for the Terms and Conditions dialog.
+ * Supports all React Native color formats: named colors (e.g., 'blue'),
+ * hex strings (e.g., '#FF0000', '#FF0000AA'), rgb/rgba (e.g., 'rgb(255, 0, 0)', 'rgba(255, 0, 0, 0.5)'), etc.
+ */
+export interface TermsAndConditionsUIParams {
+  /** Background color of the dialog */
+  backgroundColor?: ColorValue;
+  /** Color of the title text */
+  titleColor?: ColorValue;
+  /** Color of the main body text */
+  mainTextColor?: ColorValue;
+  /** Color of the accept button text */
+  acceptButtonTextColor?: ColorValue;
+  /** Color of the cancel button text */
+  cancelButtonTextColor?: ColorValue;
 }

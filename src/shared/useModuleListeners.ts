@@ -14,136 +14,144 @@
  * limitations under the License.
  */
 
-import { useRef, useCallback, useEffect } from 'react';
-import {
-  NativeEventEmitter,
-  NativeModules,
-  type EventSubscription,
-} from 'react-native';
+import { useEffect, useRef, useCallback } from 'react';
+import { TurboModuleRegistry, type EventSubscription } from 'react-native';
 
-type ListenerMap<T> = {
-  [K in keyof T]?: NonNullable<T[K]>[];
+/**
+ * TurboModule interface with EventEmitter pattern.
+ * In the new architecture, event emitters are callable functions that
+ * return an EventSubscription.
+ */
+type TurboModuleWithEvents = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: ((handler: (arg: any) => void) => EventSubscription) | unknown;
 };
 
-// A hook to manage event listeners for a specific Native Module,
-// using the cross-platform NativeEventEmitter.
-export const useModuleListeners = <
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  T extends { [K in keyof T]: ((...args: any[]) => void) | undefined },
->(
-  dispatcher: keyof NativeModules,
-  eventTypes: Array<keyof T>,
-  eventTransformer?: <K extends keyof T>(
-    eventKey: K,
-    ...args: unknown[]
-  ) => unknown[]
-): {
-  addListeners: (listeners: Partial<T>) => void;
-  removeListeners: (listeners: Partial<T>) => void;
-  removeAllListeners: () => void;
-} => {
-  const listenersRef = useRef<ListenerMap<T>>({});
-  const eventEmitterRef = useRef<NativeEventEmitter | null>(null);
-  const subsRef = useRef<Record<string, EventSubscription | undefined>>({});
+/**
+ * Gets or creates a cached TurboModule instance.
+ */
+const moduleCache = new Map<string, TurboModuleWithEvents>();
 
-  const getEventEmitter = useCallback(() => {
-    if (!eventEmitterRef.current) {
-      eventEmitterRef.current = new NativeEventEmitter(
-        NativeModules[dispatcher]
-      );
+function getModule(moduleName: string): TurboModuleWithEvents {
+  let module = moduleCache.get(moduleName);
+  if (!module) {
+    module =
+      TurboModuleRegistry.getEnforcing<TurboModuleWithEvents>(moduleName);
+    moduleCache.set(moduleName, module);
+  }
+  return module;
+}
+
+/**
+ * Hook to subscribe to a single TurboModule event.
+ *
+ * In the new React Native architecture, TurboModules with EventEmitter<T> types expose
+ * events as callable functions that accept a handler and return an EventSubscription.
+ *
+ * @param moduleName - The TurboModule name (e.g., 'NavModule', 'NavAutoModule')
+ * @param eventName - The name of the event to subscribe to
+ * @param handler - The callback function to handle the event, or null/undefined to skip subscription
+ * @returns An object with an `unsubscribe` function to manually remove the subscription
+ *
+ * @example
+ * ```tsx
+ * // Subscribe to location changes
+ * useEventSubscription('NavModule', 'onLocationChanged', (payload) => {
+ *   console.log('Location:', payload.location);
+ * });
+ *
+ * // Conditional subscription - only subscribes when handler is provided
+ * const [enableTracking, setEnableTracking] = useState(false);
+ * useEventSubscription('NavModule', 'onLocationChanged',
+ *   enableTracking ? (payload) => console.log(payload.location) : undefined
+ * );
+ * ```
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useEventSubscription<T = any>(
+  moduleName: string,
+  eventName: string,
+  handler: ((payload: T) => void) | null | undefined
+): { unsubscribe: () => void } {
+  const subscriptionRef = useRef<EventSubscription | null>(null);
+  const handlerRef = useRef(handler);
+
+  // Keep handler ref up to date to avoid re-subscribing on handler changes
+  handlerRef.current = handler;
+
+  const unsubscribe = useCallback(() => {
+    if (subscriptionRef.current) {
+      subscriptionRef.current.remove();
+      subscriptionRef.current = null;
     }
-    return eventEmitterRef.current;
-  }, [dispatcher]);
-
-  const removeAllNativeSubscriptions = useCallback(() => {
-    // Remove the specific subscriptions we created.
-    Object.values(subsRef.current).forEach(sub => sub?.remove());
-    subsRef.current = {};
-
-    // As a safeguard, remove all listeners for the specified event types
-    // from our emitter instance.
-    eventTypes.forEach(eventType => {
-      const name = String(eventType);
-      getEventEmitter().removeAllListeners(name);
-    });
-  }, [eventTypes, getEventEmitter]);
-
-  const updateListeners = useCallback(() => {
-    // Wrap listeners to multiplex events to all registered callbacks.
-    const wrappedListeners: { [K in keyof T]?: (...args: unknown[]) => void } =
-      {};
-
-    (Object.keys(listenersRef.current) as Array<keyof T>).forEach(eventKey => {
-      wrappedListeners[eventKey] = (...args: unknown[]) => {
-        const transformedArgs = eventTransformer
-          ? eventTransformer(eventKey, ...args)
-          : args;
-        listenersRef.current[eventKey]?.forEach(cb => cb(...transformedArgs));
-      };
-    });
-
-    // Ensure all declared event types have a subscription, even if no JS listener is attached yet.
-    eventTypes.forEach(eventType => {
-      if (!wrappedListeners[eventType]) {
-        wrappedListeners[eventType] = () => {}; // No-op handler
-      }
-    });
-
-    removeAllNativeSubscriptions();
-
-    // Subscribe to all events.
-    eventTypes.forEach(eventType => {
-      const name = String(eventType);
-      const handler = wrappedListeners[eventType]!;
-      const sub = getEventEmitter().addListener(name, handler);
-      subsRef.current[name] = sub;
-    });
-  }, [
-    eventTypes,
-    eventTransformer,
-    getEventEmitter,
-    removeAllNativeSubscriptions,
-  ]);
-
-  const addListeners = (listeners: Partial<T>) => {
-    (Object.keys(listeners) as Array<keyof T>).forEach(key => {
-      const fn = listeners[key];
-      if (!fn) return;
-      listenersRef.current[key] = [...(listenersRef.current[key] || []), fn];
-    });
-    updateListeners();
-  };
-
-  const removeListeners = (listeners: Partial<T>) => {
-    (Object.keys(listeners) as Array<keyof T>).forEach(key => {
-      const fn = listeners[key];
-      if (!fn) return;
-      listenersRef.current[key] = listenersRef.current[key]?.filter(
-        cb => cb !== fn
-      );
-      if (!listenersRef.current[key]?.length) {
-        delete listenersRef.current[key];
-      }
-    });
-    updateListeners();
-  };
-
-  const removeAllListeners = useCallback(() => {
-    listenersRef.current = {};
-    updateListeners();
-  }, [updateListeners]);
+  }, []);
 
   useEffect(() => {
-    updateListeners();
-    return () => {
-      removeAllNativeSubscriptions();
-      listenersRef.current = {};
-    };
-  }, [updateListeners, removeAllNativeSubscriptions]);
+    // Clean up any existing subscription
+    unsubscribe();
 
-  return {
-    addListeners,
-    removeListeners,
-    removeAllListeners,
-  };
-};
+    // Don't subscribe if no handler provided
+    if (!handler) {
+      return;
+    }
+
+    const module = getModule(moduleName);
+    const eventEmitter = module[eventName];
+
+    if (typeof eventEmitter !== 'function') {
+      console.warn(
+        `useEventSubscription: Event '${eventName}' not found on module '${moduleName}'`
+      );
+      return;
+    }
+
+    // Subscribe using the latest handler via ref
+    subscriptionRef.current = eventEmitter((payload: T) => {
+      handlerRef.current?.(payload);
+    });
+
+    return unsubscribe;
+  }, [moduleName, eventName, handler, unsubscribe]);
+
+  return { unsubscribe };
+}
+
+/**
+ * Creates a subscription function for a TurboModule event (non-hook version).
+ *
+ * This is useful when you need to subscribe to events outside of React components
+ * or when you want more control over the subscription lifecycle.
+ *
+ * @param moduleName - The TurboModule name (e.g., 'NavModule', 'NavAutoModule')
+ * @param eventName - The name of the event to subscribe to
+ * @param handler - The callback function to handle the event
+ * @returns An EventSubscription that can be used to unsubscribe
+ *
+ * @example
+ * ```ts
+ * // Subscribe to an event
+ * const subscription = subscribeToEvent('NavModule', 'onLocationChanged', (payload) => {
+ *   console.log('Location:', payload.location);
+ * });
+ *
+ * // Later, unsubscribe
+ * subscription.remove();
+ * ```
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function subscribeToEvent<T = any>(
+  moduleName: string,
+  eventName: string,
+  handler: (payload: T) => void
+): EventSubscription {
+  const module = getModule(moduleName);
+  const eventEmitter = module[eventName];
+
+  if (typeof eventEmitter !== 'function') {
+    throw new Error(
+      `subscribeToEvent: Event '${eventName}' not found on module '${moduleName}'`
+    );
+  }
+
+  return eventEmitter(handler);
+}

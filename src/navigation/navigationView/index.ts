@@ -15,7 +15,6 @@
  */
 
 export * from './navigationViewController';
-export * from '../shared';
 export * from './stylingOptions';
 export * from './types';
 export { default as NavigationView } from './navigationView';

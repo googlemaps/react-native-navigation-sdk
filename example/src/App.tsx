@@ -26,6 +26,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text } from 'react-native';
 import { CommonStyles } from './styles/components';
 import { ExampleAppButton } from './controls/ExampleAppButton';
+import { TermsOfServiceControls } from './controls/TermsOfServiceControls';
+import OverlayModal from './helpers/overlayModal';
 import NavigationScreen from './screens/NavigationScreen';
 import MultipleMapsScreen from './screens/MultipleMapsScreen';
 import MapIdScreen from './screens/MapIdScreen';
@@ -54,6 +56,7 @@ const HomeScreen = () => {
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
   const [sdkVersion, setSdkVersion] = useState<string>('');
+  const [isTosOverlayOpen, setIsTosOverlayOpen] = useState(false);
 
   const { navigationController } = useNavigation();
 
@@ -72,15 +75,14 @@ const HomeScreen = () => {
   }, [navigationController]);
 
   return (
-    <View
-      style={[CommonStyles.centered, { paddingBottom: insets.bottom + 100 }]}
-    >
+    <View style={[CommonStyles.centered, { paddingBottom: insets.bottom }]}>
       {/* SDK Version Display */}
       <View style={{ padding: 16, alignItems: 'center' }}>
         <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>
           Navigation SDK Version: {sdkVersion || 'Loading...'}
         </Text>
       </View>
+      {/* Spacer */}
       <View style={CommonStyles.buttonContainer}>
         <ExampleAppButton
           title="Navigation"
@@ -105,7 +107,28 @@ const HomeScreen = () => {
           onPress={() => isFocused && navigate('Route Token')}
         />
       </View>
+
+      {/* Spacer */}
       <View style={CommonStyles.container} />
+
+      {/* Terms of Service Management Button */}
+      <View style={CommonStyles.buttonContainer}>
+        <ExampleAppButton
+          title="TOS Actions"
+          onPress={() => setIsTosOverlayOpen(true)}
+          backgroundColor="#9c27b0"
+        />
+      </View>
+
+      {/* TOS Overlay Modal */}
+      <OverlayModal
+        visible={isTosOverlayOpen}
+        closeOverlay={() => setIsTosOverlayOpen(false)}
+        height={400}
+      >
+        <TermsOfServiceControls />
+      </OverlayModal>
+
       <View style={CommonStyles.buttonContainer}>
         <ExampleAppButton
           title="Integration Tests"

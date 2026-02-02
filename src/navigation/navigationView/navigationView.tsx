@@ -14,28 +14,34 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, View, findNodeHandle } from 'react-native';
-import { NavViewManager, type LatLng } from '../../shared';
-import { getNavigationViewController } from './navigationViewController';
-import { NavigationNightMode, type NavigationViewProps } from './types';
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+} from 'react';
+import { Platform, StyleSheet } from 'react-native';
 import {
-  MapColorScheme,
-  getMapViewController,
-  MapViewType,
-  type Circle,
-  type GroundOverlay,
-  type Marker,
-  type Polygon,
-  type Polyline,
-} from '../../maps';
+  getUniqueMapViewId,
+  useNativeEventCallback,
+  processColorValue,
+} from '../../shared';
+import { getNavigationViewController } from './navigationViewController';
+import {
+  NavigationNightMode,
+  NavigationUIEnabledPreference,
+  type NavigationViewProps,
+} from './types';
+import { MapColorScheme, getMapViewController, MapViewType } from '../../maps';
+import NavView from '../../native/NativeNavViewComponent';
 
 export const NavigationView = (
   props: NavigationViewProps
 ): React.JSX.Element => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mapViewRef = useRef<any>(null);
-  const [viewId, setViewId] = useState<number | null>(null);
+  const viewCreatedRef = useRef<boolean>(false);
+  const nativeIDRef = useRef<string>(getUniqueMapViewId());
+  const mapViewRef = useRef(null);
 
   const {
     onMapViewControllerCreated,
@@ -44,129 +50,232 @@ export const NavigationView = (
     onNavigationViewControllerCreated,
   } = props;
 
-  /**
-   * @param ref - The reference to the NavViewManager component.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onRefAssign = (ref: any): void => {
-    if (mapViewRef.current !== ref) {
-      mapViewRef.current = ref;
-    }
-  };
+  // Convert styling options colors from ColorValue to color integers
+  const convertedAndroidStyling = useMemo(() => {
+    if (!androidStylingOptions) return undefined;
+    return {
+      primaryDayModeThemeColor:
+        processColorValue(androidStylingOptions.primaryDayModeThemeColor) ??
+        undefined,
+      secondaryDayModeThemeColor:
+        processColorValue(androidStylingOptions.secondaryDayModeThemeColor) ??
+        undefined,
+      primaryNightModeThemeColor:
+        processColorValue(androidStylingOptions.primaryNightModeThemeColor) ??
+        undefined,
+      secondaryNightModeThemeColor:
+        processColorValue(androidStylingOptions.secondaryNightModeThemeColor) ??
+        undefined,
+      headerLargeManeuverIconColor:
+        processColorValue(androidStylingOptions.headerLargeManeuverIconColor) ??
+        undefined,
+      headerSmallManeuverIconColor:
+        processColorValue(androidStylingOptions.headerSmallManeuverIconColor) ??
+        undefined,
+      headerNextStepTextColor:
+        processColorValue(androidStylingOptions.headerNextStepTextColor) ??
+        undefined,
+      headerNextStepTextSize: androidStylingOptions.headerNextStepTextSize,
+      headerDistanceValueTextColor:
+        processColorValue(androidStylingOptions.headerDistanceValueTextColor) ??
+        undefined,
+      headerDistanceUnitsTextColor:
+        processColorValue(androidStylingOptions.headerDistanceUnitsTextColor) ??
+        undefined,
+      headerDistanceValueTextSize:
+        androidStylingOptions.headerDistanceValueTextSize,
+      headerDistanceUnitsTextSize:
+        androidStylingOptions.headerDistanceUnitsTextSize,
+      headerInstructionsTextColor:
+        processColorValue(androidStylingOptions.headerInstructionsTextColor) ??
+        undefined,
+      headerInstructionsFirstRowTextSize:
+        androidStylingOptions.headerInstructionsFirstRowTextSize,
+      headerInstructionsSecondRowTextSize:
+        androidStylingOptions.headerInstructionsSecondRowTextSize,
+      headerGuidanceRecommendedLaneColor:
+        processColorValue(
+          androidStylingOptions.headerGuidanceRecommendedLaneColor
+        ) ?? undefined,
+    };
+  }, [androidStylingOptions]);
 
-  // Create controllers when viewId changes
+  const convertedIOSStyling = useMemo(() => {
+    if (!iOSStylingOptions) return undefined;
+    return {
+      navigationHeaderPrimaryBackgroundColor:
+        processColorValue(
+          iOSStylingOptions.navigationHeaderPrimaryBackgroundColor
+        ) ?? undefined,
+      navigationHeaderSecondaryBackgroundColor:
+        processColorValue(
+          iOSStylingOptions.navigationHeaderSecondaryBackgroundColor
+        ) ?? undefined,
+      navigationHeaderPrimaryBackgroundColorNightMode:
+        processColorValue(
+          iOSStylingOptions.navigationHeaderPrimaryBackgroundColorNightMode
+        ) ?? undefined,
+      navigationHeaderSecondaryBackgroundColorNightMode:
+        processColorValue(
+          iOSStylingOptions.navigationHeaderSecondaryBackgroundColorNightMode
+        ) ?? undefined,
+      navigationHeaderLargeManeuverIconColor:
+        processColorValue(
+          iOSStylingOptions.navigationHeaderLargeManeuverIconColor
+        ) ?? undefined,
+      navigationHeaderSmallManeuverIconColor:
+        processColorValue(
+          iOSStylingOptions.navigationHeaderSmallManeuverIconColor
+        ) ?? undefined,
+      navigationHeaderGuidanceRecommendedLaneColor:
+        processColorValue(
+          iOSStylingOptions.navigationHeaderGuidanceRecommendedLaneColor
+        ) ?? undefined,
+      navigationHeaderNextStepTextColor:
+        processColorValue(
+          iOSStylingOptions.navigationHeaderNextStepTextColor
+        ) ?? undefined,
+      navigationHeaderDistanceValueTextColor:
+        processColorValue(
+          iOSStylingOptions.navigationHeaderDistanceValueTextColor
+        ) ?? undefined,
+      navigationHeaderDistanceUnitsTextColor:
+        processColorValue(
+          iOSStylingOptions.navigationHeaderDistanceUnitsTextColor
+        ) ?? undefined,
+      navigationHeaderInstructionsTextColor:
+        processColorValue(
+          iOSStylingOptions.navigationHeaderInstructionsTextColor
+        ) ?? undefined,
+    };
+  }, [iOSStylingOptions]);
+
+  // Initialize params once using lazy state initialization
+  const [viewInitializationParams] = useState(() => {
+    const hasInitialCamera = !!props.initialCameraPosition;
+    const hasTarget = hasInitialCamera && !!props.initialCameraPosition?.target;
+
+    return {
+      viewType: MapViewType.NAVIGATION,
+      mapId: props.mapId,
+      mapType: props.mapType,
+      navigationUIEnabledPreference:
+        props.navigationUIEnabledPreference ??
+        NavigationUIEnabledPreference.AUTOMATIC,
+      mapColorScheme: props.mapColorScheme ?? MapColorScheme.FOLLOW_SYSTEM,
+      navigationNightMode:
+        props.navigationNightMode ?? NavigationNightMode.AUTO,
+      hasCameraPosition: hasInitialCamera,
+      ...(hasInitialCamera && {
+        cameraPosition: {
+          hasTarget,
+          target: props.initialCameraPosition?.target ?? null,
+          bearing: props.initialCameraPosition?.bearing ?? 0.0,
+          tilt: props.initialCameraPosition?.tilt ?? 0.0,
+          zoom: props.initialCameraPosition?.zoom ?? 0.0,
+        },
+      }),
+    };
+  });
+
   useEffect(() => {
-    if (!mapViewRef.current) {
+    if (!mapViewRef.current || viewCreatedRef.current) {
       return;
     }
-    const _viewId = findNodeHandle(mapViewRef.current) || 0;
-    if (viewId !== _viewId) {
-      setViewId(_viewId);
-      onNavigationViewControllerCreated(
-        getNavigationViewController(mapViewRef)
-      );
-      onMapViewControllerCreated(getMapViewController(mapViewRef));
-    }
+    viewCreatedRef.current = true;
+
+    // Initialize controllers with nativeID
+    onNavigationViewControllerCreated(
+      getNavigationViewController(nativeIDRef.current)
+    );
+    onMapViewControllerCreated(getMapViewController(nativeIDRef.current));
   }, [
-    androidStylingOptions,
-    iOSStylingOptions,
     onMapViewControllerCreated,
     onNavigationViewControllerCreated,
-    viewId,
+    mapViewRef,
   ]);
 
-  const onMapClick = useCallback(
-    ({ nativeEvent: latlng }: { nativeEvent: LatLng }) => {
-      props.mapViewCallbacks?.onMapClick?.(latlng);
-    },
-    [props.mapViewCallbacks]
+  // Use the new architecture event callback hook
+  const onMapClick = useNativeEventCallback(props.onMapClick);
+  const onMapReady = useNativeEventCallback(props.onMapReady);
+  const onMarkerClick = useNativeEventCallback(props.onMarkerClick);
+  const onPolylineClick = useNativeEventCallback(props.onPolylineClick);
+  const onPolygonClick = useNativeEventCallback(props.onPolygonClick);
+  const onCircleClick = useNativeEventCallback(props.onCircleClick);
+  const onGroundOverlayClick = useNativeEventCallback(
+    props.onGroundOverlayClick
+  );
+  const onMarkerInfoWindowTapped = useNativeEventCallback(
+    props.onMarkerInfoWindowTapped
+  );
+  const onRecenterButtonClick = useNativeEventCallback(
+    props.onRecenterButtonClick
   );
 
-  const onMapReady = useCallback(() => {
-    props.mapViewCallbacks?.onMapReady?.();
-  }, [props.mapViewCallbacks]);
-
-  const onMarkerClick = useCallback(
-    ({ nativeEvent: marker }: { nativeEvent: Marker }) => {
-      props.mapViewCallbacks?.onMarkerClick?.(marker);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onPolylineClick = useCallback(
-    ({ nativeEvent: polyline }: { nativeEvent: Polyline }) => {
-      props.mapViewCallbacks?.onPolylineClick?.(polyline);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onPolygonClick = useCallback(
-    ({ nativeEvent: polygon }: { nativeEvent: Polygon }) => {
-      props.mapViewCallbacks?.onPolygonClick?.(polygon);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onCircleClick = useCallback(
-    ({ nativeEvent: circle }: { nativeEvent: Circle }) => {
-      props.mapViewCallbacks?.onCircleClick?.(circle);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onGroundOverlayClick = useCallback(
-    ({ nativeEvent: groundOverlay }: { nativeEvent: GroundOverlay }) => {
-      props.mapViewCallbacks?.onGroundOverlayClick?.(groundOverlay);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onMarkerInfoWindowTapped = useCallback(
-    ({ nativeEvent: marker }: { nativeEvent: Marker }) => {
-      props.mapViewCallbacks?.onMarkerInfoWindowTapped?.(marker);
-    },
-    [props.mapViewCallbacks]
-  );
-
-  const onRecenterButtonClick = useCallback(() => {
-    props.navigationViewCallbacks?.onRecenterButtonClick?.();
-  }, [props.navigationViewCallbacks]);
-
+  // Extract the visible field of the onPromptVisibilityChanged event.
+  const { onPromptVisibilityChanged: onPromptVisibilityChangedProp } = props;
   const onPromptVisibilityChanged = useCallback(
-    ({ nativeEvent: event }: { nativeEvent: { visible: boolean } }) => {
-      props.navigationViewCallbacks?.onPromptVisibilityChanged?.(event.visible);
+    (event: { nativeEvent: { visible: boolean } }) => {
+      onPromptVisibilityChangedProp?.(event.nativeEvent.visible);
     },
-    [props.navigationViewCallbacks]
+    [onPromptVisibilityChangedProp]
   );
 
   return (
-    <View style={props.style ?? styles.defaultStyle}>
-      <NavViewManager
-        ref={onRefAssign}
-        flex={1}
-        mapOptions={{
-          mapViewType: MapViewType.NAVIGATION,
-          mapId: props.mapId,
-          mapColorScheme: props.mapColorScheme ?? MapColorScheme.FOLLOW_SYSTEM,
-          navigationNightMode:
-            props.navigationNightMode ?? NavigationNightMode.AUTO,
-          navigationStylingOptions:
-            (Platform.OS === 'android'
-              ? androidStylingOptions
-              : iOSStylingOptions) || {},
-        }}
-        onMapClick={onMapClick}
-        onMapReady={onMapReady}
-        onMarkerClick={onMarkerClick}
-        onPolylineClick={onPolylineClick}
-        onPolygonClick={onPolygonClick}
-        onCircleClick={onCircleClick}
-        onGroundOverlayClick={onGroundOverlayClick}
-        onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
-        onRecenterButtonClick={onRecenterButtonClick}
-        onPromptVisibilityChanged={onPromptVisibilityChanged}
-      />
-    </View>
+    <NavView
+      style={props.style ?? styles.defaultStyle}
+      nativeID={nativeIDRef.current}
+      ref={mapViewRef}
+      viewInitializationParams={viewInitializationParams}
+      mapType={props.mapType}
+      mapColorScheme={props.mapColorScheme ?? MapColorScheme.FOLLOW_SYSTEM}
+      navigationNightMode={
+        props.navigationNightMode ?? NavigationNightMode.AUTO
+      }
+      mapPadding={props.mapPadding}
+      tripProgressBarEnabled={props.tripProgressBarEnabled}
+      trafficPromptsEnabled={props.trafficPromptsEnabled}
+      trafficIncidentCardsEnabled={props.trafficIncidentCardsEnabled}
+      headerEnabled={props.headerEnabled}
+      footerEnabled={props.footerEnabled}
+      speedometerEnabled={props.speedometerEnabled}
+      speedLimitIconEnabled={props.speedLimitIconEnabled}
+      recenterButtonEnabled={props.recenterButtonEnabled}
+      navigationViewStylingOptions={
+        Platform.OS === 'android'
+          ? convertedAndroidStyling
+          : convertedIOSStyling
+      }
+      mapStyle={props.mapStyle}
+      mapToolbarEnabled={props.mapToolbarEnabled}
+      indoorEnabled={props.indoorEnabled}
+      trafficEnabled={props.trafficEnabled}
+      compassEnabled={props.compassEnabled}
+      myLocationButtonEnabled={props.myLocationButtonEnabled}
+      myLocationEnabled={props.myLocationEnabled}
+      rotateGesturesEnabled={props.rotateGesturesEnabled}
+      scrollGesturesEnabled={props.scrollGesturesEnabled}
+      scrollGesturesEnabledDuringRotateOrZoom={
+        props.scrollGesturesDuringRotateOrZoomEnabled
+      }
+      tiltGesturesEnabled={props.tiltGesturesEnabled}
+      zoomControlsEnabled={props.zoomControlsEnabled}
+      zoomGesturesEnabled={props.zoomGesturesEnabled}
+      buildingsEnabled={props.buildingsEnabled}
+      reportIncidentButtonEnabled={props.reportIncidentButtonEnabled}
+      minZoomLevel={props.minZoomLevel}
+      maxZoomLevel={props.maxZoomLevel}
+      onMapClick={onMapClick}
+      onMapReady={onMapReady}
+      onMarkerClick={onMarkerClick}
+      onPolylineClick={onPolylineClick}
+      onPolygonClick={onPolygonClick}
+      onCircleClick={onCircleClick}
+      onGroundOverlayClick={onGroundOverlayClick}
+      onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
+      onRecenterButtonClick={onRecenterButtonClick}
+      onPromptVisibilityChanged={onPromptVisibilityChanged}
+    />
   );
 };
 

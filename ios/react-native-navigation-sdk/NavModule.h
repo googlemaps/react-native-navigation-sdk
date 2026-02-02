@@ -17,16 +17,16 @@
 #ifndef NavModule_h
 #define NavModule_h
 
-#import <React/RCTBridgeModule.h>
+#import <GoogleNavigation/GoogleNavigation.h>
+#import <RNNavigationSdkSpec/RNNavigationSdkSpec.h>
 #import "INavigationCallback.h"
-@import GoogleNavigation;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface NavModule : NSObject <RCTBridgeModule,
-                                 GMSNavigatorListener,
-                                 GMSRoadSnappedLocationProviderListener,
-                                 INavigationCallback>
+@interface NavModule : NativeNavModuleSpecBase <NativeNavModuleSpec,
+                                                GMSNavigatorListener,
+                                                GMSRoadSnappedLocationProviderListener,
+                                                INavigationCallback>
 
 typedef void (^NavigationSessionReadyCallback)(void);
 typedef void (^NavigationSessionDisposedCallback)(void);

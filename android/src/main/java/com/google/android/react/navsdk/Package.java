@@ -14,32 +14,82 @@
 package com.google.android.react.navsdk;
 
 import com.facebook.proguard.annotations.DoNotStrip;
-import com.facebook.react.ReactPackage;
+import com.facebook.react.BaseReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.module.model.ReactModuleInfo;
+import com.facebook.react.module.model.ReactModuleInfoProvider;
 import com.facebook.react.uimanager.ViewManager;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @DoNotStrip
-public class Package implements ReactPackage {
-
-  private NavViewManager mNavViewManager;
+public class Package extends BaseReactPackage {
 
   @Override
   public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-    return Arrays.asList(NavViewManager.getInstance(reactContext));
+    List<ViewManager> viewManagers = new ArrayList<>();
+    viewManagers.add(NavViewManager.getInstance(reactContext));
+    return viewManagers;
   }
 
   @Override
-  public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
-    List<NativeModule> modules = new ArrayList<>();
+  public NativeModule getModule(String name, ReactApplicationContext reactContext) {
     NavViewManager viewManager = NavViewManager.getInstance(reactContext);
-    modules.add(NavModule.getInstance(reactContext, viewManager));
-    modules.add(new NavAutoModule(reactContext));
-    modules.add(new NavViewModule(reactContext, viewManager));
 
-    return modules;
+    switch (name) {
+      case NavModule.REACT_CLASS:
+        return NavModule.getInstance(reactContext, viewManager);
+      case NavAutoModule.REACT_CLASS:
+        return new NavAutoModule(reactContext);
+      case NavViewModule.REACT_CLASS:
+        return new NavViewModule(reactContext, viewManager);
+      default:
+        return null;
+    }
+  }
+
+  @Override
+  public ReactModuleInfoProvider getReactModuleInfoProvider() {
+    return () -> {
+      Map<String, ReactModuleInfo> moduleInfos = new HashMap<>();
+
+      moduleInfos.put(
+          NavModule.REACT_CLASS,
+          new ReactModuleInfo(
+              NavModule.REACT_CLASS,
+              NavModule.REACT_CLASS,
+              false, // canOverrideExistingModule
+              false, // needsEagerInit
+              false, // isCxxModule
+              true // isTurboModule
+              ));
+
+      moduleInfos.put(
+          NavAutoModule.REACT_CLASS,
+          new ReactModuleInfo(
+              NavAutoModule.REACT_CLASS,
+              NavAutoModule.REACT_CLASS,
+              false, // canOverrideExistingModule
+              false, // needsEagerInit
+              false, // isCxxModule
+              true // isTurboModule
+              ));
+
+      moduleInfos.put(
+          NavViewModule.REACT_CLASS,
+          new ReactModuleInfo(
+              NavViewModule.REACT_CLASS,
+              NavViewModule.REACT_CLASS,
+              false, // canOverrideExistingModule
+              false, // needsEagerInit
+              false, // isCxxModule
+              true // isTurboModule
+              ));
+
+      return moduleInfos;
+    };
   }
 }

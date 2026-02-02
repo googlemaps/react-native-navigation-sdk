@@ -16,5 +16,11 @@ package com.google.android.react.navsdk;
 import com.facebook.react.bridge.ReadableMap;
 
 public interface INavigationAutoCallback {
+  /**
+   * Called when a custom event is sent from native to React Native.
+   *
+   * @param type The event type identifier.
+   * @param data The event data payload.
+   */
   void onCustomNavigationAutoEvent(String type, ReadableMap data);
 }

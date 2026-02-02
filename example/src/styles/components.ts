@@ -69,7 +69,6 @@ export const CommonStyles = StyleSheet.create({
     justifyContent: 'space-evenly',
     marginHorizontal: Spacing.md,
     marginTop: Spacing.md,
-    marginBottom: Spacing.lg,
   },
 
   // Input styles

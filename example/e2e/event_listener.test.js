@@ -28,7 +28,7 @@ describe('Event listener tests', () => {
     await initializeIntegrationTestsPage();
   });
 
-  it('T01 - test onRemainingTimeOrDistanceChanged event listener', async () => {
+  it('ELT01 - test onRemainingTimeOrDistanceChanged event listener', async () => {
     await selectTestByName('testOnRemainingTimeOrDistanceChanged');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
@@ -36,7 +36,7 @@ describe('Event listener tests', () => {
     await expectSuccess();
   });
 
-  it('T02 - test onArrival event listener', async () => {
+  it('ELT02 - test onArrival event listener', async () => {
     await selectTestByName('testOnArrival');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
@@ -44,7 +44,7 @@ describe('Event listener tests', () => {
     await expectSuccess();
   });
 
-  it('T03 - test onRouteChanged event listener', async () => {
+  it('ELT03 - test onRouteChanged event listener', async () => {
     await selectTestByName('testOnRouteChanged');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();

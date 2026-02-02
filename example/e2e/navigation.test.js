@@ -28,7 +28,7 @@ describe('Navigation tests', () => {
     await initializeIntegrationTestsPage();
   });
 
-  it('T01 - initialize navigation controller and test terms and conditions (TOS) dialog acceptance', async () => {
+  it('NT01 - initialize navigation controller and test terms and conditions (TOS) dialog acceptance', async () => {
     await selectTestByName('testNavigationSessionInitialization');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
@@ -36,7 +36,7 @@ describe('Navigation tests', () => {
     await expectSuccess();
   });
 
-  it('T02 - initialize navigation controller and navigate to single destination', async () => {
+  it('NT02 - initialize navigation controller and navigate to single destination', async () => {
     await selectTestByName('testNavigationToSingleDestination');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
@@ -44,7 +44,7 @@ describe('Navigation tests', () => {
     await expectSuccess();
   });
 
-  it('T03 - initialize navigation controller and navigate to multiple destinations', async () => {
+  it('NT03 - initialize navigation controller and navigate to multiple destinations', async () => {
     await selectTestByName('testNavigationToMultipleDestination');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
@@ -52,7 +52,7 @@ describe('Navigation tests', () => {
     await expectSuccess();
   });
 
-  it('T04 - initialize navigation controller and test route segments', async () => {
+  it('NT04 - initialize navigation controller and test route segments', async () => {
     await selectTestByName('testRouteSegments');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
@@ -60,7 +60,7 @@ describe('Navigation tests', () => {
     await expectSuccess();
   });
 
-  it('T05 - initialize navigation controller and test remaining time and distance', async () => {
+  it('NT05 - initialize navigation controller and test remaining time and distance', async () => {
     await selectTestByName('testGetCurrentTimeAndDistance');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
@@ -68,14 +68,14 @@ describe('Navigation tests', () => {
     await expectSuccess();
   });
 
-  it('T06 - expect navigation controller calls to fail when not initialized', async () => {
+  it('NT06 - expect navigation controller calls to fail when not initialized', async () => {
     await selectTestByName('testNavigationStateGuards');
     await waitForTestToFinish();
     await expectNoErrors();
     await expectSuccess();
   });
 
-  it('T07 - require destinations before starting guidance', async () => {
+  it('NT07 - require destinations before starting guidance', async () => {
     await selectTestByName('testStartGuidanceWithoutDestinations');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
@@ -83,7 +83,7 @@ describe('Navigation tests', () => {
     await expectSuccess();
   });
 
-  it('T08 - setDestinations with both routingOptions and routeTokenOptions should throw error', async () => {
+  it('NT08 - setDestinations with both routingOptions and routeTokenOptions should throw error', async () => {
     await selectTestByName('testRouteTokenOptionsValidation');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();

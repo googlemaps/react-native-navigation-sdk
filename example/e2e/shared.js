@@ -18,18 +18,32 @@ import { device, element, waitFor, by, expect, log } from 'detox';
 
 const NO_ERRORS_DETECTED_LABEL = 'No errors detected';
 
+// Helper function to add delays for iOS animations (iOS default transition is ~300ms)
+const maybeDelay = ms =>
+  device.getPlatform() === 'ios'
+    ? new Promise(resolve => setTimeout(resolve, ms))
+    : Promise.resolve();
+
+/**
+ * Waits for ToS dialog to appear and accepts it.
+ * The native dialog is shown by the test code and this function waits for it
+ * to become visible, then taps the accept button.
+ */
 export const agreeToTermsAndConditions = async () => {
-  if (device.getPlatform() === 'ios') {
-    await waitFor(element(by.text('OK')))
-      .toBeVisible()
-      .withTimeout(10000);
-    await element(by.text('OK')).tap();
-  } else if (device.getPlatform() === 'android') {
-    await waitFor(element(by.text('GOT IT')))
-      .toBeVisible()
-      .withTimeout(10000);
-    await element(by.text('GOT IT')).tap();
-  }
+  // Determine which button text to look for based on platform
+  const acceptButtonText = device.getPlatform() === 'ios' ? 'OK' : 'GOT IT';
+
+  log.info(`Waiting for ToS dialog with "${acceptButtonText}" button...`);
+
+  // Wait for the accept button to appear
+  await waitFor(element(by.text(acceptButtonText)))
+    .toBeVisible()
+    .withTimeout(30000);
+
+  log.info(`Found ${acceptButtonText} button, tapping...`);
+  await element(by.text(acceptButtonText)).tap();
+
+  log.info('ToS accepted successfully');
 };
 
 export const waitForStepNumber = async number => {
@@ -66,19 +80,67 @@ export const initializeIntegrationTestsPage = async () => {
   await device.launchApp({
     delete: true,
     permissions: { location: 'always' },
+    // Workaround for RN 0.81+ new architecture - disable Detox synchronization
+    // See: https://github.com/wix/Detox/issues/4842
+    launchArgs: { detoxEnableSynchronization: 0 },
   });
+  // Wait for the app to fully load since synchronization is disabled
+  await waitFor(element(by.id('integration_tests_button')))
+    .toBeVisible()
+    .withTimeout(30000);
+  await maybeDelay(350);
   await element(by.id('integration_tests_button')).tap();
+  await maybeDelay(350);
 };
 
 export const selectTestByName = async name => {
   await waitFor(element(by.id('tests_menu_button')))
     .toBeVisible()
     .withTimeout(10000);
+  await maybeDelay(350);
   await element(by.id('tests_menu_button')).tap();
-  // Scroll to make the test button visible before tapping
-  await waitFor(element(by.id(name)))
+  // Wait for the overlay scroll view to be visible
+  await waitFor(element(by.id('overlay_scroll_view')))
     .toBeVisible()
-    .whileElement(by.id('overlay_scroll_view'))
-    .scroll(100, 'down');
-  await element(by.id(name)).tap();
+    .withTimeout(10000);
+
+  const scrollView = element(by.id('overlay_scroll_view'));
+  const targetElement = element(by.id(name));
+
+  // Detox scroll has some issues on iOS, therefore manual swipe scrolling below is used.
+  // Find and position element properly for tapping
+  let elementReady = false;
+  const maxScrollAttempts = 15;
+  for (let i = 0; i < maxScrollAttempts && !elementReady; i++) {
+    try {
+      await waitFor(targetElement).toBeVisible().withTimeout(500);
+
+      // Element is visible, check if it's in a tappable position.
+      const attributes = await targetElement.getAttributes();
+      const scrollViewAttrs = await scrollView.getAttributes();
+
+      const elementY = attributes.frame?.y || 0;
+      const scrollViewY = scrollViewAttrs.frame?.y || 0;
+      const scrollViewHeight = scrollViewAttrs.frame?.height || 1000;
+      const relativeY = elementY - scrollViewY;
+
+      // If element is too bottom on the view, scroll up a bit.
+      if (relativeY > scrollViewHeight * 0.8) {
+        await scrollView.swipe('up', 'slow', 0.25);
+      } else {
+        elementReady = true;
+      }
+    } catch {
+      // Element not visible yet, swipe up to scroll down
+      await scrollView.swipe('up', 'slow', 0.3);
+    }
+  }
+
+  if (!elementReady) {
+    // Final fallback - just wait for visibility
+    await waitFor(targetElement).toBeVisible().withTimeout(5000);
+  }
+
+  await maybeDelay(600);
+  await targetElement.tap();
 };

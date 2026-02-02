@@ -110,6 +110,13 @@ public class EnumTranslationUtil {
     }
   }
 
+  /**
+   * Maps JavaScript TravelMode enum values to native RoutingOptions.TravelMode values.
+   *
+   * @param jsValue JavaScript TravelMode value (0=DRIVING, 1=CYCLING, 2=WALKING, 3=TWO_WHEELER,
+   *     4=TAXI)
+   * @return Native RoutingOptions.TravelMode value
+   */
   public static @RoutingOptions.TravelMode int getTravelModeFromJsValue(int jsValue) {
     switch (jsValue) {
       case 1:
@@ -120,8 +127,41 @@ public class EnumTranslationUtil {
         return RoutingOptions.TravelMode.TWO_WHEELER;
       case 4:
         return RoutingOptions.TravelMode.TAXI;
+      case 0:
       default:
         return RoutingOptions.TravelMode.DRIVING;
+    }
+  }
+
+  /**
+   * Converts Navigator.RouteStatus to the string value expected by the codegen RouteStatusSpec
+   * enum. The codegen bridging layer converts enums to/from strings.
+   *
+   * @param routeStatus The native RouteStatus value
+   * @return String matching the codegen RouteStatusSpec enum key
+   */
+  public static String getRouteStatusStringValue(Navigator.RouteStatus routeStatus) {
+    switch (routeStatus) {
+      case OK:
+        return "OK";
+      case NO_ROUTE_FOUND:
+        return "NO_ROUTE_FOUND";
+      case NETWORK_ERROR:
+        return "NETWORK_ERROR";
+      case QUOTA_CHECK_FAILED:
+        return "QUOTA_CHECK_FAILED";
+      case ROUTE_CANCELED:
+        return "ROUTE_CANCELED";
+      case LOCATION_DISABLED:
+        return "LOCATION_DISABLED";
+      case LOCATION_UNKNOWN:
+        return "LOCATION_UNKNOWN";
+      case WAYPOINT_ERROR:
+        return "WAYPOINT_ERROR";
+      case DUPLICATE_WAYPOINTS_ERROR:
+        return "DUPLICATE_WAYPOINTS_ERROR";
+      default:
+        return "UNKNOWN";
     }
   }
 }

@@ -18,14 +18,15 @@ import type { LatLng, Location } from '../../shared/types';
 import type {
   AlternateRoutingStrategy,
   AudioGuidance,
-  NavigationInitErrorCode,
   RouteSegment,
   RouteStatus,
   RoutingStrategy,
   TimeAndDistance,
   TravelMode,
   Waypoint,
+  TermsAndConditionsUIParams,
 } from '../types';
+import { NavigationSessionStatus } from '../types';
 
 /**
  * Provides options for routing using a route token from the Routes API.
@@ -164,10 +165,19 @@ export interface SpeedAlertOptions {
  */
 export interface TermsAndConditionsDialogOptions {
   /** Title to be displayed in Terms of Services (TOS) dialog. */
-  readonly title?: string;
+  readonly title: string;
   /** The name of your company to be displayed in Terms of Services (TOS) dialog. */
-  readonly companyName?: string;
+  readonly companyName: string;
+  /**
+   * If true, only the driver awareness disclaimer is shown (Android only).
+   * On iOS, this parameter is ignored.
+   */
   readonly showOnlyDisclaimer?: boolean;
+  /**
+   * Optional UI customization parameters for the dialog appearance.
+   * Supports all React Native color formats (ColorValue).
+   */
+  readonly uiParams?: TermsAndConditionsUIParams;
 }
 
 /**
@@ -211,25 +221,18 @@ export interface NavigationCallbacks {
   onLocationChanged?(location: Location): void;
 
   /**
-   * A callback function that gets invoked when navigation information is ready.
-   *
-   */
-  onNavigationReady?(): void;
-
-  /**
-   * Callback function invoked when receiving a route status result.
-   *
-   * @param routeStatus - The arguments received related to the route status.
-   */
-  onRouteStatusResult?(routeStatus: RouteStatus): void;
-
-  /**
    * Handles changes to raw location data and triggers a callback with the
    * changed data.
    *
    * @param location - An object containing the raw location data that has changed.
    */
   onRawLocationChanged?(location: Location): void;
+
+  /**
+   * A callback function that gets invoked when navigation information is ready.
+   *
+   */
+  onNavigationReady?(): void;
 
   /**
    * Callback function invoked when the route is changed.
@@ -249,15 +252,10 @@ export interface NavigationCallbacks {
 
   /**
    * Callback function when the remaining time or distance changes.
-   */
-  onRemainingTimeOrDistanceChanged?(): void;
-
-  /**
-   * Callback that gets triggered when the navigation failed to initilize.
    *
-   * @param errorCode - indicates the reason why navigation failed to initialize.
+   * @param timeAndDistance - The current time and distance to the destination.
    */
-  onNavigationInitError?(errorCode: NavigationInitErrorCode): void;
+  onRemainingTimeOrDistanceChanged?(timeAndDistance: TimeAndDistance): void;
 
   /**
    * Callback function invoked when a turn-by-turn event occurs.
@@ -316,9 +314,68 @@ export interface Simulator {
  */
 export interface NavigationController {
   /**
-   * Initializes the navigation module.
+   * Checks if the Terms and Conditions have been accepted.
+   *
+   * @returns A promise resolving to a boolean indicating whether the terms have been accepted.
    */
-  init(): Promise<void>;
+  areTermsAccepted(): Promise<boolean>;
+
+  /**
+   * Shows the Terms and Conditions dialog to the user.
+   *
+   * Uses the options provided to NavigationProvider, with optional overrides.
+   *
+   * @param optionsOverride - Optional overrides for dialog options (title, company name, UI params).
+   *                          If not provided, uses the options from NavigationProvider.
+   * @returns A promise resolving to true if the user accepts the terms, false otherwise.
+   *          If the terms have already been accepted, returns true without showing the dialog.
+   */
+  showTermsAndConditionsDialog(
+    optionsOverride?: Partial<TermsAndConditionsDialogOptions>
+  ): Promise<boolean>;
+
+  /**
+   * Resets the Terms and Conditions acceptance state.
+   *
+   * @throws Error if the navigation session is currently active.
+   *         The session must be cleaned up before resetting terms acceptance.
+   */
+  resetTermsAccepted(): Promise<void>;
+
+  /**
+   * Initializes the navigation session.
+   *
+   * Successful initialization requires that a valid Maps API key has been defined,
+   * and the user has accepted the navigation terms and conditions and granted
+   * location permissions for the app.
+   *
+   * @returns A promise that resolves with a NavigationSessionStatus indicating the result:
+   *   - `NavigationSessionStatus.OK` if initialization was successful.
+   *   - `NavigationSessionStatus.NOT_AUTHORIZED` if the API key is invalid or not authorized.
+   *   - `NavigationSessionStatus.TERMS_NOT_ACCEPTED` if the user has not accepted the ToS.
+   *   - `NavigationSessionStatus.NETWORK_ERROR` if there is a network connectivity issue.
+   *   - `NavigationSessionStatus.LOCATION_PERMISSION_MISSING` if location permission is not granted.
+   *   - `NavigationSessionStatus.UNKNOWN_ERROR` for any other error.
+   *
+   * @example
+   * ```typescript
+   * const status = await navigationController.init();
+   * switch (status) {
+   *   case NavigationSessionStatus.OK:
+   *     console.log('Navigation initialized successfully');
+   *     break;
+   *   case NavigationSessionStatus.TERMS_NOT_ACCEPTED:
+   *     console.log('Please accept terms and conditions');
+   *     break;
+   *   case NavigationSessionStatus.LOCATION_PERMISSION_MISSING:
+   *     console.log('Location permission required');
+   *     break;
+   *   default:
+   *     console.log(`Init failed: ${status}`);
+   * }
+   * ```
+   */
+  init(): Promise<NavigationSessionStatus>;
 
   /**
    * Cleans up the navigation module, releasing any resources that were allocated.
@@ -376,7 +433,7 @@ export interface NavigationController {
   setDestination(
     waypoint: Waypoint,
     options?: SetDestinationsOptions
-  ): Promise<void>;
+  ): Promise<RouteStatus>;
 
   /**
    * Set the destinations on the map using the provided waypoints.
@@ -385,11 +442,12 @@ export interface NavigationController {
    *                    or stopover point with specific attributes.
    * @param options - Optional destination options including routing, display, or route token settings.
    *                  Note: routingOptions and routeTokenOptions are mutually exclusive.
+   * @returns A promise that resolves with the RouteStatus indicating the result of route calculation.
    */
   setDestinations(
     waypoints: Waypoint[],
     options?: SetDestinationsOptions
-  ): Promise<void>;
+  ): Promise<RouteStatus>;
 
   /**
    * Proceeds to the next destination or waypoint within a predefined route.
@@ -417,7 +475,7 @@ export interface NavigationController {
   /**
    * Enable or disable reporting of abnormal terminations.
    *
-   * @param isOn - Indicates whether to enable (true) or disable (false) reporting
+   * @param enabled - Indicates whether to enable (true) or disable (false) reporting
    *               of abnormal terminations.
    */
   setAbnormalTerminatingReportingEnabled(enabled: boolean): void;
@@ -436,14 +494,6 @@ export interface NavigationController {
    * guidance type.
    */
   setAudioGuidanceType(index: AudioGuidance): void;
-
-  /**
-   * Checks if the Terms and Conditions have been accepted.
-   *
-   * @returns {Promise<boolean>} A promise resolving to a boolean indicating
-   * whether the terms have been accepted.
-   */
-  areTermsAccepted(): Promise<boolean>;
 
   /**
    * Disables location updates by the library. This should be

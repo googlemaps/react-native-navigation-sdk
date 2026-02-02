@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import type { ColorValue } from 'react-native';
 import type { LatLng, Location } from '../../shared/types';
 import type {
   CameraPosition,
@@ -29,16 +30,18 @@ import type {
  * Defines options for a Circle.
  */
 export interface CircleOptions {
+  /** Optional custom identifier for this circle. If provided, this ID will be used instead of the auto-generated one. Can be used to update/replace an existing circle with the same ID. */
+  id?: string;
   /** The center of the circle defined as a LatLng. */
   center: LatLng;
   /** The radius of the circle in pixels. */
   radius: number;
   /** The width of the stroke of the circle. The width is defined in pixels. */
   strokeWidth?: number;
-  /** Sets the stroke color of this circle. The color in hex format (ie. #RRGGBB). */
-  strokeColor?: string;
-  /** The fill color of this circle. The color in hex format (ie. #RRGGBB). */
-  fillColor?: string;
+  /** Sets the stroke color of this circle. Supports all React Native color formats (ColorValue). */
+  strokeColor?: ColorValue;
+  /** The fill color of this circle. Supports all React Native color formats (ColorValue). */
+  fillColor?: ColorValue;
   /** Defines whether the circle should receive click events */
   clickable?: boolean;
   /** Defines whether the circle should be rendered (displayed) in GoogleMap */
@@ -49,6 +52,8 @@ export interface CircleOptions {
  * Defines MarkerOptions for a marker.
  */
 export interface MarkerOptions {
+  /** Optional custom identifier for this marker. If provided, this ID will be used instead of the auto-generated one. Can be used to update/replace an existing marker with the same ID. */
+  id?: string;
   /** The LatLng value for the marker's position on the map. You can change this value at any time if you want to move the marker. */
   position: LatLng;
   /** Path to a local image asset that should be displayed in the marker instead of using the default marker pin. */
@@ -73,16 +78,18 @@ export interface MarkerOptions {
  * Defines PolygonOptions for a polygon.
  */
 export interface PolygonOptions {
+  /** Optional custom identifier for this polygon. If provided, this ID will be used instead of the auto-generated one. Can be used to update/replace an existing polygon with the same ID. */
+  id?: string;
   /** An array of LatLngs that are the vertices of the polygon. */
   points: LatLng[];
   /** An array of holes, where a hole is an array of LatLngs. */
   holes?: LatLng[][];
   /** Sets the width of the stroke of the polygon. The width is defined in pixels. */
   strokeWidth?: number;
-  /** Sets the stroke color of this polygon. The color in hex format (ie. #RRGGBB). */
-  strokeColor?: string;
-  /** The fill color of the polygon. The color in hex format (ie. #RRGGBB). */
-  fillColor?: string;
+  /** Sets the stroke color of this polygon. Supports all React Native color formats (ColorValue). */
+  strokeColor?: ColorValue;
+  /** The fill color of the polygon. Supports all React Native color formats (ColorValue). */
+  fillColor?: ColorValue;
   /** Indicates whether the segments of the polygon should be drawn as geodesics, as opposed to straight lines on the Mercator projection. A geodesic is the shortest path between two points on the Earth's surface. The geodesic curve is constructed assuming the Earth is a sphere. */
   geodesic?: boolean;
   /** Indicates the clickability of the polygon. False by default. */
@@ -95,10 +102,12 @@ export interface PolygonOptions {
  * Defines PolylineOptions for a Polyline.
  */
 export interface PolylineOptions {
+  /** Optional custom identifier for this polyline. If provided, this ID will be used instead of the auto-generated one. Can be used to update/replace an existing polyline with the same ID. */
+  id?: string;
   /** An array of LatLngs that are the vertices of the polyline. */
   points: LatLng[];
-  /** The color of this polyline. The color in hex format (ie. #RRGGBB). */
-  color?: string;
+  /** The color of this polyline. Supports all React Native color formats (ColorValue). */
+  color?: ColorValue;
   /** The width of the stroke of the polyline. The width is defined in pixels. */
   width?: number;
   /** Indicates the clickability of the polyline. False by default. */
@@ -106,6 +115,81 @@ export interface PolylineOptions {
   /** Indicates the visibility of the polyline. True by default. */
   visible?: boolean;
 }
+
+/**
+ * Base options shared by all ground overlay positioning methods.
+ */
+interface GroundOverlayBaseOptions {
+  /** Optional custom identifier for this ground overlay. If provided, this ID will be used instead of the auto-generated one. Can be used to update/replace an existing ground overlay with the same ID. */
+  id?: string;
+  /** Path to a local image asset to display as the ground overlay. Required. */
+  imgPath: string;
+  /** The bearing of the ground overlay in degrees clockwise from north. Default is 0. */
+  bearing?: number;
+  /** The transparency of the ground overlay (0.0 = opaque, 1.0 = fully transparent). Default is 0. */
+  transparency?: number;
+  /** Indicates whether the ground overlay should receive click events. Default is false. */
+  clickable?: boolean;
+  /** Indicates whether the ground overlay is visible. Default is true. */
+  visible?: boolean;
+  /** The zIndex of the ground overlay. */
+  zIndex?: number;
+  /** The anchor point of the image in normalized coordinates (0-1). Default is center (0.5, 0.5). */
+  anchor?: { u: number; v: number };
+}
+
+/**
+ * Options for creating a ground overlay using a position with dimensions.
+ * The overlay is positioned at a specific location with width/height in meters.
+ *
+ * Note: This method is fully supported on Android. On iOS, the zoomLevel
+ * parameter is used instead of width/height when creating the overlay.
+ */
+export interface GroundOverlayPositionOptions extends GroundOverlayBaseOptions {
+  /** The location on the map (LatLng) to which the anchor point will remain fixed. */
+  location: LatLng;
+  /** The width of the overlay in meters. Required for Android; used with zoomLevel on iOS. */
+  width: number;
+  /** The height of the overlay in meters. If not specified, the aspect ratio of the image will be preserved. */
+  height?: number;
+  /**
+   * The zoom level at which the image should appear at its native size.
+   * Required for iOS when using position-based positioning.
+   * On Android, this is optional and width/height are used instead.
+   */
+  zoomLevel?: number;
+}
+
+/**
+ * Options for creating a ground overlay using bounds.
+ * The overlay is stretched to fit within the specified LatLngBounds.
+ * This is the most reliable cross-platform method for positioning ground overlays.
+ */
+export interface GroundOverlayBoundsOptions extends GroundOverlayBaseOptions {
+  /** The bounds within which the ground overlay will be positioned. */
+  bounds: {
+    /** Northeast corner of the bounds. */
+    northEast: LatLng;
+    /** Southwest corner of the bounds. */
+    southWest: LatLng;
+  };
+}
+
+/**
+ * Defines options for a GroundOverlay.
+ * A ground overlay is an image that is fixed to a map.
+ *
+ * There are two ways to position a ground overlay:
+ * 1. Using `location` with `width`/`height` (position-based): The overlay is anchored
+ *    to a specific location with dimensions in meters.
+ * 2. Using `bounds` (bounds-based): The overlay is stretched to fit within the
+ *    specified LatLngBounds. This is the most reliable cross-platform method.
+ *
+ * You must specify either `location` or `bounds`, but not both.
+ */
+export type GroundOverlayOptions =
+  | GroundOverlayPositionOptions
+  | GroundOverlayBoundsOptions;
 
 /**
  * Defines the styling of the base map.
@@ -147,114 +231,70 @@ export enum MapViewType {
   NAVIGATION = 1,
 }
 
-/**
- * `MapViewProps` interface provides a set of method definitions
- * for managing map events and debug information.
- */
-export interface MapViewCallbacks {
-  /**
-   * Callback function invoked when GoogleMap is ready.
-   */
-  onMapReady?(): void;
-
-  /**
-   * Callback invoked when clicking a marker on the map.
-   */
-  onMarkerClick?(marker: Marker): void;
-
-  /**
-   * Callback invoked when clicking a polyline on the map.
-   */
-  onPolylineClick?(polyline: Polyline): void;
-
-  /**
-   * Callback invoked when clicking a polygon on the map.
-   */
-  onPolygonClick?(polygon: Polygon): void;
-
-  /**
-   * Callback invoked when clicking a circle on the map.
-   */
-  onCircleClick?(circle: Circle): void;
-
-  /**
-   * Callback invoked when tapping on a ground overlay.
-   */
-  onGroundOverlayClick?(groundOverlay: GroundOverlay): void;
-
-  /**
-   * Callback invoked when tapping on a marker's info window.
-   */
-  onMarkerInfoWindowTapped?(marker: Marker): void;
-
-  /**
-   * Callback invoked when there is a click on the map view.
-   * @param latLng position where the click occurred.
-   */
-  onMapClick?(latLng: LatLng): void;
-}
-
 export interface MapViewController {
-  /**
-   * Set the type of the map.
-   * @param mapType - A `MapType` enumeration representing
-   * the desired map type.
-   */
-  setMapType(mapType: MapType): void;
-
-  /**
-   * Set the visual style of the map.
-   * @param mapStyle - A string representing the desired visual
-   * style for the map.
-   */
-  setMapStyle(mapStyle: string): void;
-
-  /**
-   * Enable or disable the map toolbar.
-   * Android only.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               the the map toolbar.
-   */
-  setMapToolbarEnabled(isOn: boolean): void;
-
   /**
    * Clear all elements from the map view.
    */
   clearMapView(): void;
 
   /**
-   * Add a circle overlay to the map.
+   * Add or update a circle overlay on the map.
+   * If a circle with the same `id` already exists, it will be updated with the new options.
+   * To update an existing circle, pass the `id` from the previously returned circle object.
    * @param circleOptions - Object specifying the properties of the circle,
    *                        including center coordinates, radius, and various
    *                        styling options.
+   * @returns The created or updated circle, including its `id` for future updates.
    */
   addCircle(circleOptions: CircleOptions): Promise<Circle>;
 
   /**
-   * Add a marker to the map.
+   * Add or update a marker on the map.
+   * If a marker with the same `id` already exists, it will be updated with the new options.
+   * To update an existing marker, pass the `id` from the previously returned marker object.
    * @param markerOptions - Object specifying properties of the marker, including
    *                        coordinates, image path, title, snippet, opacity,
    *                        rotation, and various flags for other properties.
+   * @returns The created or updated marker, including its `id` for future updates.
    */
   addMarker(markerOptions: MarkerOptions): Promise<Marker>;
   /**
-   * Add a polyline to the map.
+   * Add or update a polyline on the map.
+   * If a polyline with the same `id` already exists, it will be updated with the new options.
+   * To update an existing polyline, pass the `id` from the previously returned polyline object.
    *
    * @param polylineOptions - Object specifying properties of the polyline,
    *                          including coordinates, color, width, and visibility.
+   * @returns The created or updated polyline, including its `id` for future updates.
    */
   addPolyline(polylineOptions: PolylineOptions): Promise<Polyline>;
 
   /**
-   * Add a polygon to the map.
+   * Add or update a polygon on the map.
+   * If a polygon with the same `id` already exists, it will be updated with the new options.
+   * To update an existing polygon, pass the `id` from the previously returned polygon object.
    *
    * @param polygonOptions - Object specifying properties of the polygon,
    *                         including coordinates, stroke color, fill color,
    *                         and visibility.
+   * @returns The created or updated polygon, including its `id` for future updates.
    */
-
   addPolygon(polygonOptions: PolygonOptions): Promise<Polygon>;
+
+  /**
+   * Add or update a ground overlay on the map.
+   * A ground overlay is an image that is fixed to a map.
+   * If a ground overlay with the same `id` already exists, it will be updated with the new options.
+   * To update an existing ground overlay, pass the `id` from the previously returned object.
+   *
+   * @param groundOverlayOptions - Object specifying properties of the ground overlay,
+   *                               including image path, location, dimensions, bearing,
+   *                               transparency, and visibility.
+   * @returns The created or updated ground overlay, including its `id` for future updates.
+   */
+  addGroundOverlay(
+    groundOverlayOptions: GroundOverlayOptions
+  ): Promise<GroundOverlay>;
 
   /**
    * Removes a marker from the map.
@@ -285,76 +325,11 @@ export interface MapViewController {
   removeCircle(id: string): void;
 
   /**
-   * Enable or disable the indoor map layer.
+   * Removes a ground overlay from the map.
    *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               the indoor map layer.
+   * @param id - String specifying the id property of the ground overlay
    */
-  setIndoorEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable the traffic layer.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               the traffic layer on the map.
-   */
-
-  setTrafficEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable the compass.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               the compass on the map.
-   */
-  setCompassEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable user location
-   *
-   * @param isOn - Boolean indicating whether to display (true) or hide (false)
-   *               the user's location.
-   */
-  setMyLocationButtonEnabled(isOn: boolean): void;
-  /**
-   * Show or hide a location marker on the map.
-   *
-   * @param isOn - Indicates whether to display (true) or hide (false) the
-   *               location marker.
-   */
-  setMyLocationEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable rotate gestures.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               rotate gestures on the map.
-   */
-  setRotateGesturesEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable scroll gestures on the map.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               scroll gestures.
-   */
-  setScrollGesturesEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable scroll gestures during rotate or zoom actions.
-   *
-   * @param isOn - Boolean indicating whether to allow (true) or disallow (false)
-   *               scroll gestures while rotating or zooming the map.
-   */
-  setScrollGesturesEnabledDuringRotateOrZoom(isOn: boolean): void;
-
-  /**
-   * Enable or disable zoom control.
-   * Only available for Android
-   * @param isOn - Boolean indicating whether to allow (true) or disallow (false)
-   *               of zoom control.
-   */
-  setZoomControlsEnabled(isOn: boolean): void;
+  removeGroundOverlay(id: string): void;
 
   /**
    * Sets the zoom level of the map.
@@ -362,30 +337,6 @@ export interface MapViewController {
    * @param level - The desired zoom level.
    */
   setZoomLevel(level: number): void;
-
-  /**
-   * Enable or disable tilt gestures on the map.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               tilt gestures.
-   */
-  setTiltGesturesEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable zoom gestures on the map.
-   *
-   * @param isOn - Boolean indicating whether to enable (true) or disable (false)
-   *               zoom gestures.
-   */
-  setZoomGesturesEnabled(isOn: boolean): void;
-
-  /**
-   * Enable or disable the buildings layer on the map.
-   *
-   * @param isOn - Boolean indicating whether to display (true) or hide (false)
-   *               the buildings layer.
-   */
-  setBuildingsEnabled(isOn: boolean): void;
 
   /**
    * Getter trigger functions for MapsSDK
@@ -434,4 +385,39 @@ export interface MapViewController {
    *                  Example: { top: 10, left: 5, bottom: 15, right: 10 }
    */
   setPadding(padding: Padding): void;
+
+  /**
+   * Get all markers currently on the map.
+   *
+   * @returns A promise that resolves to an array of Marker objects.
+   */
+  getMarkers(): Promise<Marker[]>;
+
+  /**
+   * Get all circles currently on the map.
+   *
+   * @returns A promise that resolves to an array of Circle objects.
+   */
+  getCircles(): Promise<Circle[]>;
+
+  /**
+   * Get all polylines currently on the map.
+   *
+   * @returns A promise that resolves to an array of Polyline objects.
+   */
+  getPolylines(): Promise<Polyline[]>;
+
+  /**
+   * Get all polygons currently on the map.
+   *
+   * @returns A promise that resolves to an array of Polygon objects.
+   */
+  getPolygons(): Promise<Polygon[]>;
+
+  /**
+   * Get all ground overlays currently on the map.
+   *
+   * @returns A promise that resolves to an array of GroundOverlay objects.
+   */
+  getGroundOverlays(): Promise<GroundOverlay[]>;
 }

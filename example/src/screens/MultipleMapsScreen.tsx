@@ -14,36 +14,25 @@
  * limitations under the License.
  */
 
-import React, {
-  useEffect,
-  useState,
-  useMemo,
-  useCallback,
-  useRef,
-} from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { ExampleAppButton } from '../controls/ExampleAppButton';
 import PagerView, {
   type PagerViewOnPageSelectedEvent,
 } from 'react-native-pager-view';
-import Snackbar from 'react-native-snackbar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
-  NavigationInitErrorCode,
   NavigationView,
-  RouteStatus,
   MapColorScheme,
   NavigationNightMode,
+  NavigationSessionStatus,
   type ArrivalEvent,
   type Circle,
   type LatLng,
   type Location,
-  type MapViewCallbacks,
   type MapViewController,
   type Marker,
-  type NavigationCallbacks,
-  type NavigationViewCallbacks,
   type NavigationViewController,
   type Polygon,
   type Polyline,
@@ -53,14 +42,10 @@ import {
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
 import OverlayModal from '../helpers/overlayModal';
+import { showSnackbar } from '../helpers/snackbar';
 import { CommonStyles, ControlStyles } from '../styles/components';
 import { MapStylingOptions } from '../styles/mapStyling';
 import usePermissions from '../checkPermissions';
-
-// Utility function for showing Snackbar
-const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
-  Snackbar.show({ text, duration });
-};
 
 enum OverlayType {
   None = 'None',
@@ -91,132 +76,88 @@ const MultipleMapsScreen = () => {
     useState<NavigationNightMode>(NavigationNightMode.AUTO);
   const pagerRef = useRef<PagerView | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const { navigationController, addListeners, removeListeners } =
-    useNavigation();
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnArrival,
+    setOnLocationChanged,
+    setOnRawLocationChanged,
+    setOnRouteChanged,
+    setOnTrafficUpdated,
+    setOnStartGuidance,
+    setOnRemainingTimeOrDistanceChanged,
+  } = useNavigation();
 
-  const onArrival = useCallback(
-    (event: ArrivalEvent) => {
+  const onNavigationDispose = useCallback(async () => {
+    setNavigationInitialized(false);
+  }, []);
+
+  // Set up navigation event listeners
+  useEffect(() => {
+    setOnNavigationReady(() => {
+      if (navigationViewController1 != null) {
+        setNavigationInitialized(true);
+      }
+    });
+
+    setOnLocationChanged((_location: Location) => {
+      // Location changed
+    });
+
+    setOnRawLocationChanged((_location: Location) => {
+      // Raw location changed
+    });
+
+    setOnRouteChanged(() => showSnackbar('Route Changed'));
+    setOnTrafficUpdated(() => showSnackbar('Traffic Updated'));
+    setOnStartGuidance(() => showSnackbar('Start Guidance'));
+  }, [
+    navigationViewController1,
+    setOnNavigationReady,
+    setOnLocationChanged,
+    setOnRawLocationChanged,
+    setOnRouteChanged,
+    setOnTrafficUpdated,
+    setOnStartGuidance,
+  ]);
+
+  // Set up callbacks that depend on navigationController
+  useEffect(() => {
+    setOnArrival((event: ArrivalEvent) => {
       if (event.isFinalDestination) {
-        console.log('Final destination reached');
         navigationController.stopGuidance();
       } else {
-        console.log('Continuing to the next destination');
         navigationController.continueToNextDestination();
         navigationController.startGuidance();
       }
-
       showSnackbar('Arrived');
-    },
-    [navigationController]
-  );
+    });
 
-  const onNavigationReady = useCallback(async () => {
-    if (navigationViewController1 != null) {
-      await navigationViewController1.setNavigationUIEnabled(true);
-      console.log('onNavigationReady');
-      setNavigationInitialized(true);
-    }
-  }, [navigationViewController1]);
-
-  const onNavigationDispose = useCallback(async () => {
-    await navigationViewController1?.setNavigationUIEnabled(false);
-    setNavigationInitialized(false);
-  }, [navigationViewController1]);
-
-  const onNavigationInitError = useCallback(
-    (errorCode: NavigationInitErrorCode) => {
-      showSnackbar(`Failed to initialize navigation errorCode: ${errorCode}`);
-    },
-    []
-  );
-
-  const onLocationChanged = useCallback((location: Location) => {
-    console.log('onLocationChanged: ', location);
-  }, []);
-
-  const onRawLocationChanged = useCallback((location: Location) => {
-    console.log('onRawLocationChanged: ', location);
-  }, []);
-
-  const onRemainingTimeOrDistanceChanged = useCallback(async () => {
-    const currentTimeAndDistance =
-      await navigationController.getCurrentTimeAndDistance();
-
-    console.log('onRemainingTimeOrDistanceChanged', currentTimeAndDistance);
-  }, [navigationController]);
-
-  const onRouteStatusResult = useCallback((routeStatus: RouteStatus) => {
-    switch (routeStatus) {
-      case RouteStatus.OK:
-        showSnackbar('Route created');
-        break;
-      case RouteStatus.ROUTE_CANCELED:
-        showSnackbar('Error: Route Cancelled');
-        break;
-      case RouteStatus.NO_ROUTE_FOUND:
-        showSnackbar('Error: No Route Found');
-        break;
-      case RouteStatus.NETWORK_ERROR:
-        showSnackbar('Error: Network Error');
-        break;
-      case RouteStatus.LOCATION_DISABLED:
-        showSnackbar('Error: Location Disabled');
-        break;
-      case RouteStatus.LOCATION_UNKNOWN:
-        showSnackbar('Error: Location Unknown');
-        break;
-      case RouteStatus.DUPLICATE_WAYPOINTS_ERROR:
-        showSnackbar('Error: Consecutive duplicate waypoints are not allowed');
-        break;
-      default:
-        console.log('routeStatus: ' + routeStatus);
-        showSnackbar('Error: Starting Guidance Error');
-    }
-  }, []);
-
-  const navigationCallbacks: NavigationCallbacks = useMemo(
-    () => ({
-      onRouteChanged: () => showSnackbar('Route Changed'),
-      onArrival,
-      onNavigationReady,
-      onNavigationInitError,
-      onLocationChanged,
-      onRawLocationChanged,
-      onTrafficUpdated: () => showSnackbar('Traffic Updated'),
-      onRouteStatusResult,
-      onStartGuidance: () => showSnackbar('Start Guidance'),
-      onRemainingTimeOrDistanceChanged,
-    }),
-    [
-      onArrival,
-      onNavigationReady,
-      onNavigationInitError,
-      onLocationChanged,
-      onRawLocationChanged,
-      onRouteStatusResult,
-      onRemainingTimeOrDistanceChanged,
-    ]
-  );
-
-  useEffect(() => {
-    addListeners(navigationCallbacks);
-    return () => {
-      removeListeners(navigationCallbacks);
-    };
-  }, [navigationCallbacks, addListeners, removeListeners]);
+    setOnRemainingTimeOrDistanceChanged(timeAndDistance => {
+      const minutes = Math.round(timeAndDistance.seconds / 60);
+      const km = (timeAndDistance.meters / 1000).toFixed(1);
+      console.info(`ETA: ${minutes} min, ${km} km remaining`);
+    });
+  }, [navigationController, setOnArrival, setOnRemainingTimeOrDistanceChanged]);
 
   const onMap1Ready = useCallback(async () => {
-    console.log('Map is ready, initializing navigator...');
-    try {
-      await navigationController.init();
-    } catch (error) {
-      console.error('Error initializing navigator', error);
-      showSnackbar('Error initializing navigator');
+    const termsAccepted =
+      await navigationController.showTermsAndConditionsDialog();
+
+    if (!termsAccepted) {
+      showSnackbar('Terms and conditions not accepted');
+      return;
+    }
+
+    const status = await navigationController.init();
+    if (status !== NavigationSessionStatus.OK) {
+      console.error('Error initializing navigator:', status);
+      showSnackbar(`Error initializing navigator: ${status}`);
     }
   }, [navigationController]);
 
   const onRecenterButtonClick = useCallback(() => {
-    console.log('onRecenterButtonClick');
+    // Recenter button clicked
   }, []);
 
   const onShowNavControlsClick = () => {
@@ -231,69 +172,91 @@ const MultipleMapsScreen = () => {
     setOverlayType(OverlayType.MapControls2);
   };
 
-  const navigationViewCallbacks: NavigationViewCallbacks = useMemo(
-    () => ({
-      onRecenterButtonClick,
-    }),
-    [onRecenterButtonClick]
+  // Map 1 callbacks
+  const onMarkerClick1 = useCallback(
+    (marker: Marker) => {
+      showSnackbar(`Map 1: Marker clicked, removing...`);
+      mapViewController1?.removeMarker(marker.id);
+    },
+    [mapViewController1]
   );
 
-  const mapViewCallbacks1: MapViewCallbacks = useMemo(
-    () => ({
-      onMapReady: onMap1Ready,
-      onMarkerClick: (marker: Marker) => {
-        console.log('Map 1, onMarkerClick:', marker);
-        mapViewController1?.removeMarker(marker.id);
-      },
-      onPolygonClick: (polygon: Polygon) => {
-        console.log('Map 1, onPolygonClick:', polygon);
-        mapViewController1?.removePolygon(polygon.id);
-      },
-      onCircleClick: (circle: Circle) => {
-        console.log('Map 1, onCircleClick:', circle);
-        mapViewController1?.removeCircle(circle.id);
-      },
-      onPolylineClick: (polyline: Polyline) => {
-        console.log('Map 1, onPolylineClick:', polyline);
-        mapViewController1?.removePolyline(polyline.id);
-      },
-      onMarkerInfoWindowTapped: (marker: Marker) => {
-        console.log('Map 1, onMarkerInfoWindowTapped:', marker);
-      },
-      onMapClick: (latLng: LatLng) => {
-        console.log('Map 1, onMapClick:', latLng);
-      },
-    }),
-    [mapViewController1, onMap1Ready]
+  const onPolygonClick1 = useCallback(
+    (polygon: Polygon) => {
+      showSnackbar(`Map 1: Polygon clicked, removing...`);
+      mapViewController1?.removePolygon(polygon.id);
+    },
+    [mapViewController1]
   );
 
-  const mapViewCallbacks2: MapViewCallbacks = useMemo(
-    () => ({
-      onMarkerClick: (marker: Marker) => {
-        console.log('Map 2, onMarkerClick: ', marker);
-        mapViewController2?.removeMarker(marker.id);
-      },
-      onPolygonClick: (polygon: Polygon) => {
-        console.log('Map 2, onPolygonClick: ', polygon);
-        mapViewController2?.removePolygon(polygon.id);
-      },
-      onCircleClick: (circle: Circle) => {
-        console.log('Map 2, onCircleClick: ', circle);
-        mapViewController2?.removeCircle(circle.id);
-      },
-      onPolylineClick: (polyline: Polyline) => {
-        console.log('Map 2, onPolylineClick: ', polyline);
-        mapViewController2?.removePolyline(polyline.id);
-      },
-      onMarkerInfoWindowTapped: (marker: Marker) => {
-        console.log('Map 2, onMarkerInfoWindowTapped: ', marker);
-      },
-      onMapClick: (latLng: LatLng) => {
-        console.log('Map 2, onMapClick: ', latLng);
-      },
-    }),
+  const onCircleClick1 = useCallback(
+    (circle: Circle) => {
+      showSnackbar(`Map 1: Circle clicked, removing...`);
+      mapViewController1?.removeCircle(circle.id);
+    },
+    [mapViewController1]
+  );
+
+  const onPolylineClick1 = useCallback(
+    (polyline: Polyline) => {
+      showSnackbar(`Map 1: Polyline clicked, removing...`);
+      mapViewController1?.removePolyline(polyline.id);
+    },
+    [mapViewController1]
+  );
+
+  const onMarkerInfoWindowTapped1 = useCallback((_marker: Marker) => {
+    showSnackbar('Map 1: Marker info window tapped');
+  }, []);
+
+  const onMapClick1 = useCallback((latLng: LatLng) => {
+    showSnackbar(
+      `Map 1: Clicked at ${latLng.lat.toFixed(4)}, ${latLng.lng.toFixed(4)}`
+    );
+  }, []);
+
+  // Map 2 callbacks
+  const onMarkerClick2 = useCallback(
+    (marker: Marker) => {
+      showSnackbar(`Map 2: Marker clicked, removing...`);
+      mapViewController2?.removeMarker(marker.id);
+    },
     [mapViewController2]
   );
+
+  const onPolygonClick2 = useCallback(
+    (polygon: Polygon) => {
+      showSnackbar(`Map 2: Polygon clicked, removing...`);
+      mapViewController2?.removePolygon(polygon.id);
+    },
+    [mapViewController2]
+  );
+
+  const onCircleClick2 = useCallback(
+    (circle: Circle) => {
+      showSnackbar(`Map 2: Circle clicked, removing...`);
+      mapViewController2?.removeCircle(circle.id);
+    },
+    [mapViewController2]
+  );
+
+  const onPolylineClick2 = useCallback(
+    (polyline: Polyline) => {
+      showSnackbar(`Map 2: Polyline clicked, removing...`);
+      mapViewController2?.removePolyline(polyline.id);
+    },
+    [mapViewController2]
+  );
+
+  const onMarkerInfoWindowTapped2 = useCallback((_marker: Marker) => {
+    showSnackbar('Map 2: Marker info window tapped');
+  }, []);
+
+  const onMapClick2 = useCallback((latLng: LatLng) => {
+    showSnackbar(
+      `Map 2: Clicked at ${latLng.lat.toFixed(4)}, ${latLng.lng.toFixed(4)}`
+    );
+  }, []);
 
   const closeOverlay = (): void => {
     setOverlayType(OverlayType.None);
@@ -349,8 +312,14 @@ const MultipleMapsScreen = () => {
                 iOSStylingOptions={MapStylingOptions.iOS}
                 mapColorScheme={mapColorScheme1}
                 navigationNightMode={navigationNightMode}
-                navigationViewCallbacks={navigationViewCallbacks}
-                mapViewCallbacks={mapViewCallbacks1}
+                onRecenterButtonClick={onRecenterButtonClick}
+                onMapReady={onMap1Ready}
+                onMarkerClick={onMarkerClick1}
+                onPolygonClick={onPolygonClick1}
+                onCircleClick={onCircleClick1}
+                onPolylineClick={onPolylineClick1}
+                onMarkerInfoWindowTapped={onMarkerInfoWindowTapped1}
+                onMapClick={onMapClick1}
                 onMapViewControllerCreated={setMapViewController1}
                 onNavigationViewControllerCreated={setNavigationViewController1}
               />
@@ -370,16 +339,23 @@ const MultipleMapsScreen = () => {
             <View key="2" style={{ flex: 1 }}>
               <MapView
                 style={{ flex: 1 }}
-                mapViewCallbacks={mapViewCallbacks2}
                 mapColorScheme={mapColorScheme2}
+                onMarkerClick={onMarkerClick2}
+                onPolygonClick={onPolygonClick2}
+                onCircleClick={onCircleClick2}
+                onPolylineClick={onPolylineClick2}
+                onMarkerInfoWindowTapped={onMarkerInfoWindowTapped2}
+                onMapClick={onMapClick2}
                 onMapViewControllerCreated={setMapViewController2}
               />
-              <View style={ControlStyles.controlButtons}>
-                <ExampleAppButton
-                  title="Map 2"
-                  onPress={onShowMapsControlsClick2}
-                />
-              </View>
+              {currentPage === 1 && (
+                <View style={ControlStyles.controlButtons}>
+                  <ExampleAppButton
+                    title="Map 2"
+                    onPress={onShowMapsControlsClick2}
+                  />
+                </View>
+              )}
             </View>
           </PagerView>
 
@@ -398,7 +374,6 @@ const MultipleMapsScreen = () => {
                   onNavigationDispose={onNavigationDispose}
                   navigationNightMode={navigationNightMode}
                   onNavigationNightModeChange={setNavigationNightMode}
-                  showMessage={showSnackbar}
                 />
               </OverlayModal>
             )}
@@ -412,7 +387,6 @@ const MultipleMapsScreen = () => {
                 mapViewController={mapViewController1}
                 mapColorScheme={mapColorScheme1}
                 onMapColorSchemeChange={setMapColorScheme1}
-                showMessage={showSnackbar}
               />
             </OverlayModal>
           )}
@@ -426,7 +400,6 @@ const MultipleMapsScreen = () => {
                 mapViewController={mapViewController2}
                 mapColorScheme={mapColorScheme2}
                 onMapColorSchemeChange={setMapColorScheme2}
-                showMessage={showSnackbar}
               />
             </OverlayModal>
           )}

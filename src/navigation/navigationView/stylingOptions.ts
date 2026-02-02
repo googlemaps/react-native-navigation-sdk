@@ -14,35 +14,37 @@
  * limitations under the License.
  */
 
+import type { ColorValue } from 'react-native';
+
 export interface AndroidStylingOptions {
-  primaryDayModeThemeColor?: string;
-  secondaryDayModeThemeColor?: string;
-  primaryNightModeThemeColor?: string;
-  secondaryNightModeThemeColor?: string;
-  headerLargeManeuverIconColor?: string;
-  headerSmallManeuverIconColor?: string;
-  headerNextStepTextColor?: string;
+  primaryDayModeThemeColor?: ColorValue;
+  secondaryDayModeThemeColor?: ColorValue;
+  primaryNightModeThemeColor?: ColorValue;
+  secondaryNightModeThemeColor?: ColorValue;
+  headerLargeManeuverIconColor?: ColorValue;
+  headerSmallManeuverIconColor?: ColorValue;
+  headerNextStepTextColor?: ColorValue;
   headerNextStepTextSize?: string;
-  headerDistanceValueTextColor?: string;
-  headerDistanceUnitsTextColor?: string;
+  headerDistanceValueTextColor?: ColorValue;
+  headerDistanceUnitsTextColor?: ColorValue;
   headerDistanceValueTextSize?: string;
   headerDistanceUnitsTextSize?: string;
-  headerInstructionsTextColor?: string;
+  headerInstructionsTextColor?: ColorValue;
   headerInstructionsFirstRowTextSize?: string;
   headerInstructionsSecondRowTextSize?: string;
-  headerGuidanceRecommendedLaneColor?: string;
+  headerGuidanceRecommendedLaneColor?: ColorValue;
 }
 
 export interface iOSStylingOptions {
-  navigationHeaderPrimaryBackgroundColor?: string;
-  navigationHeaderSecondaryBackgroundColor?: string;
-  navigationHeaderPrimaryBackgroundColorNightMode?: string;
-  navigationHeaderSecondaryBackgroundColorNightMode?: string;
-  navigationHeaderLargeManeuverIconColor?: string;
-  navigationHeaderSmallManeuverIconColor?: string;
-  navigationHeaderGuidanceRecommendedLaneColor?: string;
-  navigationHeaderNextStepTextColor?: string;
-  navigationHeaderDistanceValueTextColor?: string;
-  navigationHeaderDistanceUnitsTextColor?: string;
-  navigationHeaderInstructionsTextColor?: string;
+  navigationHeaderPrimaryBackgroundColor?: ColorValue;
+  navigationHeaderSecondaryBackgroundColor?: ColorValue;
+  navigationHeaderPrimaryBackgroundColorNightMode?: ColorValue;
+  navigationHeaderSecondaryBackgroundColorNightMode?: ColorValue;
+  navigationHeaderLargeManeuverIconColor?: ColorValue;
+  navigationHeaderSmallManeuverIconColor?: ColorValue;
+  navigationHeaderGuidanceRecommendedLaneColor?: ColorValue;
+  navigationHeaderNextStepTextColor?: ColorValue;
+  navigationHeaderDistanceValueTextColor?: ColorValue;
+  navigationHeaderDistanceUnitsTextColor?: ColorValue;
+  navigationHeaderInstructionsTextColor?: ColorValue;
 }

@@ -18,6 +18,7 @@ import React, { useState } from 'react';
 import { Alert, Platform, Text, TextInput, View } from 'react-native';
 import { ExampleAppButton } from './ExampleAppButton';
 import { Accordion } from './Accordion';
+import { showSnackbar, Snackbar } from '../helpers/snackbar';
 import {
   CameraPerspective,
   NavigationNightMode,
@@ -28,37 +29,51 @@ import {
   type CameraPosition,
   type NavigationController,
   type DisplayOptions,
+  RouteStatus,
 } from '@googlemaps/react-native-navigation-sdk';
 import SelectDropdown from 'react-native-select-dropdown';
 
 import { ControlStyles } from '../styles/components';
 
-export type NavigationControlsProps = {
+export interface NavigationControlsProps {
   readonly navigationController: NavigationController;
   readonly navigationViewController: NavigationViewController;
   readonly onNavigationDispose?: () => void;
   readonly getCameraPosition: undefined | (() => Promise<CameraPosition>);
   readonly onNavigationNightModeChange?: (mode: NavigationNightMode) => void;
   readonly navigationNightMode?: NavigationNightMode;
-  readonly showMessage?: (message: string) => void;
-};
+  readonly onTripProgressBarEnabledChange?: (enabled: boolean) => void;
+  readonly onTrafficPromptsEnabledChange?: (enabled: boolean) => void;
+  readonly onTrafficIncidentCardsEnabledChange?: (enabled: boolean) => void;
+  readonly onHeaderEnabledChange?: (enabled: boolean) => void;
+  readonly onFooterEnabledChange?: (enabled: boolean) => void;
+  readonly onSpeedometerEnabledChange?: (enabled: boolean) => void;
+  readonly onSpeedLimitIconEnabledChange?: (enabled: boolean) => void;
+  readonly onRecenterButtonEnabledChange?: (enabled: boolean) => void;
+  readonly onReportIncidentButtonEnabledChange?: (enabled: boolean) => void;
+  readonly onFollowingPerspectiveChange?: (
+    perspective: CameraPerspective
+  ) => void;
+}
 
-const NavigationControls = ({
+const NavigationControls: React.FC<NavigationControlsProps> = ({
   navigationController,
   navigationViewController,
   onNavigationDispose,
   getCameraPosition,
   onNavigationNightModeChange,
   navigationNightMode = NavigationNightMode.AUTO,
-  showMessage,
-}: NavigationControlsProps) => {
-  const log = (message: string) => {
-    if (showMessage) {
-      showMessage(message);
-    } else {
-      console.log(message);
-    }
-  };
+  onTripProgressBarEnabledChange,
+  onTrafficPromptsEnabledChange,
+  onTrafficIncidentCardsEnabledChange,
+  onHeaderEnabledChange,
+  onFooterEnabledChange,
+  onSpeedometerEnabledChange,
+  onSpeedLimitIconEnabledChange,
+  onRecenterButtonEnabledChange,
+  onReportIncidentButtonEnabledChange,
+  onFollowingPerspectiveChange,
+}) => {
   const perspectiveOptions = ['Tilted', 'North up', 'Heading up'];
   const nightModeOptions = ['Auto', 'Force Day', 'Force Night'];
   const nightModeIndex =
@@ -77,6 +92,7 @@ const NavigationControls = ({
     useState(false);
   const [speedLimitIconEnabled, setSpeedLimitIconEnabled] = useState(false);
   const [speedometerEnabled, setSpeedometerEnabled] = useState(false);
+  const [trafficPromptsEnabled, setTrafficPromptsEnabled] = useState(true);
   const [trafficIncidentCardsEnabled, setTrafficIncidentCardsEnabled] =
     useState(false);
   const [recenterButtonEnabled, setRecenterButtonEnabled] = useState(true);
@@ -89,6 +105,35 @@ const NavigationControls = ({
 
   const [latitude, onLatChanged] = useState('');
   const [longitude, onLngChanged] = useState('');
+
+  const handleRouteStatus = (routeStatus: RouteStatus) => {
+    switch (routeStatus) {
+      case RouteStatus.OK:
+        showSnackbar('Route created successfully');
+        break;
+      case RouteStatus.ROUTE_CANCELED:
+        Alert.alert('Error', 'Route Cancelled');
+        break;
+      case RouteStatus.NO_ROUTE_FOUND:
+        Alert.alert('Error', 'No Route Found');
+        break;
+      case RouteStatus.NETWORK_ERROR:
+        Alert.alert('Error', 'Network Error');
+        break;
+      case RouteStatus.LOCATION_DISABLED:
+        Alert.alert('Error', 'Location Disabled');
+        break;
+      case RouteStatus.LOCATION_UNKNOWN:
+        Alert.alert('Error', 'Location Unknown');
+        break;
+      case RouteStatus.DUPLICATE_WAYPOINTS_ERROR:
+        Alert.alert('Error', 'Consecutive duplicate waypoints are not allowed');
+        break;
+      default:
+        showSnackbar('Route status: ' + routeStatus);
+        Alert.alert('Error', 'Starting Guidance Error');
+    }
+  };
 
   const disposeNavigation = async () => {
     try {
@@ -127,10 +172,11 @@ const NavigationControls = ({
       showTrafficLights: true,
     };
 
-    navigationController.setDestination(waypoint, {
+    const routeStatus = await navigationController.setDestination(waypoint, {
       routingOptions,
       displayOptions,
     });
+    handleRouteStatus(routeStatus);
   };
 
   const setLocationFromCameraLocation = async () => {
@@ -165,14 +211,15 @@ const NavigationControls = ({
       showTrafficLights: true,
     };
 
-    navigationController.setDestinations(waypoints, {
+    const routeStatus = await navigationController.setDestinations(waypoints, {
       routingOptions,
       displayOptions,
     });
+    handleRouteStatus(routeStatus);
   };
 
-  const setFollowingPerspective = (index: CameraPerspective) => {
-    navigationViewController.setFollowingPerspective(index);
+  const setFollowingPerspective = (_index: CameraPerspective) => {
+    onFollowingPerspectiveChange?.(_index);
   };
 
   const continueToNextDestination = () => {
@@ -209,74 +256,71 @@ const NavigationControls = ({
     navigationController.simulator.resumeLocationSimulation();
   };
 
-  const simulateLocation = () => {
-    if (!latitude.trim() || !longitude.trim()) {
-      Alert.alert('Set lat lng values first');
-      return;
+  const simulateLocation = async () => {
+    if (getCameraPosition) {
+      const cameraPosition = await getCameraPosition();
+      if (cameraPosition) {
+        navigationController.simulator.simulateLocation({
+          lat: cameraPosition.target.lat,
+          lng: cameraPosition.target.lng,
+        });
+        showSnackbar(
+          `Simulating location: ${cameraPosition.target.lat.toFixed(4)}, ${cameraPosition.target.lng.toFixed(4)}`
+        );
+      } else {
+        Alert.alert('Error', 'Could not get camera position');
+      }
+    } else {
+      Alert.alert('Error', 'Camera position not available');
     }
-
-    navigationController.simulator.simulateLocation({
-      lat: Number(latitude),
-      lng: Number(longitude),
-    });
   };
 
   const toggleSpeedLimitIconEnabled = (isOn: boolean) => {
-    log(`Speed limit icon: ${isOn ? 'enabled' : 'disabled'}`);
     setSpeedLimitIconEnabled(isOn);
-    navigationViewController.setSpeedLimitIconEnabled(isOn);
+    onSpeedLimitIconEnabledChange?.(isOn);
   };
 
   const toggleSpeedometerEnabled = (isOn: boolean) => {
-    log(`Speedometer: ${isOn ? 'enabled' : 'disabled'}`);
     setSpeedometerEnabled(isOn);
-    navigationViewController.setSpeedometerEnabled(isOn);
+    onSpeedometerEnabledChange?.(isOn);
   };
 
   const toggleNavigationUiEnabled = (isOn: boolean) => {
-    log(`Navigation UI: ${isOn ? 'enabled' : 'disabled'}`);
     setNavigationUIEnabled(isOn);
     navigationViewController.setNavigationUIEnabled(isOn);
   };
 
   const toggleTurnByTurnLoggingEnabled = (isOn: boolean) => {
-    log(`Turn-by-turn logging: ${isOn ? 'enabled' : 'disabled'}`);
     setTurnByTurnLoggingEnabled(isOn);
     navigationController.setTurnByTurnLoggingEnabled(isOn);
   };
 
   const toggleTrafficIncidentCardsEnabled = (isOn: boolean) => {
-    log(`Traffic incident cards: ${isOn ? 'enabled' : 'disabled'}`);
     setTrafficIncidentCardsEnabled(isOn);
-    navigationViewController.setTrafficIncidentCardsEnabled(isOn);
+    onTrafficIncidentCardsEnabledChange?.(isOn);
   };
 
   const toggleBackgroundLocationUpdatesEnabled = (isOn: boolean) => {
-    log(`Background location updates: ${isOn ? 'enabled' : 'disabled'}`);
     setBackgroundLocationUpdatesEnabled(isOn);
     navigationController.setBackgroundLocationUpdatesEnabled(isOn);
   };
 
   const toggleRecenterButtonEnabled = (isOn: boolean) => {
-    log(`Recenter button: ${isOn ? 'enabled' : 'disabled'}`);
     setRecenterButtonEnabled(isOn);
-    navigationViewController.setRecenterButtonEnabled(isOn);
+    onRecenterButtonEnabledChange?.(isOn);
   };
 
   const toggleHeaderEnabled = (isOn: boolean) => {
-    log(`Header: ${isOn ? 'enabled' : 'disabled'}`);
     setHeaderEnabled(isOn);
-    navigationViewController.setHeaderEnabled(isOn);
+    onHeaderEnabledChange?.(isOn);
   };
 
   const toggleFooterEnabled = (isOn: boolean) => {
-    log(`Footer: ${isOn ? 'enabled' : 'disabled'}`);
     setFooterEnabled(isOn);
-    navigationViewController.setFooterEnabled(isOn);
+    onFooterEnabledChange?.(isOn);
   };
 
   const showRouteOverview = () => {
-    log('Showing route overview');
     navigationViewController.showRouteOverview();
   };
 
@@ -291,29 +335,43 @@ const NavigationControls = ({
   };
 
   const setAudioGuidanceType = (index: number) => {
-    const types = ['Silent', 'Alerts only', 'Alerts and guidance'];
-    log(`Audio guidance: ${types[index] || index}`);
     navigationController.setAudioGuidanceType(index);
   };
 
   const getCurrentRouteSegment = async () => {
     const result = await navigationController.getCurrentRouteSegment();
-    log(`Route segment: ${JSON.stringify(result)}`);
+    if (result) {
+      showSnackbar(
+        `Route segment: ${result.destinationWaypoint?.title ?? 'Unknown'} - ${result.segmentLatLngList?.length ?? 0} points`,
+        Snackbar.LENGTH_LONG
+      );
+    } else {
+      showSnackbar('No current route segment');
+    }
   };
 
   const getRouteSegments = async () => {
     const result = await navigationController.getRouteSegments();
-    log(`Route segments: ${result.length} segments`);
+    showSnackbar(`Route segments: ${result?.length ?? 0} segment(s)`);
   };
 
   const getTraveledPath = async () => {
     const result = await navigationController.getTraveledPath();
-    log(`Traveled path: ${result.length} points`);
+    showSnackbar(`Traveled path: ${result?.length ?? 0} point(s)`);
   };
 
   const getCurrentTimeAndDistanceClicked = async () => {
     const result = await navigationController.getCurrentTimeAndDistance();
-    log(`Time: ${result.seconds}s, Distance: ${result.meters}m`);
+    if (result) {
+      const minutes = Math.round((result.seconds ?? 0) / 60);
+      const km = ((result.meters ?? 0) / 1000).toFixed(1);
+      showSnackbar(
+        `Time: ${minutes} min, Distance: ${km} km`,
+        Snackbar.LENGTH_LONG
+      );
+    } else {
+      showSnackbar('No time/distance data');
+    }
   };
 
   const startUpdatingLocation = () => {
@@ -326,12 +384,33 @@ const NavigationControls = ({
 
   const getNavSDKVersion = async () => {
     const version = await navigationController.getNavSDKVersion();
-    log(`NavSDK version: ${version}`);
+    showSnackbar(`NavSDK version: ${version}`, Snackbar.LENGTH_LONG);
   };
 
   const getAreTermsAccepted = async () => {
     const accepted = await navigationController.areTermsAccepted();
-    log(`Terms accepted: ${accepted}`);
+    showSnackbar(`Terms accepted: ${accepted ? 'Yes' : 'No'}`);
+  };
+
+  const resetTerms = async () => {
+    try {
+      await navigationController.resetTermsAccepted();
+      showSnackbar('Terms of Service have been reset');
+    } catch (e) {
+      showSnackbar(`Error resetting terms: ${e}`);
+    }
+  };
+
+  const showTermsDialog = async () => {
+    try {
+      const accepted =
+        await navigationController.showTermsAndConditionsDialog();
+      showSnackbar(
+        `Terms dialog result: ${accepted ? 'Accepted' : 'Not accepted'}`
+      );
+    } catch (e) {
+      showSnackbar(`Error showing terms dialog: ${e}`);
+    }
   };
 
   const setSpeedAlertOptions = () => {
@@ -402,7 +481,7 @@ const NavigationControls = ({
       {/* Simulation */}
       <Accordion title="Simulation">
         <ExampleAppButton
-          title="Simulate location from target"
+          title="Simulate location from Camera Location"
           onPress={simulateLocation}
         />
         <ExampleAppButton title="Start simulation" onPress={startSimulation} />
@@ -475,10 +554,9 @@ const NavigationControls = ({
           <ExampleAppButton
             title={tripProgressBarEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
-              setTripProgressBarEnabled(!tripProgressBarEnabled);
-              navigationViewController.setTripProgressBarEnabled(
-                !tripProgressBarEnabled
-              );
+              const newValue = !tripProgressBarEnabled;
+              setTripProgressBarEnabled(newValue);
+              onTripProgressBarEnabledChange?.(newValue);
             }}
           />
         </View>
@@ -496,10 +574,9 @@ const NavigationControls = ({
           <ExampleAppButton
             title={reportIncidentButtonEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
-              setReportIncidentButtonEnabled(!reportIncidentButtonEnabled);
-              navigationViewController.setReportIncidentButtonEnabled(
-                !reportIncidentButtonEnabled
-              );
+              const newValue = !reportIncidentButtonEnabled;
+              setReportIncidentButtonEnabled(newValue);
+              onReportIncidentButtonEnabledChange?.(newValue);
             }}
           />
         </View>
@@ -509,6 +586,17 @@ const NavigationControls = ({
             title={trafficIncidentCardsEnabled ? 'Disable' : 'Enable'}
             onPress={() => {
               toggleTrafficIncidentCardsEnabled(!trafficIncidentCardsEnabled);
+            }}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Traffic prompts & callouts</Text>
+          <ExampleAppButton
+            title={trafficPromptsEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
+              const newValue = !trafficPromptsEnabled;
+              setTrafficPromptsEnabled(newValue);
+              onTrafficPromptsEnabledChange?.(newValue);
             }}
           />
         </View>
@@ -666,6 +754,8 @@ const NavigationControls = ({
           title="Are terms accepted?"
           onPress={getAreTermsAccepted}
         />
+        <ExampleAppButton title="Reset terms" onPress={resetTerms} />
+        <ExampleAppButton title="Show terms dialog" onPress={showTermsDialog} />
         <ExampleAppButton
           title="Get current time and distance"
           onPress={getCurrentTimeAndDistanceClicked}

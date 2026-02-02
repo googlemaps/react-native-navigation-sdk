@@ -13,8 +13,14 @@
 // limitations under the License.
 
 apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
+apply plugin: 'com.ncorti.ktfmt.gradle'
+
+ktfmt {
+    googleStyle()
+}
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -147,7 +153,7 @@ dependencies {
     implementation "androidx.car.app:app-projected:1.4.0"
 
     // Include the Google Navigation SDK.
-    implementation 'com.google.android.libraries.navigation:navigation:7.2.0'
+    implementation 'com.google.android.libraries.navigation:navigation:7.3.0'
 }
 
 secrets {

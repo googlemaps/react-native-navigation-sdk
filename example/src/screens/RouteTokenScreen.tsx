@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -29,10 +29,8 @@ import { CommonStyles, MapStyles } from '../styles/components';
 import {
   NavigationView,
   TravelMode,
+  NavigationSessionStatus,
   type NavigationViewController,
-  type NavigationCallbacks,
-  type MapViewCallbacks,
-  type NavigationViewCallbacks,
   type Waypoint,
   type RouteTokenOptions,
   type LatLng,
@@ -41,7 +39,7 @@ import {
 } from '@googlemaps/react-native-navigation-sdk';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import usePermissions from '../checkPermissions';
-import Snackbar from 'react-native-snackbar';
+import { showSnackbar } from '../helpers/snackbar';
 import { getRouteToken } from '../helpers/routesApi';
 
 // Fixed locations for the route token example
@@ -55,10 +53,6 @@ const DESTINATION_LOCATION: LatLng = {
   lng: -122.4194,
 }; // San Francisco
 
-const showSnackbar = (text: string, duration = Snackbar.LENGTH_SHORT) => {
-  Snackbar.show({ text, duration });
-};
-
 const RouteTokenScreen = () => {
   const [routeTokenInput, setRouteTokenInput] = useState<string>('');
   const [confirmedRouteToken, setConfirmedRouteToken] = useState<string | null>(
@@ -71,8 +65,7 @@ const RouteTokenScreen = () => {
   const [isFetchingToken, setIsFetchingToken] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
   const { arePermissionsApproved } = usePermissions();
-  const { navigationController, addListeners, removeListeners } =
-    useNavigation();
+  const { navigationController, setOnNavigationReady } = useNavigation();
 
   const handleFetchRouteToken = useCallback(async () => {
     if (apiKey.trim() === '') {
@@ -113,104 +106,90 @@ const RouteTokenScreen = () => {
     setConfirmedRouteToken(null);
   }, []);
 
-  const onNavigationReady = useCallback(async () => {
-    if (navigationViewController != null && confirmedRouteToken != null) {
-      await navigationViewController.setNavigationUIEnabled(true);
-      console.log('Navigation ready, setting route with token');
+  const onRecenterButtonClick = useCallback(() => {
+    // Recenter button clicked
+  }, []);
 
-      // Simulate user location at origin before setting destination
-      navigationController.simulator.simulateLocation(ORIGIN_LOCATION);
+  // Set up navigation listeners
+  useEffect(() => {
+    setOnNavigationReady(async () => {
+      if (navigationViewController != null && confirmedRouteToken != null) {
+        await navigationViewController.setNavigationUIEnabled(true);
 
-      // Set destination with route token using fixed destination
-      const waypoint: Waypoint = {
-        title: 'San Francisco',
-        position: DESTINATION_LOCATION,
-      };
+        // Simulate user location at origin before setting destination
+        navigationController.simulator.simulateLocation(ORIGIN_LOCATION);
 
-      const routeTokenOptions: RouteTokenOptions = {
-        routeToken: confirmedRouteToken,
-        travelMode: TravelMode.DRIVING, // Route tokens only support driving mode.
-      };
+        // Set destination with route token using fixed destination
+        const waypoint: Waypoint = {
+          title: 'San Francisco',
+          position: DESTINATION_LOCATION,
+        };
 
-      try {
-        await navigationController.setDestination(waypoint, {
-          displayOptions: { showDestinationMarkers: true },
-          routeTokenOptions,
-        });
-      } catch (error) {
-        console.error('Error setting destination with route token:', error);
-        Alert.alert(
-          'Route Token Error',
-          'Failed to set destination with route token. The token may be malformed or expired.'
-        );
+        const routeTokenOptions: RouteTokenOptions = {
+          routeToken: confirmedRouteToken,
+          travelMode: TravelMode.DRIVING, // Route tokens only support driving mode.
+        };
+
+        try {
+          const routeStatus = await navigationController.setDestination(
+            waypoint,
+            {
+              displayOptions: { showDestinationMarkers: true },
+              routeTokenOptions,
+            }
+          );
+
+          // Handle route status result
+          switch (routeStatus) {
+            case RouteStatus.OK:
+              showSnackbar('Route created from token');
+              break;
+            case RouteStatus.ROUTE_CANCELED:
+              showSnackbar('Error: Route Cancelled');
+              break;
+            case RouteStatus.NO_ROUTE_FOUND:
+              showSnackbar('Error: No Route Found');
+              break;
+            case RouteStatus.NETWORK_ERROR:
+              showSnackbar('Error: Network Error');
+              break;
+            default:
+              showSnackbar('Error: Route creation failed');
+          }
+        } catch (error) {
+          console.error('Error setting destination with route token:', error);
+          Alert.alert(
+            'Route Token Error',
+            'Failed to set destination with route token. The token may be malformed or expired.'
+          );
+        }
       }
-    }
-  }, [navigationViewController, confirmedRouteToken, navigationController]);
+    });
+  }, [
+    setOnNavigationReady,
+    navigationViewController,
+    confirmedRouteToken,
+    navigationController,
+  ]);
 
   const onNavigationMapReady = useCallback(async () => {
-    console.log(
-      'NavigationView map is ready, initializing navigation session...'
-    );
-    try {
-      await navigationController.init();
-      console.log('Navigation session initialized successfully');
-    } catch (error) {
-      console.error('Error initializing navigation session', error);
+    const termsAccepted =
+      await navigationController.showTermsAndConditionsDialog();
+
+    if (!termsAccepted) {
+      Alert.alert('Terms Required', 'Terms and conditions not accepted');
+      return;
+    }
+
+    const status = await navigationController.init();
+    if (status !== NavigationSessionStatus.OK) {
+      console.error('Error initializing navigation session:', status);
       Alert.alert(
         'Navigation Error',
-        'Failed to initialize navigation session'
+        `Failed to initialize navigation session: ${status}`
       );
     }
   }, [navigationController]);
-
-  const onRouteStatusResult = useCallback((routeStatus: RouteStatus) => {
-    switch (routeStatus) {
-      case RouteStatus.OK:
-        showSnackbar('Route created from token');
-        break;
-      case RouteStatus.ROUTE_CANCELED:
-        showSnackbar('Error: Route Cancelled');
-        break;
-      case RouteStatus.NO_ROUTE_FOUND:
-        showSnackbar('Error: No Route Found');
-        break;
-      case RouteStatus.NETWORK_ERROR:
-        showSnackbar('Error: Network Error');
-        break;
-      default:
-        console.log('routeStatus: ' + routeStatus);
-        showSnackbar('Error: Route creation failed');
-    }
-  }, []);
-
-  const navigationCallbacks: NavigationCallbacks = useMemo(
-    () => ({
-      onNavigationReady,
-      onRouteStatusResult,
-    }),
-    [onNavigationReady, onRouteStatusResult]
-  );
-
-  const navigationMapViewCallbacks: MapViewCallbacks = useMemo(
-    () => ({
-      onMapReady: onNavigationMapReady,
-    }),
-    [onNavigationMapReady]
-  );
-
-  const navigationViewCallbacks: NavigationViewCallbacks = useMemo(
-    () => ({
-      onRecenterButtonClick: () => console.log('Recenter button clicked'),
-    }),
-    []
-  );
-
-  useEffect(() => {
-    addListeners(navigationCallbacks);
-    return () => {
-      removeListeners(navigationCallbacks);
-    };
-  }, [navigationCallbacks, addListeners, removeListeners]);
 
   const startGuidance = useCallback(async () => {
     try {
@@ -362,8 +341,8 @@ const RouteTokenScreen = () => {
           <View style={MapStyles.mapContainer}>
             <NavigationView
               style={MapStyles.map}
-              navigationViewCallbacks={navigationViewCallbacks}
-              mapViewCallbacks={navigationMapViewCallbacks}
+              onRecenterButtonClick={onRecenterButtonClick}
+              onMapReady={onNavigationMapReady}
               onNavigationViewControllerCreated={setNavigationViewController}
               onMapViewControllerCreated={() => {}}
             />

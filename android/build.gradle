@@ -12,43 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import groovy.json.JsonSlurper
-
-buildscript {
-  ext.kotlin_version = '2.1.21'
-  repositories {
-    google()
-    mavenCentral()
-  }
-
-  dependencies {
-    classpath "com.android.tools.build:gradle:8.7.2"
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-  }
-}
-
-def isNewArchitectureEnabled() {
-  return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
+def safeExtGet(prop, fallback) {
+  rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
 }
 
 apply plugin: 'com.android.library'
-
-if (isNewArchitectureEnabled()) {
-  apply plugin: "com.facebook.react"
-}
+apply plugin: 'kotlin-android'
+apply plugin: 'com.facebook.react'
 
 android {
   namespace "com.google.android.react.navsdk"
-  compileSdkVersion 35
+  compileSdk safeExtGet('compileSdkVersion', 35)
+
+  defaultConfig {
+    minSdk safeExtGet('minSdkVersion', 24)
+  }
 
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
-  }
-
-  defaultConfig {
-    minSdkVersion 24
-    targetSdkVersion 36
   }
 
   buildFeatures {
@@ -66,15 +48,14 @@ android {
     disable "GradleCompatible"
   }
 
-  compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
+  sourceSets {
+    main {
+      java.srcDirs += [
+        "generated/java",
+        "generated/jni"
+      ]
+    }
   }
-}
-
-repositories {
-  google()
-  mavenCentral()
 }
 
 dependencies {
@@ -82,6 +63,6 @@ dependencies {
   implementation "androidx.car.app:app:1.4.0"
   implementation "androidx.car.app:app-projected:1.4.0"
   implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-  implementation "com.google.android.libraries.navigation:navigation:7.1.0"
+  implementation "com.google.android.libraries.navigation:navigation:7.3.0"
   api 'com.google.guava:guava:31.0.1-android'
 }

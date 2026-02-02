@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -30,11 +30,10 @@ import {
   MapView,
   MapColorScheme,
   NavigationNightMode,
+  NavigationSessionStatus,
   type NavigationViewController,
-  type NavigationCallbacks,
-  type MapViewCallbacks,
-  type NavigationViewCallbacks,
   useNavigation,
+  NavigationUIEnabledPreference,
 } from '@googlemaps/react-native-navigation-sdk';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import usePermissions from '../checkPermissions';
@@ -52,8 +51,7 @@ const MapIdScreen = () => {
   );
   const insets = useSafeAreaInsets();
   const { arePermissionsApproved } = usePermissions();
-  const { navigationController, addListeners, removeListeners } =
-    useNavigation();
+  const { navigationController, setOnNavigationReady } = useNavigation();
 
   const handleSetMapId = useCallback(() => {
     if (mapIdInput.trim() === '') {
@@ -82,11 +80,8 @@ const MapIdScreen = () => {
 
   const toggleNavigationUiEnabled = useCallback(
     (isOn: boolean) => {
-      console.log('setNavigationUIEnabled', isOn);
       setNavigationUIEnabled(isOn);
-      if (navigationViewController) {
-        navigationViewController.setNavigationUIEnabled(isOn);
-      }
+      navigationViewController?.setNavigationUIEnabled(isOn);
     },
     [navigationViewController]
   );
@@ -133,58 +128,31 @@ const MapIdScreen = () => {
     }
   };
 
-  const onNavigationReady = useCallback(async () => {
-    if (navigationViewController != null) {
-      await navigationViewController.setNavigationUIEnabled(true);
-      console.log('Navigation ready with mapId:', confirmedMapId);
-    }
-  }, [navigationViewController, confirmedMapId]);
-
   const onNavigationMapReady = useCallback(async () => {
-    console.log(
-      'NavigationView map is ready, initializing navigation session...'
-    );
-    try {
-      await navigationController.init();
-      console.log('Navigation session initialized successfully');
-    } catch (error) {
-      console.error('Error initializing navigation session', error);
+    const termsAccepted =
+      await navigationController.showTermsAndConditionsDialog();
+
+    if (!termsAccepted) {
+      Alert.alert('Terms Required', 'Terms and conditions not accepted');
+      return;
+    }
+
+    const status = await navigationController.init();
+    if (status !== NavigationSessionStatus.OK) {
+      console.error('Error initializing navigation session:', status);
       Alert.alert(
         'Navigation Error',
-        'Failed to initialize navigation session'
+        `Failed to initialize navigation session: ${status}`
       );
     }
   }, [navigationController]);
 
-  const navigationCallbacks: NavigationCallbacks = useMemo(
-    () => ({
-      onNavigationReady,
-    }),
-    [onNavigationReady]
-  );
-
-  const navigationMapViewCallbacks: MapViewCallbacks = useMemo(
-    () => ({
-      onMapReady: onNavigationMapReady,
-    }),
-    [onNavigationMapReady]
-  );
-
-  const navigationViewCallbacks: NavigationViewCallbacks = useMemo(
-    () => ({
-      onRecenterButtonClick: () => console.log('Recenter button clicked'),
-      onPromptVisibilityChanged: visible =>
-        console.log('Prompt visibility changed:', visible),
-    }),
-    []
-  );
-
+  // Set up navigation listeners
   useEffect(() => {
-    addListeners(navigationCallbacks);
-    return () => {
-      removeListeners(navigationCallbacks);
-    };
-  }, [navigationCallbacks, addListeners, removeListeners]);
+    setOnNavigationReady(() => {
+      // Navigation ready
+    });
+  }, [setOnNavigationReady, navigationViewController, confirmedMapId]);
 
   if (!arePermissionsApproved) {
     return (
@@ -277,10 +245,18 @@ const MapIdScreen = () => {
               mapId={confirmedMapId || undefined}
               mapColorScheme={mapColorScheme}
               navigationNightMode={navigationNightMode}
-              navigationViewCallbacks={navigationViewCallbacks}
-              mapViewCallbacks={navigationMapViewCallbacks}
+              navigationUIEnabledPreference={
+                NavigationUIEnabledPreference.AUTOMATIC
+              }
+              onRecenterButtonClick={() => {
+                // Recenter button clicked
+              }}
+              onPromptVisibilityChanged={_visible => {
+                // Prompt visibility changed
+              }}
+              onMapReady={onNavigationMapReady}
               onMapViewControllerCreated={_controller => {
-                console.log('MapViewController created for NavigationView');
+                // MapViewController created for NavigationView
               }}
               onNavigationViewControllerCreated={setNavigationViewController}
             />
@@ -295,7 +271,7 @@ const MapIdScreen = () => {
               mapId={confirmedMapId || undefined}
               mapColorScheme={mapColorScheme}
               onMapViewControllerCreated={_controller => {
-                console.log('MapViewController created for MapView');
+                // MapViewController created for MapView
               }}
             />
           </View>

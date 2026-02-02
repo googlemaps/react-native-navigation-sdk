@@ -23,15 +23,11 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.WritableNativeArray;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.NavInfo;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
@@ -50,8 +46,10 @@ import com.google.android.libraries.navigation.SimulationOptions;
 import com.google.android.libraries.navigation.SpeedAlertOptions;
 import com.google.android.libraries.navigation.SpeedAlertSeverity;
 import com.google.android.libraries.navigation.TermsAndConditionsCheckOption;
+import com.google.android.libraries.navigation.TermsAndConditionsUIParams;
 import com.google.android.libraries.navigation.TimeAndDistance;
 import com.google.android.libraries.navigation.Waypoint;
+import com.google.maps.android.rn.navsdk.NativeNavModuleSpec;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,12 +57,12 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * This exposes a series of methods that can be called diretly from the React Native code. They have
- * been implemented using promises as it's not recommended for them to be synchronous.
+ * TurboModule for navigation controller operations. Manages navigation sessions, routing, guidance,
+ * and location tracking.
  */
-public class NavModule extends ReactContextBaseJavaModule
+public class NavModule extends NativeNavModuleSpec
     implements INavigationCallback, LifecycleEventListener {
-  public static final String REACT_CLASS = "NavModule";
+  public static final String REACT_CLASS = NAME;
   private static NavModule instance;
   private static ModuleReadyListener moduleReadyListener;
 
@@ -84,8 +82,9 @@ public class NavModule extends ReactContextBaseJavaModule
   private Navigator.ReroutingListener mReroutingListener;
   private Navigator.RemainingTimeOrDistanceChangedListener mRemainingTimeOrDistanceChangedListener;
 
-  private HashMap<String, Object> tocParamsMap;
-  private @Navigator.TaskRemovedBehavior int taskRemovedBehaviour;
+  private @Navigator.TaskRemovedBehavior int taskRemovedBehaviour =
+      Navigator.TaskRemovedBehavior.CONTINUE_SERVICE;
+  private Promise pendingInitPromise;
 
   public interface ModuleReadyListener {
     void onModuleReady();
@@ -99,9 +98,6 @@ public class NavModule extends ReactContextBaseJavaModule
     super(reactContext);
     setReactContext(reactContext);
     setViewManager(navViewManager);
-    if (moduleReadyListener != null) {
-      moduleReadyListener.onModuleReady();
-    }
   }
 
   public static synchronized NavModule getInstance(
@@ -122,6 +118,16 @@ public class NavModule extends ReactContextBaseJavaModule
     return instance;
   }
 
+  /**
+   * Checks if the NavModule instance exists and has an active React context. Use this to safely
+   * check before calling getInstance() to avoid crashes when React Native hasn't initialized yet.
+   */
+  public static synchronized boolean isInstanceReady() {
+    return instance != null
+        && instance.reactContext != null
+        && instance.reactContext.hasActiveReactInstance();
+  }
+
   public void setReactContext(ReactApplicationContext reactContext) {
     this.reactContext = reactContext;
     this.reactContext.addLifecycleEventListener(this);
@@ -133,7 +139,8 @@ public class NavModule extends ReactContextBaseJavaModule
 
   public static void setModuleReadyListener(ModuleReadyListener listener) {
     moduleReadyListener = listener;
-    if (instance != null && moduleReadyListener != null) {
+    // Only trigger callback if instance exists AND has an active React context
+    if (instance != null && moduleReadyListener != null && isInstanceReady()) {
       moduleReadyListener.onModuleReady();
     }
   }
@@ -153,13 +160,14 @@ public class NavModule extends ReactContextBaseJavaModule
     return new HashMap<>();
   }
 
-  @ReactMethod
+  @Override
   public void cleanup(final Promise promise) {
     if (!ensureNavigatorAvailable(promise)) {
       return;
     }
 
-    stopUpdatingLocation();
+    mIsListeningRoadSnappedLocation = false;
+    removeLocationListener();
     removeNavigationListeners();
     mWaypoints.clear();
 
@@ -171,23 +179,101 @@ public class NavModule extends ReactContextBaseJavaModule
     UiThreadUtil.runOnUiThread(
         () -> {
           navigator.clearDestinations();
-          navigator.cleanup();
+          navigator.stopGuidance();
+          navigator.getSimulator().unsetUserLocation();
           promise.resolve(true);
         });
   }
 
-  @ReactMethod
-  public void initializeNavigator(
-      @Nullable ReadableMap tocParams, int taskRemovedBehaviourJsValue) {
-    this.tocParamsMap = tocParams.toHashMap();
-    this.taskRemovedBehaviour =
-        EnumTranslationUtil.getTaskRemovedBehaviourFromJsValue(taskRemovedBehaviourJsValue);
-
-    if (getTermsAccepted()) {
-      initializeNavigationApi();
-    } else {
-      this.showTermsAndConditionsDialog();
+  @Override
+  public void showTermsAndConditionsDialog(
+      String title,
+      String companyName,
+      boolean showOnlyDisclaimer,
+      @Nullable ReadableMap uiParams,
+      Promise promise) {
+    final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
+    if (currentActivity == null) {
+      promise.reject("noActivity", "No activity available to show the dialog");
+      return;
     }
+
+    // If terms already accepted, return true immediately
+    if (getTermsAccepted()) {
+      promise.resolve(true);
+      return;
+    }
+
+    TermsAndConditionsCheckOption tosOption =
+        showOnlyDisclaimer
+            ? TermsAndConditionsCheckOption.SKIPPED
+            : TermsAndConditionsCheckOption.ENABLED;
+
+    // Build UI params if provided and valid
+    TermsAndConditionsUIParams termsUiParams = null;
+    if (uiParams != null && uiParams.hasKey("valid") && uiParams.getBoolean("valid")) {
+      TermsAndConditionsUIParams.Builder uiParamsBuilder = TermsAndConditionsUIParams.builder();
+
+      if (uiParams.hasKey("backgroundColor")) {
+        Integer bgColor = (int) uiParams.getDouble("backgroundColor");
+        uiParamsBuilder.setBackgroundColor(bgColor);
+      }
+      if (uiParams.hasKey("titleColor")) {
+        Integer titleColor = (int) uiParams.getDouble("titleColor");
+        uiParamsBuilder.setTitleColor(titleColor);
+      }
+      if (uiParams.hasKey("mainTextColor")) {
+        Integer mainColor = (int) uiParams.getDouble("mainTextColor");
+        uiParamsBuilder.setMainTextColor(mainColor);
+      }
+      if (uiParams.hasKey("acceptButtonTextColor")) {
+        Integer acceptColor = (int) uiParams.getDouble("acceptButtonTextColor");
+        uiParamsBuilder.setAcceptButtonTextColor(acceptColor);
+      }
+      if (uiParams.hasKey("cancelButtonTextColor")) {
+        Integer cancelColor = (int) uiParams.getDouble("cancelButtonTextColor");
+        uiParamsBuilder.setCancelButtonTextColor(cancelColor);
+      }
+
+      termsUiParams = uiParamsBuilder.build();
+    }
+
+    NavigationApi.showTermsAndConditionsDialog(
+        currentActivity,
+        companyName,
+        title,
+        termsUiParams,
+        new OnTermsResponseListener() {
+          @Override
+          public void onTermsResponse(boolean areTermsAccepted) {
+            promise.resolve(areTermsAccepted);
+          }
+        },
+        tosOption);
+  }
+
+  @Override
+  public void initializeNavigationSession(
+      boolean abnormalTerminationReportingEnabled, double taskRemovedBehavior, Promise promise) {
+    // Check if terms are accepted first
+    if (!getTermsAccepted()) {
+      promise.reject(
+          "termsNotAccepted",
+          "The session initialization failed, because the user has not yet accepted the navigation"
+              + " terms and conditions.");
+      return;
+    }
+
+    // Store the promise to resolve/reject when navigation is ready or fails
+    this.pendingInitPromise = promise;
+    this.taskRemovedBehaviour =
+        EnumTranslationUtil.getTaskRemovedBehaviourFromJsValue((int) taskRemovedBehavior);
+
+    // Set abnormal termination reporting
+    NavigationApi.setAbnormalTerminationReportingEnabled(abnormalTerminationReportingEnabled);
+
+    // Initialize the navigation API
+    initializeNavigationApi();
 
     // Observe live data for nav info updates.
     Observer<NavInfo> navInfoObserver = this::showNavInfo;
@@ -205,10 +291,14 @@ public class NavModule extends ReactContextBaseJavaModule
   private void onNavigationReady() {
     mNavViewManager.onNavigationReady();
 
-    sendCommandToReactNative("onNavigationReady", null);
-
     for (NavigationReadyListener listener : mNavigationReadyListeners) {
       listener.onReady(true);
+    }
+
+    // Resolve the pending init promise
+    if (pendingInitPromise != null) {
+      pendingInitPromise.resolve(null);
+      pendingInitPromise = null;
     }
   }
 
@@ -226,7 +316,33 @@ public class NavModule extends ReactContextBaseJavaModule
   }
 
   private void onNavigationInitError(int errorCode) {
-    sendCommandToReactNative("onNavigationInitError", String.valueOf(errorCode));
+    // Reject the pending init promise with the appropriate error
+    if (pendingInitPromise != null) {
+      String errorCodeStr;
+      String errorMessage;
+      switch (errorCode) {
+        case NavigationApi.ErrorCode.NOT_AUTHORIZED:
+          errorCodeStr = "notAuthorized";
+          errorMessage =
+              "Your API key is invalid or not authorized to use Navigation. You may need to"
+                  + " request provisioning of the Navigation SDK through your Google Maps APIs"
+                  + " representative.";
+          break;
+        case NavigationApi.ErrorCode.TERMS_NOT_ACCEPTED:
+          errorCodeStr = "termsNotAccepted";
+          errorMessage = "User did not accept the Navigation Terms of Use.";
+          break;
+        case NavigationApi.ErrorCode.NETWORK_ERROR:
+          errorCodeStr = "networkError";
+          errorMessage = "Network error occurred while loading Navigation API.";
+          break;
+        default:
+          errorCodeStr = "locationPermissionMissing";
+          errorMessage = "Location permission is not granted.";
+      }
+      pendingInitPromise.reject(errorCodeStr, errorMessage);
+      pendingInitPromise = null;
+    }
   }
 
   /** Starts the Navigation API, saving a reference to the ready Navigator instance. */
@@ -287,7 +403,7 @@ public class NavModule extends ReactContextBaseJavaModule
    *
    * @param isEnabled
    */
-  @ReactMethod
+  @Override
   public void setTurnByTurnLoggingEnabled(boolean isEnabled) {
     final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
     if (currentActivity == null) return;
@@ -301,6 +417,14 @@ public class NavModule extends ReactContextBaseJavaModule
     } else {
       NavForwardingManager.stopNavForwarding(mNavigator, currentActivity, this);
     }
+  }
+
+  @Override
+  public void setBackgroundLocationUpdatesEnabled(boolean isEnabled) {
+    // Background location updates configuration
+    // This is a placeholder for background location tracking configuration
+    // Implementation depends on the specific requirements for background location
+    // tracking
   }
 
   /**
@@ -317,15 +441,15 @@ public class NavModule extends ReactContextBaseJavaModule
         new Navigator.ArrivalListener() {
           @Override
           public void onArrival(ArrivalEvent arrivalEvent) {
-            WritableMap map = Arguments.createMap();
-            map.putMap(
+            WritableMap arrivalEventMap = Arguments.createMap();
+            arrivalEventMap.putMap(
                 "waypoint", ObjectTranslationUtil.getMapFromWaypoint(arrivalEvent.getWaypoint()));
-            map.putBoolean("isFinalDestination", arrivalEvent.isFinalDestination());
+            arrivalEventMap.putBoolean("isFinalDestination", arrivalEvent.isFinalDestination());
 
-            WritableNativeArray params = new WritableNativeArray();
-            params.pushMap(map);
+            WritableMap params = Arguments.createMap();
+            params.putMap("arrivalEvent", arrivalEventMap);
 
-            sendCommandToReactNative("onArrival", params);
+            emitOnArrival(params);
           }
         };
     mNavigator.addArrivalListener(mArrivalListener);
@@ -334,7 +458,7 @@ public class NavModule extends ReactContextBaseJavaModule
         new Navigator.RouteChangedListener() {
           @Override
           public void onRouteChanged() {
-            sendCommandToReactNative("onRouteChanged", null);
+            emitOnRouteChanged();
           }
         };
     mNavigator.addRouteChangedListener(mRouteChangedListener);
@@ -343,7 +467,7 @@ public class NavModule extends ReactContextBaseJavaModule
         new Navigator.TrafficUpdatedListener() {
           @Override
           public void onTrafficUpdated() {
-            sendCommandToReactNative("onTrafficUpdated", null);
+            emitOnTrafficUpdated();
           }
         };
     mNavigator.addTrafficUpdatedListener(mTrafficUpdatedListener);
@@ -352,7 +476,7 @@ public class NavModule extends ReactContextBaseJavaModule
         new Navigator.ReroutingListener() {
           @Override
           public void onReroutingRequestedByOffRoute() {
-            sendCommandToReactNative("onReroutingRequestedByOffRoute", null);
+            emitOnReroutingRequestedByOffRoute();
           }
         };
     mNavigator.addReroutingListener(mReroutingListener);
@@ -361,7 +485,18 @@ public class NavModule extends ReactContextBaseJavaModule
         new Navigator.RemainingTimeOrDistanceChangedListener() {
           @Override
           public void onRemainingTimeOrDistanceChanged() {
-            sendCommandToReactNative("onRemainingTimeOrDistanceChanged", null);
+            TimeAndDistance timeAndDistance = mNavigator.getCurrentTimeAndDistance();
+            if (timeAndDistance != null) {
+              WritableMap timeAndDistanceMap = Arguments.createMap();
+              timeAndDistanceMap.putInt("delaySeverity", timeAndDistance.getDelaySeverity());
+              timeAndDistanceMap.putInt("meters", timeAndDistance.getMeters());
+              timeAndDistanceMap.putInt("seconds", timeAndDistance.getSeconds());
+
+              WritableMap params = Arguments.createMap();
+              params.putMap("timeAndDistance", timeAndDistanceMap);
+
+              emitOnRemainingTimeOrDistanceChanged(params);
+            }
           }
         };
     mNavigator.addRemainingTimeOrDistanceChangedListener(
@@ -432,7 +567,7 @@ public class NavModule extends ReactContextBaseJavaModule
     }
   }
 
-  @ReactMethod
+  @Override
   public void setDestinations(
       ReadableArray waypoints,
       @Nullable ReadableMap routingOptions,
@@ -452,14 +587,28 @@ public class NavModule extends ReactContextBaseJavaModule
       createWaypoint(map);
     }
 
+    // Check valid flag for codegen nullable objects pattern
+    boolean hasValidDisplayOptions =
+        displayOptions != null
+            && displayOptions.hasKey("valid")
+            && displayOptions.getBoolean("valid");
+    boolean hasValidRouteTokenOptions =
+        routeTokenOptions != null
+            && routeTokenOptions.hasKey("valid")
+            && routeTokenOptions.getBoolean("valid");
+    boolean hasValidRoutingOptions =
+        routingOptions != null
+            && routingOptions.hasKey("valid")
+            && routingOptions.getBoolean("valid");
+
     // Get display options if provided
     DisplayOptions parsedDisplayOptions =
-        displayOptions != null
+        hasValidDisplayOptions
             ? ObjectTranslationUtil.getDisplayOptionsFromMap(displayOptions.toHashMap())
             : null;
 
     // If route token options are provided, use CustomRoutesOptions
-    if (routeTokenOptions != null) {
+    if (hasValidRouteTokenOptions) {
       CustomRoutesOptions customRoutesOptions;
       try {
         customRoutesOptions =
@@ -475,7 +624,7 @@ public class NavModule extends ReactContextBaseJavaModule
       } else {
         pendingRoute = mNavigator.setDestinations(mWaypoints, customRoutesOptions);
       }
-    } else if (routingOptions != null) {
+    } else if (hasValidRoutingOptions) {
       RoutingOptions parsedRoutingOptions =
           ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap());
 
@@ -486,8 +635,7 @@ public class NavModule extends ReactContextBaseJavaModule
         pendingRoute = mNavigator.setDestinations(mWaypoints, parsedRoutingOptions);
       }
     } else if (parsedDisplayOptions != null) {
-      // No routing options provided: use defaults, but still honor display options if
-      // supplied.
+      // No routing options provided: use defaults, but still honor display options if supplied.
       pendingRoute =
           mNavigator.setDestinations(mWaypoints, new RoutingOptions(), parsedDisplayOptions);
     } else {
@@ -498,15 +646,16 @@ public class NavModule extends ReactContextBaseJavaModule
       // Set an action to perform when a route is determined to the destination
       pendingRoute.setOnResultListener(
           code -> {
-            sendCommandToReactNative("onRouteStatusResult", code.toString());
-            promise.resolve(true);
+            // Convert RouteStatus to string matching codegen RouteStatusSpec
+            promise.resolve(EnumTranslationUtil.getRouteStatusStringValue(code));
           });
     } else {
-      promise.resolve(true);
+      // If no pending route, resolve with OK status
+      promise.resolve(EnumTranslationUtil.getRouteStatusStringValue(Navigator.RouteStatus.OK));
     }
   }
 
-  @ReactMethod
+  @Override
   public void clearDestinations(final Promise promise) {
     if (!ensureNavigatorAvailable(promise)) {
       return;
@@ -516,7 +665,7 @@ public class NavModule extends ReactContextBaseJavaModule
     promise.resolve(true);
   }
 
-  @ReactMethod
+  @Override
   public void continueToNextDestination(final Promise promise) {
     if (!ensureNavigatorAvailable(promise)) {
       return;
@@ -525,7 +674,7 @@ public class NavModule extends ReactContextBaseJavaModule
     promise.resolve(true);
   }
 
-  @ReactMethod
+  @Override
   public void startGuidance(final Promise promise) {
     if (!ensureNavigatorAvailable(promise)) {
       return;
@@ -536,11 +685,11 @@ public class NavModule extends ReactContextBaseJavaModule
     }
 
     mNavigator.startGuidance();
-    sendCommandToReactNative("onStartGuidance", null);
+    emitOnStartGuidance();
     promise.resolve(true);
   }
 
-  @ReactMethod
+  @Override
   public void stopGuidance(final Promise promise) {
     if (!ensureNavigatorAvailable(promise)) {
       return;
@@ -549,8 +698,10 @@ public class NavModule extends ReactContextBaseJavaModule
     promise.resolve(true);
   }
 
-  @ReactMethod
-  public void simulateLocationsAlongExistingRoute(float speedMultiplier) {
+  @Override
+  public void simulateLocationsAlongExistingRoute(ReadableMap options, final Promise promise) {
+    float speedMultiplier =
+        options.hasKey("speedMultiplier") ? (float) options.getDouble("speedMultiplier") : 1.0f;
     if (mNavigator == null) {
       return;
     }
@@ -562,44 +713,54 @@ public class NavModule extends ReactContextBaseJavaModule
         .getSimulator()
         .simulateLocationsAlongExistingRoute(
             new SimulationOptions().speedMultiplier(speedMultiplier));
+    promise.resolve(null);
   }
 
-  @ReactMethod
-  public void stopLocationSimulation() {
+  @Override
+  public void stopLocationSimulation(final Promise promise) {
     if (mNavigator == null) {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
       return;
     }
     mNavigator.getSimulator().unsetUserLocation();
+    promise.resolve(null);
   }
 
-  @ReactMethod
-  public void pauseLocationSimulation() {
+  @Override
+  public void pauseLocationSimulation(final Promise promise) {
     if (mNavigator == null) {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
       return;
     }
     mNavigator.getSimulator().pause();
+    promise.resolve(null);
   }
 
-  @ReactMethod
-  public void resumeLocationSimulation() {
+  @Override
+  public void resumeLocationSimulation(final Promise promise) {
     if (mNavigator == null) {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
       return;
     }
     mNavigator.getSimulator().resume();
+    promise.resolve(null);
   }
 
-  @ReactMethod
-  public void setAbnormalTerminatingReportingEnabled(boolean isOn) {
-    NavigationApi.setAbnormalTerminationReportingEnabled(isOn);
+  @Override
+  public void setAbnormalTerminatingReportingEnabled(boolean enabled) {
+    NavigationApi.setAbnormalTerminationReportingEnabled(enabled);
   }
 
-  @ReactMethod
-  public void setSpeedAlertOptions(@Nullable ReadableMap options) {
+  @Override
+  public void setSpeedAlertOptions(@Nullable ReadableMap options, final Promise promise) {
     if (mNavigator == null) {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
       return;
     }
-    if (options == null) {
+    // Check if valid options were provided (valid flag pattern for codegen nullable objects)
+    if (options == null || !options.hasKey("valid") || !options.getBoolean("valid")) {
       mNavigator.setSpeedAlertOptions(null);
+      promise.resolve(null);
       return;
     }
 
@@ -624,11 +785,14 @@ public class NavModule extends ReactContextBaseJavaModule
         () -> {
           mNavigator.setSpeedAlertOptions(alertOptions);
         });
+    promise.resolve(null);
   }
 
-  @ReactMethod
-  public void setAudioGuidanceType(int jsValue) {
+  @Override
+  public void setAudioGuidanceType(double index, final Promise promise) {
+    int jsValue = (int) index;
     if (mNavigator == null) {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
       return;
     }
 
@@ -636,9 +800,10 @@ public class NavModule extends ReactContextBaseJavaModule
         () -> {
           mNavigator.setAudioGuidance(EnumTranslationUtil.getAudioGuidanceFromJsValue(jsValue));
         });
+    promise.resolve(null);
   }
 
-  @ReactMethod
+  @Override
   public void getCurrentTimeAndDistance(final Promise promise) {
     if (mNavigator == null) {
       promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
@@ -659,7 +824,7 @@ public class NavModule extends ReactContextBaseJavaModule
     promise.resolve(map);
   }
 
-  @ReactMethod
+  @Override
   public void getCurrentRouteSegment(final Promise promise) {
     if (mNavigator == null) {
       promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
@@ -676,7 +841,7 @@ public class NavModule extends ReactContextBaseJavaModule
     promise.resolve(ObjectTranslationUtil.getMapFromRouteSegment(routeSegment));
   }
 
-  @ReactMethod
+  @Override
   public void getRouteSegments(final Promise promise) {
     if (mNavigator == null) {
       promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
@@ -693,7 +858,7 @@ public class NavModule extends ReactContextBaseJavaModule
     promise.resolve(arr);
   }
 
-  @ReactMethod
+  @Override
   public void getTraveledPath(final Promise promise) {
     if (mNavigator == null) {
       promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
@@ -709,15 +874,6 @@ public class NavModule extends ReactContextBaseJavaModule
     promise.resolve(arr);
   }
 
-  /** Send command to react native. */
-  private void sendCommandToReactNative(String functionName, @Nullable Object params) {
-    if (reactContext.hasActiveReactInstance()) {
-      reactContext
-          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-          .emit(functionName, params);
-    }
-  }
-
   private boolean ensureNavigatorAvailable(final Promise promise) {
     if (mNavigator == null) {
       promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
@@ -726,54 +882,20 @@ public class NavModule extends ReactContextBaseJavaModule
     return true;
   }
 
-  @ReactMethod
-  public void simulateLocation(ReadableMap location) {
+  @Override
+  public void simulateLocation(ReadableMap location, final Promise promise) {
     if (mNavigator != null) {
       HashMap<String, Object> locationMap = location.toHashMap();
       Double lat = CollectionUtil.getDouble(Constants.LAT_FIELD_KEY, locationMap, 0);
       Double lng = CollectionUtil.getDouble(Constants.LNG_FIELD_KEY, locationMap, 0);
       mNavigator.getSimulator().setUserLocation(new LatLng(lat, lng));
+      promise.resolve(null);
+    } else {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
     }
   }
 
-  @ReactMethod
-  private void showTermsAndConditionsDialog() {
-    final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
-    if (currentActivity == null) return;
-
-    if (this.tocParamsMap == null) {
-      return;
-    }
-
-    String companyName = CollectionUtil.getString("companyName", this.tocParamsMap);
-    String title = CollectionUtil.getString("title", this.tocParamsMap);
-    boolean showOnlyDisclaimer =
-        CollectionUtil.getBool("showOnlyDisclaimer", this.tocParamsMap, false);
-
-    TermsAndConditionsCheckOption tosOption =
-        showOnlyDisclaimer
-            ? TermsAndConditionsCheckOption.SKIPPED
-            : TermsAndConditionsCheckOption.ENABLED;
-
-    NavigationApi.showTermsAndConditionsDialog(
-        currentActivity,
-        companyName,
-        title,
-        null,
-        new OnTermsResponseListener() {
-          @Override
-          public void onTermsResponse(boolean areTermsAccepted) {
-            if (areTermsAccepted) {
-              initializeNavigationApi();
-            } else {
-              onNavigationInitError(NavigationApi.ErrorCode.TERMS_NOT_ACCEPTED);
-            }
-          }
-        },
-        tosOption);
-  }
-
-  @ReactMethod
+  @Override
   public void areTermsAccepted(final Promise promise) {
     promise.resolve(getTermsAccepted());
   }
@@ -784,28 +906,43 @@ public class NavModule extends ReactContextBaseJavaModule
     return NavigationApi.areTermsAccepted(currentActivity.getApplication());
   }
 
-  @ReactMethod
+  @Override
   public void getNavSDKVersion(final Promise promise) {
     promise.resolve(NavigationApi.getNavSDKVersion());
   }
 
-  @ReactMethod
-  public void resetTermsAccepted() {
+  @Override
+  public void resetTermsAccepted(final Promise promise) {
     final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
-    if (currentActivity == null) return;
-    NavigationApi.resetTermsAccepted(currentActivity.getApplication());
+    if (currentActivity == null) {
+      promise.reject("noActivity", "No activity available");
+      return;
+    }
+
+    // The NavigationApi will throw IllegalStateException if a session is still active.
+    try {
+      NavigationApi.resetTermsAccepted(currentActivity.getApplication());
+      promise.resolve(null);
+    } catch (IllegalStateException e) {
+      promise.reject(
+          "termsResetNotAllowed",
+          "The terms acceptance cannot be reset after navigation session is initialized.",
+          e);
+    }
   }
 
-  @ReactMethod
-  public void startUpdatingLocation() {
+  @Override
+  public void startUpdatingLocation(final Promise promise) {
     registerLocationListener();
     mIsListeningRoadSnappedLocation = true;
+    promise.resolve(null);
   }
 
-  @ReactMethod
-  public void stopUpdatingLocation() {
+  @Override
+  public void stopUpdatingLocation(final Promise promise) {
     mIsListeningRoadSnappedLocation = false;
     removeLocationListener();
+    promise.resolve(null);
   }
 
   private void registerLocationListener() {
@@ -818,16 +955,18 @@ public class NavModule extends ReactContextBaseJavaModule
             @Override
             public void onLocationChanged(final Location location) {
               if (mIsListeningRoadSnappedLocation) {
-                sendCommandToReactNative(
-                    "onLocationChanged", ObjectTranslationUtil.getMapFromLocation(location));
+                WritableMap params = Arguments.createMap();
+                params.putMap("location", ObjectTranslationUtil.getMapFromLocation(location));
+                emitOnLocationChanged(params);
               }
             }
 
             @Override
             public void onRawLocationUpdate(final Location location) {
               if (mIsListeningRoadSnappedLocation) {
-                sendCommandToReactNative(
-                    "onRawLocationChanged", ObjectTranslationUtil.getMapFromLocation(location));
+                WritableMap params = Arguments.createMap();
+                params.putMap("location", ObjectTranslationUtil.getMapFromLocation(location));
+                emitOnRawLocationChanged(params);
               }
             }
           };
@@ -875,14 +1014,18 @@ public class NavModule extends ReactContextBaseJavaModule
     }
     map.putArray("getRemainingSteps", remainingSteps);
 
-    WritableNativeArray params = new WritableNativeArray();
-    params.pushMap(map);
-    sendCommandToReactNative("onTurnByTurn", params);
+    WritableArray turnByTurnEvents = Arguments.createArray();
+    turnByTurnEvents.pushMap(map);
+    WritableMap params = Arguments.createMap();
+    params.putArray("turnByTurnEvents", turnByTurnEvents);
+    emitOnTurnByTurn(params);
   }
 
   @Override
   public void logDebugInfo(String info) {
-    sendCommandToReactNative("logDebugInfo", info);
+    WritableMap params = Arguments.createMap();
+    params.putString("message", info);
+    emitLogDebugInfo(params);
   }
 
   @Override
@@ -892,6 +1035,15 @@ public class NavModule extends ReactContextBaseJavaModule
 
   @Override
   public void onHostResume() {
+    // When React context resumes, trigger the module ready listener if it was set
+    // before the React context was ready (e.g., Android Auto was already running).
+    // Clear it after calling to avoid duplicate calls on subsequent resumes.
+    if (moduleReadyListener != null) {
+      ModuleReadyListener listener = moduleReadyListener;
+      moduleReadyListener = null;
+      listener.onModuleReady();
+    }
+
     // Re-register listeners on resume.
     if (mNavigator != null) {
       registerNavigationListeners();
