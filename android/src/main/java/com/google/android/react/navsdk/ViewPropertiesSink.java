@@ -35,6 +35,7 @@ public class ViewPropertiesSink
   @Nullable private String mapStyle;
   @Nullable private Boolean mapToolbarEnabled;
   @Nullable private Boolean indoorEnabled;
+  @Nullable private Boolean indoorLevelPickerEnabled;
   @Nullable private Boolean trafficEnabled;
   @Nullable private Boolean compassEnabled;
   @Nullable private Boolean buildingsEnabled;
@@ -97,6 +98,11 @@ public class ViewPropertiesSink
   @Override
   public void setIndoorEnabled(boolean enabled) {
     this.indoorEnabled = enabled;
+  }
+
+  @Override
+  public void setIndoorLevelPickerEnabled(boolean enabled) {
+    this.indoorLevelPickerEnabled = enabled;
   }
 
   @Override
@@ -246,6 +252,9 @@ public class ViewPropertiesSink
     if (indoorEnabled != null) {
       controller.setIndoorEnabled(indoorEnabled);
     }
+    if (indoorLevelPickerEnabled != null) {
+      controller.setIndoorLevelPickerEnabled(indoorLevelPickerEnabled);
+    }
     if (trafficEnabled != null) {
       controller.setTrafficEnabled(trafficEnabled);
     }
@@ -364,6 +373,7 @@ public class ViewPropertiesSink
     mapStyle = null;
     mapToolbarEnabled = null;
     indoorEnabled = null;
+    indoorLevelPickerEnabled = null;
     trafficEnabled = null;
     compassEnabled = null;
     buildingsEnabled = null;

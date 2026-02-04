@@ -28,6 +28,8 @@ public interface IMapViewControllerProperties {
 
   void setIndoorEnabled(boolean enabled);
 
+  void setIndoorLevelPickerEnabled(boolean enabled);
+
   void setTrafficEnabled(boolean enabled);
 
   void setCompassEnabled(boolean enabled);

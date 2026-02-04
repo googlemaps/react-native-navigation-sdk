@@ -16,7 +16,7 @@ Version 0.14.0 introduces React Native's **New Architecture** (Fabric & TurboMod
 
 | Category        | Change                                                                                              |
 | --------------- | --------------------------------------------------------------------------------------------------- |
-| Architecture    | New Architecture required (React Native 0.77+)                                                      |
+| Architecture    | New Architecture required (React Native 0.79+)                                                      |
 | Native SDKs     | Android Navigation SDK 7.3.0, iOS Navigation SDK 10.7.0                                             |
 | Navigation Init | Terms and Conditions dialog and session initialization are now separate methods                     |
 | Navigation Init | `init()` now returns `NavigationSessionStatus` instead of throwing errors                           |
@@ -39,7 +39,7 @@ Version 0.14.0 introduces React Native's **New Architecture** (Fabric & TurboMod
 
 ### Prerequisites
 
-- **React Native 0.77 or higher** is required
+- **React Native 0.79 or higher** is required
 - **New Architecture must be enabled** in your project
 
 ### Step 1: Enable New Architecture

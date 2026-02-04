@@ -46,6 +46,29 @@ export interface MapControlsProps {
     enabled: boolean,
     buttonEnabled: boolean
   ) => void;
+  // UI Settings
+  readonly compassEnabled?: boolean;
+  readonly onCompassEnabledChange?: (enabled: boolean) => void;
+  readonly mapToolbarEnabled?: boolean;
+  readonly onMapToolbarEnabledChange?: (enabled: boolean) => void;
+  readonly indoorEnabled?: boolean;
+  readonly onIndoorEnabledChange?: (enabled: boolean) => void;
+  readonly indoorLevelPickerEnabled?: boolean;
+  readonly onIndoorLevelPickerEnabledChange?: (enabled: boolean) => void;
+  readonly rotateGesturesEnabled?: boolean;
+  readonly onRotateGesturesEnabledChange?: (enabled: boolean) => void;
+  readonly scrollGesturesEnabled?: boolean;
+  readonly onScrollGesturesEnabledChange?: (enabled: boolean) => void;
+  readonly scrollGesturesDuringRotateOrZoomEnabled?: boolean;
+  readonly onScrollGesturesDuringRotateOrZoomEnabledChange?: (
+    enabled: boolean
+  ) => void;
+  readonly tiltGesturesEnabled?: boolean;
+  readonly onTiltGesturesEnabledChange?: (enabled: boolean) => void;
+  readonly zoomControlsEnabled?: boolean;
+  readonly onZoomControlsEnabledChange?: (enabled: boolean) => void;
+  readonly zoomGesturesEnabled?: boolean;
+  readonly onZoomGesturesEnabledChange?: (enabled: boolean) => void;
 }
 
 export const defaultZoom: number = 15;
@@ -59,6 +82,27 @@ const MapsControls: React.FC<MapControlsProps> = ({
   myLocationEnabled = false,
   myLocationButtonEnabled: _myLocationButtonEnabled = true,
   onMyLocationChange,
+  // UI Settings
+  compassEnabled = true,
+  onCompassEnabledChange,
+  mapToolbarEnabled = true,
+  onMapToolbarEnabledChange,
+  indoorEnabled = true,
+  onIndoorEnabledChange,
+  indoorLevelPickerEnabled = true,
+  onIndoorLevelPickerEnabledChange,
+  rotateGesturesEnabled = true,
+  onRotateGesturesEnabledChange,
+  scrollGesturesEnabled = true,
+  onScrollGesturesEnabledChange,
+  scrollGesturesDuringRotateOrZoomEnabled = true,
+  onScrollGesturesDuringRotateOrZoomEnabledChange,
+  tiltGesturesEnabled = true,
+  onTiltGesturesEnabledChange,
+  zoomControlsEnabled = true,
+  onZoomControlsEnabledChange,
+  zoomGesturesEnabled = true,
+  onZoomGesturesEnabledChange,
 }) => {
   const mapTypeOptions = ['None', 'Normal', 'Satellite', 'Terrain', 'Hybrid'];
   const colorSchemeOptions = ['Follow System', 'Light', 'Dark'];
@@ -141,7 +185,21 @@ const MapsControls: React.FC<MapControlsProps> = ({
 
   const getUiSettings = async () => {
     const result = await mapViewController.getUiSettings();
-    showSnackbar(`UI Settings: compass=${result.isCompassEnabled}`);
+    showSnackbar(
+      `UI Settings:\n` +
+        `- Compass: ${result.isCompassEnabled}\n` +
+        `- Map Toolbar: ${result.isMapToolbarEnabled}\n` +
+        `- Indoor Picker: ${result.isIndoorLevelPickerEnabled}\n` +
+        `- Rotate: ${result.isRotateGesturesEnabled}\n` +
+        `- Scroll: ${result.isScrollGesturesEnabled}\n` +
+        `- Scroll (rotate/zoom): ${result.isScrollGesturesEnabledDuringRotateOrZoom}\n` +
+        `- Tilt: ${result.isTiltGesturesEnabled}\n` +
+        `- Zoom Controls: ${result.isZoomControlsEnabled}\n` +
+        `- Zoom Gestures: ${result.isZoomGesturesEnabled}`,
+      5000,
+      true,
+      12
+    );
   };
 
   const getIsMyLocationEnabled = async () => {
@@ -246,9 +304,9 @@ const MapsControls: React.FC<MapControlsProps> = ({
   };
 
   /**
-   * Add a ground overlay using position-based positioning.
+   * Add a ground overlay using location-based positioning.
    * This uses a location with width/height in meters.
-   * Note: On iOS, zoomLevel is required for position-based overlays.
+   * Note: On iOS, zoomLevel is required for location-based overlays.
    */
   const addGroundOverlayWithPosition = async () => {
     const cameraPosition = await mapViewController.getCameraPosition();
@@ -472,12 +530,98 @@ const MapsControls: React.FC<MapControlsProps> = ({
             }}
           />
         </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Compass</Text>
+          <ExampleAppButton
+            title={compassEnabled ? 'Disable' : 'Enable'}
+            onPress={() => onCompassEnabledChange?.(!compassEnabled)}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Map Toolbar</Text>
+          <ExampleAppButton
+            title={mapToolbarEnabled ? 'Disable' : 'Enable'}
+            onPress={() => onMapToolbarEnabledChange?.(!mapToolbarEnabled)}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Indoor Maps</Text>
+          <ExampleAppButton
+            title={indoorEnabled ? 'Disable' : 'Enable'}
+            onPress={() => onIndoorEnabledChange?.(!indoorEnabled)}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Indoor Picker</Text>
+          <ExampleAppButton
+            title={indoorLevelPickerEnabled ? 'Disable' : 'Enable'}
+            onPress={() =>
+              onIndoorLevelPickerEnabledChange?.(!indoorLevelPickerEnabled)
+            }
+          />
+        </View>
         <ExampleAppButton title="Get UI Settings" onPress={getUiSettings} />
         <ExampleAppButton title="Get My location" onPress={getMyLocation} />
         <ExampleAppButton
           title="Get My location enabled"
           onPress={getIsMyLocationEnabled}
         />
+      </Accordion>
+
+      {/* Gestures */}
+      <Accordion title="Gesture Settings">
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Rotate gestures</Text>
+          <ExampleAppButton
+            title={rotateGesturesEnabled ? 'Disable' : 'Enable'}
+            onPress={() =>
+              onRotateGesturesEnabledChange?.(!rotateGesturesEnabled)
+            }
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Scroll gestures</Text>
+          <ExampleAppButton
+            title={scrollGesturesEnabled ? 'Disable' : 'Enable'}
+            onPress={() =>
+              onScrollGesturesEnabledChange?.(!scrollGesturesEnabled)
+            }
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Scroll during rotate/zoom</Text>
+          <ExampleAppButton
+            title={
+              scrollGesturesDuringRotateOrZoomEnabled ? 'Disable' : 'Enable'
+            }
+            onPress={() =>
+              onScrollGesturesDuringRotateOrZoomEnabledChange?.(
+                !scrollGesturesDuringRotateOrZoomEnabled
+              )
+            }
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Tilt gestures</Text>
+          <ExampleAppButton
+            title={tiltGesturesEnabled ? 'Disable' : 'Enable'}
+            onPress={() => onTiltGesturesEnabledChange?.(!tiltGesturesEnabled)}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Zoom controls</Text>
+          <ExampleAppButton
+            title={zoomControlsEnabled ? 'Disable' : 'Enable'}
+            onPress={() => onZoomControlsEnabledChange?.(!zoomControlsEnabled)}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Zoom gestures</Text>
+          <ExampleAppButton
+            title={zoomGesturesEnabled ? 'Disable' : 'Enable'}
+            onPress={() => onZoomGesturesEnabledChange?.(!zoomGesturesEnabled)}
+          />
+        </View>
       </Accordion>
     </View>
   );

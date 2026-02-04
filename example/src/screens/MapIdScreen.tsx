@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -51,7 +51,7 @@ const MapIdScreen = () => {
   );
   const insets = useSafeAreaInsets();
   const { arePermissionsApproved } = usePermissions();
-  const { navigationController, setOnNavigationReady } = useNavigation();
+  const { navigationController } = useNavigation();
 
   const handleSetMapId = useCallback(() => {
     if (mapIdInput.trim() === '') {
@@ -147,13 +147,6 @@ const MapIdScreen = () => {
     }
   }, [navigationController]);
 
-  // Set up navigation listeners
-  useEffect(() => {
-    setOnNavigationReady(() => {
-      // Navigation ready
-    });
-  }, [setOnNavigationReady, navigationViewController, confirmedMapId]);
-
   if (!arePermissionsApproved) {
     return (
       <View style={CommonStyles.container}>
@@ -248,16 +241,7 @@ const MapIdScreen = () => {
               navigationUIEnabledPreference={
                 NavigationUIEnabledPreference.AUTOMATIC
               }
-              onRecenterButtonClick={() => {
-                // Recenter button clicked
-              }}
-              onPromptVisibilityChanged={_visible => {
-                // Prompt visibility changed
-              }}
               onMapReady={onNavigationMapReady}
-              onMapViewControllerCreated={_controller => {
-                // MapViewController created for NavigationView
-              }}
               onNavigationViewControllerCreated={setNavigationViewController}
             />
           </View>
@@ -270,9 +254,6 @@ const MapIdScreen = () => {
               style={MapStyles.map}
               mapId={confirmedMapId || undefined}
               mapColorScheme={mapColorScheme}
-              onMapViewControllerCreated={_controller => {
-                // MapViewController created for MapView
-              }}
             />
           </View>
 

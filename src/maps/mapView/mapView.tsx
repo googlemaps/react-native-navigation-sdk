@@ -65,7 +65,7 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
     viewCreatedRef.current = true;
 
     // Initialize map view controller with nativeID
-    onMapViewControllerCreated(getMapViewController(nativeIDRef.current));
+    onMapViewControllerCreated?.(getMapViewController(nativeIDRef.current));
   }, [onMapViewControllerCreated, mapViewRef]);
 
   // Use the new architecture event callback hook
@@ -94,6 +94,7 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
       mapStyle={props.mapStyle}
       mapToolbarEnabled={props.mapToolbarEnabled}
       indoorEnabled={props.indoorEnabled}
+      indoorLevelPickerEnabled={props.indoorLevelPickerEnabled}
       trafficEnabled={props.trafficEnabled}
       compassEnabled={props.compassEnabled}
       myLocationButtonEnabled={props.myLocationButtonEnabled}

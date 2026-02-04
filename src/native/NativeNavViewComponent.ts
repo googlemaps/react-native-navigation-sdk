@@ -100,6 +100,7 @@ export interface NativeNavViewProps extends ViewProps {
   mapStyle?: WithDefault<string, ''>; // Empty string default for optional string
   mapToolbarEnabled?: WithDefault<boolean, true>;
   indoorEnabled?: WithDefault<boolean, true>;
+  indoorLevelPickerEnabled?: WithDefault<boolean, true>;
   trafficEnabled?: WithDefault<boolean, false>;
   compassEnabled?: WithDefault<boolean, true>;
   myLocationButtonEnabled?: WithDefault<boolean, true>;

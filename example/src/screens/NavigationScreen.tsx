@@ -76,6 +76,22 @@ const NavigationScreen = () => {
   const [myLocationEnabled, setMyLocationEnabled] = useState(true);
   const [myLocationButtonEnabled, setMyLocationButtonEnabled] = useState(true);
 
+  // Map UI settings
+  const [compassEnabled, setCompassEnabled] = useState(true);
+  const [mapToolbarEnabled, setMapToolbarEnabled] = useState(true);
+  const [indoorEnabled, setIndoorEnabled] = useState(true);
+  const [indoorLevelPickerEnabled, setIndoorLevelPickerEnabled] =
+    useState(true);
+  const [rotateGesturesEnabled, setRotateGesturesEnabled] = useState(true);
+  const [scrollGesturesEnabled, setScrollGesturesEnabled] = useState(true);
+  const [
+    scrollGesturesDuringRotateOrZoomEnabled,
+    setScrollGesturesDuringRotateOrZoomEnabled,
+  ] = useState(true);
+  const [tiltGesturesEnabled, setTiltGesturesEnabled] = useState(true);
+  const [zoomControlsEnabled, setZoomControlsEnabled] = useState(true);
+  const [zoomGesturesEnabled, setZoomGesturesEnabled] = useState(true);
+
   // Navigation UI state
   const [tripProgressBarEnabled, setTripProgressBarEnabled] = useState(false);
   const [trafficPromptsEnabled, setTrafficPromptsEnabled] = useState(true);
@@ -129,10 +145,6 @@ const NavigationScreen = () => {
     setActionPathStep(ActionPathStep.NOT_INITIALIZED);
   }, []);
 
-  const onPromptVisibilityChanged = (_visible: boolean) => {
-    // Prompt visibility changed
-  };
-
   // Set up navigation event listeners
   useEffect(() => {
     setOnNavigationReady(() => {
@@ -141,11 +153,15 @@ const NavigationScreen = () => {
     });
 
     setOnLocationChanged((_location: Location) => {
-      // Location changed
+      console.debug(
+        `Location updated with lat: ${_location.lat}, lng: ${_location.lng}`
+      );
     });
 
     setOnRawLocationChanged((_location: Location) => {
-      // Raw location changed
+      console.debug(
+        `Raw location updated with lat: ${_location.lat}, lng: ${_location.lng}`
+      );
     });
 
     setOnRouteChanged(() => showSnackbar('Route Changed'));
@@ -153,7 +169,7 @@ const NavigationScreen = () => {
     setOnStartGuidance(() => showSnackbar('Start Guidance'));
 
     setOnTurnByTurn((_turnByTurn: TurnByTurnEvent[]) => {
-      // Turn by turn event
+      console.debug(`Received ${_turnByTurn.length} turn-by-turn events`);
     });
   }, [
     setOnNavigationReady,
@@ -321,6 +337,18 @@ const NavigationScreen = () => {
         navigationNightMode={navigationNightMode}
         myLocationEnabled={myLocationEnabled}
         myLocationButtonEnabled={myLocationButtonEnabled}
+        compassEnabled={compassEnabled}
+        mapToolbarEnabled={mapToolbarEnabled}
+        indoorEnabled={indoorEnabled}
+        indoorLevelPickerEnabled={indoorLevelPickerEnabled}
+        rotateGesturesEnabled={rotateGesturesEnabled}
+        scrollGesturesEnabled={scrollGesturesEnabled}
+        scrollGesturesDuringRotateOrZoomEnabled={
+          scrollGesturesDuringRotateOrZoomEnabled
+        }
+        tiltGesturesEnabled={tiltGesturesEnabled}
+        zoomControlsEnabled={zoomControlsEnabled}
+        zoomGesturesEnabled={zoomGesturesEnabled}
         navigationUIEnabledPreference={0} // 0 = AUTOMATIC
         tripProgressBarEnabled={tripProgressBarEnabled}
         trafficPromptsEnabled={trafficPromptsEnabled}
@@ -340,7 +368,6 @@ const NavigationScreen = () => {
         onGroundOverlayClick={onGroundOverlayClick}
         onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
         onRecenterButtonClick={onRecenterButtonClick}
-        onPromptVisibilityChanged={onPromptVisibilityChanged}
         onMapViewControllerCreated={setMapViewController}
         onNavigationViewControllerCreated={setNavigationViewController}
       />
@@ -392,6 +419,30 @@ const NavigationScreen = () => {
               setMyLocationEnabled(enabled);
               setMyLocationButtonEnabled(buttonEnabled);
             }}
+            compassEnabled={compassEnabled}
+            onCompassEnabledChange={setCompassEnabled}
+            mapToolbarEnabled={mapToolbarEnabled}
+            onMapToolbarEnabledChange={setMapToolbarEnabled}
+            indoorEnabled={indoorEnabled}
+            onIndoorEnabledChange={setIndoorEnabled}
+            indoorLevelPickerEnabled={indoorLevelPickerEnabled}
+            onIndoorLevelPickerEnabledChange={setIndoorLevelPickerEnabled}
+            rotateGesturesEnabled={rotateGesturesEnabled}
+            onRotateGesturesEnabledChange={setRotateGesturesEnabled}
+            scrollGesturesEnabled={scrollGesturesEnabled}
+            onScrollGesturesEnabledChange={setScrollGesturesEnabled}
+            scrollGesturesDuringRotateOrZoomEnabled={
+              scrollGesturesDuringRotateOrZoomEnabled
+            }
+            onScrollGesturesDuringRotateOrZoomEnabledChange={
+              setScrollGesturesDuringRotateOrZoomEnabled
+            }
+            tiltGesturesEnabled={tiltGesturesEnabled}
+            onTiltGesturesEnabledChange={setTiltGesturesEnabled}
+            zoomControlsEnabled={zoomControlsEnabled}
+            onZoomControlsEnabledChange={setZoomControlsEnabled}
+            zoomGesturesEnabled={zoomGesturesEnabled}
+            onZoomGesturesEnabledChange={setZoomGesturesEnabled}
           />
         </OverlayModal>
       )}

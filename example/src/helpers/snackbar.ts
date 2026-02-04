@@ -25,12 +25,13 @@ import Snackbar from 'react-native-snackbar';
 export const showSnackbar = (
   text: string,
   duration = Snackbar.LENGTH_SHORT,
-  dismissPrevious = false
+  dismissPrevious = false,
+  numberOfLines: number = 2
 ) => {
   if (dismissPrevious) {
     Snackbar.dismiss();
   }
-  Snackbar.show({ text, duration });
+  Snackbar.show({ text, duration, numberOfLines });
 };
 
 export { Snackbar };

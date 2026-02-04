@@ -464,6 +464,11 @@ public class NavViewManager extends SimpleViewManager<FrameLayout>
     getMapControllerProperties(view.getId()).setIndoorEnabled(enabled);
   }
 
+  @ReactProp(name = "indoorLevelPickerEnabled", defaultBoolean = true)
+  public void setIndoorLevelPickerEnabled(FrameLayout view, boolean enabled) {
+    getMapControllerProperties(view.getId()).setIndoorLevelPickerEnabled(enabled);
+  }
+
   @ReactProp(name = "trafficEnabled", defaultBoolean = false)
   public void setTrafficEnabled(FrameLayout view, boolean enabled) {
     getMapControllerProperties(view.getId()).setTrafficEnabled(enabled);

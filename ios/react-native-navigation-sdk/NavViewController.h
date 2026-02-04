@@ -52,6 +52,7 @@ typedef void (^OnArrayResult)(NSArray *_Nullable result);
 - (void)setZoomLevel:(NSNumber *)level;
 - (void)setNavigationViewCallbacks:(id<INavigationViewCallback>)fn;
 - (void)setIndoorEnabled:(BOOL)isEnabled;
+- (void)setIndoorLevelPickerEnabled:(BOOL)isEnabled;
 - (void)setTrafficEnabled:(BOOL)isEnabled;
 - (void)setCompassEnabled:(BOOL)isEnabled;
 - (void)setMyLocationButtonEnabled:(BOOL)isEnabled;

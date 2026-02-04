@@ -33,10 +33,13 @@ This repository contains a React Native plugin that provides a [Google Navigatio
 
 The current version of this package has been tested and verified to work with the following React Native versions: 
 
-**0.81.1, 0.80.2, 0.79.6, 0.78.3, 0.77.3**
+**0.83.1, 0.82.1, 0.81.5, 0.80.3, 0.79.6**
 
 > [!IMPORTANT]
-> This package requires React Native 0.77+ with the new architecture (Fabric & TurboModules) enabled. Make sure the new architecture is enabled in your project configuration as shown in the [Installation](#installation) section.
+> This package requires React Native 0.79+ with the new architecture (Fabric & TurboModules) enabled. Make sure the new architecture is enabled in your project configuration as shown in the [Installation](#installation) section.
+
+> [!NOTE]
+> React Native 0.78.x and below are not supported due to Kotlin version incompatibility. If you need to use older React Native versions, please use version 0.13.x of this package with the old architecture.
 
 > [!NOTE]
 > For users upgrading from versions prior to 0.14.0, please refer to the [Migration Guide](./MIGRATING.md) for instructions on migrating to the new architecture and updated API.

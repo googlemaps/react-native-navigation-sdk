@@ -185,10 +185,10 @@ export const NavigationView = (
     viewCreatedRef.current = true;
 
     // Initialize controllers with nativeID
-    onNavigationViewControllerCreated(
+    onNavigationViewControllerCreated?.(
       getNavigationViewController(nativeIDRef.current)
     );
-    onMapViewControllerCreated(getMapViewController(nativeIDRef.current));
+    onMapViewControllerCreated?.(getMapViewController(nativeIDRef.current));
   }, [
     onMapViewControllerCreated,
     onNavigationViewControllerCreated,
@@ -249,6 +249,7 @@ export const NavigationView = (
       mapStyle={props.mapStyle}
       mapToolbarEnabled={props.mapToolbarEnabled}
       indoorEnabled={props.indoorEnabled}
+      indoorLevelPickerEnabled={props.indoorLevelPickerEnabled}
       trafficEnabled={props.trafficEnabled}
       compassEnabled={props.compassEnabled}
       myLocationButtonEnabled={props.myLocationButtonEnabled}

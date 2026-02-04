@@ -19,7 +19,7 @@ import { device, element, waitFor, by, expect, log } from 'detox';
 const NO_ERRORS_DETECTED_LABEL = 'No errors detected';
 
 // Helper function to add delays for iOS animations (iOS default transition is ~300ms)
-const maybeDelay = ms =>
+const iOSDelay = ms =>
   device.getPlatform() === 'ios'
     ? new Promise(resolve => setTimeout(resolve, ms))
     : Promise.resolve();
@@ -88,16 +88,16 @@ export const initializeIntegrationTestsPage = async () => {
   await waitFor(element(by.id('integration_tests_button')))
     .toBeVisible()
     .withTimeout(30000);
-  await maybeDelay(350);
+  await iOSDelay(350);
   await element(by.id('integration_tests_button')).tap();
-  await maybeDelay(350);
+  await iOSDelay(350);
 };
 
 export const selectTestByName = async name => {
   await waitFor(element(by.id('tests_menu_button')))
     .toBeVisible()
     .withTimeout(10000);
-  await maybeDelay(350);
+  await iOSDelay(350);
   await element(by.id('tests_menu_button')).tap();
   // Wait for the overlay scroll view to be visible
   await waitFor(element(by.id('overlay_scroll_view')))
@@ -141,6 +141,6 @@ export const selectTestByName = async name => {
     await waitFor(targetElement).toBeVisible().withTimeout(5000);
   }
 
-  await maybeDelay(600);
+  await iOSDelay(600);
   await targetElement.tap();
 };

@@ -843,6 +843,12 @@ public class MapViewController implements INavigationViewControllerProperties {
     }
   }
 
+  public void setIndoorLevelPickerEnabled(boolean enabled) {
+    if (mGoogleMap != null) {
+      mGoogleMap.getUiSettings().setIndoorLevelPickerEnabled(enabled);
+    }
+  }
+
   public void setTrafficEnabled(boolean enabled) {
     if (mGoogleMap != null) {
       mGoogleMap.setTrafficEnabled(enabled);

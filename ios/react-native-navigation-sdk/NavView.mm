@@ -228,6 +228,9 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps =
   if (previousViewProps.indoorEnabled != newViewProps.indoorEnabled) {
     [_viewController setIndoorEnabled:newViewProps.indoorEnabled];
   }
+  if (previousViewProps.indoorLevelPickerEnabled != newViewProps.indoorLevelPickerEnabled) {
+    [_viewController setIndoorLevelPickerEnabled:newViewProps.indoorLevelPickerEnabled];
+  }
   if (previousViewProps.trafficEnabled != newViewProps.trafficEnabled) {
     [_viewController setTrafficEnabled:newViewProps.trafficEnabled];
   }

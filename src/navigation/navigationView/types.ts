@@ -141,7 +141,10 @@ export interface NavigationViewProps extends MapViewProps {
    */
   readonly reportIncidentButtonEnabled?: boolean;
 
-  onNavigationViewControllerCreated(
+  /**
+   * Callback invoked when the NavigationViewController is created.
+   */
+  onNavigationViewControllerCreated?(
     navigationViewController: NavigationViewController
   ): void;
 }

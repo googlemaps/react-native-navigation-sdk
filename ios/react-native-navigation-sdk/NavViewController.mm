@@ -608,6 +608,10 @@
   [_mapView setIndoorEnabled:isEnabled];
 }
 
+- (void)setIndoorLevelPickerEnabled:(BOOL)isEnabled {
+  [_mapView.settings setIndoorPicker:isEnabled];
+}
+
 - (void)setTrafficEnabled:(BOOL)isEnabled {
   [_mapView setTrafficEnabled:isEnabled];
 }

@@ -292,6 +292,12 @@ export interface MapViewProps {
   readonly indoorEnabled?: boolean;
 
   /**
+   * Controls whether the indoor level picker is shown when viewing indoor maps.
+   * Defaults to true.
+   */
+  readonly indoorLevelPickerEnabled?: boolean;
+
+  /**
    * Controls whether traffic data is shown on the map.
    * Defaults to false.
    */
@@ -373,5 +379,10 @@ export interface MapViewProps {
    */
   readonly initialCameraPosition?: CameraPosition;
 
-  onMapViewControllerCreated(mapViewController: MapViewController): void;
+  /**
+   * Callback invoked when the MapViewController is created.
+   */
+  readonly onMapViewControllerCreated?: (
+    mapViewController: MapViewController
+  ) => void;
 }
