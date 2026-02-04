@@ -136,10 +136,11 @@ To set up, specify your API key in the application delegate `ios/Runner/AppDeleg
 
 ```
 
-#### [Expo] Add UIBackgroundModes
+#### Configure Background Modes
 
-In order to use guidance features, add the following to your ``Info.plist``:
-```
+To receive location updates and provide turn-by-turn voice guidance while the app is in the background, add the following to your `Info.plist`:
+
+```xml
 <key>UIBackgroundModes</key>
 <array>
     <string>location</string>
