@@ -86,10 +86,10 @@ jobs:
 
       - name: Download ktfmt
         run: |
-          KTFMT_VERSION=0.54
-          KTFMT_URL=https://github.com/facebook/ktfmt/releases/download/v${KTFMT_VERSION}/ktfmt-${KTFMT_VERSION}-jar-with-dependencies.jar
+          KTFMT_VERSION=0.61
+          KTFMT_URL=https://github.com/facebook/ktfmt/releases/download/v${KTFMT_VERSION}/ktfmt-${KTFMT_VERSION}-with-dependencies.jar
           mkdir -p $HOME/ktfmt
-          curl -L -o $HOME/ktfmt/ktfmt.jar $KTFMT_URL
+          curl -fL -o $HOME/ktfmt/ktfmt.jar $KTFMT_URL
 
       - name: Check Kotlin formatting
         run: |
