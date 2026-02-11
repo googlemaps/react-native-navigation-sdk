@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+package com.google.android.react.navsdk;
+
+/**
+ * Write-only interface for map view controller properties. These properties control GoogleMap
+ * settings that require the map controller to be available.
+ */
 public interface IMapViewControllerProperties {
   void setMapType(int mapType);
 
