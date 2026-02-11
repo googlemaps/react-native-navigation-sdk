@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.14.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.13.0...v0.14.0) (2026-02-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* support new React Native architecture ([#439](https://github.com/googlemaps/react-native-navigation-sdk/issues/439))
+
+### Features
+
+* support new React Native architecture ([#439](https://github.com/googlemaps/react-native-navigation-sdk/issues/439)) ([355f16a](https://github.com/googlemaps/react-native-navigation-sdk/commit/355f16a6b22ea3957eadf49a1cde100318e32734))
+
 ## [0.13.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.12.2...v0.13.0) (2026-01-22)
 
 
