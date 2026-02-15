@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.14.0...v0.14.1) (2026-02-15)
+
+
+### Bug Fixes
+
+* release build crash with NoSuchMethodError for getNavInfoLiveData ([#536](https://github.com/googlemaps/react-native-navigation-sdk/issues/536)) ([d56c96b](https://github.com/googlemaps/react-native-navigation-sdk/commit/d56c96b112f5946e8764362bac875fc516b5ceb1))
+
 ## [0.14.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.13.0...v0.14.0) (2026-02-11)
 
 
