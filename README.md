@@ -142,6 +142,18 @@ To set up, specify your API key in the application delegate `ios/Runner/AppDeleg
 
 ```
 
+#### Configure Background Modes
+
+To receive location updates and provide turn-by-turn voice guidance while the app is in the background, add the following to your `Info.plist`:
+
+```xml
+<key>UIBackgroundModes</key>
+<array>
+    <string>location</string>
+    <string>audio</string>
+</array>
+```
+
 ## Usage
 
 ### Initializing Navigation
