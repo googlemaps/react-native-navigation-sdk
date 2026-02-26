@@ -27,6 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)handleMapReady;
 - (void)handleMapClick:(NSDictionary *)latLngMap;
+- (void)handleMapDrag:(GMSCameraPosition *)cameraPosition;
+- (void)handleMapDragEnd:(GMSCameraPosition *)cameraPosition;
 - (void)handleRecenterButtonClick;
 - (void)handleMarkerInfoWindowTapped:(GMSMarker *)marker;
 - (void)handleMarkerClick:(GMSMarker *)marker;

@@ -17,6 +17,7 @@
 #import "NavViewController.h"
 #import <GoogleNavigation/GoogleNavigation.h>
 #import <React/RCTLog.h>
+#import <UIKit/UIKit.h>
 #import <UserNotifications/UserNotifications.h>
 #import "CustomTypes.h"
 #import "NavModule.h"
@@ -281,6 +282,14 @@
       handleMapClick:[ObjectTranslationUtil transformCoordinateToDictionary:coordinate]];
 }
 
+- (void)mapView:(GMSMapView *)mapView didChangeCameraPosition:(GMSCameraPosition *)cameraPosition {
+  [_viewCallbacks handleMapDrag:cameraPosition];
+}
+
+- (void)mapView:(GMSMapView *)mapView idleAtCameraPosition:(GMSCameraPosition *)cameraPosition {
+  [_viewCallbacks handleMapDragEnd:cameraPosition];
+}
+
 - (BOOL)mapView:(GMSMapView *)mapView didTapMarker:(GMSMarker *)marker {
   [_viewCallbacks handleMarkerClick:marker];
   return FALSE;
@@ -456,17 +465,7 @@
 }
 
 - (void)getCameraPosition:(OnDictionaryResult)completionBlock {
-  GMSCameraPosition *cam = _mapView.camera;
-  CLLocationCoordinate2D cameraPosition = _mapView.camera.target;
-
-  NSMutableDictionary *map = [[NSMutableDictionary alloc] init];
-  map[@"bearing"] = @(cam.bearing);
-  map[@"tilt"] = @(cam.viewingAngle);
-  map[@"zoom"] = @(cam.zoom);
-
-  map[@"target"] = @{@"lat" : @(cameraPosition.latitude), @"lng" : @(cameraPosition.longitude)};
-
-  completionBlock(map);
+  completionBlock([ObjectTranslationUtil transformCameraPositionToDictionary:_mapView.camera]);
 }
 
 - (void)getMyLocation:(OnDictionaryResult)completionBlock {
@@ -733,6 +732,60 @@
 
   _circleMap[effectiveId] = circle;
   completionBlock([ObjectTranslationUtil transformCircleToDictionary:circle]);
+}
+
+- (void)coordinateForPoint:(CGPoint *)point result:(OnDictionaryResult)completionBlock {
+  CLLocationCoordinate2D coordinate = [_mapView.projection coordinateForPoint:*point];
+
+  NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
+  result[@"lat"] = @(coordinate.latitude);
+  result[@"lng"] = @(coordinate.longitude);
+
+  completionBlock(result);
+}
+
+- (void)pointForCoordinate:(CLLocationCoordinate2D *)coordinate
+                    result:(OnDictionaryResult)completionBlock {
+  CGPoint point = [_mapView.projection pointForCoordinate:*coordinate];
+
+  NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
+  result[@"x"] = @(point.x);
+  result[@"y"] = @(point.y);
+
+  completionBlock(result);
+}
+
+- (void)fitBounds:(CLLocationCoordinate2D *)northEast
+        southWest:(CLLocationCoordinate2D *)southWest
+       edgeInsets:(UIEdgeInsets *)edgeInsets
+           result:(OnDictionaryResult)completionBlock {
+  GMSCoordinateBounds *coordBounds = [[GMSCoordinateBounds alloc] initWithCoordinate:*northEast
+                                                                          coordinate:*southWest];
+  [_mapView animateWithCameraUpdate:[GMSCameraUpdate fitBounds:coordBounds
+                                                withEdgeInsets:*edgeInsets]];
+
+  completionBlock(nil);
+}
+
+- (void)getBounds:(OnDictionaryResult)completionBlock {
+  GMSVisibleRegion visibleRegion = [_mapView.projection visibleRegion];
+  GMSCoordinateBounds *bounds =
+      [[GMSCoordinateBounds alloc] initWithCoordinate:visibleRegion.nearLeft
+                                           coordinate:visibleRegion.farRight];
+  CLLocationCoordinate2D northEast = bounds.northEast;
+  CLLocationCoordinate2D southWest = bounds.southWest;
+
+  NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
+  result[@"northEast"] = @{
+    @"lat" : @(northEast.latitude),
+    @"lng" : @(northEast.longitude),
+  };
+  result[@"southWest"] = @{
+    @"lat" : @(southWest.latitude),
+    @"lng" : @(southWest.longitude),
+  };
+
+  completionBlock(result);
 }
 
 - (void)addMarker:(GMSMarker *)marker

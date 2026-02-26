@@ -17,7 +17,7 @@
 import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 
-import type { Location } from '../shared';
+import type { Bounds, LatLng, Location, Point } from '../shared';
 import type {
   Circle,
   Marker,
@@ -120,6 +120,33 @@ type GroundOverlayOptionsSpec = Readonly<{
   zIndex?: WithDefault<Float, 0>;
 }>;
 
+type PointSpec = Readonly<{
+  x: Float;
+  y: Float;
+}>;
+
+type LatLngSpec = Readonly<{
+  lat: Float;
+  lng: Float;
+}>;
+
+type PaddingSpec = Readonly<{
+  top?: Float;
+  left?: Float;
+  bottom?: Float;
+  right?: Float;
+}>;
+
+type BoundsSpec = Readonly<{
+  northEast: LatLngSpec;
+  southWest: LatLngSpec;
+}>;
+
+type BoundsOptionsSpec = Readonly<{
+  bounds: BoundsSpec;
+  padding?: PaddingSpec;
+}>;
+
 /**
  * TurboModule for map view operations.
  *
@@ -129,6 +156,10 @@ type GroundOverlayOptionsSpec = Readonly<{
  */
 export interface Spec extends TurboModule {
   addCircle(nativeID: string, options: CircleOptionsSpec): Promise<Circle>;
+  coordinateForPoint(nativeID: string, point: PointSpec): Promise<LatLng>;
+  pointForCoordinate(nativeID: string, coordinate: LatLngSpec): Promise<Point>;
+  fitBounds(nativeID: string, boundsOptions: BoundsOptionsSpec): Promise<void>;
+  getBounds(nativeID: string): Promise<Bounds>;
   addMarker(nativeID: string, options: MarkerOptionsSpec): Promise<Marker>;
   addPolyline(
     nativeID: string,
