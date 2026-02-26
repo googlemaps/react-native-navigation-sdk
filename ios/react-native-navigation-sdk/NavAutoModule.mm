@@ -217,6 +217,82 @@ static NavAutoModuleReadyCallback _navAutoModuleReadyCallback;
   }
 }
 
+- (void)coordinateForPoint:(PointSpec &)point
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject {
+  PointSpec optionsCopy(point);
+  if (_viewController) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      CGPoint cgPoint = CGPointMake(optionsCopy.x(), optionsCopy.y());
+      [self->_viewController coordinateForPoint:&cgPoint
+                                         result:^(NSDictionary *result) {
+                                           resolve(result);
+                                         }];
+    });
+  } else {
+    reject(@"NO_VIEW_CONTROLLER", @"No viewController found", nil);
+  }
+}
+
+- (void)pointForCoordinate:(LatLngSpec &)coordinate
+                   resolve:(RCTPromiseResolveBlock)resolve
+                    reject:(RCTPromiseRejectBlock)reject {
+  LatLngSpec optionsCopy(coordinate);
+  if (_viewController) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      CLLocationCoordinate2D latLng =
+          CLLocationCoordinate2DMake(optionsCopy.lat(), optionsCopy.lng());
+      [self->_viewController pointForCoordinate:&latLng
+                                         result:^(NSDictionary *result) {
+                                           resolve(result);
+                                         }];
+    });
+  } else {
+    reject(@"NO_VIEW_CONTROLLER", @"No viewController found", nil);
+  }
+}
+
+- (void)fitBounds:(BoundsOptionsSpec &)boundsOptions
+          resolve:(RCTPromiseResolveBlock)resolve
+           reject:(RCTPromiseRejectBlock)reject {
+  BoundsOptionsSpec optionsCopy(boundsOptions);
+  if (_viewController) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      CLLocationCoordinate2D northEast = CLLocationCoordinate2DMake(
+          optionsCopy.bounds().northEast().lat(), optionsCopy.bounds().northEast().lng());
+      CLLocationCoordinate2D southWest = CLLocationCoordinate2DMake(
+          optionsCopy.bounds().southWest().lat(), optionsCopy.bounds().southWest().lng());
+
+      UIEdgeInsets edgeInsets = UIEdgeInsetsMake(optionsCopy.padding().value().top().value_or(0),
+                                                 optionsCopy.padding().value().left().value_or(0),
+                                                 optionsCopy.padding().value().bottom().value_or(0),
+                                                 optionsCopy.padding().value().right().value_or(0));
+      [self->_viewController fitBounds:&northEast
+                             southWest:&southWest
+                            edgeInsets:&edgeInsets
+                                result:^(NSDictionary *result) {
+                                  resolve(result);
+                                }];
+    });
+  } else {
+    reject(@"NO_VIEW_CONTROLLER", @"No viewController found", nil);
+  }
+}
+
+- (void)getBounds:(NSString *)id
+          resolve:(RCTPromiseResolveBlock)resolve
+           reject:(RCTPromiseRejectBlock)reject {
+  if (_viewController) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self->_viewController getBounds:^(NSDictionary *result) {
+        resolve(result);
+      }];
+    });
+  } else {
+    reject(@"NO_VIEW_CONTROLLER", @"No viewController found", nil);
+  }
+}
+
 - (void)addPolyline:(PolylineOptionsSpec &)options
             resolve:(RCTPromiseResolveBlock)resolve
              reject:(RCTPromiseRejectBlock)reject {

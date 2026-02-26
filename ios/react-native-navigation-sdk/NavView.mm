@@ -339,6 +339,24 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps =
   self.eventEmitter.onMarkerInfoWindowTapped(result);
 }
 
+- (void)handleMapDrag:(GMSCameraPosition *)cameraPosition {
+  NavViewEventEmitter::OnMapDrag result = {
+      {{cameraPosition.target.latitude, cameraPosition.target.longitude},
+       cameraPosition.bearing,
+       cameraPosition.viewingAngle,
+       cameraPosition.zoom}};
+  self.eventEmitter.onMapDrag(result);
+}
+
+- (void)handleMapDragEnd:(GMSCameraPosition *)cameraPosition {
+  NavViewEventEmitter::OnMapDragEnd result = {
+      {{cameraPosition.target.latitude, cameraPosition.target.longitude},
+       cameraPosition.bearing,
+       cameraPosition.viewingAngle,
+       cameraPosition.zoom}};
+  self.eventEmitter.onMapDragEnd(result);
+}
+
 - (void)handleMarkerClick:(GMSMarker *)marker {
   NavViewEventEmitter::OnMarkerClick result = {
       {marker.position.latitude, marker.position.longitude},

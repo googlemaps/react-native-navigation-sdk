@@ -98,6 +98,10 @@ public class MapViewController implements INavigationViewControllerProperties {
     mGoogleMap.setOnInfoWindowClickListener(
         marker -> mNavigationViewCallback.onMarkerInfoWindowTapped(marker));
     mGoogleMap.setOnMapClickListener(latLng -> mNavigationViewCallback.onMapClick(latLng));
+    mGoogleMap.setOnCameraMoveListener(
+        () -> mNavigationViewCallback.onMapDrag(mGoogleMap.getCameraPosition()));
+    mGoogleMap.setOnCameraIdleListener(
+        () -> mNavigationViewCallback.onMapDragEnd(mGoogleMap.getCameraPosition()));
   }
 
   public GoogleMap getGoogleMap() {

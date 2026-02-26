@@ -38,6 +38,7 @@ import {
   type Polyline,
   useNavigation,
   useNavigationAuto,
+  type DragResult,
 } from '@googlemaps/react-native-navigation-sdk';
 import MapsControls from '../controls/mapsControls';
 import AutoControls from '../controls/autoControls';
@@ -323,6 +324,18 @@ const NavigationScreen = () => {
     );
   }, []);
 
+  const onMapDrag = useCallback((result: DragResult) => {
+    showSnackbar(
+      `Camera at ${result.cameraPosition.target.lat.toFixed(4)}, ${result.cameraPosition.target.lng.toFixed(4)}, ${result.cameraPosition.zoom?.toFixed(4)}`
+    );
+  }, []);
+
+  const onMapDragEnd = useCallback((result: DragResult) => {
+    showSnackbar(
+      `Camera at ${result.cameraPosition.target.lat.toFixed(4)}, ${result.cameraPosition.target.lng.toFixed(4)}, ${result.cameraPosition.zoom?.toFixed(4)}`
+    );
+  }, []);
+
   const closeOverlay = (): void => {
     setOverlayType(OverlayType.None);
   };
@@ -361,6 +374,8 @@ const NavigationScreen = () => {
         reportIncidentButtonEnabled={reportIncidentButtonEnabled}
         onMapReady={onMapReady}
         onMapClick={onMapClick}
+        onMapDrag={onMapDrag}
+        onMapDragEnd={onMapDragEnd}
         onMarkerClick={onMarkerClick}
         onPolylineClick={onPolylineClick}
         onPolygonClick={onPolygonClick}

@@ -164,6 +164,52 @@ public class NavAutoModule extends NativeNavAutoModuleSpec
   }
 
   @Override
+  public void coordinateForPoint(String nativeID, ReadableMap point, Promise promise) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mMapViewController == null) {
+            promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+            return;
+          }
+
+          NavViewModule.resolveCoordinateForPoint(
+              getReactApplicationContext(), mMapViewController.getGoogleMap(), point, promise);
+        });
+  }
+
+  @Override
+  public void pointForCoordinate(String nativeID, ReadableMap coordinate, Promise promise) {
+    if (mMapViewController == null) {
+      promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+      return;
+    }
+
+    NavViewModule.resolvePointForCoordinate(
+        getReactApplicationContext(), mMapViewController.getGoogleMap(), coordinate, promise);
+  }
+
+  @Override
+  public void fitBounds(String nativeID, ReadableMap boundsOptions, Promise promise) {
+    if (mMapViewController == null) {
+      promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+      return;
+    }
+
+    NavViewModule.resolveFitBounds(
+        getReactApplicationContext(), mMapViewController.getGoogleMap(), boundsOptions, promise);
+  }
+
+  @Override
+  public void getBounds(String nativeID, Promise promise) {
+    if (mMapViewController == null) {
+      promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
+      return;
+    }
+
+    NavViewModule.resolveGetBounds(mMapViewController.getGoogleMap(), promise);
+  }
+
+  @Override
   public void addMarker(ReadableMap options, final Promise promise) {
     ReadableMap markerOptionsMap = options;
     UiThreadUtil.runOnUiThread(

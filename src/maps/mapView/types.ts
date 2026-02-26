@@ -15,7 +15,7 @@
  */
 
 import type { ColorValue } from 'react-native';
-import type { LatLng, Location } from '../../shared/types';
+import type { LatLng, Location, Point, Bounds } from '../../shared/types';
 import type {
   CameraPosition,
   Circle,
@@ -222,6 +222,16 @@ export interface Padding {
 }
 
 /**
+ * Defines bounds options for a geographical bounds with padding.
+ */
+export interface BoundsOptions {
+  /** Geographical bounds. */
+  bounds: Bounds;
+  /** Padding within the bounds. */
+  padding?: Padding;
+}
+
+/**
  * Defines the type of the map view.
  */
 export enum MapViewType {
@@ -247,6 +257,30 @@ export interface MapViewController {
    * @returns The created or updated circle, including its `id` for future updates.
    */
   addCircle(circleOptions: CircleOptions): Promise<Circle>;
+
+  /**
+   * Maps a point coordinate in the map’s view to an Earth coordinate.
+   * @param point - Object specifying the point.
+   */
+  coordinateForPoint(point: Point): Promise<LatLng>;
+
+  /**
+   * Maps an Earth coordinate to a point coordinate in the map’s view.
+   * @param coordinate - Object specifying the coordinate.
+   */
+  pointForCoordinate(coordinate: LatLng): Promise<Point>;
+
+  /**
+   * Transforms the camera such that the specified bounds are centered on screen.
+   * @param boundsOptions - Object specifying the bounds options.
+   */
+  fitBounds(boundsOptions: BoundsOptions): Promise<void>;
+
+  /**
+   * Retrieves the rectangular bounds of the map view.
+   * @param bounds - Object specifying the bounds.
+   */
+  getBounds(): Promise<Bounds>;
 
   /**
    * Add or update a marker on the map.

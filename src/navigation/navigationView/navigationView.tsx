@@ -198,6 +198,8 @@ export const NavigationView = (
   // Use the new architecture event callback hook
   const onMapClick = useNativeEventCallback(props.onMapClick);
   const onMapReady = useNativeEventCallback(props.onMapReady);
+  const onMapDrag = useNativeEventCallback(props.onMapDrag);
+  const onMapDragEnd = useNativeEventCallback(props.onMapDragEnd);
   const onMarkerClick = useNativeEventCallback(props.onMarkerClick);
   const onPolylineClick = useNativeEventCallback(props.onPolylineClick);
   const onPolygonClick = useNativeEventCallback(props.onPolygonClick);
@@ -268,6 +270,8 @@ export const NavigationView = (
       maxZoomLevel={props.maxZoomLevel}
       onMapClick={onMapClick}
       onMapReady={onMapReady}
+      onMapDrag={onMapDrag}
+      onMapDragEnd={onMapDragEnd}
       onMarkerClick={onMarkerClick}
       onPolylineClick={onPolylineClick}
       onPolygonClick={onPolygonClick}

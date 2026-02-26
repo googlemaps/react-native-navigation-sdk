@@ -21,6 +21,9 @@ import {
   type Location,
   colorIntToRGBA,
   processColorValue,
+  type Point,
+  type LatLng,
+  type Bounds,
 } from '../shared';
 import type {
   MapType,
@@ -40,6 +43,7 @@ import type {
   GroundOverlayBoundsOptions,
   GroundOverlayPositionOptions,
   MapColorScheme,
+  BoundsOptions,
 } from '../maps';
 import type { NavigationNightMode } from '../navigation';
 import { useMemo, useCallback, useRef } from 'react';
@@ -203,6 +207,22 @@ export const useNavigationAuto = (): UseNavigationAutoResult => {
             ? colorIntToRGBA(circle.strokeColor as unknown as number)
             : undefined,
         };
+      },
+
+      coordinateForPoint: async (point: Point): Promise<LatLng> => {
+        return await NavAutoModule.coordinateForPoint(point);
+      },
+
+      pointForCoordinate: async (coordinate: LatLng): Promise<Point> => {
+        return await NavAutoModule.pointForCoordinate(coordinate);
+      },
+
+      fitBounds: async (boundsOptions: BoundsOptions) => {
+        return await NavAutoModule.fitBounds(boundsOptions);
+      },
+
+      getBounds: async (): Promise<Bounds> => {
+        return await NavAutoModule.getBounds();
       },
 
       addMarker: async (markerOptions: MarkerOptions): Promise<Marker> => {
