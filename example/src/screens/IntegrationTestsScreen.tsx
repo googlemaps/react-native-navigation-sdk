@@ -367,6 +367,7 @@ const IntegrationTestsScreen = () => {
           setIsOverlayOpen(false);
         }}
         height={overlayMinHeight}
+        contentPaddingBottom={500}
       >
         <ExampleAppButton
           title="testNavigationSessionInitialization"
