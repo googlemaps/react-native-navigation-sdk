@@ -141,6 +141,6 @@ export const selectTestByName = async name => {
     await waitFor(targetElement).toBeVisible().withTimeout(5000);
   }
 
-  await iOSDelay(600);
+  await iOSDelay(3000);
   await targetElement.tap();
 };
