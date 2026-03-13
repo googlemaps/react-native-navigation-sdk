@@ -35,7 +35,7 @@ Pod::Spec.new do |s|
   s.public_header_files = "ios/**/*.h"
 
   s.dependency "React-Core"
-  s.dependency "GoogleNavigation", "10.7.0"
+  s.dependency "GoogleNavigation", "10.10.0"
 
   install_modules_dependencies(s)
 end
