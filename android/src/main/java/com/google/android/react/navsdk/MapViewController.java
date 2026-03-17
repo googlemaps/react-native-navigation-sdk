@@ -22,6 +22,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.FollowMyLocationOptions;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.GroundOverlay;
@@ -72,6 +73,8 @@ public class MapViewController implements INavigationViewControllerProperties {
   // Zoom level preferences (-1 means use map's current value)
   private Float minZoomLevelPreference = null;
   private Float maxZoomLevelPreference = null;
+
+  private Integer currentFollowingPerspective = null;
 
   public void initialize(GoogleMap googleMap, Supplier<Activity> activitySupplier) {
     this.mGoogleMap = googleMap;
@@ -914,6 +917,8 @@ public class MapViewController implements INavigationViewControllerProperties {
     // Use map's current minZoomLevel if -1 is provided
     float effectiveMin = (minZoomLevel < 0.0f) ? mGoogleMap.getMinZoomLevel() : minZoomLevel;
     mGoogleMap.setMinZoomPreference(effectiveMin);
+
+    applyFollowMyLocation();
   }
 
   @Override
@@ -939,6 +944,8 @@ public class MapViewController implements INavigationViewControllerProperties {
     // Use map's current maxZoomLevel if -1 is provided
     float effectiveMax = (maxZoomLevel < 0.0f) ? mGoogleMap.getMaxZoomLevel() : maxZoomLevel;
     mGoogleMap.setMaxZoomPreference(effectiveMax);
+
+    applyFollowMyLocation();
   }
 
   public void setZoomGesturesEnabled(boolean enabled) {
@@ -1028,7 +1035,38 @@ public class MapViewController implements INavigationViewControllerProperties {
       return;
     }
 
-    mGoogleMap.followMyLocation(EnumTranslationUtil.getCameraPerspectiveFromJsValue(jsValue));
+    currentFollowingPerspective = jsValue;
+    applyFollowMyLocation();
+  }
+
+  private Float getLockedZoomLevel() {
+    if (minZoomLevelPreference != null
+        && maxZoomLevelPreference != null
+        && minZoomLevelPreference >= 0.0f
+        && maxZoomLevelPreference >= 0.0f
+        && Float.compare(minZoomLevelPreference, maxZoomLevelPreference) == 0) {
+      return minZoomLevelPreference;
+    }
+    return null;
+  }
+
+  @SuppressLint("MissingPermission")
+  private void applyFollowMyLocation() {
+    if (mGoogleMap == null || currentFollowingPerspective == null) {
+      return;
+    }
+
+    int perspective =
+        EnumTranslationUtil.getCameraPerspectiveFromJsValue(currentFollowingPerspective);
+    Float lockedZoom = getLockedZoomLevel();
+
+    if (lockedZoom != null) {
+      FollowMyLocationOptions options =
+          FollowMyLocationOptions.builder().setZoomLevel(lockedZoom).build();
+      mGoogleMap.followMyLocation(perspective, options);
+    } else {
+      mGoogleMap.followMyLocation(perspective);
+    }
   }
 
   public void setPadding(int top, int left, int bottom, int right) {
