@@ -35,6 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)handleCircleClick:(GMSCircle *)circle;
 - (void)handleGroundOverlayClick:(GMSGroundOverlay *)groundOverlay;
 - (void)handlePromptVisibilityChanged:(BOOL)isVisible;
+- (void)handleCameraFollowLocationChanged:(BOOL)isFollowing;
 @end
 
 NS_ASSUME_NONNULL_END
