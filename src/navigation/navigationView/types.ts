@@ -67,6 +67,14 @@ export interface NavigationViewProps extends MapViewProps {
   readonly onRecenterButtonClick?: () => void;
 
   /**
+   * Callback invoked when the camera enters or exits follow-my-location mode.
+   *
+   * @param isFollowing - True when the camera is following the user's location,
+   *                      false when the user has panned or zoomed away.
+   */
+  readonly onCameraFollowLocationChanged?: (isFollowing: boolean) => void;
+
+  /**
    * A callback function invoked before a Navigation SDK UI prompt
    * element is about to appear and as soon as the element is removed.
    *

@@ -194,6 +194,7 @@ export interface NativeNavViewProps extends ViewProps {
   }>;
   onRecenterButtonClick?: DirectEventHandler<null>;
   onPromptVisibilityChanged?: DirectEventHandler<{ visible: boolean }>;
+  onCameraFollowLocationChanged?: DirectEventHandler<{ isFollowing: boolean }>;
 }
 
 export type NativeNavViewType = HostComponent<NativeNavViewProps>;
