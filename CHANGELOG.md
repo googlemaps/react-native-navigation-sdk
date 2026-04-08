@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.14.2...v0.14.3) (2026-04-08)
+
+
+### Features
+
+* upgrade Navigation SDK for Android to 7.5.0 ([#557](https://github.com/googlemaps/react-native-navigation-sdk/issues/557)) ([f472ed3](https://github.com/googlemaps/react-native-navigation-sdk/commit/f472ed379d73b31d6c6990030ecc59e08ede8652))
+
 ## [0.14.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.14.1...v0.14.2) (2026-03-13)
 
 
