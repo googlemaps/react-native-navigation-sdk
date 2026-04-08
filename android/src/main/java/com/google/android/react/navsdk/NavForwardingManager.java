@@ -35,7 +35,7 @@ public class NavForwardingManager {
 
   /** Unregisters the service receiving navigation updates */
   public static void stopNavForwarding(
-      Navigator navigator, Context context, INavigationCallback navigationCallback) {
+      Navigator navigator, INavigationCallback navigationCallback) {
     // Unregister the nav info receiving service.
     boolean success = navigator.unregisterServiceForNavUpdates();
     if (success) {

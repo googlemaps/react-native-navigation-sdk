@@ -174,6 +174,9 @@ public class NavModule extends NativeNavModuleSpec
     }
 
     final Navigator navigator = mNavigator;
+    mNavigator = null;
+    mRoadSnappedLocationProvider = null;
+
     UiThreadUtil.runOnUiThread(
         () -> {
           // Remove listeners on UI thread to serialize with callback dispatch.
@@ -181,8 +184,9 @@ public class NavModule extends NativeNavModuleSpec
           // where callbacks may still be in-flight during removal.
           removeLocationListener();
           removeNavigationListeners();
-          navigator.clearDestinations();
+          NavForwardingManager.stopNavForwarding(navigator, this);
           navigator.stopGuidance();
+          navigator.clearDestinations();
           navigator.getSimulator().unsetUserLocation();
           promise.resolve(true);
         });
@@ -418,7 +422,7 @@ public class NavModule extends NativeNavModuleSpec
     if (isEnabled) {
       NavForwardingManager.startNavForwarding(mNavigator, currentActivity, this);
     } else {
-      NavForwardingManager.stopNavForwarding(mNavigator, currentActivity, this);
+      NavForwardingManager.stopNavForwarding(mNavigator, this);
     }
   }
 
