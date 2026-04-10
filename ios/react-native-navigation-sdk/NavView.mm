@@ -419,6 +419,11 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps =
   self.eventEmitter.onCircleClick(result);
 }
 
+- (void)handleCameraFollowLocationChanged:(BOOL)isFollowing {
+  NavViewEventEmitter::OnCameraFollowLocationChanged result = {isFollowing};
+  self.eventEmitter.onCameraFollowLocationChanged(result);
+}
+
 - (void)handleGroundOverlayClick:(GMSGroundOverlay *)groundOverlay {
   NavViewEventEmitter::OnGroundOverlayClick result = {
       [ObjectTranslationUtil isIdOnUserData:groundOverlay.userData]

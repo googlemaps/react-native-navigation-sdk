@@ -37,6 +37,7 @@
   MapViewType *_mapViewType;  // Nullable - must be set before loadView
   id<INavigationViewCallback> _viewCallbacks;
   BOOL _isSessionAttached;
+  BOOL _lastReportedIsFollowing;
   NSNumber *_isNavigationUIEnabled;
   NSNumber *_navigationUIEnabledPreference;  // 0=AUTOMATIC, 1=DISABLED
   NSNumber *_navigationLightingMode;
@@ -270,6 +271,29 @@
 
 - (void)mapViewDidTapRecenterButton:(GMSMapView *)mapView {
   [_viewCallbacks handleRecenterButtonClick];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self reportFollowingStateIfChanged];
+  });
+}
+
+- (void)mapView:(GMSMapView *)mapView willMove:(BOOL)gesture {
+  if (gesture) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self reportFollowingStateIfChanged];
+    });
+  }
+}
+
+- (void)mapView:(GMSMapView *)mapView idleAtCameraPosition:(GMSCameraPosition *)position {
+  [self reportFollowingStateIfChanged];
+}
+
+- (void)reportFollowingStateIfChanged {
+  BOOL isFollowing = (_mapView.cameraMode == GMSNavigationCameraModeFollowing);
+  if (_lastReportedIsFollowing != isFollowing) {
+    _lastReportedIsFollowing = isFollowing;
+    [_viewCallbacks handleCameraFollowLocationChanged:isFollowing];
+  }
 }
 
 - (void)mapView:(GMSMapView *)mapView didTapInfoWindowOfMarker:(GMSMarker *)marker {
@@ -518,6 +542,7 @@
 
 - (void)showRouteOverview {
   _mapView.cameraMode = GMSNavigationCameraModeOverview;
+  [self reportFollowingStateIfChanged];
 }
 
 - (void)setTripProgressBarEnabled:(BOOL)isEnabled {
@@ -569,6 +594,7 @@
     [_mapView setFollowingPerspective:GMSNavigationCameraPerspectiveTilted];
   }
   _mapView.cameraMode = GMSNavigationCameraModeFollowing;
+  [self reportFollowingStateIfChanged];
 }
 
 - (void)setSpeedometerEnabled:(BOOL)isEnabled {

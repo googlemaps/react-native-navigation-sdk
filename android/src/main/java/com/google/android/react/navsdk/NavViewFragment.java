@@ -86,6 +86,23 @@ public class NavViewFragment extends SupportNavigationFragment
           applyMapColorSchemeToMap();
           applyNightModePreference();
 
+          googleMap.setOnFollowMyLocationCallback(
+              new GoogleMap.OnCameraFollowLocationCallback() {
+                @Override
+                public void onCameraStartedFollowingLocation() {
+                  WritableMap map = Arguments.createMap();
+                  map.putBoolean("isFollowing", true);
+                  emitEvent("onCameraFollowLocationChanged", map);
+                }
+
+                @Override
+                public void onCameraStoppedFollowingLocation() {
+                  WritableMap map = Arguments.createMap();
+                  map.putBoolean("isFollowing", false);
+                  emitEvent("onCameraFollowLocationChanged", map);
+                }
+              });
+
           emitEvent("onMapReady", null);
 
           // Request layout to ensure fragment is properly sized

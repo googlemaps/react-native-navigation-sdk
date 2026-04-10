@@ -221,6 +221,15 @@ export const NavigationView = (
     [onPromptVisibilityChangedProp]
   );
 
+  const { onCameraFollowLocationChanged: onCameraFollowLocationChangedProp } =
+    props;
+  const onCameraFollowLocationChanged = useCallback(
+    (event: { nativeEvent: { isFollowing: boolean } }) => {
+      onCameraFollowLocationChangedProp?.(event.nativeEvent.isFollowing);
+    },
+    [onCameraFollowLocationChangedProp]
+  );
+
   return (
     <NavView
       style={props.style ?? styles.defaultStyle}
@@ -276,6 +285,7 @@ export const NavigationView = (
       onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
       onRecenterButtonClick={onRecenterButtonClick}
       onPromptVisibilityChanged={onPromptVisibilityChanged}
+      onCameraFollowLocationChanged={onCameraFollowLocationChanged}
     />
   );
 };
