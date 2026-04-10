@@ -74,7 +74,7 @@ public class NavModule extends NativeNavModuleSpec
   private NavViewManager mNavViewManager;
   private final CopyOnWriteArrayList<NavigationReadyListener> mNavigationReadyListeners =
       new CopyOnWriteArrayList<>();
-  private boolean mIsListeningRoadSnappedLocation = false;
+  private volatile boolean mIsListeningRoadSnappedLocation = false;
   private LocationListener mLocationListener;
   private Navigator.ArrivalListener mArrivalListener;
   private Navigator.RouteChangedListener mRouteChangedListener;
@@ -167,8 +167,6 @@ public class NavModule extends NativeNavModuleSpec
     }
 
     mIsListeningRoadSnappedLocation = false;
-    removeLocationListener();
-    removeNavigationListeners();
     mWaypoints.clear();
 
     for (NavigationReadyListener listener : mNavigationReadyListeners) {
@@ -178,6 +176,11 @@ public class NavModule extends NativeNavModuleSpec
     final Navigator navigator = mNavigator;
     UiThreadUtil.runOnUiThread(
         () -> {
+          // Remove listeners on UI thread to serialize with callback dispatch.
+          // This reduces the chance of triggering a race condition in the Navigation SDK
+          // where callbacks may still be in-flight during removal.
+          removeLocationListener();
+          removeNavigationListeners();
           navigator.clearDestinations();
           navigator.stopGuidance();
           navigator.getSimulator().unsetUserLocation();
@@ -939,20 +942,31 @@ public class NavModule extends NativeNavModuleSpec
 
   @Override
   public void startUpdatingLocation(final Promise promise) {
-    registerLocationListener();
     mIsListeningRoadSnappedLocation = true;
-    promise.resolve(null);
+    // Register listener on UI thread to serialize with callback dispatch and allow
+    // safe remove-and-recreate.
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          registerLocationListener();
+          promise.resolve(null);
+        });
   }
 
   @Override
   public void stopUpdatingLocation(final Promise promise) {
     mIsListeningRoadSnappedLocation = false;
-    removeLocationListener();
-    promise.resolve(null);
+    // Remove the listener on UI thread to serialize with callback dispatch.
+    // This avoids the race condition in the Navigation SDK.
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          removeLocationListener();
+          promise.resolve(null);
+        });
   }
 
   private void registerLocationListener() {
-    // Unregister existing location listener if available.
+    // Remove existing listener first, then recreate. This is safe when called
+    // from UI thread as it serializes with callback dispatch.
     removeLocationListener();
 
     if (mRoadSnappedLocationProvider != null) {
