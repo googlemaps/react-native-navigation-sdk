@@ -36,17 +36,10 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 
 public class MapViewController implements INavigationViewControllerProperties {
   private GoogleMap mGoogleMap;
@@ -66,8 +59,6 @@ public class MapViewController implements INavigationViewControllerProperties {
   private final Map<String, String> polygonNativeIdToEffectiveId = new HashMap<>();
   private final Map<String, String> groundOverlayNativeIdToEffectiveId = new HashMap<>();
   private final Map<String, String> circleNativeIdToEffectiveId = new HashMap<>();
-
-  private String style = "";
 
   // Zoom level preferences (-1 means use map's current value)
   private Float minZoomLevelPreference = null;
@@ -770,25 +761,20 @@ public class MapViewController implements INavigationViewControllerProperties {
     return groundOverlayMap;
   }
 
-  public void setMapStyle(String url) {
-    Executors.newSingleThreadExecutor()
-        .execute(
-            () -> {
-              try {
-                style = fetchJsonFromUrl(url);
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-
-              Activity activity = activitySupplier.get();
-              if (activity != null) {
-                activity.runOnUiThread(
-                    () -> {
-                      MapStyleOptions options = new MapStyleOptions(style);
-                      mGoogleMap.setMapStyle(options);
-                    });
-              }
-            });
+  public void setMapStyle(String styleJson) {
+    Activity activity = activitySupplier.get();
+    if (activity != null) {
+      activity.runOnUiThread(
+          () -> {
+            if (styleJson == null || styleJson.isEmpty()) {
+              // Reset to default map style
+              mGoogleMap.setMapStyle(null);
+            } else {
+              MapStyleOptions options = new MapStyleOptions(styleJson);
+              mGoogleMap.setMapStyle(options);
+            }
+          });
+    }
   }
 
   /** Moves the position of the camera to the specified location. */
@@ -1034,29 +1020,6 @@ public class MapViewController implements INavigationViewControllerProperties {
   public void setPadding(int top, int left, int bottom, int right) {
     if (mGoogleMap != null) {
       mGoogleMap.setPadding(left, top, right, bottom);
-    }
-  }
-
-  private String fetchJsonFromUrl(String urlString) throws IOException {
-    URL url = new URL(urlString);
-    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    connection.setRequestMethod("GET");
-
-    int responseCode = connection.getResponseCode();
-    if (responseCode == HttpURLConnection.HTTP_OK) {
-      InputStream inputStream = connection.getInputStream();
-      BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-      StringBuilder stringBuilder = new StringBuilder();
-      String line;
-      while ((line = reader.readLine()) != null) {
-        stringBuilder.append(line);
-      }
-      reader.close();
-      inputStream.close();
-      return stringBuilder.toString();
-    } else {
-      // Handle error response
-      throw new IOException("Error response: " + responseCode);
     }
   }
 

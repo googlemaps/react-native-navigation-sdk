@@ -82,4 +82,11 @@ describe('Map view tests', () => {
     await expectNoErrors();
     await expectSuccess();
   });
+
+  it('MT09 - test setting map style via JSON', async () => {
+    await selectTestByName('testMapStyle');
+    await waitForTestToFinish();
+    await expectNoErrors();
+    await expectSuccess();
+  });
 });

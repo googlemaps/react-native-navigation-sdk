@@ -221,7 +221,11 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps =
   // Update map style
   if (previousViewProps.mapStyle != newViewProps.mapStyle) {
     NSString *jsonString = [NSString stringWithUTF8String:newViewProps.mapStyle.c_str()];
-    GMSMapStyle *style = [GMSMapStyle styleWithJSONString:jsonString error:nil];
+    GMSMapStyle *style = nil;
+    if (jsonString.length > 0) {
+      style = [GMSMapStyle styleWithJSONString:jsonString error:nil];
+    }
+    // Setting nil resets to default map style
     [_viewController setMapStyle:style];
   }
 

@@ -19,7 +19,7 @@ import com.google.android.gms.maps.GoogleMap;
 public interface IMapViewFragment extends IMapViewProperties {
   MapViewController getMapController();
 
-  void setMapStyle(String url);
+  void setMapStyle(String mapStyle);
 
   GoogleMap getGoogleMap();
 

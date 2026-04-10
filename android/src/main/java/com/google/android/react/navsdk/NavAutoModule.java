@@ -138,13 +138,12 @@ public class NavAutoModule extends NativeNavAutoModuleSpec
 
   @Override
   public void setMapStyle(String mapStyle) {
-    String url = mapStyle;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setMapStyle(url);
+          mMapViewController.setMapStyle(mapStyle);
         });
   }
 

@@ -59,4 +59,17 @@ post_install do |installer|
     :mac_catalyst_enabled => false,
     # :ccache_enabled => true
   )
+
+  # Fix fmt compilation issue with Xcode 26.4+ (stricter consteval enforcement)
+  # fmt/base.h unconditionally redefines FMT_USE_CONSTEVAL based on __cplusplus,
+  # so preprocessor defines are overwritten. Compiling fmt in C++17 mode ensures
+  # FMT_CPLUSPLUS (201703L) < 201709L → FMT_USE_CONSTEVAL = 0.
+  # Fixed in React Native 0.85+, can be removed after upgrading.
+  installer.pods_project.targets.each do |target|
+    if target.name == 'fmt'
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      end
+    end
+  end
 end

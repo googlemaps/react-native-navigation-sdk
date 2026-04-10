@@ -69,6 +69,9 @@ export interface MapControlsProps {
   readonly onZoomControlsEnabledChange?: (enabled: boolean) => void;
   readonly zoomGesturesEnabled?: boolean;
   readonly onZoomGesturesEnabledChange?: (enabled: boolean) => void;
+  // Map style
+  readonly mapStyleEnabled?: boolean;
+  readonly onMapStyleEnabledChange?: (enabled: boolean) => void;
 }
 
 export const defaultZoom: number = 15;
@@ -103,6 +106,8 @@ const MapsControls: React.FC<MapControlsProps> = ({
   onZoomControlsEnabledChange,
   zoomGesturesEnabled = true,
   onZoomGesturesEnabledChange,
+  mapStyleEnabled = false,
+  onMapStyleEnabledChange,
 }) => {
   const mapTypeOptions = ['None', 'Normal', 'Satellite', 'Terrain', 'Hybrid'];
   const colorSchemeOptions = ['Follow System', 'Light', 'Dark'];
@@ -515,6 +520,13 @@ const MapsControls: React.FC<MapControlsProps> = ({
           <ExampleAppButton
             title={customPaddingEnabled ? 'Disable' : 'Enable'}
             onPress={toggleCustomPadding}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>JSON Styling (Night mode)</Text>
+          <ExampleAppButton
+            title={mapStyleEnabled ? 'Disable' : 'Enable'}
+            onPress={() => onMapStyleEnabledChange?.(!mapStyleEnabled)}
           />
         </View>
       </Accordion>

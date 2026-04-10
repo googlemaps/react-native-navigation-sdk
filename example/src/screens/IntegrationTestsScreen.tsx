@@ -54,6 +54,7 @@ import {
   testNavigationStateGuards,
   testStartGuidanceWithoutDestinations,
   testRouteTokenOptionsValidation,
+  testMapStyle,
   NO_ERRORS_DETECTED_LABEL,
 } from './integration_tests/integration_test';
 
@@ -124,6 +125,7 @@ const IntegrationTestsScreen = () => {
   const [mapToolbarEnabled, setMapToolbarEnabled] = useState<
     boolean | undefined
   >(undefined);
+  const [mapStyle, setMapStyle] = useState<string | undefined>(undefined);
 
   const onMapReady = useCallback(async () => {
     try {
@@ -231,6 +233,7 @@ const IntegrationTestsScreen = () => {
       setZoomGesturesEnabled,
       setZoomControlsEnabled,
       setMapToolbarEnabled,
+      setMapStyle,
     };
   };
 
@@ -297,6 +300,9 @@ const IntegrationTestsScreen = () => {
       case 'testRouteTokenOptionsValidation':
         await testRouteTokenOptionsValidation(getTestTools());
         break;
+      case 'testMapStyle':
+        await testMapStyle(getTestTools());
+        break;
       default:
         resetTestState();
         break;
@@ -338,6 +344,7 @@ const IntegrationTestsScreen = () => {
           zoomGesturesEnabled={zoomGesturesEnabled}
           zoomControlsEnabled={zoomControlsEnabled}
           mapToolbarEnabled={mapToolbarEnabled}
+          mapStyle={mapStyle}
         />
       </View>
       <View style={{ flex: 4 }}>
@@ -501,6 +508,13 @@ const IntegrationTestsScreen = () => {
             runTest('testRouteTokenOptionsValidation');
           }}
           testID="testRouteTokenOptionsValidation"
+        />
+        <ExampleAppButton
+          title="testMapStyle"
+          onPress={() => {
+            runTest('testMapStyle');
+          }}
+          testID="testMapStyle"
         />
       </OverlayModal>
     </View>
