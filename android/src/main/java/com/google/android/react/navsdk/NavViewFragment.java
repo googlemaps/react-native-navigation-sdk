@@ -122,8 +122,8 @@ public class NavViewFragment extends SupportNavigationFragment
     return mMapViewController;
   }
 
-  public void setMapStyle(String url) {
-    mMapViewController.setMapStyle(url);
+  public void setMapStyle(String mapStyle) {
+    mMapViewController.setMapStyle(mapStyle);
   }
 
   public void applyStylingOptions() {

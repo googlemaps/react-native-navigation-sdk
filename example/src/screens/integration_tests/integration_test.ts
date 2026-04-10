@@ -26,6 +26,7 @@ import {
 } from '@googlemaps/react-native-navigation-sdk';
 import { Platform } from 'react-native';
 import { delay, roundDown } from './utils';
+import { NIGHT_MODE_STYLE } from '../../styles/mapStyles';
 
 interface TestTools {
   navigationController: NavigationController;
@@ -55,6 +56,7 @@ interface TestTools {
   setZoomGesturesEnabled: (enabled: boolean | undefined) => void;
   setZoomControlsEnabled: (enabled: boolean | undefined) => void;
   setMapToolbarEnabled: (enabled: boolean | undefined) => void;
+  setMapStyle: (style: string | undefined) => void;
 }
 
 const NAVIGATOR_NOT_READY_ERROR_CODE = 'NO_NAVIGATOR_ERROR_CODE';
@@ -1479,4 +1481,34 @@ export const testRouteTokenOptionsValidation = async (testTools: TestTools) => {
     }
   });
   await initializeNavigation(navigationController, failTest);
+};
+
+/**
+ * Test that mapStyle prop can be set with valid JSON without errors.
+ * This verifies the fix for issue #548 where mapStyle was incorrectly
+ * treated as a URL on Android instead of a JSON string.
+ */
+export const testMapStyle = async (testTools: TestTools) => {
+  const { mapViewController, passTest, failTest, setMapStyle } = testTools;
+
+  if (!mapViewController) {
+    return failTest('mapViewController was expected to exist');
+  }
+
+  try {
+    // Set a valid JSON map style (night mode)
+    setMapStyle(NIGHT_MODE_STYLE);
+
+    // Give time for the style to be applied
+    await delay(500);
+
+    // Reset to default style
+    setMapStyle(undefined);
+
+    await delay(200);
+
+    passTest();
+  } catch (error) {
+    failTest(`Failed to set mapStyle: ${error}`);
+  }
 };

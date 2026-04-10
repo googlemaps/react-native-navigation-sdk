@@ -141,8 +141,8 @@ public class MapViewFragment extends SupportMapFragment
     return mMapViewController;
   }
 
-  public void setMapStyle(String url) {
-    mMapViewController.setMapStyle(url);
+  public void setMapStyle(String mapStyle) {
+    mMapViewController.setMapStyle(mapStyle);
   }
 
   public GoogleMap getGoogleMap() {

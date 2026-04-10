@@ -49,6 +49,7 @@ import OverlayModal from '../helpers/overlayModal';
 import { showSnackbar, Snackbar } from '../helpers/snackbar';
 import { CommonStyles, MapStyles } from '../styles/components';
 import { MapStylingOptions } from '../styles/mapStyling';
+import { NIGHT_MODE_STYLE } from '../styles/mapStyles';
 import usePermissions from '../checkPermissions';
 
 enum OverlayType {
@@ -91,6 +92,13 @@ const NavigationScreen = () => {
   const [tiltGesturesEnabled, setTiltGesturesEnabled] = useState(true);
   const [zoomControlsEnabled, setZoomControlsEnabled] = useState(true);
   const [zoomGesturesEnabled, setZoomGesturesEnabled] = useState(true);
+
+  // Custom map style (JSON string)
+  const [mapStyle, setMapStyle] = useState<string | undefined>(undefined);
+
+  const handleMapStyleEnabledChange = (enabled: boolean) => {
+    setMapStyle(enabled ? NIGHT_MODE_STYLE : undefined);
+  };
 
   // Navigation UI state
   const [tripProgressBarEnabled, setTripProgressBarEnabled] = useState(false);
@@ -349,6 +357,7 @@ const NavigationScreen = () => {
         tiltGesturesEnabled={tiltGesturesEnabled}
         zoomControlsEnabled={zoomControlsEnabled}
         zoomGesturesEnabled={zoomGesturesEnabled}
+        mapStyle={mapStyle}
         navigationUIEnabledPreference={0} // 0 = AUTOMATIC
         tripProgressBarEnabled={tripProgressBarEnabled}
         trafficPromptsEnabled={trafficPromptsEnabled}
@@ -443,6 +452,8 @@ const NavigationScreen = () => {
             onZoomControlsEnabledChange={setZoomControlsEnabled}
             zoomGesturesEnabled={zoomGesturesEnabled}
             onZoomGesturesEnabledChange={setZoomGesturesEnabled}
+            mapStyleEnabled={mapStyle !== undefined}
+            onMapStyleEnabledChange={handleMapStyleEnabledChange}
           />
         </OverlayModal>
       )}
