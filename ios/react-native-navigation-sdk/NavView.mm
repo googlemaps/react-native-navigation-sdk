@@ -338,7 +338,7 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps =
       marker.title != nil ? [marker.title UTF8String] : "",
       marker.opacity,
       marker.rotation,
-      [marker.snippet UTF8String],
+      marker.snippet != nil ? [marker.snippet UTF8String] : "",
       (int)marker.zIndex};
   self.eventEmitter.onMarkerInfoWindowTapped(result);
 }
@@ -350,7 +350,7 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps =
       marker.title != nil ? [marker.title UTF8String] : "",
       marker.opacity,
       marker.rotation,
-      [marker.snippet UTF8String],
+      marker.snippet != nil ? [marker.snippet UTF8String] : "",
       (int)marker.zIndex};
   self.eventEmitter.onMarkerClick(result);
 }
