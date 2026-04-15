@@ -101,6 +101,11 @@ type ArrivalEventSpec = Readonly<{
   isFinalDestination?: boolean;
 }>;
 
+type ContinueToNextDestinationResponseSpec = Readonly<{
+  waypoint: WaypointSpec | null;
+  routeStatus?: string;
+}>;
+
 type TimeAndDistanceSpec = Readonly<{
   delaySeverity: Double;
   meters: Double;
@@ -174,7 +179,7 @@ export interface Spec extends TurboModule {
     displayOptions: DisplayOptionsSpec,
     routeTokenOptions: RouteTokenOptionsSpec
   ): Promise<RouteStatusSpec>;
-  continueToNextDestination(): Promise<void>;
+  continueToNextDestination(): Promise<ContinueToNextDestinationResponseSpec>;
   clearDestinations(): Promise<void>;
   startGuidance(): Promise<void>;
   stopGuidance(): Promise<void>;

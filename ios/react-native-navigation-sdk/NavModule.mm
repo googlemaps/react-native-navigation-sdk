@@ -415,8 +415,18 @@ RCT_EXPORT_MODULE(NavModule);
       return;
     }
 
-    [navigator continueToNextDestination];
-    resolve(@(YES));
+    [navigator continueToNextDestinationWithCompletion:^(GMSNavigationWaypoint *_Nullable waypoint,
+                                                         GMSRouteStatus routeStatus) {
+      NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
+      if (waypoint != nil) {
+        result[@"waypoint"] =
+            [ObjectTranslationUtil transformNavigationWaypointToDictionary:waypoint];
+      } else {
+        result[@"waypoint"] = [NSNull null];
+      }
+      result[@"routeStatus"] = [NavModule routeStatusToString:routeStatus];
+      resolve(result);
+    }];
   });
 }
 

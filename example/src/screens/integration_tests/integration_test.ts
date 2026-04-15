@@ -18,7 +18,11 @@ import {
   AudioGuidance,
   TravelMode,
   NavigationSessionStatus,
+  RouteStatus,
   type ArrivalEvent,
+  type ContinueToNextDestinationResponse,
+  type LatLng,
+  type Location,
   type MapViewController,
   type NavigationController,
   type NavigationViewController,
@@ -40,6 +44,9 @@ interface TestTools {
     listener: ((timeAndDistance: TimeAndDistance) => void) | null | undefined
   ) => void;
   setOnRouteChanged: (listener: (() => void) | null | undefined) => void;
+  setOnLocationChanged: (
+    listener: ((location: Location) => void) | null | undefined
+  ) => void;
   passTest: () => void;
   failTest: (message: string) => void;
   setDetoxStep: (stepNumber: number) => void;
@@ -169,6 +176,52 @@ const disableVoiceGuidanceForTests = (
   navigationController: NavigationController
 ) => {
   navigationController.setAudioGuidanceType(AudioGuidance.SILENT);
+};
+
+const LOCATION_THRESHOLD_METERS = 100;
+const LOCATION_WAIT_TIMEOUT_MS = 15000;
+
+const distanceBetween = (a: LatLng, b: LatLng): number => {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const R = 6371000;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const sinDLat = Math.sin(dLat / 2);
+  const sinDLng = Math.sin(dLng / 2);
+  const h =
+    sinDLat * sinDLat +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * sinDLng * sinDLng;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+};
+
+const simulateAndWaitForLocation = (
+  navigationController: NavigationController,
+  setOnLocationChanged: (
+    listener: ((location: Location) => void) | null | undefined
+  ) => void,
+  target: LatLng,
+  thresholdMeters = LOCATION_THRESHOLD_METERS,
+  timeoutMs = LOCATION_WAIT_TIMEOUT_MS
+): Promise<Location | null> => {
+  return new Promise(resolve => {
+    const timer = setTimeout(() => {
+      setOnLocationChanged(null);
+      resolve(null);
+    }, timeoutMs);
+
+    setOnLocationChanged((location: Location) => {
+      if (distanceBetween(location, target) <= thresholdMeters) {
+        clearTimeout(timer);
+        setOnLocationChanged(null);
+        resolve(location);
+      }
+    });
+
+    // Ensure the road-snapped location provider is active so that
+    // onLocationChanged events are emitted for simulated locations.
+    navigationController.startUpdatingLocation();
+    navigationController.simulator.simulateLocation(target);
+  });
 };
 
 export const testNavigationSessionInitialization = async (
@@ -371,6 +424,7 @@ export const testNavigationToSingleDestination = async (
     navigationController,
     setOnNavigationReady,
     setOnArrival,
+    setOnLocationChanged,
     passTest,
     failTest,
   } = testTools;
@@ -380,12 +434,20 @@ export const testNavigationToSingleDestination = async (
     return;
   }
 
+  const startLocation: LatLng = { lat: 37.4195823, lng: -122.0799018 };
+
   setOnNavigationReady(async () => {
     disableVoiceGuidanceForTests(navigationController);
-    await navigationController.simulator.simulateLocation({
-      lat: 37.4195823,
-      lng: -122.0799018,
-    });
+    const located = await simulateAndWaitForLocation(
+      navigationController,
+      setOnLocationChanged,
+      startLocation
+    );
+    if (!located) {
+      return failTest(
+        'Timed out waiting for simulated location to be confirmed'
+      );
+    }
     await navigationController.setDestinations(
       [
         {
@@ -432,6 +494,7 @@ export const testNavigationToMultipleDestination = async (
     navigationController,
     setOnNavigationReady,
     setOnArrival,
+    setOnLocationChanged,
     passTest,
     failTest,
   } = testTools;
@@ -441,25 +504,36 @@ export const testNavigationToMultipleDestination = async (
     return;
   }
 
+  const startLocation: LatLng = {
+    lat: 37.79136614772824,
+    lng: -122.41565900473043,
+  };
+
   let onArrivalCount = 0;
   setOnNavigationReady(async () => {
     disableVoiceGuidanceForTests(navigationController);
-    await navigationController.simulator.simulateLocation({
-      lat: 37.4195823,
-      lng: -122.0799018,
-    });
+    const located = await simulateAndWaitForLocation(
+      navigationController,
+      setOnLocationChanged,
+      startLocation
+    );
+    if (!located) {
+      return failTest(
+        'Timed out waiting for simulated location to be confirmed'
+      );
+    }
     await navigationController.setDestinations(
       [
         {
           position: {
-            lat: 37.418761,
-            lng: -122.080484,
+            lat: 37.7917,
+            lng: -122.4142,
           },
         },
         {
           position: {
-            lat: 37.4177952,
-            lng: -122.0817198,
+            lat: 37.79196,
+            lng: -122.41253,
           },
         },
       ],
@@ -483,7 +557,7 @@ export const testNavigationToMultipleDestination = async (
       );
     }
     await navigationController.simulator.simulateLocationsAlongExistingRoute({
-      speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
+      speedMultiplier: 5,
     });
   });
   setOnArrival(async () => {
@@ -492,9 +566,33 @@ export const testNavigationToMultipleDestination = async (
       navigationController.cleanup();
       return passTest();
     }
-    await navigationController.continueToNextDestination();
+    const response: ContinueToNextDestinationResponse =
+      await navigationController.continueToNextDestination();
+    if (!response.waypoint) {
+      return failTest(
+        'continueToNextDestination returned null waypoint when next destination exists'
+      );
+    }
+    if (
+      Platform.OS === 'ios' &&
+      !Object.values(RouteStatus).includes(response.routeStatus as RouteStatus)
+    ) {
+      return failTest(
+        `continueToNextDestination returned unexpected routeStatus on iOS: ${response.routeStatus}`
+      );
+    }
+    await navigationController.startGuidance();
+    const nextRouteSegments = await waitForCondition(
+      () => navigationController.getRouteSegments(),
+      segments => segments.length > 0
+    );
+    if (!nextRouteSegments) {
+      return failTest(
+        'Timed out waiting for route segments after continueToNextDestination'
+      );
+    }
     await navigationController.simulator.simulateLocationsAlongExistingRoute({
-      speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
+      speedMultiplier: 5,
     });
   });
 
@@ -506,6 +604,7 @@ export const testRouteSegments = async (testTools: TestTools) => {
     navigationController,
     setOnNavigationReady,
     setOnArrival,
+    setOnLocationChanged,
     passTest,
     failTest,
     expectFalseError,
@@ -515,13 +614,23 @@ export const testRouteSegments = async (testTools: TestTools) => {
   if (!(await acceptToS(navigationController, failTest))) {
     return;
   }
+  const startLocation: LatLng = {
+    lat: 37.79136614772824,
+    lng: -122.41565900473043,
+  };
   let beginTraveledPath;
   setOnNavigationReady(async () => {
     disableVoiceGuidanceForTests(navigationController);
-    await navigationController.simulator.simulateLocation({
-      lat: 37.79136614772824,
-      lng: -122.41565900473043,
-    });
+    const located = await simulateAndWaitForLocation(
+      navigationController,
+      setOnLocationChanged,
+      startLocation
+    );
+    if (!located) {
+      return failTest(
+        'Timed out waiting for simulated location to be confirmed'
+      );
+    }
     await navigationController.setDestination({
       title: 'Grace Cathedral',
       position: {
@@ -569,6 +678,7 @@ export const testGetCurrentTimeAndDistance = async (testTools: TestTools) => {
     navigationController,
     setOnNavigationReady,
     setOnArrival,
+    setOnLocationChanged,
     passTest,
     failTest,
     expectFalseError,
@@ -579,13 +689,23 @@ export const testGetCurrentTimeAndDistance = async (testTools: TestTools) => {
     return;
   }
 
+  const startLocation: LatLng = {
+    lat: 37.79136614772824,
+    lng: -122.41565900473043,
+  };
   let beginTimeAndDistance: TimeAndDistance | null = null;
   setOnNavigationReady(async () => {
     disableVoiceGuidanceForTests(navigationController);
-    await navigationController.simulator.simulateLocation({
-      lat: 37.79136614772824,
-      lng: -122.41565900473043,
-    });
+    const located = await simulateAndWaitForLocation(
+      navigationController,
+      setOnLocationChanged,
+      startLocation
+    );
+    if (!located) {
+      return failTest(
+        'Timed out waiting for simulated location to be confirmed'
+      );
+    }
     await navigationController.setDestination({
       title: 'Grace Cathedral',
       position: {
@@ -1153,6 +1273,7 @@ export const testOnRemainingTimeOrDistanceChanged = async (
     navigationController,
     setOnNavigationReady,
     setOnRemainingTimeOrDistanceChanged,
+    setOnLocationChanged,
     passTest,
     failTest,
   } = testTools;
@@ -1161,6 +1282,11 @@ export const testOnRemainingTimeOrDistanceChanged = async (
   if (!(await acceptToS(navigationController, failTest))) {
     return;
   }
+
+  const startLocation: LatLng = {
+    lat: 37.79136614772824,
+    lng: -122.41565900473043,
+  };
 
   setOnRemainingTimeOrDistanceChanged(async timeAndDistance => {
     if (timeAndDistance.meters > 0 && timeAndDistance.seconds > 0) {
@@ -1171,10 +1297,16 @@ export const testOnRemainingTimeOrDistanceChanged = async (
 
   setOnNavigationReady(async () => {
     disableVoiceGuidanceForTests(navigationController);
-    await navigationController.simulator.simulateLocation({
-      lat: 37.79136614772824,
-      lng: -122.41565900473043,
-    });
+    const located = await simulateAndWaitForLocation(
+      navigationController,
+      setOnLocationChanged,
+      startLocation
+    );
+    if (!located) {
+      return failTest(
+        'Timed out waiting for simulated location to be confirmed'
+      );
+    }
     await navigationController.setDestination({
       title: 'Grace Cathedral',
       position: {
@@ -1206,6 +1338,7 @@ export const testOnArrival = async (testTools: TestTools) => {
     navigationController,
     setOnNavigationReady,
     setOnArrival,
+    setOnLocationChanged,
     passTest,
     failTest,
   } = testTools;
@@ -1215,16 +1348,27 @@ export const testOnArrival = async (testTools: TestTools) => {
     return;
   }
 
+  const startLocation: LatLng = {
+    lat: 37.79136614772824,
+    lng: -122.41565900473043,
+  };
+
   setOnArrival(async () => {
     navigationController.cleanup();
     passTest();
   });
   setOnNavigationReady(async () => {
     disableVoiceGuidanceForTests(navigationController);
-    await navigationController.simulator.simulateLocation({
-      lat: 37.79136614772824,
-      lng: -122.41565900473043,
-    });
+    const located = await simulateAndWaitForLocation(
+      navigationController,
+      setOnLocationChanged,
+      startLocation
+    );
+    if (!located) {
+      return failTest(
+        'Timed out waiting for simulated location to be confirmed'
+      );
+    }
     await navigationController.setDestination({
       title: 'Grace Cathedral',
       position: {
@@ -1255,6 +1399,7 @@ export const testOnRouteChanged = async (testTools: TestTools) => {
     navigationController,
     setOnNavigationReady,
     setOnRouteChanged,
+    setOnLocationChanged,
     passTest,
     failTest,
   } = testTools;
@@ -1263,16 +1408,26 @@ export const testOnRouteChanged = async (testTools: TestTools) => {
   if (!(await acceptToS(navigationController, failTest))) {
     return;
   }
+  const startLocation: LatLng = {
+    lat: 37.79136614772824,
+    lng: -122.41565900473043,
+  };
   setOnRouteChanged(async () => {
     navigationController.cleanup();
     passTest();
   });
   setOnNavigationReady(async () => {
     disableVoiceGuidanceForTests(navigationController);
-    await navigationController.simulator.simulateLocation({
-      lat: 37.79136614772824,
-      lng: -122.41565900473043,
-    });
+    const located = await simulateAndWaitForLocation(
+      navigationController,
+      setOnLocationChanged,
+      startLocation
+    );
+    if (!located) {
+      return failTest(
+        'Timed out waiting for simulated location to be confirmed'
+      );
+    }
     await navigationController.setDestination({
       title: 'Grace Cathedral',
       position: {

@@ -29,11 +29,14 @@ import {
   type CameraPosition,
   type NavigationController,
   type DisplayOptions,
-  RouteStatus,
 } from '@googlemaps/react-native-navigation-sdk';
 import SelectDropdown from 'react-native-select-dropdown';
 
 import { ControlStyles } from '../styles/components';
+import {
+  handleRouteStatus,
+  handleContinueToNextDestination,
+} from '../helpers/navigationUtils';
 
 export interface NavigationControlsProps {
   readonly navigationController: NavigationController;
@@ -105,35 +108,6 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
 
   const [latitude, onLatChanged] = useState('');
   const [longitude, onLngChanged] = useState('');
-
-  const handleRouteStatus = (routeStatus: RouteStatus) => {
-    switch (routeStatus) {
-      case RouteStatus.OK:
-        showSnackbar('Route created successfully');
-        break;
-      case RouteStatus.ROUTE_CANCELED:
-        Alert.alert('Error', 'Route Cancelled');
-        break;
-      case RouteStatus.NO_ROUTE_FOUND:
-        Alert.alert('Error', 'No Route Found');
-        break;
-      case RouteStatus.NETWORK_ERROR:
-        Alert.alert('Error', 'Network Error');
-        break;
-      case RouteStatus.LOCATION_DISABLED:
-        Alert.alert('Error', 'Location Disabled');
-        break;
-      case RouteStatus.LOCATION_UNKNOWN:
-        Alert.alert('Error', 'Location Unknown');
-        break;
-      case RouteStatus.DUPLICATE_WAYPOINTS_ERROR:
-        Alert.alert('Error', 'Consecutive duplicate waypoints are not allowed');
-        break;
-      default:
-        showSnackbar('Route status: ' + routeStatus);
-        Alert.alert('Error', 'Starting Guidance Error');
-    }
-  };
 
   const disposeNavigation = async () => {
     try {
@@ -222,8 +196,9 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     onFollowingPerspectiveChange?.(_index);
   };
 
-  const continueToNextDestination = () => {
-    navigationController.continueToNextDestination();
+  const continueToNextDestination = async () => {
+    const response = await navigationController.continueToNextDestination();
+    await handleContinueToNextDestination(navigationController, response);
   };
 
   const startGuidance = () => {

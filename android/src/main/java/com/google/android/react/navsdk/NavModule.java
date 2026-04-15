@@ -670,8 +670,14 @@ public class NavModule extends NativeNavModuleSpec
     if (!ensureNavigatorAvailable(promise)) {
       return;
     }
-    mNavigator.continueToNextDestination();
-    promise.resolve(true);
+    Waypoint nextWaypoint = mNavigator.continueToNextDestination();
+    WritableMap result = Arguments.createMap();
+    if (nextWaypoint != null) {
+      result.putMap("waypoint", ObjectTranslationUtil.getMapFromWaypoint(nextWaypoint));
+    } else {
+      result.putNull("waypoint");
+    }
+    promise.resolve(result);
   }
 
   @Override
