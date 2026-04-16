@@ -181,6 +181,19 @@ export interface TermsAndConditionsDialogOptions {
 }
 
 /**
+ * Response returned by `continueToNextDestination()`.
+ */
+export interface ContinueToNextDestinationResponse {
+  /** The waypoint guidance is now heading to, or null if there are no more waypoints left. */
+  waypoint: Waypoint | null;
+  /**
+   * The route status indicating the result of routing to the next destination.
+   * Only available on iOS. On Android this will be `undefined`.
+   */
+  routeStatus?: RouteStatus;
+}
+
+/**
  * An event fired upon arrival at a destination.
  */
 export interface ArrivalEvent {
@@ -452,8 +465,11 @@ export interface NavigationController {
   /**
    * Proceeds to the next destination or waypoint within a predefined route.
    * Assumes that there is an ongoing route with multiple waypoints.
+   *
+   * @returns A promise that resolves with a `ContinueToNextDestinationResponse` containing
+   *          the next waypoint (or null if no more waypoints) and, on iOS, the route status.
    */
-  continueToNextDestination(): Promise<void>;
+  continueToNextDestination(): Promise<ContinueToNextDestinationResponse>;
 
   /**
    * Clears all previously set destinations or waypoints from the map, effectively

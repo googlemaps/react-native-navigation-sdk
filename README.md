@@ -628,7 +628,7 @@ const {
 | `setDestinations(destinations: Waypoint[], routingOptions?, displayOptions?)` | `Promise<RouteStatus>`             | Set navigation destinations                                                                |
 | `setDestination(waypoint: Waypoint, routingOptions?, displayOptions?)`        | `Promise<RouteStatus>`             | Set a single navigation destination                                                        |
 | `clearDestinations()`                                                         | `Promise<void>`                    | Clear all destinations                                                                     |
-| `continueToNextDestination()`                                                 | `Promise<void>`                    | Navigate to the next destination in the list                                               |
+| `continueToNextDestination()`                                                 | `Promise<ContinueToNextDestinationResponse>` | Navigate to the next destination in the list                                               |
 | `startGuidance()`                                                             | `Promise<void>`                    | Start turn-by-turn navigation guidance                                                     |
 | `stopGuidance()`                                                              | `Promise<void>`                    | Stop navigation guidance                                                                   |
 | `getCurrentTimeAndDistance()`                                                 | `Promise<TimeAndDistance \| null>` | Get time and distance to current destination                                               |

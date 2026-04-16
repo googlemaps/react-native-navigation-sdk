@@ -86,6 +86,7 @@ const IntegrationTestsScreen = () => {
     navigationController,
     setOnNavigationReady,
     setOnArrival,
+    setOnLocationChanged,
     setOnRemainingTimeOrDistanceChanged,
     setOnRouteChanged,
   } = useNavigation();
@@ -219,6 +220,7 @@ const IntegrationTestsScreen = () => {
       setOnArrival,
       setOnRemainingTimeOrDistanceChanged,
       setOnRouteChanged,
+      setOnLocationChanged,
       passTest,
       failTest,
       setDetoxStep,

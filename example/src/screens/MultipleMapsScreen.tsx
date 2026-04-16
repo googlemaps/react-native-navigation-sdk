@@ -42,6 +42,7 @@ import {
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
 import OverlayModal from '../helpers/overlayModal';
+import { handleContinueToNextDestination } from '../helpers/navigationUtils';
 import { showSnackbar } from '../helpers/snackbar';
 import { CommonStyles, ControlStyles } from '../styles/components';
 import { MapStylingOptions } from '../styles/mapStyling';
@@ -123,14 +124,19 @@ const MultipleMapsScreen = () => {
 
   // Set up callbacks that depend on navigationController
   useEffect(() => {
-    setOnArrival((event: ArrivalEvent) => {
+    setOnArrival(async (event: ArrivalEvent) => {
       if (event.isFinalDestination) {
         navigationController.stopGuidance();
+        showSnackbar('Arrived at final destination');
       } else {
-        navigationController.continueToNextDestination();
-        navigationController.startGuidance();
+        const response = await navigationController.continueToNextDestination();
+        if (
+          await handleContinueToNextDestination(navigationController, response)
+        ) {
+          navigationController.startGuidance();
+          showSnackbar('Arrived, continuing to next destination');
+        }
       }
-      showSnackbar('Arrived');
     });
 
     setOnRemainingTimeOrDistanceChanged(timeAndDistance => {

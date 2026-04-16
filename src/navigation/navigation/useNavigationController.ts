@@ -39,6 +39,7 @@ import {
   type SpeedAlertOptions,
   type LocationSimulationOptions,
   type ArrivalEvent,
+  type ContinueToNextDestinationResponse,
 } from './types';
 
 const { NavModule } = NativeModules;
@@ -444,9 +445,16 @@ export const useNavigationController = (
         return await setDestinationsImpl(waypoints, options);
       },
 
-      continueToNextDestination: async () => {
-        return await NavModule.continueToNextDestination();
-      },
+      continueToNextDestination:
+        async (): Promise<ContinueToNextDestinationResponse> => {
+          const result = await NavModule.continueToNextDestination();
+          return {
+            waypoint: result.waypoint ?? null,
+            routeStatus: result.routeStatus
+              ? (result.routeStatus as RouteStatus)
+              : undefined,
+          };
+        },
 
       clearDestinations: async () => {
         return await NavModule.clearDestinations();
