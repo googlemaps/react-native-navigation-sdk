@@ -16,6 +16,7 @@
 
 import {
   AudioGuidance,
+  CameraPerspective,
   TravelMode,
   NavigationSessionStatus,
   RouteStatus,
@@ -1771,4 +1772,97 @@ export const testMinMaxZoomLevels = async (testTools: TestTools) => {
   } catch (error) {
     failTest(`testMinMaxZoomLevels failed: ${error}`);
   }
+};
+
+export const testSetFollowingPerspective = async (testTools: TestTools) => {
+  const {
+    navigationController,
+    mapViewController,
+    navigationViewController,
+    setOnNavigationReady,
+    setOnLocationChanged,
+    passTest,
+    failTest,
+    expectFalseError,
+  } = testTools;
+
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
+  }
+
+  const startLocation: LatLng = { lat: 37.4195823, lng: -122.0799018 };
+
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    const located = await simulateAndWaitForLocation(
+      navigationController,
+      setOnLocationChanged,
+      startLocation
+    );
+    if (!located) {
+      return failTest(
+        'Timed out waiting for simulated location to be confirmed'
+      );
+    }
+
+    if (!navigationViewController) {
+      return failTest('navigationViewController was expected to exist');
+    }
+
+    if (!mapViewController) {
+      return failTest('mapViewController was expected to exist');
+    }
+
+    try {
+      // Test 1: Set following perspective without zoom (default behavior)
+      await navigationViewController.setFollowingPerspective(
+        CameraPerspective.TILTED
+      );
+
+      // Test 2: Set following perspective with a fixed zoom level
+      await navigationViewController.setFollowingPerspective(
+        CameraPerspective.TOP_DOWN_NORTH_UP,
+        { zoomLevel: 15 }
+      );
+
+      const posAfterZoom15 = await waitForCondition(
+        () => mapViewController.getCameraPosition(),
+        pos => Math.abs((pos.zoom ?? 0) - 15) <= 0.5
+      );
+      if (!posAfterZoom15) {
+        return expectFalseError(
+          'Timed out waiting for zoom ~15 after setFollowingPerspective'
+        );
+      }
+
+      // Test 3: Set following perspective with a different zoom level
+      await navigationViewController.setFollowingPerspective(
+        CameraPerspective.TOP_DOWN_HEADING_UP,
+        { zoomLevel: 10 }
+      );
+
+      const posAfterZoom10 = await waitForCondition(
+        () => mapViewController.getCameraPosition(),
+        pos => Math.abs((pos.zoom ?? 0) - 10) <= 0.5
+      );
+      if (!posAfterZoom10) {
+        return expectFalseError(
+          'Timed out waiting for zoom ~10 after setFollowingPerspective'
+        );
+      }
+
+      // Test 4: Reset zoom by omitting options (should use default auto-zoom)
+      await navigationViewController.setFollowingPerspective(
+        CameraPerspective.TILTED
+      );
+
+      navigationController.cleanup();
+      passTest();
+    } catch (error) {
+      failTest(`testSetFollowingPerspective failed: ${error}`);
+    }
+  });
+
+  await initializeNavigation(navigationController, failTest);
 };

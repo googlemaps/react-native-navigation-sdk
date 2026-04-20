@@ -56,6 +56,7 @@ import {
   testRouteTokenOptionsValidation,
   testMapStyle,
   testMinMaxZoomLevels,
+  testSetFollowingPerspective,
   NO_ERRORS_DETECTED_LABEL,
 } from './integration_tests/integration_test';
 
@@ -317,6 +318,9 @@ const IntegrationTestsScreen = () => {
       case 'testMinMaxZoomLevels':
         await testMinMaxZoomLevels(getTestTools());
         break;
+      case 'testSetFollowingPerspective':
+        await testSetFollowingPerspective(getTestTools());
+        break;
       default:
         resetTestState();
         break;
@@ -538,6 +542,13 @@ const IntegrationTestsScreen = () => {
             runTest('testMinMaxZoomLevels');
           }}
           testID="testMinMaxZoomLevels"
+        />
+        <ExampleAppButton
+          title="testSetFollowingPerspective"
+          onPress={() => {
+            runTest('testSetFollowingPerspective');
+          }}
+          testID="testSetFollowingPerspective"
         />
       </OverlayModal>
     </View>
