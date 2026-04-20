@@ -477,12 +477,13 @@ static NavViewModule *sharedInstance = nil;
 
 - (void)setFollowingPerspective:(NSString *)nativeID
                     perspective:(double)perspective
+                      zoomLevel:(double)zoomLevel
                         resolve:(RCTPromiseResolveBlock)resolve
                          reject:(RCTPromiseRejectBlock)reject {
   NavViewController *viewController = [self getViewControllerForNativeID:nativeID];
   if (viewController) {
     dispatch_async(dispatch_get_main_queue(), ^{
-      [viewController setFollowingPerspective:@((NSInteger)perspective)];
+      [viewController setFollowingPerspective:@((NSInteger)perspective) zoomLevel:(float)zoomLevel];
       resolve(nil);
     });
   } else {

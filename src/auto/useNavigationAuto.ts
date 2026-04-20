@@ -41,7 +41,10 @@ import type {
   GroundOverlayPositionOptions,
   MapColorScheme,
 } from '../maps';
-import type { NavigationNightMode } from '../navigation';
+import type {
+  FollowMyLocationOptions,
+  NavigationNightMode,
+} from '../navigation';
 import { useMemo, useCallback, useRef } from 'react';
 
 const { NavAutoModule } = NativeModules;
@@ -163,8 +166,12 @@ export const useNavigationAuto = (): UseNavigationAutoResult => {
         return await NavAutoModule.isAutoScreenAvailable();
       },
 
-      setFollowingPerspective: (perspective: number) => {
-        NavAutoModule.setFollowingPerspective(perspective);
+      setFollowingPerspective: (
+        perspective: number,
+        options?: FollowMyLocationOptions
+      ) => {
+        const zoomLevel = options?.zoomLevel ?? -1;
+        NavAutoModule.setFollowingPerspective(perspective, zoomLevel);
       },
 
       sendCustomMessage: (

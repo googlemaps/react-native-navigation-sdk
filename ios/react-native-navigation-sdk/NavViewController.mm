@@ -560,7 +560,7 @@
   _mapView.myLocationEnabled = isEnabled;
 }
 
-- (void)setFollowingPerspective:(NSNumber *)index {
+- (void)setFollowingPerspective:(NSNumber *)index zoomLevel:(float)zoomLevel {
   if ([index isEqual:@1]) {
     [_mapView setFollowingPerspective:GMSNavigationCameraPerspectiveTopDownNorthUp];
   } else if ([index isEqual:@2]) {
@@ -568,6 +568,13 @@
   } else {
     [_mapView setFollowingPerspective:GMSNavigationCameraPerspectiveTilted];
   }
+
+  if (zoomLevel >= 0.0f) {
+    _mapView.followingZoomLevel = zoomLevel;
+  } else {
+    _mapView.followingZoomLevel = GMSNavigationNoFollowingZoomLevel;
+  }
+
   _mapView.cameraMode = GMSNavigationCameraModeFollowing;
 }
 
@@ -950,6 +957,14 @@
   // Use default values if -1 is provided
   float effectiveMinLevel = (minLevel < 0.0f) ? kGMSMinZoomLevel : minLevel;
   float effectiveMaxLevel = (maxLevel < 0.0f) ? kGMSMaxZoomLevel : maxLevel;
+
+  if (effectiveMinLevel > effectiveMaxLevel) {
+    NSLog(@"NavViewController: minZoomLevel (%f) is greater than maxZoomLevel (%f). Ignoring zoom "
+          @"level constraints.",
+          effectiveMinLevel, effectiveMaxLevel);
+    return;
+  }
+
   [_mapView setMinZoom:effectiveMinLevel maxZoom:effectiveMaxLevel];
 }
 

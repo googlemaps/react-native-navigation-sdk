@@ -15,15 +15,18 @@ package com.google.android.react.navsdk;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.util.Log;
 import androidx.core.util.Supplier;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.CameraPerspective;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.FollowMyLocationOptions;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -42,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MapViewController implements INavigationViewControllerProperties {
+  private static final String TAG = "MapViewController";
   private GoogleMap mGoogleMap;
   private Supplier<Activity> activitySupplier;
   private INavigationViewCallback mNavigationViewCallback;
@@ -883,23 +887,35 @@ public class MapViewController implements INavigationViewControllerProperties {
       return;
     }
 
-    // Get the effective max zoom for comparison
-    float maxZoom =
+    minZoomLevelPreference = minZoomLevel;
+
+    // Reset both preferences first so the new min/max pair is always applied
+    // atomically. Without this, Fabric can deliver minZoomLevel and maxZoomLevel
+    // prop updates in any order, causing a transient state where min > max.
+    mGoogleMap.resetMinMaxZoomPreference();
+
+    float effectiveMin = (minZoomLevel < 0.0f) ? mGoogleMap.getMinZoomLevel() : minZoomLevel;
+    float effectiveMax =
         (maxZoomLevelPreference != null && maxZoomLevelPreference >= 0.0f)
             ? maxZoomLevelPreference
             : mGoogleMap.getMaxZoomLevel();
 
-    // Validate that min is not greater than max (unless using -1 sentinel)
-    if (minZoomLevel >= 0.0f && minZoomLevel > maxZoom) {
-      throw new IllegalArgumentException(
-          "Minimum zoom level cannot be greater than maximum zoom level");
+    if (effectiveMin > effectiveMax) {
+      Log.w(
+          TAG,
+          "minZoomLevel ("
+              + effectiveMin
+              + ") is greater than maxZoomLevel ("
+              + effectiveMax
+              + "). Ignoring zoom level constraints.");
+      return;
     }
 
-    minZoomLevelPreference = minZoomLevel;
-
-    // Use map's current minZoomLevel if -1 is provided
-    float effectiveMin = (minZoomLevel < 0.0f) ? mGoogleMap.getMinZoomLevel() : minZoomLevel;
     mGoogleMap.setMinZoomPreference(effectiveMin);
+
+    if (maxZoomLevelPreference != null) {
+      mGoogleMap.setMaxZoomPreference(effectiveMax);
+    }
   }
 
   @Override
@@ -908,23 +924,35 @@ public class MapViewController implements INavigationViewControllerProperties {
       return;
     }
 
-    // Get the effective min zoom for comparison
-    float minZoom =
+    maxZoomLevelPreference = maxZoomLevel;
+
+    // Reset both preferences first so the new min/max pair is always applied
+    // atomically. Without this, Fabric can deliver minZoomLevel and maxZoomLevel
+    // prop updates in any order, causing a transient state where min > max.
+    mGoogleMap.resetMinMaxZoomPreference();
+
+    float effectiveMax = (maxZoomLevel < 0.0f) ? mGoogleMap.getMaxZoomLevel() : maxZoomLevel;
+    float effectiveMin =
         (minZoomLevelPreference != null && minZoomLevelPreference >= 0.0f)
             ? minZoomLevelPreference
             : mGoogleMap.getMinZoomLevel();
 
-    // Validate that max is not less than min (unless using -1 sentinel)
-    if (maxZoomLevel >= 0.0f && maxZoomLevel < minZoom) {
-      throw new IllegalArgumentException(
-          "Maximum zoom level cannot be less than minimum zoom level");
+    if (effectiveMin > effectiveMax) {
+      Log.w(
+          TAG,
+          "minZoomLevel ("
+              + effectiveMin
+              + ") is greater than maxZoomLevel ("
+              + effectiveMax
+              + "). Ignoring zoom level constraints.");
+      return;
     }
 
-    maxZoomLevelPreference = maxZoomLevel;
-
-    // Use map's current maxZoomLevel if -1 is provided
-    float effectiveMax = (maxZoomLevel < 0.0f) ? mGoogleMap.getMaxZoomLevel() : maxZoomLevel;
     mGoogleMap.setMaxZoomPreference(effectiveMax);
+
+    if (minZoomLevelPreference != null) {
+      mGoogleMap.setMinZoomPreference(effectiveMin);
+    }
   }
 
   public void setZoomGesturesEnabled(boolean enabled) {
@@ -1005,16 +1033,27 @@ public class MapViewController implements INavigationViewControllerProperties {
       return;
     }
 
+    minZoomLevelPreference = null;
+    maxZoomLevelPreference = null;
     mGoogleMap.resetMinMaxZoomPreference();
   }
 
   @SuppressLint("MissingPermission")
-  public void setFollowingPerspective(int jsValue) {
+  public void setFollowingPerspective(int jsValue, float zoomLevel) {
     if (mGoogleMap == null) {
       return;
     }
 
-    mGoogleMap.followMyLocation(EnumTranslationUtil.getCameraPerspectiveFromJsValue(jsValue));
+    @CameraPerspective
+    int perspective = EnumTranslationUtil.getCameraPerspectiveFromJsValue(jsValue);
+
+    if (zoomLevel >= 0.0f) {
+      FollowMyLocationOptions options =
+          FollowMyLocationOptions.builder().setZoomLevel(zoomLevel).build();
+      mGoogleMap.followMyLocation(perspective, options);
+    } else {
+      mGoogleMap.followMyLocation(perspective);
+    }
   }
 
   public void setPadding(int top, int left, int bottom, int right) {

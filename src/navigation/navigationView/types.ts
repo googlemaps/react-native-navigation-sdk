@@ -165,6 +165,18 @@ export enum NavigationNightMode {
 }
 
 /**
+ * Options for controlling camera behavior when following the user's location.
+ */
+export interface FollowMyLocationOptions {
+  /**
+   * A fixed zoom level to use when the camera is following the user's location.
+   * When set, the Navigation SDK's auto-zoom is overridden with this value.
+   * Omit or set to undefined to use the default Nav SDK auto-zoom.
+   */
+  zoomLevel?: number;
+}
+
+/**
  * Allows you to access Navigator methods.
  */
 export interface NavigationViewController {
@@ -180,7 +192,12 @@ export interface NavigationViewController {
   setNavigationUIEnabled(enabled: boolean): Promise<void>;
 
   /**
-   * Sets the camera perspective for navigation.
+   * Sets the camera perspective for navigation and enables camera following mode.
+   * @param perspective - The camera perspective to use.
+   * @param options - Optional settings for camera follow behavior (e.g., fixed zoom level).
    */
-  setFollowingPerspective(perspective: CameraPerspective): Promise<void>;
+  setFollowingPerspective(
+    perspective: CameraPerspective,
+    options?: FollowMyLocationOptions
+  ): Promise<void>;
 }

@@ -64,6 +64,8 @@ interface TestTools {
   setZoomControlsEnabled: (enabled: boolean | undefined) => void;
   setMapToolbarEnabled: (enabled: boolean | undefined) => void;
   setMapStyle: (style: string | undefined) => void;
+  setMinZoomLevel: (level: number | undefined) => void;
+  setMaxZoomLevel: (level: number | undefined) => void;
 }
 
 const NAVIGATOR_NOT_READY_ERROR_CODE = 'NO_NAVIGATOR_ERROR_CODE';
@@ -1665,5 +1667,108 @@ export const testMapStyle = async (testTools: TestTools) => {
     passTest();
   } catch (error) {
     failTest(`Failed to set mapStyle: ${error}`);
+  }
+};
+
+export const testMinMaxZoomLevels = async (testTools: TestTools) => {
+  const {
+    mapViewController,
+    passTest,
+    failTest,
+    expectFalseError,
+    setMinZoomLevel,
+    setMaxZoomLevel,
+  } = testTools;
+
+  if (!mapViewController) {
+    return failTest('mapViewController was expected to exist');
+  }
+
+  try {
+    // Test 1: Set valid min and max zoom levels (min < max)
+    setMinZoomLevel(5);
+    setMaxZoomLevel(15);
+    await delay(200);
+
+    // Verify camera zoom is constrained - move to zoom below min
+    mapViewController.moveCamera({
+      target: { lat: 37.7749, lng: -122.4194 },
+      bearing: 0,
+      tilt: 0,
+      zoom: 3,
+    });
+    await delay(200);
+
+    const posAfterMinClamp = await mapViewController.getCameraPosition();
+    if ((posAfterMinClamp.zoom ?? 0) < 5) {
+      return expectFalseError(
+        `zoom (${posAfterMinClamp.zoom}) should be >= minZoomLevel (5)`
+      );
+    }
+
+    // Move to zoom above max
+    mapViewController.moveCamera({
+      target: { lat: 37.7749, lng: -122.4194 },
+      bearing: 0,
+      tilt: 0,
+      zoom: 20,
+    });
+    await delay(200);
+
+    const posAfterMaxClamp = await mapViewController.getCameraPosition();
+    if ((posAfterMaxClamp.zoom ?? 0) > 15) {
+      return expectFalseError(
+        `zoom (${posAfterMaxClamp.zoom}) should be <= maxZoomLevel (15)`
+      );
+    }
+
+    // Test 2: Set zoom within range - should work normally
+    mapViewController.moveCamera({
+      target: { lat: 37.7749, lng: -122.4194 },
+      bearing: 0,
+      tilt: 0,
+      zoom: 10,
+    });
+    await delay(200);
+
+    const posInRange = await mapViewController.getCameraPosition();
+    if (posInRange.zoom !== 10) {
+      return expectFalseError(
+        `zoom (${posInRange.zoom}) should be 10 when within range`
+      );
+    }
+
+    // Test 3: Reset zoom levels
+    setMinZoomLevel(undefined);
+    setMaxZoomLevel(undefined);
+    await delay(200);
+
+    // Test 4: Invalid case - min > max (should not crash, constraints ignored)
+    setMinZoomLevel(15);
+    setMaxZoomLevel(5);
+    await delay(200);
+
+    // Verify app did not crash - camera operations should still work
+    mapViewController.moveCamera({
+      target: { lat: 37.7749, lng: -122.4194 },
+      bearing: 0,
+      tilt: 0,
+      zoom: 10,
+    });
+    await delay(200);
+
+    const posAfterInvalid = await mapViewController.getCameraPosition();
+    if (!posAfterInvalid) {
+      return failTest('getCameraPosition failed after invalid min/max zoom');
+    }
+
+    // Clean up - reset to defaults
+    setMinZoomLevel(undefined);
+    setMaxZoomLevel(undefined);
+    await delay(200);
+
+    passTest();
+  } catch (error) {
+    failTest(`testMinMaxZoomLevels failed: ${error}`);
   }
 };

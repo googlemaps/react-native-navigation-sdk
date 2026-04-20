@@ -45,7 +45,7 @@ typedef void (^OnArrayResult)(NSArray *_Nullable result);
 - (void)setReportIncidentButtonEnabled:(BOOL)isEnabled;
 - (void)setNavigationUIEnabled:(BOOL)isEnabled;
 - (void)setNavigationUIEnabledPreference:(int)preference;
-- (void)setFollowingPerspective:(NSNumber *)index;
+- (void)setFollowingPerspective:(NSNumber *)index zoomLevel:(float)zoomLevel;
 - (void)setNightMode:(NSNumber *)index;
 - (void)setSpeedometerEnabled:(BOOL)isEnabled;
 - (void)setSpeedLimitIconEnabled:(BOOL)isEnabled;

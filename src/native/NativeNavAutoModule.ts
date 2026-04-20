@@ -150,7 +150,7 @@ export interface Spec extends TurboModule {
   setMyLocationButtonEnabled(enabled: boolean): void;
   setMapColorScheme(colorScheme: Int32): void;
   setNightMode(nightMode: Int32): void;
-  setFollowingPerspective(perspective: Int32): void;
+  setFollowingPerspective(perspective: Int32, zoomLevel: Double): void;
   setBuildingsEnabled(enabled: boolean): void;
   setZoomLevel(zoomLevel: Double): Promise<void>;
   setMapPadding(top: Double, left: Double, bottom: Double, right: Double): void;
