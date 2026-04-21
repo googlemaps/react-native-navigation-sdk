@@ -1039,7 +1039,7 @@ public class MapViewController implements INavigationViewControllerProperties {
   }
 
   @SuppressLint("MissingPermission")
-  public void setFollowingPerspective(int jsValue, float zoomLevel) {
+  public void setFollowingPerspective(int jsValue, Float zoomLevel) {
     if (mGoogleMap == null) {
       return;
     }
@@ -1047,7 +1047,7 @@ public class MapViewController implements INavigationViewControllerProperties {
     @CameraPerspective
     int perspective = EnumTranslationUtil.getCameraPerspectiveFromJsValue(jsValue);
 
-    if (zoomLevel >= 0.0f) {
+    if (zoomLevel != null) {
       FollowMyLocationOptions options =
           FollowMyLocationOptions.builder().setZoomLevel(zoomLevel).build();
       mGoogleMap.followMyLocation(perspective, options);

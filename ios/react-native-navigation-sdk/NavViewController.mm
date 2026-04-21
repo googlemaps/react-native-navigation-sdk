@@ -560,7 +560,9 @@
   _mapView.myLocationEnabled = isEnabled;
 }
 
-- (void)setFollowingPerspective:(NSNumber *)index zoomLevel:(float)zoomLevel {
+- (void)setFollowingPerspective:(NSNumber *)index zoomLevel:(NSNumber *)zoomLevel {
+  _mapView.cameraMode = GMSNavigationCameraModeFollowing;
+
   if ([index isEqual:@1]) {
     [_mapView setFollowingPerspective:GMSNavigationCameraPerspectiveTopDownNorthUp];
   } else if ([index isEqual:@2]) {
@@ -569,13 +571,11 @@
     [_mapView setFollowingPerspective:GMSNavigationCameraPerspectiveTilted];
   }
 
-  if (zoomLevel >= 0.0f) {
-    _mapView.followingZoomLevel = zoomLevel;
+  if (zoomLevel != nil) {
+    _mapView.followingZoomLevel = zoomLevel.floatValue;
   } else {
     _mapView.followingZoomLevel = GMSNavigationNoFollowingZoomLevel;
   }
-
-  _mapView.cameraMode = GMSNavigationCameraModeFollowing;
 }
 
 - (void)setSpeedometerEnabled:(BOOL)isEnabled {

@@ -170,8 +170,7 @@ export const useNavigationAuto = (): UseNavigationAutoResult => {
         perspective: number,
         options?: FollowMyLocationOptions
       ) => {
-        const zoomLevel = options?.zoomLevel ?? -1;
-        NavAutoModule.setFollowingPerspective(perspective, zoomLevel);
+        NavAutoModule.setFollowingPerspective(perspective, options?.zoomLevel);
       },
 
       sendCustomMessage: (

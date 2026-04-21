@@ -50,11 +50,10 @@ export const getNavigationViewController = (
       options?: FollowMyLocationOptions
     ) => {
       try {
-        const zoomLevel = options?.zoomLevel ?? -1;
         await NavViewModule.setFollowingPerspective(
           nativeID,
           perspective,
-          zoomLevel
+          options?.zoomLevel
         );
       } catch (error) {
         console.error('Error calling setFollowingPerspective:', error);

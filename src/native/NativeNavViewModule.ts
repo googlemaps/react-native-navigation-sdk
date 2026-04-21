@@ -142,7 +142,7 @@ export interface Spec extends TurboModule {
   setFollowingPerspective(
     nativeID: string,
     perspective: Int32,
-    zoomLevel: Double
+    zoomLevel?: WithDefault<Float, null>
   ): Promise<void>;
   moveCamera(
     nativeID: string,

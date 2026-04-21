@@ -393,15 +393,15 @@ public class NavAutoModule extends NativeNavAutoModuleSpec
   }
 
   @Override
-  public void setFollowingPerspective(double perspective, double zoomLevel) {
+  public void setFollowingPerspective(double perspective, Double zoomLevel) {
     int jsValue = (int) perspective;
-    float zoom = (float) zoomLevel;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
-          mMapViewController.setFollowingPerspective(jsValue, zoom);
+          mMapViewController.setFollowingPerspective(
+              jsValue, zoomLevel == null ? null : zoomLevel.floatValue());
         });
   }
 
