@@ -104,10 +104,14 @@ RCT_EXPORT_MODULE(NavModule);
   _session.started = YES;
 
   if (self->_session.navigator) {
+    // Remove any existing listener first to prevent duplicates
+    // in case initializeSession is called multiple times.
+    [self->_session.navigator removeListener:self];
     [self->_session.navigator addListener:self];
     self->_session.navigator.stopGuidanceAtArrival = NO;
   }
 
+  [self->_session.roadSnappedLocationProvider removeListener:self];
   [self->_session.roadSnappedLocationProvider addListener:self];
 
   NavViewModule *navViewModule = [NavViewModule sharedInstance];
@@ -277,6 +281,7 @@ RCT_EXPORT_MODULE(NavModule);
       [self->_session.roadSnappedLocationProvider removeListener:self];
     }
 
+    self.enableUpdateInfo = NO;
     self->_session.started = NO;
     self->_session = nil;
 

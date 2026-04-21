@@ -81,6 +81,7 @@ public class NavModule extends NativeNavModuleSpec
   private Navigator.TrafficUpdatedListener mTrafficUpdatedListener;
   private Navigator.ReroutingListener mReroutingListener;
   private Navigator.RemainingTimeOrDistanceChangedListener mRemainingTimeOrDistanceChangedListener;
+  private Observer<NavInfo> mNavInfoObserver;
 
   private @Navigator.TaskRemovedBehavior int taskRemovedBehaviour =
       Navigator.TaskRemovedBehavior.CONTINUE_SERVICE;
@@ -182,6 +183,7 @@ public class NavModule extends NativeNavModuleSpec
           // where callbacks may still be in-flight during removal.
           removeLocationListener();
           removeNavigationListeners();
+          removeNavInfoObserver();
           // Null out fields after listener removal so the removal methods
           // can still access mNavigator and mRoadSnappedLocationProvider.
           mNavigator = null;
@@ -285,14 +287,15 @@ public class NavModule extends NativeNavModuleSpec
     initializeNavigationApi();
 
     // Observe live data for nav info updates.
-    Observer<NavInfo> navInfoObserver = this::showNavInfo;
-
+    // Remove any existing observer first to prevent duplicates after cleanup+reinit cycles.
     UiThreadUtil.runOnUiThread(
         () -> {
+          removeNavInfoObserver();
+          mNavInfoObserver = this::showNavInfo;
           final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
           if (currentActivity != null) {
             NavInfoReceivingService.getNavInfoLiveData()
-                .observe((LifecycleOwner) currentActivity, navInfoObserver);
+                .observe((LifecycleOwner) currentActivity, mNavInfoObserver);
           }
         });
   }
@@ -531,6 +534,13 @@ public class NavModule extends NativeNavModuleSpec
     if (mRemainingTimeOrDistanceChangedListener != null) {
       mNavigator.removeRemainingTimeOrDistanceChangedListener(
           mRemainingTimeOrDistanceChangedListener);
+    }
+  }
+
+  private void removeNavInfoObserver() {
+    if (mNavInfoObserver != null) {
+      NavInfoReceivingService.getNavInfoLiveData().removeObserver(mNavInfoObserver);
+      mNavInfoObserver = null;
     }
   }
 
