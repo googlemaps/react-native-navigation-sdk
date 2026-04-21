@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.15.0...v0.15.1) (2026-04-21)
+
+
+### Bug Fixes
+
+* stop naviinfo forwarding on cleanup ([#566](https://github.com/googlemaps/react-native-navigation-sdk/issues/566)) ([436716c](https://github.com/googlemaps/react-native-navigation-sdk/commit/436716cafefb8ef4acfb5a5a9bc37bf84b0da32f))
+
 ## [0.15.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.14.3...v0.15.0) (2026-04-21)
 
 
