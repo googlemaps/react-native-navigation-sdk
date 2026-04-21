@@ -57,6 +57,7 @@ import {
   testMapStyle,
   testMinMaxZoomLevels,
   testSetFollowingPerspective,
+  testNavInfoEventsAfterCleanup,
   NO_ERRORS_DETECTED_LABEL,
 } from './integration_tests/integration_test';
 
@@ -91,6 +92,7 @@ const IntegrationTestsScreen = () => {
     setOnLocationChanged,
     setOnRemainingTimeOrDistanceChanged,
     setOnRouteChanged,
+    setOnTurnByTurn,
   } = useNavigation();
 
   const [detoxStepNumber, setDetoxStepNumber] = useState(0);
@@ -229,6 +231,7 @@ const IntegrationTestsScreen = () => {
       setOnRemainingTimeOrDistanceChanged,
       setOnRouteChanged,
       setOnLocationChanged,
+      setOnTurnByTurn,
       passTest,
       failTest,
       setDetoxStep,
@@ -320,6 +323,9 @@ const IntegrationTestsScreen = () => {
         break;
       case 'testSetFollowingPerspective':
         await testSetFollowingPerspective(getTestTools());
+        break;
+      case 'testNavInfoEventsAfterCleanup':
+        await testNavInfoEventsAfterCleanup(getTestTools());
         break;
       default:
         resetTestState();
@@ -549,6 +555,13 @@ const IntegrationTestsScreen = () => {
             runTest('testSetFollowingPerspective');
           }}
           testID="testSetFollowingPerspective"
+        />
+        <ExampleAppButton
+          title="testNavInfoEventsAfterCleanup"
+          onPress={() => {
+            runTest('testNavInfoEventsAfterCleanup');
+          }}
+          testID="testNavInfoEventsAfterCleanup"
         />
       </OverlayModal>
     </View>

@@ -28,6 +28,7 @@ import {
   type NavigationController,
   type NavigationViewController,
   type TimeAndDistance,
+  type TurnByTurnEvent,
 } from '@googlemaps/react-native-navigation-sdk';
 import { Platform } from 'react-native';
 import { delay, roundDown } from './utils';
@@ -47,6 +48,9 @@ interface TestTools {
   setOnRouteChanged: (listener: (() => void) | null | undefined) => void;
   setOnLocationChanged: (
     listener: ((location: Location) => void) | null | undefined
+  ) => void;
+  setOnTurnByTurn: (
+    listener: ((turnByTurnEvents: TurnByTurnEvent[]) => void) | null | undefined
   ) => void;
   passTest: () => void;
   failTest: (message: string) => void;
@@ -1862,6 +1866,107 @@ export const testSetFollowingPerspective = async (testTools: TestTools) => {
     } catch (error) {
       failTest(`testSetFollowingPerspective failed: ${error}`);
     }
+  });
+
+  await initializeNavigation(navigationController, failTest);
+};
+
+/**
+ * Tests that navInfo (turn-by-turn) events can be received after performing
+ * a cleanup and re-initialization cycle. This verifies that the NavForwardingManager
+ * and LiveData observer are properly restored after cleanup.
+ */
+export const testNavInfoEventsAfterCleanup = async (testTools: TestTools) => {
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnLocationChanged,
+    setOnTurnByTurn,
+    passTest,
+    failTest,
+  } = testTools;
+
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
+  }
+
+  const startLocation: LatLng = {
+    lat: 37.79136614772824,
+    lng: -122.41565900473043,
+  };
+
+  const destination = {
+    title: 'Grace Cathedral',
+    position: {
+      lat: 37.791957,
+      lng: -122.412529,
+    },
+  };
+
+  let phase: 'first' | 'second' = 'first';
+
+  setOnTurnByTurn(async (_events: TurnByTurnEvent[]) => {
+    if (phase === 'first') {
+      // Received navInfo in first session — now cleanup and re-init
+      phase = 'second';
+      setOnTurnByTurn(null);
+
+      await navigationController.cleanup();
+
+      // Re-initialize after cleanup
+      setOnNavigationReady(async () => {
+        disableVoiceGuidanceForTests(navigationController);
+        navigationController.setTurnByTurnLoggingEnabled(true);
+
+        const located2 = await simulateAndWaitForLocation(
+          navigationController,
+          setOnLocationChanged,
+          startLocation
+        );
+        if (!located2) {
+          return failTest(
+            'Timed out waiting for simulated location after re-init'
+          );
+        }
+        await navigationController.setDestination(destination);
+        await navigationController.startGuidance();
+        await navigationController.simulator.simulateLocationsAlongExistingRoute(
+          { speedMultiplier: 5 }
+        );
+
+        // Listen for turn-by-turn events in the second session
+        setOnTurnByTurn(async () => {
+          // Received navInfo after cleanup+reinit — test passes
+          setOnTurnByTurn(null);
+          await navigationController.cleanup();
+          passTest();
+        });
+      });
+
+      await initializeNavigation(navigationController, failTest);
+    }
+  });
+
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    navigationController.setTurnByTurnLoggingEnabled(true);
+
+    const located = await simulateAndWaitForLocation(
+      navigationController,
+      setOnLocationChanged,
+      startLocation
+    );
+    if (!located) {
+      return failTest(
+        'Timed out waiting for simulated location to be confirmed'
+      );
+    }
+    await navigationController.setDestination(destination);
+    await navigationController.startGuidance();
+    await navigationController.simulator.simulateLocationsAlongExistingRoute({
+      speedMultiplier: 5,
+    });
   });
 
   await initializeNavigation(navigationController, failTest);

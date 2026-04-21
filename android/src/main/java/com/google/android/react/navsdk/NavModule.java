@@ -81,6 +81,7 @@ public class NavModule extends NativeNavModuleSpec
   private Navigator.TrafficUpdatedListener mTrafficUpdatedListener;
   private Navigator.ReroutingListener mReroutingListener;
   private Navigator.RemainingTimeOrDistanceChangedListener mRemainingTimeOrDistanceChangedListener;
+  private Observer<NavInfo> mNavInfoObserver;
 
   private @Navigator.TaskRemovedBehavior int taskRemovedBehaviour =
       Navigator.TaskRemovedBehavior.CONTINUE_SERVICE;
@@ -174,6 +175,7 @@ public class NavModule extends NativeNavModuleSpec
     }
 
     final Navigator navigator = mNavigator;
+
     UiThreadUtil.runOnUiThread(
         () -> {
           // Remove listeners on UI thread to serialize with callback dispatch.
@@ -181,8 +183,14 @@ public class NavModule extends NativeNavModuleSpec
           // where callbacks may still be in-flight during removal.
           removeLocationListener();
           removeNavigationListeners();
-          navigator.clearDestinations();
+          removeNavInfoObserver();
+          // Null out fields after listener removal so the removal methods
+          // can still access mNavigator and mRoadSnappedLocationProvider.
+          mNavigator = null;
+          mRoadSnappedLocationProvider = null;
+          NavForwardingManager.stopNavForwarding(navigator, this);
           navigator.stopGuidance();
+          navigator.clearDestinations();
           navigator.getSimulator().unsetUserLocation();
           promise.resolve(true);
         });
@@ -279,14 +287,15 @@ public class NavModule extends NativeNavModuleSpec
     initializeNavigationApi();
 
     // Observe live data for nav info updates.
-    Observer<NavInfo> navInfoObserver = this::showNavInfo;
-
+    // Remove any existing observer first to prevent duplicates after cleanup+reinit cycles.
     UiThreadUtil.runOnUiThread(
         () -> {
+          removeNavInfoObserver();
+          mNavInfoObserver = this::showNavInfo;
           final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
           if (currentActivity != null) {
             NavInfoReceivingService.getNavInfoLiveData()
-                .observe((LifecycleOwner) currentActivity, navInfoObserver);
+                .observe((LifecycleOwner) currentActivity, mNavInfoObserver);
           }
         });
   }
@@ -418,7 +427,7 @@ public class NavModule extends NativeNavModuleSpec
     if (isEnabled) {
       NavForwardingManager.startNavForwarding(mNavigator, currentActivity, this);
     } else {
-      NavForwardingManager.stopNavForwarding(mNavigator, currentActivity, this);
+      NavForwardingManager.stopNavForwarding(mNavigator, this);
     }
   }
 
@@ -525,6 +534,13 @@ public class NavModule extends NativeNavModuleSpec
     if (mRemainingTimeOrDistanceChangedListener != null) {
       mNavigator.removeRemainingTimeOrDistanceChangedListener(
           mRemainingTimeOrDistanceChangedListener);
+    }
+  }
+
+  private void removeNavInfoObserver() {
+    if (mNavInfoObserver != null) {
+      NavInfoReceivingService.getNavInfoLiveData().removeObserver(mNavInfoObserver);
+      mNavInfoObserver = null;
     }
   }
 
