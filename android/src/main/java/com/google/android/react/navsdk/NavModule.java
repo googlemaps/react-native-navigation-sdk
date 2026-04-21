@@ -174,8 +174,6 @@ public class NavModule extends NativeNavModuleSpec
     }
 
     final Navigator navigator = mNavigator;
-    mNavigator = null;
-    mRoadSnappedLocationProvider = null;
 
     UiThreadUtil.runOnUiThread(
         () -> {
@@ -184,6 +182,10 @@ public class NavModule extends NativeNavModuleSpec
           // where callbacks may still be in-flight during removal.
           removeLocationListener();
           removeNavigationListeners();
+          // Null out fields after listener removal so the removal methods
+          // can still access mNavigator and mRoadSnappedLocationProvider.
+          mNavigator = null;
+          mRoadSnappedLocationProvider = null;
           NavForwardingManager.stopNavForwarding(navigator, this);
           navigator.stopGuidance();
           navigator.clearDestinations();
