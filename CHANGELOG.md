@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.15.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.14.3...v0.15.0) (2026-04-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* continueToNextDestination() now returns ContinueToNextDestinationResponse containing waypoint and routeStatus
+* mapStyle prop on Android now expects the JSON styling string directly, matching iOS behavior. Previously Android incorrectly expected a URL to a JSON style file.
+
+### Features
+
+* upgrade Nav SDKs to Android 7.6.0 and iOS 10.12.0 ([#571](https://github.com/googlemaps/react-native-navigation-sdk/issues/571)) ([8292ae1](https://github.com/googlemaps/react-native-navigation-sdk/commit/8292ae145a11c47f6a8b33dbeac564cc28a00c43))
+
+
+### Bug Fixes
+
+* cross platform mapStyle prop handling ([#565](https://github.com/googlemaps/react-native-navigation-sdk/issues/565)) ([54c25c6](https://github.com/googlemaps/react-native-navigation-sdk/commit/54c25c6595c00d27a5f1d45e6a1732fb8bd7e013))
+* prevent crash on min/max zoom changes and fix zoom on navigation ([#572](https://github.com/googlemaps/react-native-navigation-sdk/issues/572)) ([92cecf8](https://github.com/googlemaps/react-native-navigation-sdk/commit/92cecf8def251ad9fff9fc6ab5ec7e45e0e52350))
+* prevent crash when tapping marker without snippet on iOS ([#568](https://github.com/googlemaps/react-native-navigation-sdk/issues/568)) ([72069ca](https://github.com/googlemaps/react-native-navigation-sdk/commit/72069caf99a8ef7c8a4c2851e468145d1c645232))
+* resolve race condition in location listener causing NullPointerException ([#569](https://github.com/googlemaps/react-native-navigation-sdk/issues/569)) ([11f79ae](https://github.com/googlemaps/react-native-navigation-sdk/commit/11f79aee13d2a89179ea2ecad79614d7b3fad7ae))
+
 ## [0.14.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.14.2...v0.14.3) (2026-04-08)
 
 
