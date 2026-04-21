@@ -55,6 +55,8 @@ import {
   testStartGuidanceWithoutDestinations,
   testRouteTokenOptionsValidation,
   testMapStyle,
+  testMinMaxZoomLevels,
+  testSetFollowingPerspective,
   NO_ERRORS_DETECTED_LABEL,
 } from './integration_tests/integration_test';
 
@@ -127,6 +129,12 @@ const IntegrationTestsScreen = () => {
     boolean | undefined
   >(undefined);
   const [mapStyle, setMapStyle] = useState<string | undefined>(undefined);
+  const [minZoomLevel, setMinZoomLevel] = useState<number | undefined>(
+    undefined
+  );
+  const [maxZoomLevel, setMaxZoomLevel] = useState<number | undefined>(
+    undefined
+  );
 
   const onMapReady = useCallback(async () => {
     try {
@@ -236,6 +244,8 @@ const IntegrationTestsScreen = () => {
       setZoomControlsEnabled,
       setMapToolbarEnabled,
       setMapStyle,
+      setMinZoomLevel,
+      setMaxZoomLevel,
     };
   };
 
@@ -305,6 +315,12 @@ const IntegrationTestsScreen = () => {
       case 'testMapStyle':
         await testMapStyle(getTestTools());
         break;
+      case 'testMinMaxZoomLevels':
+        await testMinMaxZoomLevels(getTestTools());
+        break;
+      case 'testSetFollowingPerspective':
+        await testSetFollowingPerspective(getTestTools());
+        break;
       default:
         resetTestState();
         break;
@@ -347,6 +363,8 @@ const IntegrationTestsScreen = () => {
           zoomControlsEnabled={zoomControlsEnabled}
           mapToolbarEnabled={mapToolbarEnabled}
           mapStyle={mapStyle}
+          minZoomLevel={minZoomLevel}
+          maxZoomLevel={maxZoomLevel}
         />
       </View>
       <View style={{ flex: 4 }}>
@@ -517,6 +535,20 @@ const IntegrationTestsScreen = () => {
             runTest('testMapStyle');
           }}
           testID="testMapStyle"
+        />
+        <ExampleAppButton
+          title="testMinMaxZoomLevels"
+          onPress={() => {
+            runTest('testMinMaxZoomLevels');
+          }}
+          testID="testMinMaxZoomLevels"
+        />
+        <ExampleAppButton
+          title="testSetFollowingPerspective"
+          onPress={() => {
+            runTest('testSetFollowingPerspective');
+          }}
+          testID="testSetFollowingPerspective"
         />
       </OverlayModal>
     </View>

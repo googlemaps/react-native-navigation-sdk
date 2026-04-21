@@ -221,6 +221,19 @@ export const NavigationView = (
     [onPromptVisibilityChangedProp]
   );
 
+  const { minZoomLevel, maxZoomLevel } = props;
+
+  const hasConflictingZoomLevels =
+    minZoomLevel != null && maxZoomLevel != null && minZoomLevel > maxZoomLevel;
+
+  useEffect(() => {
+    if (hasConflictingZoomLevels) {
+      console.warn(
+        `minZoomLevel (${minZoomLevel}) must not be greater than maxZoomLevel (${maxZoomLevel}). Zoom level constraints will be ignored.`
+      );
+    }
+  }, [hasConflictingZoomLevels, minZoomLevel, maxZoomLevel]);
+
   return (
     <NavView
       style={props.style ?? styles.defaultStyle}
@@ -264,8 +277,8 @@ export const NavigationView = (
       zoomGesturesEnabled={props.zoomGesturesEnabled}
       buildingsEnabled={props.buildingsEnabled}
       reportIncidentButtonEnabled={props.reportIncidentButtonEnabled}
-      minZoomLevel={props.minZoomLevel}
-      maxZoomLevel={props.maxZoomLevel}
+      minZoomLevel={hasConflictingZoomLevels ? undefined : minZoomLevel}
+      maxZoomLevel={hasConflictingZoomLevels ? undefined : maxZoomLevel}
       onMapClick={onMapClick}
       onMapReady={onMapReady}
       onMarkerClick={onMarkerClick}

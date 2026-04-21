@@ -90,4 +90,12 @@ describe('Navigation tests', () => {
     await expectNoErrors();
     await expectSuccess();
   });
+
+  it('NT09 - test setFollowingPerspective with zoom level options', async () => {
+    await selectTestByName('testSetFollowingPerspective');
+    await agreeToTermsAndConditions();
+    await waitForTestToFinish();
+    await expectNoErrors();
+    await expectSuccess();
+  });
 });

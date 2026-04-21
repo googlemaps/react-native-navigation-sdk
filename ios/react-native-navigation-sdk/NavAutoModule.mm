@@ -548,10 +548,11 @@ static NavAutoModuleReadyCallback _navAutoModuleReadyCallback;
   });
 }
 
-- (void)setFollowingPerspective:(NSInteger)perspective {
+- (void)setFollowingPerspective:(NSInteger)perspective zoomLevel:(NSNumber *)zoomLevel {
   dispatch_async(dispatch_get_main_queue(), ^{
     if (self->_viewController) {
-      [self->_viewController setFollowingPerspective:[NSNumber numberWithInteger:perspective]];
+      [self->_viewController setFollowingPerspective:[NSNumber numberWithInteger:perspective]
+                                           zoomLevel:zoomLevel];
     }
   });
 }

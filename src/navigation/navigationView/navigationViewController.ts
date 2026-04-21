@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import type { CameraPerspective, NavigationViewController } from './types';
+import type {
+  CameraPerspective,
+  FollowMyLocationOptions,
+  NavigationViewController,
+} from './types';
 import NavViewModule from '../../native/NativeNavViewModule';
 
 /**
@@ -41,9 +45,16 @@ export const getNavigationViewController = (
         console.error('Error calling setNavigationUIEnabled:', error);
       }
     },
-    setFollowingPerspective: async (perspective: CameraPerspective) => {
+    setFollowingPerspective: async (
+      perspective: CameraPerspective,
+      options?: FollowMyLocationOptions
+    ) => {
       try {
-        await NavViewModule.setFollowingPerspective(nativeID, perspective);
+        await NavViewModule.setFollowingPerspective(
+          nativeID,
+          perspective,
+          options?.zoomLevel
+        );
       } catch (error) {
         console.error('Error calling setFollowingPerspective:', error);
       }

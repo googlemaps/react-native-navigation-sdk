@@ -139,7 +139,11 @@ export interface Spec extends TurboModule {
     nativeID: string,
     options: GroundOverlayOptionsSpec
   ): Promise<GroundOverlay>;
-  setFollowingPerspective(nativeID: string, perspective: Int32): Promise<void>;
+  setFollowingPerspective(
+    nativeID: string,
+    perspective: Int32,
+    zoomLevel?: WithDefault<Float, null>
+  ): Promise<void>;
   moveCamera(
     nativeID: string,
     cameraPosition: CameraPositionSpec

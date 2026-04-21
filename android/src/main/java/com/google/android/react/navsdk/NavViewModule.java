@@ -405,7 +405,8 @@ public class NavViewModule extends NativeNavViewModuleSpec {
   }
 
   @Override
-  public void setFollowingPerspective(String nativeID, double perspective, final Promise promise) {
+  public void setFollowingPerspective(
+      String nativeID, double perspective, Double zoomLevel, final Promise promise) {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
@@ -415,7 +416,10 @@ public class NavViewModule extends NativeNavViewModuleSpec {
           }
 
           if (fragment instanceof INavViewFragment) {
-            fragment.getMapController().setFollowingPerspective((int) perspective);
+            fragment
+                .getMapController()
+                .setFollowingPerspective(
+                    (int) perspective, zoomLevel == null ? null : zoomLevel.floatValue());
             promise.resolve(null);
           } else {
             promise.reject(JsErrors.NOT_NAV_VIEW_ERROR_CODE, JsErrors.NOT_NAV_VIEW_ERROR_MESSAGE);

@@ -15,7 +15,11 @@
  */
 
 import type { MapViewController, MapType, MapColorScheme } from '../maps';
-import type { CameraPerspective, NavigationNightMode } from '../navigation';
+import type {
+  CameraPerspective,
+  FollowMyLocationOptions,
+  NavigationNightMode,
+} from '../navigation';
 
 /** Defines all callbacks to be emitted by NavViewAuto support. */
 export interface NavigationAutoCallbacks {
@@ -63,8 +67,12 @@ export interface MapViewAutoController extends MapViewController {
    * camera following mode. This recenters the camera to follow the user's location.
    *
    * @param perspective The camera perspective to use when following.
+   * @param options Optional settings for camera follow behavior (e.g., fixed zoom level).
    */
-  setFollowingPerspective(perspective: CameraPerspective): void;
+  setFollowingPerspective(
+    perspective: CameraPerspective,
+    options?: FollowMyLocationOptions
+  ): void;
 
   /**
    * Sends a custom message from React Native to the native auto module.

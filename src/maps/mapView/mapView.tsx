@@ -82,6 +82,19 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
     props.onMarkerInfoWindowTapped
   );
 
+  const { minZoomLevel, maxZoomLevel } = props;
+
+  const hasConflictingZoomLevels =
+    minZoomLevel != null && maxZoomLevel != null && minZoomLevel > maxZoomLevel;
+
+  useEffect(() => {
+    if (hasConflictingZoomLevels) {
+      console.warn(
+        `minZoomLevel (${minZoomLevel}) must not be greater than maxZoomLevel (${maxZoomLevel}). Zoom level constraints will be ignored.`
+      );
+    }
+  }, [hasConflictingZoomLevels, minZoomLevel, maxZoomLevel]);
+
   return (
     <NavView
       style={props.style ?? styles.defaultStyle}
@@ -108,8 +121,8 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
       zoomControlsEnabled={props.zoomControlsEnabled}
       zoomGesturesEnabled={props.zoomGesturesEnabled}
       buildingsEnabled={props.buildingsEnabled}
-      minZoomLevel={props.minZoomLevel}
-      maxZoomLevel={props.maxZoomLevel}
+      minZoomLevel={hasConflictingZoomLevels ? undefined : minZoomLevel}
+      maxZoomLevel={hasConflictingZoomLevels ? undefined : maxZoomLevel}
       onMapClick={onMapClick}
       onMapReady={onMapReady}
       onMarkerClick={onMarkerClick}
