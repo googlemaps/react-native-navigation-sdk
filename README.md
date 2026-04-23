@@ -542,6 +542,8 @@ Both `NavigationView` and `MapView` support the following props. Props marked wi
 | ----------------------------------- | ------------------------------------------------ | :---: | ------------------------------------------------ |
 | `onMapReady`                        | `() => void`                                     |       | Called when the map is ready to use              |
 | `onMapClick`                        | `(latLng: LatLng) => void`                       |       | Called when the map is clicked                   |
+| `onMapDrag`                         | `(result: DragResult) => void`                   |       | Called when the map is dragged                   |
+| `onMapDragEnd`                      | `(result: DragResult) => void`                   |       | Called when the map dragging stops               |
 | `onMarkerClick`                     | `(marker: Marker) => void`                       |       | Called when a marker is clicked                  |
 | `onPolylineClick`                   | `(polyline: Polyline) => void`                   |       | Called when a polyline is clicked                |
 | `onPolygonClick`                    | `(polygon: Polygon) => void`                     |       | Called when a polygon is clicked                 |
@@ -564,6 +566,10 @@ The `MapViewController` is provided via the `onMapViewControllerCreated` callbac
 | `addPolyline(options: PolylineOptions)`           | `Promise<Polyline>`       | Add or update a polyline. If `options.id` matches an existing polyline, it is updated      |
 | `addPolygon(options: PolygonOptions)`             | `Promise<Polygon>`        | Add or update a polygon. If `options.id` matches an existing polygon, it is updated        |
 | `addCircle(options: CircleOptions)`               | `Promise<Circle>`         | Add or update a circle. If `options.id` matches an existing circle, it is updated          |
+| `coordinateForPoint(point: Point)`                | `Promise<LatLng>`         | Maps a point coordinate in the map’s view to an Earth coordinate                           |
+| `pointForCoordinate(coordinate: LatLng)`          | `Promise<Point>`          | Maps an Earth coordinate to a point coordinate in the map’s view                           |
+| `fitBounds(boundsOptions: BoundsOptions)`         | `Promise<void>`           | Transforms the camera such that the specified bounds are centered on screen                |
+| `getBounds()`                                     | `Promise<Bounds>`         | Retrieves the rectangular bounds of the map view                                           |
 | `addGroundOverlay(options: GroundOverlayOptions)` | `Promise<GroundOverlay>`  | Add or update a ground overlay. If `options.id` matches an existing overlay, it is updated |
 | `removeMarker(id: string)`                        | `void`                    | Remove a marker by its ID                                                                  |
 | `removePolyline(id: string)`                      | `void`                    | Remove a polyline by its ID                                                                |

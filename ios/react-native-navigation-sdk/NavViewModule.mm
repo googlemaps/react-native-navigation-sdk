@@ -278,6 +278,92 @@ static NavViewModule *sharedInstance = nil;
   }
 }
 
+- (void)coordinateForPoint:(NSString *)nativeID
+                     point:(PointSpec &)point
+                   resolve:(RCTPromiseResolveBlock)resolve
+                    reject:(RCTPromiseRejectBlock)reject {
+  NavViewController *viewController = [self getViewControllerForNativeID:nativeID];
+  PointSpec optionsCopy(point);
+  if (viewController) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      CGPoint cgPoint = CGPointMake(optionsCopy.x(), optionsCopy.y());
+      [viewController coordinateForPoint:&cgPoint
+                                  result:^(NSDictionary *result) {
+                                    resolve(result);
+                                  }];
+    });
+  } else {
+    reject(@"NO_VIEW_CONTROLLER", @"No view controller found for the specified nativeID", nil);
+  }
+}
+
+- (void)pointForCoordinate:(NSString *)nativeID
+                coordinate:(LatLngSpec &)coordinate
+                   resolve:(RCTPromiseResolveBlock)resolve
+                    reject:(RCTPromiseRejectBlock)reject {
+  NavViewController *viewController = [self getViewControllerForNativeID:nativeID];
+  LatLngSpec optionsCopy(coordinate);
+  if (viewController) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      CLLocationCoordinate2D latLng =
+          CLLocationCoordinate2DMake(optionsCopy.lat(), optionsCopy.lng());
+      [viewController pointForCoordinate:&latLng
+                                  result:^(NSDictionary *result) {
+                                    resolve(result);
+                                  }];
+    });
+  } else {
+    reject(@"NO_VIEW_CONTROLLER", @"No view controller found for the specified nativeID", nil);
+  }
+}
+
+- (void)fitBounds:(NSString *)nativeID
+    boundsOptions:(BoundsOptionsSpec &)boundsOptions
+          resolve:(RCTPromiseResolveBlock)resolve
+           reject:(RCTPromiseRejectBlock)reject {
+  NavViewController *viewController = [self getViewControllerForNativeID:nativeID];
+  BoundsOptionsSpec optionsCopy(boundsOptions);
+  if (viewController) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      CLLocationCoordinate2D northEast = CLLocationCoordinate2DMake(
+          optionsCopy.bounds().northEast().lat(), optionsCopy.bounds().northEast().lng());
+      CLLocationCoordinate2D southWest = CLLocationCoordinate2DMake(
+          optionsCopy.bounds().southWest().lat(), optionsCopy.bounds().southWest().lng());
+
+      UIEdgeInsets edgeInsets =
+          optionsCopy.padding().has_value()
+              ? UIEdgeInsetsMake(optionsCopy.padding().value().top().value_or(0),
+                                 optionsCopy.padding().value().left().value_or(0),
+                                 optionsCopy.padding().value().bottom().value_or(0),
+                                 optionsCopy.padding().value().right().value_or(0))
+              : UIEdgeInsetsMake(0, 0, 0, 0);
+      [viewController fitBounds:&northEast
+                      southWest:&southWest
+                     edgeInsets:&edgeInsets
+                         result:^(NSDictionary *result) {
+                           resolve(result);
+                         }];
+    });
+  } else {
+    reject(@"NO_VIEW_CONTROLLER", @"No view controller found for the specified nativeID", nil);
+  }
+}
+
+- (void)getBounds:(NSString *)nativeID
+          resolve:(RCTPromiseResolveBlock)resolve
+           reject:(RCTPromiseRejectBlock)reject {
+  NavViewController *viewController = [self getViewControllerForNativeID:nativeID];
+  if (viewController) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [viewController getBounds:^(NSDictionary *result) {
+        resolve(result);
+      }];
+    });
+  } else {
+    reject(@"NO_VIEW_CONTROLLER", @"No view controller found for the specified nativeID", nil);
+  }
+}
+
 - (void)addGroundOverlay:(NSString *)nativeID
                  options:(GroundOverlayOptionsSpec &)options
                  resolve:(RCTPromiseResolveBlock)resolve
