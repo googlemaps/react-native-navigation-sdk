@@ -263,7 +263,7 @@ public class MapViewController implements INavigationViewControllerProperties {
     MarkerOptions options = new MarkerOptions();
     if (imagePath != null && !imagePath.isEmpty()) {
       try {
-        BitmapDescriptor icon = BitmapDescriptorFactory.fromAsset(imagePath);
+        BitmapDescriptor icon = BitmapDescriptorFactory.fromPath(imagePath);
         options.icon(icon);
       } catch (Exception e) {
         throw new IllegalArgumentException(JsErrors.INVALID_IMAGE_ERROR_MESSAGE);

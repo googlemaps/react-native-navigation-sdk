@@ -145,7 +145,7 @@ static NavAutoModuleReadyCallback _navAutoModuleReadyCallback;
       NSString *imgPath = optionsCopy.imgPath();
       UIImage *icon = nil;
       if (imgPath && [imgPath isKindOfClass:[NSString class]] && imgPath.length > 0) {
-        icon = [UIImage imageNamed:imgPath];
+        icon = [UIImage imageWithContentsOfFile:imgPath];
         if (!icon) {
           reject(@"INVALID_IMAGE", @"Failed to load image from the provided path", nil);
           return;
@@ -321,7 +321,7 @@ static NavAutoModuleReadyCallback _navAutoModuleReadyCallback;
     dispatch_async(dispatch_get_main_queue(), ^{
       NSString *imgPath = optionsCopy.imgPath();
       UIImage *icon = (imgPath && [imgPath isKindOfClass:[NSString class]])
-                          ? [UIImage imageNamed:imgPath]
+                          ? [UIImage imageWithContentsOfFile:imgPath]
                           : nil;
 
       if (!icon) {
