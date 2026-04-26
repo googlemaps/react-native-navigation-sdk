@@ -59,6 +59,15 @@ In your TSX or JSX file, import the components you need:
 import { NavigationView } from '@googlemaps/react-native-navigation-sdk';
 ```
 
+Choose the setup guide that matches your project type:
+
+- [Bare workflow (plain React Native)](#bare-workflow-setup)
+- [Expo managed / prebuild workflow](#expo-workflow-setup)
+
+---
+
+## Bare Workflow Setup
+
 ### Android
 
 This package uses Navigation SDK for Android **8.0.0**. See the
@@ -141,19 +150,103 @@ Google recommends adding an `NSMotionUsageDescription` entry to your app's `Info
 
 #### Set Google Maps API Key
 
-To set up, specify your API key in the application delegate `ios/Runner/AppDelegate.m`:
+To set up, specify your API key in the application delegate `ios/AppDelegate.swift`:
 
-```objective-c
-#import <GoogleMaps/GoogleMaps.h>
+```swift
+import GoogleMaps
 
-@implementation AppDelegate
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-  [GMSServices provideAPIKey:@"API_KEY"];
-  return [super application:application didFinishLaunchingWithOptions:launchOptions];
+  func application(_ application: UIApplication,
+                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    GMSServices.provideAPIKey("YOUR_API_KEY")
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
 }
+```
 
+---
+
+## Expo Workflow Setup
+
+This package ships an [Expo Config Plugin](https://docs.expo.dev/guides/config-plugins/) that automatically configures the native Android and iOS projects when you run `expo prebuild` (or `eas build`). No manual edits to `AndroidManifest.xml` or `AppDelegate.swift` are required.
+
+### 1. Install the package
+
+```shell
+npm i @googlemaps/react-native-navigation-sdk
+```
+
+### 2. Add the plugin to `app.config.ts`
+
+Pass your Google Maps API keys for Android and iOS via `androidApiKey` and `iosApiKey`:
+
+```ts
+export default {
+  // ...
+  plugins: [
+    [
+      '@googlemaps/react-native-navigation-sdk',
+      {
+        androidApiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY,
+        iosApiKey: process.env.GOOGLE_MAPS_IOS_API_KEY,
+      }
+    ]
+  ],
+};
+```
+
+> [!TIP]
+> Instead of passing `apiKey` as a plugin option, you can set the platform-specific fields and the plugin will pick them up automatically:
+> - **Android**: `android.config.googleMaps.apiKey`
+> - **iOS**: `ios.config.googleMapsApiKey`
+
+### 3. Run prebuild
+
+```shell
+npx expo prebuild
+```
+
+This will inject the API key into `AndroidManifest.xml` and `AppDelegate.swift` automatically.
+
+### Android — additional requirements
+If you are using Expo 53 or above, there's no need to configure anything else.
+<details>
+  <summary>If you are using Expo 52 or below</summary>
+
+* You must enable the new architecture in your `app.config.ts`:
+  ```ts
+  export default {
+    // ...
+    neyArchEnabled: true,
+    // ...
+  }
+  ```
+* You must set the minimum SDK version to 24 or higher:
+  ```ts
+  export default {
+    // ...
+    android: {
+      minSdkVersion: 24,
+    },
+    // ...
+  }
+  ```
+</details>
+
+Jetifier and core library desugaring are both automatically enabled by the Expo Config Plugin, so no manual changes to `android/gradle.properties` or `android/app/build.gradle` are required.
+
+### iOS — minimum deployment target
+
+The minimum iOS deployment target must be 16.0 or higher. Set it in `app.config.ts`:
+
+```ts
+export default {
+  ios: {
+    deploymentTarget: '16.0',
+  },
+};
 ```
 
 #### Add the correct background modes to Info.plist file
@@ -266,7 +359,7 @@ const initializeNavigation = useCallback(async () => {
 
   // Initialize the navigation session and check the status
   const status = await navigationController.init();
-  
+
   switch (status) {
     case NavigationSessionStatus.OK:
       console.log('Navigation initialized successfully');
@@ -360,8 +453,8 @@ await navigationController.startGuidance();
 #### Adding navigation listeners
 
 ```tsx
-const { 
-  navigationController, 
+const {
+  navigationController,
   removeAllListeners,
   setOnArrival,
   setOnRouteChanged,
@@ -616,8 +709,8 @@ The `useNavigation()` hook provides access to the `NavigationController` and lis
 ```tsx
 import { useNavigation } from '@googlemaps/react-native-navigation-sdk';
 
-const { 
-  navigationController, 
+const {
+  navigationController,
   removeAllListeners,
   setOnArrival,
   setOnRouteChanged,
@@ -703,7 +796,7 @@ useEffect(() => {
     }
   });
   setOnRouteChanged(() => console.log('Route changed'));
-  
+
   // Use removeAllListeners() to clear all listeners at once on cleanup
   // Alternatively, clear individual listeners: setOnArrival(null)
   return () => removeAllListeners();
@@ -761,8 +854,8 @@ For Android Auto and CarPlay support, the `useNavigationAuto()` hook provides a 
 ```tsx
 import { useNavigationAuto } from '@googlemaps/react-native-navigation-sdk';
 
-const { 
-  mapViewAutoController, 
+const {
+  mapViewAutoController,
   removeAllListeners,
   setOnAutoScreenAvailabilityChanged,
   setOnCustomNavigationAutoEvent,
