@@ -20,6 +20,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.module.model.ReactModuleInfo;
 import com.facebook.react.module.model.ReactModuleInfoProvider;
 import com.facebook.react.uimanager.ViewManager;
+import com.google.android.libraries.navigation.NavigationApi;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +28,10 @@ import java.util.Map;
 
 @DoNotStrip
 public class Package extends BaseReactPackage {
+
+  static {
+    NavigationApi.addInternalUsageAttributionId(SdkVersion.ATTRIBUTION_ID);
+  }
 
   @Override
   public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {

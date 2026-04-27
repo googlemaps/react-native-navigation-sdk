@@ -8,7 +8,11 @@
   "packages": {
     ".": {
       "package-name": "@googlemaps/react-native-navigation-sdk",
-      "changelog-path": "CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        "android/src/main/java/com/google/android/react/navsdk/SdkVersion.java",
+        "ios/react-native-navigation-sdk/SdkVersion.h"
+      ]
     }
   }
 }

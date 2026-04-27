@@ -15,9 +15,11 @@
  */
 
 #import "NavModule.h"
+#import <GoogleMaps/GoogleMaps.h>
 #import "NavAutoModule.h"
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
+#import "SdkVersion.h"
 
 using namespace JS::NativeNavModule;
 
@@ -50,6 +52,9 @@ RCT_EXPORT_MODULE(NavModule);
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     sharedInstance = [super allocWithZone:zone];
+    NSString *attributionId =
+        [NSString stringWithFormat:@"gmp_git_reactnativenavigationsdk_v%@", kRNNavSdkVersion];
+    [GMSServices addInternalUsageAttributionID:attributionId];
   });
   return sharedInstance;
 }
