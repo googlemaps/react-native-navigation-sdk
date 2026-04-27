@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.15.1...v0.15.2) (2026-04-27)
+
+
+### Features
+
+* test attribution versioning ([59201a6](https://github.com/googlemaps/react-native-navigation-sdk/commit/59201a6a9034e11ec8142c30d870db2365e6678e))
+
 ## [0.15.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.15.0...v0.15.1) (2026-04-21)
 
 

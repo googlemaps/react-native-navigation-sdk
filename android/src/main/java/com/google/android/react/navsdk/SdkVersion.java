@@ -15,7 +15,7 @@ package com.google.android.react.navsdk;
 
 /** SDK version constants for internal usage attribution. */
 public final class SdkVersion {
-  public static final String VERSION = "0.15.1"; // {x-release-please-version}
+  public static final String VERSION = "0.15.2"; // {x-release-please-version}
 
   public static final String ATTRIBUTION_ID = "gmp_git_reactnativenavigationsdk_v" + VERSION;
 
