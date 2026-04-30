@@ -15,9 +15,11 @@
  */
 
 #import "NavModule.h"
+#import <GoogleMaps/GoogleMaps.h>
 #import "NavAutoModule.h"
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
+#import "SdkVersion.h"
 
 using namespace JS::NativeNavModule;
 
