@@ -58,6 +58,7 @@ import {
   testMinMaxZoomLevels,
   testSetFollowingPerspective,
   testNavInfoEventsAfterCleanup,
+  testMarkerImageBase64,
   NO_ERRORS_DETECTED_LABEL,
 } from './integration_tests/integration_test';
 
@@ -327,6 +328,9 @@ const IntegrationTestsScreen = () => {
       case 'testNavInfoEventsAfterCleanup':
         await testNavInfoEventsAfterCleanup(getTestTools());
         break;
+      case 'testMarkerImageBase64':
+        await testMarkerImageBase64(getTestTools());
+        break;
       default:
         resetTestState();
         break;
@@ -562,6 +566,13 @@ const IntegrationTestsScreen = () => {
             runTest('testNavInfoEventsAfterCleanup');
           }}
           testID="testNavInfoEventsAfterCleanup"
+        />
+        <ExampleAppButton
+          title="testMarkerImageBase64"
+          onPress={() => {
+            runTest('testMarkerImageBase64');
+          }}
+          testID="testMarkerImageBase64"
         />
       </OverlayModal>
     </View>

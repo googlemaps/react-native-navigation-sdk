@@ -15,6 +15,9 @@ package com.google.android.react.navsdk;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.util.Log;
 import androidx.core.util.Supplier;
 import com.facebook.react.bridge.UiThreadUtil;
@@ -250,6 +253,7 @@ public class MapViewController implements INavigationViewControllerProperties {
   }
 
   private Marker createMarker(Map<String, Object> optionsMap, String customId) {
+    String imageBase64 = CollectionUtil.getString("imageBase64", optionsMap);
     String imagePath = CollectionUtil.getString("imgPath", optionsMap);
     String title = CollectionUtil.getString("title", optionsMap);
     String snippet = CollectionUtil.getString("snippet", optionsMap);
@@ -261,13 +265,26 @@ public class MapViewController implements INavigationViewControllerProperties {
     boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
 
     MarkerOptions options = new MarkerOptions();
-    if (imagePath != null && !imagePath.isEmpty()) {
+    if (imageBase64 != null && !imageBase64.isEmpty()) {
+      byte[] decodedBytes = Base64.decode(imageBase64, Base64.DEFAULT);
+      Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+      if (bitmap == null) {
+        throw new IllegalArgumentException(JsErrors.INVALID_IMAGE_ERROR_MESSAGE);
+      }
+      options.icon(BitmapDescriptorFactory.fromBitmap(bitmap));
+    } else if (imagePath != null && !imagePath.isEmpty()) {
       try {
-        BitmapDescriptor icon = BitmapDescriptorFactory.fromAsset(imagePath);
-        options.icon(icon);
+        options.icon(BitmapDescriptorFactory.fromAsset(imagePath));
       } catch (Exception e) {
         throw new IllegalArgumentException(JsErrors.INVALID_IMAGE_ERROR_MESSAGE);
       }
+    }
+
+    if (optionsMap.containsKey("anchor")) {
+      Map<String, Object> anchor = (Map<String, Object>) optionsMap.get("anchor");
+      float u = Double.valueOf(anchor.get("u").toString()).floatValue();
+      float v = Double.valueOf(anchor.get("v").toString()).floatValue();
+      options.anchor(u, v);
     }
 
     options.position(
@@ -298,6 +315,7 @@ public class MapViewController implements INavigationViewControllerProperties {
   }
 
   private void updateMarker(Marker marker, Map<String, Object> optionsMap) {
+    String imageBase64 = CollectionUtil.getString("imageBase64", optionsMap);
     String imagePath = CollectionUtil.getString("imgPath", optionsMap);
     String title = CollectionUtil.getString("title", optionsMap);
     String snippet = CollectionUtil.getString("snippet", optionsMap);
@@ -308,13 +326,26 @@ public class MapViewController implements INavigationViewControllerProperties {
     boolean flat = CollectionUtil.getBool("flat", optionsMap, false);
     boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
 
-    if (imagePath != null && !imagePath.isEmpty()) {
+    if (imageBase64 != null && !imageBase64.isEmpty()) {
+      byte[] decodedBytes = Base64.decode(imageBase64, Base64.DEFAULT);
+      Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+      if (bitmap == null) {
+        throw new IllegalArgumentException(JsErrors.INVALID_IMAGE_ERROR_MESSAGE);
+      }
+      marker.setIcon(BitmapDescriptorFactory.fromBitmap(bitmap));
+    } else if (imagePath != null && !imagePath.isEmpty()) {
       try {
-        BitmapDescriptor icon = BitmapDescriptorFactory.fromAsset(imagePath);
-        marker.setIcon(icon);
+        marker.setIcon(BitmapDescriptorFactory.fromAsset(imagePath));
       } catch (Exception e) {
         throw new IllegalArgumentException(JsErrors.INVALID_IMAGE_ERROR_MESSAGE);
       }
+    }
+
+    if (optionsMap.containsKey("anchor")) {
+      Map<String, Object> anchor = (Map<String, Object>) optionsMap.get("anchor");
+      float u = Double.valueOf(anchor.get("u").toString()).floatValue();
+      float v = Double.valueOf(anchor.get("v").toString()).floatValue();
+      marker.setAnchor(u, v);
     }
 
     marker.setPosition(

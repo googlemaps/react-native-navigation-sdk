@@ -50,7 +50,9 @@ type MarkerOptionsSpec = Readonly<{
   draggable?: WithDefault<boolean, false>;
   flat?: WithDefault<boolean, false>;
   id?: WithDefault<string, null>;
+  imageBase64?: WithDefault<string, null>;
   imgPath?: WithDefault<string, null>;
+  anchor?: Readonly<{ u: Float; v: Float }>;
   position: Readonly<{ lat: Float; lng: Float }>;
   rotation?: WithDefault<Float, 0>;
   snippet?: WithDefault<string, null>;

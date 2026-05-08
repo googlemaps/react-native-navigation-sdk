@@ -1971,3 +1971,67 @@ export const testNavInfoEventsAfterCleanup = async (testTools: TestTools) => {
 
   await initializeNavigation(navigationController, failTest);
 };
+
+// Minimal 1x1 transparent PNG encoded as base64 — used as a self-contained
+// test fixture to verify the imageBase64 decoding path without network access.
+const MINIMAL_PNG_BASE64 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+export const testMarkerImageBase64 = async (testTools: TestTools) => {
+  const { mapViewController, passTest, failTest, expectFalseError } = testTools;
+  if (!mapViewController) {
+    return failTest('mapViewController was expected to exist');
+  }
+
+  // Test adding a marker with imageBase64 and a custom anchor
+  const marker = await mapViewController.addMarker({
+    position: { lat: 37.7749, lng: -122.4194 },
+    imageBase64: MINIMAL_PNG_BASE64,
+    anchor: { u: 0.5, v: 0.5 },
+    title: 'Base64 Marker',
+  });
+
+  if (!marker.id) {
+    return expectFalseError('marker.id should exist after adding imageBase64 marker');
+  }
+  if (marker.position.lat !== 37.7749 || marker.position.lng !== -122.4194) {
+    return expectFalseError('marker.position should match input');
+  }
+
+  // Verify getMarkers returns the marker
+  let markers = await mapViewController.getMarkers();
+  if (markers.length !== 1) {
+    return expectFalseError('getMarkers should return 1 marker');
+  }
+  if (markers[0]!.id !== marker.id) {
+    return expectFalseError('getMarkers should return marker with correct id');
+  }
+
+  // Test updating the marker with a new imageBase64 (same id → update path)
+  const updatedMarker = await mapViewController.addMarker({
+    id: marker.id,
+    position: { lat: 37.7749, lng: -122.4194 },
+    imageBase64: MINIMAL_PNG_BASE64,
+    anchor: { u: 0.5, v: 0.5 },
+    title: 'Updated Base64 Marker',
+  });
+
+  if (updatedMarker.id !== marker.id) {
+    return expectFalseError('updatedMarker.id should match original marker.id');
+  }
+
+  // Verify still one marker (update, not duplicate)
+  markers = await mapViewController.getMarkers();
+  if (markers.length !== 1) {
+    return expectFalseError('getMarkers should still return 1 marker after update');
+  }
+
+  // Remove and verify clean up
+  await mapViewController.removeMarker(marker.id);
+  markers = await mapViewController.getMarkers();
+  if (markers.length !== 0) {
+    return expectFalseError('getMarkers should return 0 markers after removal');
+  }
+
+  passTest();
+};

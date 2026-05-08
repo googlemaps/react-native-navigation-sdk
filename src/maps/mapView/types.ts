@@ -56,8 +56,12 @@ export interface MarkerOptions {
   id?: string;
   /** The LatLng value for the marker's position on the map. You can change this value at any time if you want to move the marker. */
   position: LatLng;
-  /** Path to a local image asset that should be displayed in the marker instead of using the default marker pin. */
+  /** Path to an image asset bundled with the application to use as the marker icon. Ignored when imageBase64 is provided. */
   imgPath?: string;
+  /** A raw base64-encoded PNG or JPEG image to use as the marker icon. Takes priority over imgPath. */
+  imageBase64?: string;
+  /** The anchor point of the marker icon in normalized icon coordinates (u, v). Defaults to (0.5, 1.0). */
+  anchor?: { u: number; v: number };
   /** A text string that's displayed in an info window when the user taps the marker. You can change this value at any time. */
   title?: string;
   /** Additional text that's displayed below the title. You can change this value at any time. */
