@@ -47,10 +47,14 @@ public class MapViewFragment extends SupportMapFragment
   private ReactApplicationContext reactContext;
   private GoogleMap mGoogleMap;
   private MapViewController mMapViewController;
+  @Nullable private MapViewControllerReadyListener mapViewControllerReadyListener;
   private @MapColorScheme int mapColorScheme = MapColorScheme.FOLLOW_SYSTEM;
 
   public static MapViewFragment newInstance(
-      ReactApplicationContext reactContext, int viewTag, @NonNull GoogleMapOptions mapOptions) {
+      ReactApplicationContext reactContext,
+      int viewTag,
+      @NonNull GoogleMapOptions mapOptions,
+      @Nullable MapViewControllerReadyListener mapViewControllerReadyListener) {
     MapViewFragment fragment = new MapViewFragment();
     Bundle args = new Bundle();
     args.putParcelable("MapOptions", mapOptions);
@@ -58,6 +62,7 @@ public class MapViewFragment extends SupportMapFragment
     fragment.setArguments(args);
     fragment.reactContext = reactContext;
     fragment.viewTag = viewTag;
+    fragment.mapViewControllerReadyListener = mapViewControllerReadyListener;
 
     return fragment;
   }
@@ -76,6 +81,9 @@ public class MapViewFragment extends SupportMapFragment
 
           // Setup map listeners with the provided callback
           mMapViewController.setupMapListeners(MapViewFragment.this);
+          if (mapViewControllerReadyListener != null) {
+            mapViewControllerReadyListener.onMapViewControllerReady(viewTag);
+          }
           applyMapColorSchemeToMap();
 
           emitEvent("onMapReady", null);
