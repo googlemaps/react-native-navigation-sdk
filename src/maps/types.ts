@@ -305,6 +305,8 @@ export interface MapViewProps {
 
   /**
    * Controls whether the compass is enabled.
+   *
+   * On `NavigationView`, this only takes effect while navigation UI is enabled.
    * Defaults to true.
    */
   readonly compassEnabled?: boolean;
@@ -318,6 +320,8 @@ export interface MapViewProps {
   /**
    * Controls whether the my location indicator is enabled.
    * Requires location permissions.
+   * On `NavigationView`, this only takes effect while navigation UI is disabled.
+   *
    * Defaults to false.
    */
   readonly myLocationEnabled?: boolean;

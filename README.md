@@ -506,6 +506,9 @@ Both `NavigationView` and `MapView` support the following props. Props marked wi
 
 #### UI Control Props
 
+> [!NOTE]
+> Navigation UI and maps-focused UI are mutually constrained by the Google Navigation SDK. During navigation when navigation UI is enabled navigation-focused controls such as `compassEnabled` are available, while maps-focused controls such as `myLocationEnabled` are unavailable. When navigation UI is disabled, the map is in a maps-focused state, so `myLocationEnabled` works, but navigation-only controls such as `compassEnabled` do not.
+
 | Prop                          | Type      | Default |  Nav  | Description                                           |
 | ----------------------------- | --------- | ------- | :---: | ----------------------------------------------------- |
 | `compassEnabled`              | `boolean` | `true`  |       | Show compass when map is rotated                      |
