@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.15.2...v0.15.3) (2026-05-19)
+
+
+### Bug Fixes
+
+* prop handling on native Android implementation ([#592](https://github.com/googlemaps/react-native-navigation-sdk/issues/592)) ([931f23c](https://github.com/googlemaps/react-native-navigation-sdk/commit/931f23c456c4368f201b5bc7cce885fb27bf0e1d))
+
 ## [0.15.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.15.1...v0.15.2) (2026-05-03)
 
 
