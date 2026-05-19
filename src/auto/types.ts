@@ -130,8 +130,6 @@ export interface MapViewAutoController extends MapViewController {
   /**
    * Enables or disables compass for the auto navigation view.
    *
-   * Only takes effect while navigation UI is enabled.
-   *
    * @param enabled Whether to enable compass.
    */
   setCompassEnabled(enabled: boolean): void;
@@ -139,7 +137,7 @@ export interface MapViewAutoController extends MapViewController {
   /**
    * Enables or disables my location indicator for the auto navigation view.
    *
-   * Only takes effect while navigation UI is disabled.
+   * On iOS only takes effect while navigation UI is disabled.
    *
    * @param enabled Whether to enable my location indicator.
    */
