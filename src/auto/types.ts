@@ -137,6 +137,8 @@ export interface MapViewAutoController extends MapViewController {
   /**
    * Enables or disables my location indicator for the auto navigation view.
    *
+   * On iOS, only takes effect while navigation UI is disabled.
+   *
    * @param enabled Whether to enable my location indicator.
    */
   setMyLocationEnabled(enabled: boolean): void;

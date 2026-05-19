@@ -51,11 +51,15 @@ public class NavViewFragment extends SupportNavigationFragment
   private MapViewController mMapViewController;
   private GoogleMap mGoogleMap;
   private StylingOptions mStylingOptions;
+  @Nullable private MapViewControllerReadyListener mapViewControllerReadyListener;
   private @MapColorScheme int mapColorScheme = MapColorScheme.FOLLOW_SYSTEM;
   private @ForceNightMode int nightModeOverride = ForceNightMode.AUTO;
 
   public static NavViewFragment newInstance(
-      ReactApplicationContext reactContext, int viewTag, @NonNull GoogleMapOptions mapOptions) {
+      ReactApplicationContext reactContext,
+      int viewTag,
+      @NonNull GoogleMapOptions mapOptions,
+      @Nullable MapViewControllerReadyListener mapViewControllerReadyListener) {
     NavViewFragment fragment = new NavViewFragment();
     Bundle args = new Bundle();
     args.putParcelable("MapOptions", mapOptions);
@@ -63,6 +67,7 @@ public class NavViewFragment extends SupportNavigationFragment
     fragment.setArguments(args);
     fragment.reactContext = reactContext;
     fragment.viewTag = viewTag;
+    fragment.mapViewControllerReadyListener = mapViewControllerReadyListener;
 
     return fragment;
   }
@@ -83,6 +88,9 @@ public class NavViewFragment extends SupportNavigationFragment
 
           // Setup map listeners with the provided callback
           mMapViewController.setupMapListeners(NavViewFragment.this);
+          if (mapViewControllerReadyListener != null) {
+            mapViewControllerReadyListener.onMapViewControllerReady(viewTag);
+          }
           applyMapColorSchemeToMap();
           applyNightModePreference();
 

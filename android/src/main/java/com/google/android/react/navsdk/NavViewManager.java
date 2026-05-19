@@ -62,9 +62,12 @@ public class NavViewManager extends SimpleViewManager<FrameLayout>
   // Track views with pending fragment creation attempts.
   private final HashSet<Integer> pendingFragments = new HashSet<>();
 
-  // Property sink to buffer both fragment and controller props that arrive before
-  // fragment is created
-  private final HashMap<Integer, ViewPropertiesSink> propertySinkMap = new HashMap<>();
+  // React props can arrive before different native targets are ready. Fragment-level props can be
+  // applied once the Fragment is attached. Controller-level props must wait longer: getMapAsync
+  // creates MapViewController after fragment attachment, so keep them buffered separately.
+  private final HashMap<Integer, MapViewPropertiesSink> fragmentPropertySinkMap = new HashMap<>();
+  private final HashMap<Integer, MapViewControllerPropertiesSink> controllerPropertySinkMap =
+      new HashMap<>();
 
   // nativeID-based view registry for TurboModule access
   private final HashMap<String, WeakReference<FrameLayout>> viewRegistry = new HashMap<>();
@@ -291,10 +294,14 @@ public class NavViewManager extends SimpleViewManager<FrameLayout>
       Choreographer.getInstance().removeFrameCallback(frameCallback);
     }
 
-    // Clean up property sink
-    ViewPropertiesSink sink = propertySinkMap.remove(viewId);
-    if (sink != null) {
-      sink.clear();
+    // Clean up property sinks
+    MapViewPropertiesSink fragmentSink = fragmentPropertySinkMap.remove(viewId);
+    if (fragmentSink != null) {
+      fragmentSink.clear();
+    }
+    MapViewControllerPropertiesSink controllerSink = controllerPropertySinkMap.remove(viewId);
+    if (controllerSink != null) {
+      controllerSink.clear();
     }
 
     FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
@@ -322,10 +329,10 @@ public class NavViewManager extends SimpleViewManager<FrameLayout>
     }
 
     // Return sink to buffer properties
-    ViewPropertiesSink sink = propertySinkMap.get(viewId);
+    MapViewPropertiesSink sink = fragmentPropertySinkMap.get(viewId);
     if (sink == null) {
-      sink = new ViewPropertiesSink();
-      propertySinkMap.put(viewId, sink);
+      sink = new MapViewPropertiesSink();
+      fragmentPropertySinkMap.put(viewId, sink);
     }
     return sink;
   }
@@ -339,10 +346,10 @@ public class NavViewManager extends SimpleViewManager<FrameLayout>
     }
 
     // Return sink to buffer properties
-    ViewPropertiesSink sink = propertySinkMap.get(viewId);
+    MapViewPropertiesSink sink = fragmentPropertySinkMap.get(viewId);
     if (sink == null) {
-      sink = new ViewPropertiesSink();
-      propertySinkMap.put(viewId, sink);
+      sink = new MapViewPropertiesSink();
+      fragmentPropertySinkMap.put(viewId, sink);
     }
     return sink;
   }
@@ -356,30 +363,46 @@ public class NavViewManager extends SimpleViewManager<FrameLayout>
     }
 
     // Return sink to buffer controller properties
-    ViewPropertiesSink sink = propertySinkMap.get(viewId);
+    MapViewControllerPropertiesSink sink = controllerPropertySinkMap.get(viewId);
     if (sink == null) {
-      sink = new ViewPropertiesSink();
-      propertySinkMap.put(viewId, sink);
+      sink = new MapViewControllerPropertiesSink();
+      controllerPropertySinkMap.put(viewId, sink);
     }
     return sink;
   }
 
-  /**
-   * Apply buffered properties from the unified sink to both fragment and controller, then discard
-   * the sink. This should be called once when the fragment is ready.
-   */
-  private void applyBufferedPropertiesAndClearSinks(int viewId, IMapViewFragment fragment) {
-    ViewPropertiesSink sink = propertySinkMap.remove(viewId);
-    if (sink != null) {
-      // Apply fragment-level properties
-      sink.applyToFragment(fragment);
+  /** Apply buffered fragment properties once the fragment is attached. */
+  private void applyBufferedFragmentProperties(int viewId, IMapViewFragment fragment) {
+    MapViewPropertiesSink sink = fragmentPropertySinkMap.remove(viewId);
 
-      // Apply controller-level properties
-      if (fragment.getMapController() != null) {
-        sink.applyToController(fragment.getMapController());
-      }
+    if (sink == null) {
+      return;
+    }
 
-      sink.clear();
+    sink.applyToFragment(fragment);
+    sink.clear();
+  }
+
+  /** Apply buffered controller properties once getMapAsync has created the controller. */
+  private void applyBufferedControllerProperties(int viewId, IMapViewFragment fragment) {
+    MapViewController controller = fragment.getMapController();
+    if (controller == null) {
+      return;
+    }
+
+    MapViewControllerPropertiesSink sink = controllerPropertySinkMap.remove(viewId);
+    if (sink == null) {
+      return;
+    }
+
+    sink.applyToController(controller);
+    sink.clear();
+  }
+
+  private void onMapViewControllerReady(int viewId) {
+    IMapViewFragment fragment = getFragmentForViewId(viewId);
+    if (fragment != null) {
+      applyBufferedControllerProperties(viewId, fragment);
     }
   }
 
@@ -763,12 +786,14 @@ public class NavViewManager extends SimpleViewManager<FrameLayout>
 
     if (mapViewType == CustomTypes.MapViewType.MAP) {
       MapViewFragment mapFragment =
-          MapViewFragment.newInstance(reactContext, viewId, googleMapOptions);
+          MapViewFragment.newInstance(
+              reactContext, viewId, googleMapOptions, this::onMapViewControllerReady);
       fragment = mapFragment;
       mapViewFragment = mapFragment;
     } else {
       NavViewFragment navFragment =
-          NavViewFragment.newInstance(reactContext, viewId, googleMapOptions);
+          NavViewFragment.newInstance(
+              reactContext, viewId, googleMapOptions, this::onMapViewControllerReady);
 
       if (viewInitializationParams.hasKey("navigationNightMode")
           && !viewInitializationParams.isNull("navigationNightMode")) {
@@ -827,8 +852,10 @@ public class NavViewManager extends SimpleViewManager<FrameLayout>
     mapOptionsCache.remove(viewId);
     fragmentMap.put(viewId, new WeakReference<>(mapViewFragment));
 
-    // Apply any buffered properties that arrived before fragment was created
-    applyBufferedPropertiesAndClearSinks(viewId, mapViewFragment);
+    // Apply fragment properties that arrived before fragment creation.
+    // Controller properties stay buffered until getMapAsync creates the controller.
+    applyBufferedFragmentProperties(viewId, mapViewFragment);
+    applyBufferedControllerProperties(viewId, mapViewFragment);
 
     // Start per-frame layout loop to keep fragment sized correctly.
     startLayoutLoop(view);

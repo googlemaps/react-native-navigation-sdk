@@ -318,6 +318,8 @@ export interface MapViewProps {
   /**
    * Controls whether the my location indicator is enabled.
    * Requires location permissions.
+   * On `NavigationView` on iOS, this only takes effect while navigation UI is disabled.
+   *
    * Defaults to false.
    */
   readonly myLocationEnabled?: boolean;
