@@ -119,8 +119,8 @@ export interface NativeNavViewProps extends ViewProps {
   trafficIncidentCardsEnabled?: WithDefault<boolean, true>;
   headerEnabled?: WithDefault<boolean, true>;
   footerEnabled?: WithDefault<boolean, true>;
-  speedometerEnabled?: WithDefault<boolean, true>;
-  speedLimitIconEnabled?: WithDefault<boolean, true>;
+  speedometerEnabled?: WithDefault<boolean, false>;
+  speedLimitIconEnabled?: WithDefault<boolean, false>;
   recenterButtonEnabled?: WithDefault<boolean, true>;
   reportIncidentButtonEnabled?: WithDefault<boolean, true>;
   navigationViewStylingOptions?: UnsafeMixed;
