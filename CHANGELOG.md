@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.16.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.15.3...v0.16.0) (2026-05-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* speedLimitIconEnabled and speedometerEnabled prop value now defaults to false to match the platform SDK implementations.
+
+### Bug Fixes
+
+* change the fabric codegen defaults to match the native SDKs ([#596](https://github.com/googlemaps/react-native-navigation-sdk/issues/596)) ([420a5fe](https://github.com/googlemaps/react-native-navigation-sdk/commit/420a5fe2952eab5243f2f97a9f119826e418e054))
+
 ## [0.15.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.15.2...v0.15.3) (2026-05-19)
 
 
