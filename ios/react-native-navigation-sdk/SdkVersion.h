@@ -16,4 +16,4 @@
 
 #import <Foundation/Foundation.h>
 
-static NSString *const kRNNavSdkVersion = @"0.16.0";  // x-release-please-version
+static NSString *const kRNNavSdkVersion = @"0.16.1";  // x-release-please-version
