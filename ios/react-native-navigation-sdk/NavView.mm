@@ -28,8 +28,13 @@
 
 using namespace facebook::react;
 
-static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps =
-    std::make_shared<const NavViewProps>();
+static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps = [] {
+  auto props = std::make_shared<NavViewProps>();
+  // On iOS, Google Maps Navigation SDK has the compass disabled by default.
+  // The Fabric default is overridden here so initial props match the native SDK behavior.
+  props->compassEnabled = false;
+  return std::static_pointer_cast<const NavViewProps>(props);
+}();
 
 @interface NavView () <RCTNavViewViewProtocol>
 
