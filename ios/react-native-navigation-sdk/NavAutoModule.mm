@@ -142,14 +142,32 @@ static NavAutoModuleReadyCallback _navAutoModuleReadyCallback;
     dispatch_async(dispatch_get_main_queue(), ^{
       CLLocationCoordinate2D position =
           CLLocationCoordinate2DMake(optionsCopy.position().lat(), optionsCopy.position().lng());
+
+      NSString *imageBase64 = optionsCopy.imageBase64();
       NSString *imgPath = optionsCopy.imgPath();
       UIImage *icon = nil;
-      if (imgPath && [imgPath isKindOfClass:[NSString class]] && imgPath.length > 0) {
+
+      if (imageBase64 && imageBase64.length > 0) {
+        NSData *imageData =
+            [[NSData alloc] initWithBase64EncodedString:imageBase64
+                                               options:NSDataBase64DecodingIgnoreUnknownCharacters];
+        icon = [UIImage imageWithData:imageData];
+        if (!icon) {
+          reject(@"INVALID_IMAGE", @"Failed to decode base64 image data", nil);
+          return;
+        }
+      } else if (imgPath && imgPath.length > 0) {
         icon = [UIImage imageNamed:imgPath];
         if (!icon) {
           reject(@"INVALID_IMAGE", @"Failed to load image from the provided path", nil);
           return;
         }
+      }
+
+      CGPoint anchorPoint = CGPointMake(0.5, 1.0);
+      if (optionsCopy.anchor().has_value()) {
+        auto anchor = optionsCopy.anchor().value();
+        anchorPoint = CGPointMake(anchor.u(), anchor.v());
       }
 
       GMSMarker *marker = [ObjectTranslationUtil
@@ -163,6 +181,8 @@ static NavAutoModuleReadyCallback _navAutoModuleReadyCallback;
                   icon:icon
                 zIndex:optionsCopy.zIndex().has_value() ? @(optionsCopy.zIndex().value()) : nil
             identifier:optionsCopy.id_()];
+
+      marker.groundAnchor = anchorPoint;
 
       [self->_viewController addMarker:marker
                                visible:optionsCopy.visible().value_or(YES)

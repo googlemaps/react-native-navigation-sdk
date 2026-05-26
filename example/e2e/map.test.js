@@ -96,4 +96,11 @@ describe('Map view tests', () => {
     await expectNoErrors();
     await expectSuccess();
   });
+
+  it('MT11 - test adding marker with imageBase64 and anchor', async () => {
+    await selectTestByName('testMarkerImageBase64');
+    await waitForTestToFinish();
+    await expectNoErrors();
+    await expectSuccess();
+  });
 });
