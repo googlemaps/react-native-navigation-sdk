@@ -275,6 +275,7 @@
                       alpha:(float)alpha
                    rotation:(double)rotation
                        flat:(BOOL)flat
+                     anchor:(CGPoint)anchor
                   draggable:(BOOL)draggable
                        icon:(nullable UIImage *)icon
                      zIndex:(nullable NSNumber *)zIndex
@@ -285,6 +286,7 @@
   marker.opacity = alpha;
   marker.rotation = rotation;
   marker.flat = flat;
+  marker.groundAnchor = anchor;
   marker.draggable = draggable;
   if (icon) {
     marker.icon = icon;
@@ -431,6 +433,7 @@
                alpha:(float)alpha
             rotation:(double)rotation
                 flat:(BOOL)flat
+              anchor:(CGPoint)anchor
            draggable:(BOOL)draggable
                 icon:(nullable UIImage *)icon
               zIndex:(nullable NSNumber *)zIndex
@@ -441,6 +444,7 @@
   marker.opacity = alpha;
   marker.rotation = rotation;
   marker.flat = flat;
+  marker.groundAnchor = anchor;
   marker.draggable = draggable;
   if (icon) {
     marker.icon = icon;

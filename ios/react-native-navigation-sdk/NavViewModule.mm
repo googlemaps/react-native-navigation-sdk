@@ -155,6 +155,14 @@ static NavViewModule *sharedInstance = nil;
         }
       }
 
+      CGFloat anchorU = 0.5;
+      CGFloat anchorV = 1.0;
+      if (optionsCopy.anchor().has_value()) {
+        auto anchor = optionsCopy.anchor().value();
+        anchorU = anchor.u();
+        anchorV = anchor.v();
+      }
+
       GMSMarker *marker = [ObjectTranslationUtil
           createMarker:position
                  title:optionsCopy.title()
@@ -162,6 +170,7 @@ static NavViewModule *sharedInstance = nil;
                  alpha:(float)optionsCopy.alpha().value_or(1.0)
               rotation:optionsCopy.rotation().value_or(0.0)
                   flat:optionsCopy.flat().value_or(NO)
+                anchor:CGPointMake(anchorU, anchorV)
              draggable:optionsCopy.draggable().value_or(NO)
                   icon:icon
                 zIndex:optionsCopy.zIndex().has_value() ? @(optionsCopy.zIndex().value()) : nil

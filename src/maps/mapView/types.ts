@@ -70,6 +70,8 @@ export interface MarkerOptions {
   draggable?: boolean;
   /** Indicates whether this marker should be flat against the map true or a billboard facing the camera false. */
   flat?: boolean;
+  /** The anchor point of the marker image in normalized coordinates (0-1). Use `{ u: 0.5, v: 0.5 }` to rotate around the image center. Platform default is bottom-center `{ u: 0.5, v: 1.0 }`. */
+  anchor?: { u: number; v: number };
   /** Indicates the visibility of the polygon. True by default. */
   visible?: boolean;
 }

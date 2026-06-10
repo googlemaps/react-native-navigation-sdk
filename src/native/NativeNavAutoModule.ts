@@ -56,6 +56,7 @@ type MarkerOptionsSpec = Readonly<{
   rotation?: WithDefault<Float, 0>;
   draggable?: WithDefault<boolean, false>;
   flat?: WithDefault<boolean, false>;
+  anchor?: Readonly<{ u: Float; v: Float }>;
   visible?: WithDefault<boolean, true>;
   zIndex?: WithDefault<Double, null>;
 }>;

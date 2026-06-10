@@ -921,6 +921,7 @@ export const testMapMarkers = async (testTools: TestTools) => {
     position: { lat: 37.7849, lng: -122.4094 },
     title: 'Marker with Icon',
     imgPath: 'circle.png',
+    anchor: { u: 0.5, v: 0.5 },
   });
 
   if (!markerWithIcon.id) {
