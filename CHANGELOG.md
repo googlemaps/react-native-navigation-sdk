@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.16.1...v0.16.2) (2026-06-10)
+
+
+### Features
+
+* add marker rotation anchor support ([#608](https://github.com/googlemaps/react-native-navigation-sdk/issues/608)) ([4372c96](https://github.com/googlemaps/react-native-navigation-sdk/commit/4372c96c24a6019bc80fdd50d74155997f93b3f2))
+
 ## [0.16.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.16.0...v0.16.1) (2026-05-25)
 
 
