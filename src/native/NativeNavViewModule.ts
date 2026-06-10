@@ -47,6 +47,7 @@ type CameraPositionSpec = Readonly<{
 
 type MarkerOptionsSpec = Readonly<{
   alpha?: WithDefault<Float, 0>;
+  anchor?: Readonly<{ u: Float; v: Float }>;
   draggable?: WithDefault<boolean, false>;
   flat?: WithDefault<boolean, false>;
   id?: WithDefault<string, null>;

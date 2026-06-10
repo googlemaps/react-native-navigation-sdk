@@ -756,6 +756,7 @@
                                   alpha:marker.opacity
                                rotation:marker.rotation
                                    flat:marker.flat
+                                 anchor:marker.groundAnchor
                               draggable:marker.draggable
                                    icon:marker.icon
                                  zIndex:@(marker.zIndex)
