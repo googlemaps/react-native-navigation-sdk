@@ -708,7 +708,6 @@ setOnArrival(null);
 | `setOnRawLocationChanged`             | `{ location: Location }`                              | Called when raw GPS location changes            |
 | `setOnNavigationReady`                | `void`                                                | Called when navigation is ready                 |
 | `setOnNavigationInitError`            | `{ errorCode: NavigationInitErrorCode }`              | Called when navigation initialization fails     |
-| `setOnRouteStatusResult`              | `RouteStatus`                                         | Called with route calculation status            |
 | `setOnRouteChanged`                   | `void`                                                | Called when the route changes                   |
 | `setOnReroutingRequestedByOffRoute`   | `void`                                                | Called when rerouting is triggered by off-route |
 | `setOnTrafficUpdated`                 | `void`                                                | Called when traffic data is updated             |
