@@ -142,6 +142,15 @@ To set up, specify your API key in the application delegate `ios/Runner/AppDeleg
 
 ```
 
+#### Add the correct background modes to Info.plist file
+```xml
+<key>UIBackgroundModes</key>
+<array>
+    <string>location</string>
+    <string>audio</string>
+</array>
+```
+
 ## Usage
 
 ### Initializing Navigation
