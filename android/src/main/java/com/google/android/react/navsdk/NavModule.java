@@ -351,6 +351,7 @@ public class NavModule extends NativeNavModuleSpec
       }
       pendingInitPromise.reject(errorCodeStr, errorMessage);
       pendingInitPromise = null;
+      UiThreadUtil.runOnUiThread(this::removeNavInfoObserver);
     }
   }
 
