@@ -17,7 +17,6 @@ import android.app.Activity;
 import android.location.Location;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
@@ -286,17 +285,15 @@ public class NavModule extends NativeNavModuleSpec
     // Initialize the navigation API
     initializeNavigationApi();
 
-    // Observe live data for nav info updates.
+    // Observe nav info independently from the current Activity lifecycle.
+    // Background turn-by-turn updates continue to arrive in NavInfoReceivingService even when the
+    // app is paused, so using an Activity-bound LiveData observer drops them while backgrounded.
     // Remove any existing observer first to prevent duplicates after cleanup+reinit cycles.
     UiThreadUtil.runOnUiThread(
         () -> {
           removeNavInfoObserver();
           mNavInfoObserver = this::showNavInfo;
-          final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
-          if (currentActivity != null) {
-            NavInfoReceivingService.getNavInfoLiveData()
-                .observe((LifecycleOwner) currentActivity, mNavInfoObserver);
-          }
+          NavInfoReceivingService.getNavInfoLiveData().observeForever(mNavInfoObserver);
         });
   }
 
@@ -354,6 +351,7 @@ public class NavModule extends NativeNavModuleSpec
       }
       pendingInitPromise.reject(errorCodeStr, errorMessage);
       pendingInitPromise = null;
+      UiThreadUtil.runOnUiThread(this::removeNavInfoObserver);
     }
   }
 
@@ -1093,5 +1091,7 @@ public class NavModule extends NativeNavModuleSpec
   public void onHostPause() {}
 
   @Override
-  public void onHostDestroy() {}
+  public void onHostDestroy() {
+    UiThreadUtil.runOnUiThread(this::removeNavInfoObserver);
+  }
 }
