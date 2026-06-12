@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.16.2...v0.16.3) (2026-06-12)
+
+
+### Bug Fixes
+
+* enable android turn by turn events on background ([#613](https://github.com/googlemaps/react-native-navigation-sdk/issues/613)) ([90f5fb5](https://github.com/googlemaps/react-native-navigation-sdk/commit/90f5fb50e568e58e0adb59d8f188ae8517ca6d75))
+
 ## [0.16.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.16.1...v0.16.2) (2026-06-10)
 
 
