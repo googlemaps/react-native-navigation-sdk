@@ -27,7 +27,7 @@
     "@react-navigation/stack": "^6.4.1",
     "react": "19.2.0",
     "react-native": "0.83.1",
-    "react-native-gesture-handler": "2.29.1",
+    "react-native-gesture-handler": "3.0.2",
     "react-native-pager-view": "^6.9.1",
     "react-native-permissions": "^5.1.0",
     "react-native-safe-area-context": "^5.5.2",
