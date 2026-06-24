@@ -33,10 +33,12 @@ There are no JavaScript API changes in this release, but **Android projects must
 
 ### Step 1: Update your Android build toolchain
 
-React Native's default Android Gradle Plugin and Kotlin Gradle Plugin versions are not new enough for this release, so you must override them in your Android project.
+React Native's default Android Gradle Plugin and Kotlin Gradle Plugin versions are not yet new enough for this release, so you must override them in your Android project.
 
 > [!NOTE]
-> This is a temporary compatibility requirement. Future React Native releases are expected to update their default AGP and Kotlin plugin versions.
+> This is currently required because the latest React Native release (`0.86.0`) still does not provide new enough default AGP and Kotlin plugin versions. This should be temporary, as future React Native releases are expected to update these defaults.
+>
+> Some Android dependencies in your app may not yet be compatible with these manual toolchain upgrades. If upgrading AGP/Kotlin causes build or compatibility issues in your project, we recommend staying on `0.16.x` of this package until those dependencies are updated.
 
 #### Minimum required versions
 
@@ -52,7 +54,7 @@ If your app uses a root `build.gradle` with a `buildscript` block, update it lik
 buildscript {
     ext {
 -       kotlinVersion = "<old version>"
-+       kotlinVersion = "2.3.0"
++       kotlinVersion = "2.3.21"
     }
     dependencies {
 -       classpath("com.android.tools.build:gradle")
