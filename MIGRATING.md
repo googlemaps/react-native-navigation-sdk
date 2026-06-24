@@ -4,9 +4,101 @@ This document covers breaking changes and migration steps between major versions
 
 ## Table of Contents
 
+- [Migrating from 0.16.x to 0.17.x](#migrating-from-016x-to-017x)
 - [Migrating from 0.13.x to 0.14.x](#migrating-from-013x-to-014x)
 
 ---
+
+## Migrating from 0.16.x to 0.17.x
+
+Version 0.17.0 upgrades the underlying Google Navigation SDKs and raises the minimum Android build toolchain requirements.
+
+### Summary of Breaking Changes
+
+| Category          | Change                                                                                  |
+| ----------------- | --------------------------------------------------------------------------------------- |
+| Native SDKs       | Android Navigation SDK upgraded to `7.7.0`, iOS Navigation SDK upgraded to `10.14.0`   |
+| Kotlin            | Minimum required Kotlin version is now `2.3.0`                                          |
+| Android Gradle    | Android Gradle Plugin (AGP) must be `8.13.2` or newer                                  |
+| Kotlin Gradle     | Kotlin Gradle Plugin must be `2.3.21` or newer                                          |
+
+### What changed
+
+This release updates the native Navigation SDK dependencies to:
+
+- **Android:** Google Maps Navigation SDK `7.7.0`
+- **iOS:** Google Maps Navigation SDK `10.14.0`
+
+There are no JavaScript API changes in this release, but **Android projects must update their Gradle/Kotlin toolchain** to build successfully.
+
+### Step 1: Update your Android build toolchain
+
+React Native's default Android Gradle Plugin and Kotlin Gradle Plugin versions are not new enough for this release, so you must override them in your Android project.
+
+> [!NOTE]
+> This is a temporary compatibility requirement. Future React Native releases are expected to update their default AGP and Kotlin plugin versions.
+
+#### Minimum required versions
+
+- **AGP:** `8.13.2` or newer
+- **Kotlin Gradle Plugin:** `2.3.21` or newer
+- **Kotlin language version:** `2.3.0` or newer
+
+#### Example root `android/build.gradle`
+
+If your app uses a root `build.gradle` with a `buildscript` block, update it like this:
+
+```diff
+buildscript {
+    ext {
+-       kotlinVersion = "<old version>"
++       kotlinVersion = "2.3.0"
+    }
+    dependencies {
+-       classpath("com.android.tools.build:gradle")
+-       classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
++       classpath("com.android.tools.build:gradle:8.13.2")
++       classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.21")
+    }
+}
+```
+
+### Step 2: Sync and rebuild Android
+
+After updating Gradle and Kotlin versions:
+
+```bash
+cd android
+./gradlew clean
+```
+
+Then rebuild your app.
+
+If you run into dependency or build cache issues, reinstall dependencies and rebuild from scratch.
+
+### Step 3: Reinstall iOS pods
+
+The iOS SDK is upgraded to `10.14.0`, so after upgrading the package you should reinstall pods:
+
+```bash
+cd ios && pod install
+```
+
+### Release notes
+
+For native SDK changes introduced upstream, review the official release notes:
+
+- [Android Navigation SDK 7.7.0 release notes](https://developers.google.com/maps/documentation/navigation/android-sdk/release-notes)
+- [iOS Navigation SDK 10.14.0 release notes](https://developers.google.com/maps/documentation/navigation/ios-sdk/release-notes)
+
+### Troubleshooting
+
+If Android builds start failing after upgrading, first verify:
+
+1. Your project is using **AGP 8.13.2+**
+2. Your project is using **Kotlin Gradle Plugin 2.3.21+**
+3. Your Kotlin version is at least **2.3.0**
+4. You have refreshed Gradle dependencies and rebuilt the app
 
 ## Migrating from 0.13.x to 0.14.x
 
