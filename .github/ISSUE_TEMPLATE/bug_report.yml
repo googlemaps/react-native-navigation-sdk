@@ -31,6 +31,28 @@ body:
       description: Provide a clear and concise description of the bug.
     validations:
       required: true
+  - type: dropdown
+    id: affected-ios
+    attributes:
+      label: iOS Platform
+      description: Is iOS affected by this issue?
+      options:
+        - Not verified
+        - Affected
+        - Not affected
+    validations:
+      required: true
+  - type: dropdown
+    id: affected-android
+    attributes:
+      label: Android Platform
+      description: Is Android affected by this issue?
+      options:
+        - Not verified
+        - Affected
+        - Not affected
+    validations:
+      required: true
   - type: input
     attributes:
       label: React Native version
