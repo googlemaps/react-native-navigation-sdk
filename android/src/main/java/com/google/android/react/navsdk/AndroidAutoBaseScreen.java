@@ -37,10 +37,12 @@ import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import com.facebook.proguard.annotations.DoNotStrip;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.UiThreadUtil;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.libraries.navigation.NavigationViewForAuto;
+import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.libraries.navigation.NavigationView;
 import com.google.android.libraries.navigation.StylingOptions;
 import org.json.JSONObject;
 
@@ -56,16 +58,17 @@ public abstract class AndroidAutoBaseScreen extends Screen
     implements SurfaceCallback, INavigationViewController {
   private static final String VIRTUAL_DISPLAY_NAME = "AndroidAutoNavScreen";
 
-  private NavigationViewForAuto mNavigationView;
+  private NavigationView mNavigationView;
   private VirtualDisplay mVirtualDisplay;
   private Presentation mPresentation;
   protected GoogleMap mGoogleMap;
-  protected boolean mNavigationInitialized = false;
+  protected volatile boolean mNavigationInitialized = false;
   private MapViewController mMapViewController;
+  private boolean mIsSurfaceDestroyed = true;
 
   private boolean mAndroidAutoModuleInitialized = false;
   private boolean mNavModuleInitialized = false;
-  private final AndroidAutoBaseScreen screenInstance = this;
+  private final NavModule.NavigationReadyListener mNavigationReadyListener = this::onSessionAttached;
 
   @Override
   public void setStylingOptions(StylingOptions stylingOptions) {
@@ -78,16 +81,26 @@ public abstract class AndroidAutoBaseScreen extends Screen
    */
   private void onSessionAttached(boolean ready) {
     mNavigationInitialized = ready;
+    updateNavigationUiEnabled(ready);
     onNavigationReady(ready);
+  }
+
+  private void updateNavigationUiEnabled(boolean ready) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          NavigationView navigationView = mNavigationView;
+          if (!mIsSurfaceDestroyed && navigationView != null) {
+            navigationView.setNavigationUiEnabled(ready);
+          }
+        });
   }
 
   /**
    * Called when the navigation session state changes. Override this method in your subclass to
    * handle navigation ready state changes.
    *
-   * <p><b>Note:</b> Navigation UI controls like setHeaderEnabled, setFooterEnabled,
-   * setSpeedometerEnabled, etc. are NOT supported on Android Auto's NavigationViewForAuto. These
-   * controls are automatically managed by the Android Auto navigation template.
+   * <p>The Android Auto map view disables phone-oriented navigation UI controls so that the
+   * Android Auto navigation template remains the sole provider of navigation UI.
    *
    * <p>The navigation state ({@code mNavigationInitialized}) is already updated before this method
    * is called.
@@ -95,9 +108,6 @@ public abstract class AndroidAutoBaseScreen extends Screen
    * @param ready true when navigation session is ready, false when it's no longer available.
    */
   protected void onNavigationReady(boolean ready) {
-    // NavigationViewForAuto does not support direct UI control settings like
-    // setHeaderEnabled, setFooterEnabled, setTrafficPromptsEnabled, etc.
-    // These are automatically managed by the Android Auto navigation template.
     // Override this method in your subclass if you need custom behavior.
   }
 
@@ -115,7 +125,7 @@ public abstract class AndroidAutoBaseScreen extends Screen
         () -> {
           mNavModuleInitialized = true;
           try {
-            NavModule.getInstance().registerNavigationReadyListener(this::onSessionAttached);
+            NavModule.getInstance().registerNavigationReadyListener(mNavigationReadyListener);
           } catch (IllegalStateException e) {
             // NavModule not yet initialized, will be registered later
           }
@@ -134,7 +144,7 @@ public abstract class AndroidAutoBaseScreen extends Screen
           if (mNavModuleInitialized) {
             try {
               NavModule.getInstance()
-                  .unRegisterNavigationReadyListener(screenInstance::onSessionAttached);
+                  .unRegisterNavigationReadyListener(mNavigationReadyListener);
             } catch (Exception e) {
               // Module may have been destroyed, safe to ignore.
             }
@@ -175,6 +185,7 @@ public abstract class AndroidAutoBaseScreen extends Screen
     if (!isSurfaceReady(surfaceContainer)) {
       return;
     }
+    mIsSurfaceDestroyed = false;
     mVirtualDisplay =
         getCarContext()
             .getSystemService(DisplayManager.class)
@@ -187,16 +198,31 @@ public abstract class AndroidAutoBaseScreen extends Screen
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY);
     mPresentation = new Presentation(getCarContext(), mVirtualDisplay.getDisplay());
 
-    mNavigationView = new NavigationViewForAuto(getCarContext());
+    GoogleMapOptions googleMapOptions = new GoogleMapOptions().compassEnabled(false);
+    mNavigationView = new NavigationView(getCarContext(), googleMapOptions);
     mNavigationView.onCreate(null);
     mNavigationView.onStart();
     mNavigationView.onResume();
+    mNavigationView.setHeaderEnabled(false);
+    mNavigationView.setRecenterButtonEnabled(false);
+    mNavigationView.setEtaCardEnabled(false);
+    mNavigationView.setSpeedometerEnabled(false);
+    mNavigationView.setTripProgressBarEnabled(false);
+    mNavigationView.setReportIncidentButtonEnabled(false);
+    mNavigationView.setNavigationUiEnabled(mNavigationInitialized);
 
     mPresentation.setContentView(mNavigationView);
     mPresentation.show();
 
-    mNavigationView.getMapAsync(
+    NavigationView navigationView = mNavigationView;
+    navigationView.getMapAsync(
         (GoogleMap googleMap) -> {
+          if (mIsSurfaceDestroyed || navigationView != mNavigationView) {
+            return;
+          }
+
+          googleMap.getUiSettings().setIndoorLevelPickerEnabled(false);
+          googleMap.getUiSettings().setMyLocationButtonEnabled(false);
           mGoogleMap = googleMap;
           mMapViewController = new MapViewController();
           mMapViewController.initialize(googleMap, () -> null);
@@ -210,27 +236,35 @@ public abstract class AndroidAutoBaseScreen extends Screen
    * Called when the map view has been loaded and is ready. Override this method in your subclass to
    * configure map settings.
    *
-   * <p><b>Note:</b> Navigation UI controls like setSpeedometerEnabled, setSpeedLimitIconEnabled,
-   * etc. are NOT supported on Android Auto's NavigationViewForAuto. These controls are
-   * automatically managed by the Android Auto navigation template.
+   * <p>Phone-oriented navigation UI controls are disabled on the map view to avoid overlapping
+   * the Android Auto navigation template.
    */
   protected void onMapViewReady() {
-    // NavigationViewForAuto does not support direct UI control settings like
-    // setSpeedometerEnabled, setSpeedLimitIconEnabled, etc.
-    // These are automatically managed by the Android Auto navigation template.
     // Override this method in your subclass if you need custom behavior.
   }
 
   @Override
   public void onSurfaceDestroyed(@NonNull SurfaceContainer surfaceContainer) {
+    mIsSurfaceDestroyed = true;
     unRegisterControllersForAndroidAutoModule();
-    mNavigationView.onPause();
-    mNavigationView.onStop();
-    mNavigationView.onDestroy();
+    mMapViewController = null;
+
+    if (mNavigationView != null) {
+      mNavigationView.onPause();
+      mNavigationView.onStop();
+      mNavigationView.onDestroy();
+      mNavigationView = null;
+    }
     mGoogleMap = null;
 
-    mPresentation.dismiss();
-    mVirtualDisplay.release();
+    if (mPresentation != null) {
+      mPresentation.dismiss();
+      mPresentation = null;
+    }
+    if (mVirtualDisplay != null) {
+      mVirtualDisplay.release();
+      mVirtualDisplay = null;
+    }
   }
 
   @Override
