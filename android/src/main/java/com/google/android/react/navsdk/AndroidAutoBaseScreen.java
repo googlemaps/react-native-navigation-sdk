@@ -71,7 +71,8 @@ public abstract class AndroidAutoBaseScreen extends Screen
 
   private boolean mAndroidAutoModuleInitialized = false;
   private boolean mNavModuleInitialized = false;
-  private final NavModule.NavigationReadyListener mNavigationReadyListener = this::onSessionAttached;
+  private final NavModule.NavigationReadyListener mNavigationReadyListener =
+      this::onSessionAttached;
 
   @Override
   public void setStylingOptions(StylingOptions stylingOptions) {
@@ -98,8 +99,7 @@ public abstract class AndroidAutoBaseScreen extends Screen
         });
   }
 
-  private void handlePromptVisibilityChanged(
-      NavigationView navigationView, boolean promptVisible) {
+  private void handlePromptVisibilityChanged(NavigationView navigationView, boolean promptVisible) {
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mIsSurfaceDestroyed
@@ -127,8 +127,8 @@ public abstract class AndroidAutoBaseScreen extends Screen
    * Called when the navigation session state changes. Override this method in your subclass to
    * handle navigation ready state changes.
    *
-   * <p>The Android Auto map view disables phone-oriented navigation UI controls so that the
-   * Android Auto navigation template remains the sole provider of navigation UI.
+   * <p>The Android Auto map view disables phone-oriented navigation UI controls so that the Android
+   * Auto navigation template remains the sole provider of navigation UI.
    *
    * <p>The navigation state ({@code mNavigationInitialized}) is already updated before this method
    * is called.
@@ -171,8 +171,7 @@ public abstract class AndroidAutoBaseScreen extends Screen
         public void onDestroy(@NonNull LifecycleOwner lifecycleOwner) {
           if (mNavModuleInitialized) {
             try {
-              NavModule.getInstance()
-                  .unRegisterNavigationReadyListener(mNavigationReadyListener);
+              NavModule.getInstance().unRegisterNavigationReadyListener(mNavigationReadyListener);
             } catch (Exception e) {
               // Module may have been destroyed, safe to ignore.
             }
@@ -268,8 +267,8 @@ public abstract class AndroidAutoBaseScreen extends Screen
    * Called when the map view has been loaded and is ready. Override this method in your subclass to
    * configure map settings.
    *
-   * <p>Phone-oriented navigation UI controls are disabled on the map view to avoid overlapping
-   * the Android Auto navigation template.
+   * <p>Phone-oriented navigation UI controls are disabled on the map view to avoid overlapping the
+   * Android Auto navigation template.
    */
   protected void onMapViewReady() {
     // Override this method in your subclass if you need custom behavior.
