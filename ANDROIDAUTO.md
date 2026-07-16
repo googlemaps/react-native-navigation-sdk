@@ -61,6 +61,32 @@ public Template onGetTemplate() {
 }
 ```
 
+### Avoiding overlap with Navigation SDK prompts
+
+`AndroidAutoBaseScreen` detects Navigation SDK prompts, including traffic and rerouting prompts,
+and automatically invalidates the Android Auto template when their visibility changes. If your
+custom `NavigationTemplate` includes a `TravelEstimate`, conditionally omit it while a prompt is
+visible. This prevents the host-controlled estimate from overlapping the Navigation SDK modal
+prompt:
+
+```java
+@Override
+public Template onGetTemplate() {
+  NavigationTemplate.Builder builder = new NavigationTemplate.Builder();
+  // Configure actions, map action strip, and navigation info.
+
+  if (!isPromptVisible()) {
+    builder.setDestinationTravelEstimate(travelEstimate);
+  }
+
+  return builder.build();
+}
+```
+
+`isPromptVisible()` is provided by `AndroidAutoBaseScreen`; subclasses do not need to register a
+listener or call `invalidate()` themselves. The estimate is restored automatically when the prompt
+disappears.
+
 For advanced customization, you can bypass the base class and implement your own screen by inheriting `Screen`. You can use the provided `AndroidAutoBaseScreen` base class as a reference on how to do that.
 
 ### React Native specific setup

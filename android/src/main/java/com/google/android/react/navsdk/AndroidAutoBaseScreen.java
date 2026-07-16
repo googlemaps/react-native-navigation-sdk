@@ -43,6 +43,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.libraries.navigation.NavigationView;
+import com.google.android.libraries.navigation.PromptVisibilityChangedListener;
 import com.google.android.libraries.navigation.StylingOptions;
 import org.json.JSONObject;
 
@@ -64,7 +65,9 @@ public abstract class AndroidAutoBaseScreen extends Screen
   protected GoogleMap mGoogleMap;
   protected volatile boolean mNavigationInitialized = false;
   private MapViewController mMapViewController;
+  private PromptVisibilityChangedListener mPromptVisibilityChangedListener;
   private boolean mIsSurfaceDestroyed = true;
+  private boolean mIsPromptVisible = false;
 
   private boolean mAndroidAutoModuleInitialized = false;
   private boolean mNavModuleInitialized = false;
@@ -93,6 +96,31 @@ public abstract class AndroidAutoBaseScreen extends Screen
             navigationView.setNavigationUiEnabled(ready);
           }
         });
+  }
+
+  private void handlePromptVisibilityChanged(
+      NavigationView navigationView, boolean promptVisible) {
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (mIsSurfaceDestroyed
+              || navigationView != mNavigationView
+              || mIsPromptVisible == promptVisible) {
+            return;
+          }
+
+          mIsPromptVisible = promptVisible;
+          onPromptVisibilityChanged(promptVisible);
+        });
+  }
+
+  /** Returns whether a Navigation SDK prompt is visible over the Android Auto map. */
+  protected final boolean isPromptVisible() {
+    return mIsPromptVisible;
+  }
+
+  /** Called when Navigation SDK prompt visibility changes on the Android Auto map. */
+  protected void onPromptVisibilityChanged(boolean promptVisible) {
+    invalidate();
   }
 
   /**
@@ -211,10 +239,14 @@ public abstract class AndroidAutoBaseScreen extends Screen
     mNavigationView.setReportIncidentButtonEnabled(false);
     mNavigationView.setNavigationUiEnabled(mNavigationInitialized);
 
-    mPresentation.setContentView(mNavigationView);
+    NavigationView navigationView = mNavigationView;
+    mPromptVisibilityChangedListener =
+        promptVisible -> handlePromptVisibilityChanged(navigationView, promptVisible);
+    navigationView.addPromptVisibilityChangedListener(mPromptVisibilityChangedListener);
+
+    mPresentation.setContentView(navigationView);
     mPresentation.show();
 
-    NavigationView navigationView = mNavigationView;
     navigationView.getMapAsync(
         (GoogleMap googleMap) -> {
           if (mIsSurfaceDestroyed || navigationView != mNavigationView) {
@@ -249,12 +281,18 @@ public abstract class AndroidAutoBaseScreen extends Screen
     unRegisterControllersForAndroidAutoModule();
     mMapViewController = null;
 
+    if (mNavigationView != null && mPromptVisibilityChangedListener != null) {
+      mNavigationView.removePromptVisibilityChangedListener(mPromptVisibilityChangedListener);
+    }
+    mPromptVisibilityChangedListener = null;
+
     if (mNavigationView != null) {
       mNavigationView.onPause();
       mNavigationView.onStop();
       mNavigationView.onDestroy();
       mNavigationView = null;
     }
+    mIsPromptVisible = false;
     mGoogleMap = null;
 
     if (mPresentation != null) {
