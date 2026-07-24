@@ -31,6 +31,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.NavInfo;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
 import com.google.android.libraries.navigation.ArrivalEvent;
+import com.google.android.libraries.navigation.AudioGuidanceSettings;
 import com.google.android.libraries.navigation.CustomRoutesOptions;
 import com.google.android.libraries.navigation.DisplayOptions;
 import com.google.android.libraries.navigation.ListenableResultFuture;
@@ -821,7 +822,10 @@ public class NavModule extends NativeNavModuleSpec
 
     UiThreadUtil.runOnUiThread(
         () -> {
-          mNavigator.setAudioGuidance(EnumTranslationUtil.getAudioGuidanceFromJsValue(jsValue));
+          mNavigator.setAudioGuidanceSettings(
+              AudioGuidanceSettings.builder()
+                  .setGuidanceMode(EnumTranslationUtil.getAudioGuidanceModeFromJsValue(jsValue))
+                  .build());
         });
     promise.resolve(null);
   }
