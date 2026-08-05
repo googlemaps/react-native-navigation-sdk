@@ -25,6 +25,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.uimanager.PixelUtil;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
@@ -619,10 +620,10 @@ public class NavAutoModule extends NativeNavAutoModuleSpec
 
   @Override
   public void setMapPadding(double top, double left, double bottom, double right) {
-    int topInt = (int) top;
-    int leftInt = (int) left;
-    int bottomInt = (int) bottom;
-    int rightInt = (int) right;
+    int topInt = Math.round(PixelUtil.toPixelFromDIP(top));
+    int leftInt = Math.round(PixelUtil.toPixelFromDIP(left));
+    int bottomInt = Math.round(PixelUtil.toPixelFromDIP(bottom));
+    int rightInt = Math.round(PixelUtil.toPixelFromDIP(right));
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {

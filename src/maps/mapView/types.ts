@@ -213,13 +213,13 @@ export enum MapType {
  * Defines the padding options for a map.
  */
 export interface Padding {
-  /** Top padding in pixels. */
+  /** Top padding in density-independent pixels. */
   top?: number;
-  /** Left padding in pixels. */
+  /** Left padding in density-independent pixels. */
   left?: number;
-  /** Bottom padding in pixels. */
+  /** Bottom padding in density-independent pixels. */
   bottom?: number;
-  /** Right padding in pixels. */
+  /** Right padding in density-independent pixels. */
   right?: number;
 }
 
@@ -381,7 +381,7 @@ export interface MapViewController {
   moveCamera(cameraPosition: CameraPosition): void;
 
   /**
-   * Sets padding to the map.
+   * Sets padding on the map in density-independent pixels.
    *
    * @param padding - An object defining padding for each side.
    *                  Example: { top: 10, left: 5, bottom: 15, right: 10 }

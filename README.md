@@ -504,7 +504,7 @@ Both `NavigationView` and `MapView` support the following props. Props marked wi
 | `mapId`                         | `string`                        | -               |       | Cloud-based map styling ID from Google Cloud Console        |
 | `mapColorScheme`                | `MapColorScheme`                | `FOLLOW_SYSTEM` |       | Color scheme for map tiles (FOLLOW_SYSTEM, LIGHT, DARK)     |
 | `mapStyle`                      | `string`                        | -               |       | Custom map styling via JSON                                 |
-| `mapPadding`                    | `Padding`                       | -               |       | Padding applied to the map in pixels                        |
+| `mapPadding`                    | `Padding`                       | -               |       | Padding applied to the map in density-independent pixels    |
 | `initialCameraPosition`         | `CameraPosition`                | -               |       | Initial camera position when map loads                      |
 | `minZoomLevel`                  | `number`                        | -               |       | Minimum allowed zoom level                                  |
 | `maxZoomLevel`                  | `number`                        | -               |       | Maximum allowed zoom level                                  |
