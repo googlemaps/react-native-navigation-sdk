@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   type Circle,
+  type DragResult,
   type LatLng,
   type MapViewController,
   type Marker,
@@ -186,6 +187,18 @@ const IntegrationTestsScreen = () => {
   const onMapClick = useCallback((latLng: LatLng) => {
     showSnackbar(
       `Clicked at ${latLng.lat.toFixed(4)}, ${latLng.lng.toFixed(4)}`
+    );
+  }, []);
+
+  const onMapDrag = useCallback((result: DragResult) => {
+    showSnackbar(
+      `Camera at ${result.cameraPosition.target.lat.toFixed(4)}, ${result.cameraPosition.target.lng.toFixed(4)}, ${result.cameraPosition.zoom?.toFixed(4)}`
+    );
+  }, []);
+
+  const onMapDragEnd = useCallback((result: DragResult) => {
+    showSnackbar(
+      `Camera at ${result.cameraPosition.target.lat.toFixed(4)}, ${result.cameraPosition.target.lng.toFixed(4)}, ${result.cameraPosition.zoom?.toFixed(4)}`
     );
   }, []);
 
@@ -356,6 +369,8 @@ const IntegrationTestsScreen = () => {
           onPolylineClick={onPolylineClick}
           onMarkerInfoWindowTapped={onMarkerInfoWindowTapped}
           onMapClick={onMapClick}
+          onMapDrag={onMapDrag}
+          onMapDragEnd={onMapDragEnd}
           onMapViewControllerCreated={setMapViewController}
           onNavigationViewControllerCreated={setNavigationViewController}
           compassEnabled={compassEnabled}

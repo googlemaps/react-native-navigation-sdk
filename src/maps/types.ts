@@ -195,6 +195,14 @@ export enum MapColorScheme {
 }
 
 /**
+ * Defines the results of a map drag event.
+ */
+export interface DragResult {
+  /** Camera position. */
+  cameraPosition: CameraPosition;
+}
+
+/**
  * `MapViewProps` interface provides methods focused on managing map events and state changes.
  */
 export interface MapViewProps {
@@ -238,6 +246,18 @@ export interface MapViewProps {
    * @param latLng position where the click occurred.
    */
   readonly onMapClick?: (latLng: LatLng) => void;
+
+  /**
+   * Callback invoked repeated when map is being dragged.
+   * @param result The drag result at that instant.
+   */
+  readonly onMapDrag?: (result: DragResult) => void;
+
+  /**
+   * Callback invoked when map drag ends.
+   * @param result The drag result at that instant.
+   */
+  readonly onMapDragEnd?: (result: DragResult) => void;
 
   readonly style?: StyleProp<ViewStyle> | undefined;
 

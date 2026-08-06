@@ -90,6 +90,14 @@ typedef void (^OnArrayResult)(NSArray *_Nullable result);
 - (void)addGroundOverlay:(GMSGroundOverlay *)groundOverlay
                  visible:(BOOL)visible
                   result:(OnDictionaryResult)completionBlock;
+- (void)coordinateForPoint:(CGPoint *)point result:(OnDictionaryResult)completionBlock;
+- (void)pointForCoordinate:(CLLocationCoordinate2D *)coordinate
+                    result:(OnDictionaryResult)completionBlock;
+- (void)fitBounds:(CLLocationCoordinate2D *)northEast
+        southWest:(CLLocationCoordinate2D *)southWest
+       edgeInsets:(UIEdgeInsets *)edgeInsets
+           result:(OnDictionaryResult)completionBlock;
+- (void)getBounds:(OnDictionaryResult)completionBlock;
 - (GMSMapView *)mapView;
 - (void)showRouteOverview;
 - (void)removeMarker:(NSString *)markerId;
