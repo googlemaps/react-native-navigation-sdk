@@ -25,7 +25,6 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.uimanager.PixelUtil;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
@@ -620,18 +619,26 @@ public class NavAutoModule extends NativeNavAutoModuleSpec
 
   @Override
   public void setMapPadding(double top, double left, double bottom, double right) {
-    int topInt = Math.round(PixelUtil.toPixelFromDIP(top));
-    int leftInt = Math.round(PixelUtil.toPixelFromDIP(left));
-    int bottomInt = Math.round(PixelUtil.toPixelFromDIP(bottom));
-    int rightInt = Math.round(PixelUtil.toPixelFromDIP(right));
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
 
-          mMapViewController.setPadding(topInt, leftInt, bottomInt, rightInt);
+          float density = getAutoDisplayDensity();
+          mMapViewController.setPadding(
+              Math.round((float) (top * density)),
+              Math.round((float) (left * density)),
+              Math.round((float) (bottom * density)),
+              Math.round((float) (right * density)));
         });
+  }
+
+  private float getAutoDisplayDensity() {
+    if (mAutoScreen != null) {
+      return mAutoScreen.getDisplayDensity();
+    }
+    return reactContext.getResources().getDisplayMetrics().density;
   }
 
   @Override
