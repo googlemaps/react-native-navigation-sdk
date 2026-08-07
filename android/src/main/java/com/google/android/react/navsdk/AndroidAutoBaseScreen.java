@@ -20,6 +20,7 @@ import android.app.Presentation;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
+import android.util.DisplayMetrics;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.car.app.AppManager;
@@ -68,6 +69,7 @@ public abstract class AndroidAutoBaseScreen extends Screen
   private PromptVisibilityChangedListener mPromptVisibilityChangedListener;
   private boolean mIsSurfaceDestroyed = true;
   private boolean mIsPromptVisible = false;
+  private float mDisplayDensity = 1f;
 
   private boolean mAndroidAutoModuleInitialized = false;
   private boolean mNavModuleInitialized = false;
@@ -200,6 +202,11 @@ public abstract class AndroidAutoBaseScreen extends Screen
     }
   }
 
+  /** Returns the density of the Android Auto surface currently used. */
+  public float getDisplayDensity() {
+    return mDisplayDensity;
+  }
+
   private boolean isSurfaceReady(SurfaceContainer surfaceContainer) {
     return surfaceContainer.getSurface() != null
         && surfaceContainer.getDpi() != 0
@@ -213,6 +220,7 @@ public abstract class AndroidAutoBaseScreen extends Screen
       return;
     }
     mIsSurfaceDestroyed = false;
+    mDisplayDensity = surfaceContainer.getDpi() / (float) DisplayMetrics.DENSITY_DEFAULT;
     mVirtualDisplay =
         getCarContext()
             .getSystemService(DisplayManager.class)
