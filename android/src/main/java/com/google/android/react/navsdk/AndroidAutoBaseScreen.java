@@ -120,9 +120,16 @@ public abstract class AndroidAutoBaseScreen extends Screen
     return mIsPromptVisible;
   }
 
-  /** Called when Navigation SDK prompt visibility changes on the Android Auto map. */
+  /**
+   * Called when Navigation SDK prompt visibility changes on the Android Auto map.
+   *
+   * <p>Override this method to add custom behavior when prompts appear or disappear, such as hiding
+   * or showing custom UI elements to avoid overlapping with Navigation SDK prompts.
+   *
+   * @param promptVisible true if a prompt is now visible, false if it is hidden.
+   */
   protected void onPromptVisibilityChanged(boolean promptVisible) {
-    invalidate();
+    // Override this method in your Android Auto screen implementation.
   }
 
   /**
