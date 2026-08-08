@@ -40,6 +40,9 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps = [] {
 
 @property(nonatomic, strong) NavViewController *viewController;
 @property(nonatomic, assign) BOOL initialized;
+// The nativeID this view registered its controller under. Kept separately from
+// the props so teardown never depends on the props still being readable.
+@property(nonatomic, copy) NSString *registeredNativeID;
 
 @end
 
@@ -63,12 +66,30 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps = [] {
   [self unregisterView];
 }
 
-- (void)unregisterView {
-  const auto &currentProps = *std::static_pointer_cast<NavViewProps const>(_props);
+// Fabric calls this for unmounted views that are not pooled (shouldBeRecycled
+// is NO here), and it is the only teardown hook that actually runs for this
+// view: -dealloc never fires on its own, because NavViewModule's registry
+// holds the controller strongly and the controller holds this view strongly
+// through its _viewCallbacks ivar. That cycle outlives the unmount, leaving a
+// live GMSMapView attached to the navigation session, which keeps a
+// kCLLocationAccuracyBestForNavigation CLLocationManager subscribed for the
+// rest of the process.
+- (void)invalidate {
+  [self unregisterView];
+  [super invalidate];
+}
 
-  if (!currentProps.nativeID.empty()) {
-    NSString *nativeIDString = [NSString stringWithUTF8String:currentProps.nativeID.c_str()];
-    [[NavViewModule viewControllersRegistry] removeObjectForKey:nativeIDString];
+- (void)unregisterView {
+  if (_registeredNativeID != nil) {
+    [[NavViewModule viewControllersRegistry] removeObjectForKey:_registeredNativeID];
+    _registeredNativeID = nil;
+  }
+
+  if (_viewController != nil) {
+    // Releases the GMSMapView and clears the controller's strong back-reference
+    // to this view, so both sides of the cycle can be freed.
+    [_viewController cleanup];
+    _viewController = nil;
   }
 }
 
@@ -140,6 +161,7 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps = [] {
     // Register view controller with nativeID in the registry
     NSString *nativeIDString = [NSString stringWithUTF8String:newViewProps.nativeID.c_str()];
     [NavViewModule viewControllersRegistry][nativeIDString] = _viewController;
+    self.registeredNativeID = nativeIDString;
 
     // If navigation session is already initialized, trigger attachment check
     NavModule *navModule = [NavModule sharedInstance];

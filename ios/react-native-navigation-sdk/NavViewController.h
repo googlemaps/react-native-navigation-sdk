@@ -51,6 +51,9 @@ typedef void (^OnArrayResult)(NSArray *_Nullable result);
 - (void)setSpeedLimitIconEnabled:(BOOL)isEnabled;
 - (void)setZoomLevel:(NSNumber *)level;
 - (void)setNavigationViewCallbacks:(id<INavigationViewCallback>)fn;
+// Releases the GMSMapView and every delegate/callback reference this controller
+// holds. Safe to call more than once; -dealloc calls it too.
+- (void)cleanup;
 - (void)setIndoorEnabled:(BOOL)isEnabled;
 - (void)setIndoorLevelPickerEnabled:(BOOL)isEnabled;
 - (void)setTrafficEnabled:(BOOL)isEnabled;
