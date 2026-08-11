@@ -308,10 +308,6 @@ public class NavViewManager extends SimpleViewManager<FrameLayout>
     if (weakReference != null) {
       IMapViewFragment fragment = weakReference.get();
       if (fragment != null && fragment.isAdded()) {
-        // Remove via the FragmentManager the fragment is actually attached to.
-        // reactContext.getCurrentActivity() can be a different Activity than the one hosting the
-        // fragment (e.g. after Activity recreation), in which case removing through its
-        // FragmentManager throws "Cannot remove Fragment attached to a different FragmentManager".
         try {
           ((Fragment) fragment)
               .getParentFragmentManager()
