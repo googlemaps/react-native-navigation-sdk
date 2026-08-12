@@ -40,8 +40,6 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps = [] {
 
 @property(nonatomic, strong) NavViewController *viewController;
 @property(nonatomic, assign) BOOL initialized;
-// The nativeID this view registered its controller under. Kept separately from
-// the props so teardown never depends on the props still being readable.
 @property(nonatomic, copy) NSString *registeredNativeID;
 
 @end
@@ -66,14 +64,6 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps = [] {
   [self unregisterView];
 }
 
-// Fabric calls this for unmounted views that are not pooled (shouldBeRecycled
-// is NO here), and it is the only teardown hook that actually runs for this
-// view: -dealloc never fires on its own, because NavViewModule's registry
-// holds the controller strongly and the controller holds this view strongly
-// through its _viewCallbacks ivar. That cycle outlives the unmount, leaving a
-// live GMSMapView attached to the navigation session, which keeps a
-// kCLLocationAccuracyBestForNavigation CLLocationManager subscribed for the
-// rest of the process.
 - (void)invalidate {
   [self unregisterView];
   [super invalidate];
@@ -86,8 +76,6 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps = [] {
   }
 
   if (_viewController != nil) {
-    // Releases the GMSMapView and clears the controller's strong back-reference
-    // to this view, so both sides of the cycle can be freed.
     [_viewController cleanup];
     _viewController = nil;
   }
