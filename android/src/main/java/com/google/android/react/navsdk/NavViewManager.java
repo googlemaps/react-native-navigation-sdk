@@ -305,18 +305,20 @@ public class NavViewManager extends SimpleViewManager<FrameLayout>
       controllerSink.clear();
     }
 
-    FragmentActivity activity = (FragmentActivity) reactContext.getCurrentActivity();
-    if (activity == null) return;
-
     WeakReference<IMapViewFragment> weakReference = fragmentMap.remove(viewId);
     if (weakReference != null) {
       IMapViewFragment fragment = weakReference.get();
       if (fragment != null && fragment.isAdded()) {
-        activity
-            .getSupportFragmentManager()
-            .beginTransaction()
-            .remove((Fragment) fragment)
-            .commitNowAllowingStateLoss();
+        try {
+          ((Fragment) fragment)
+              .getParentFragmentManager()
+              .beginTransaction()
+              .remove((Fragment) fragment)
+              .commitNowAllowingStateLoss();
+        } catch (IllegalStateException e) {
+          // FragmentManager already destroyed mid-teardown; the fragment is torn down with its
+          // host Activity anyway.
+        }
       }
     }
   }
