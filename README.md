@@ -580,6 +580,7 @@ The `MapViewController` is provided via the `onMapViewControllerCreated` callbac
 | `removeCircle(id: string)`                        | `void`                    | Remove a circle by its ID                                                                  |
 | `removeGroundOverlay(id: string)`                 | `void`                    | Remove a ground overlay by its ID                                                          |
 | `moveCamera(position: CameraPosition)`            | `void`                    | Move camera to a new position                                                              |
+| `animateCamera(position: CameraPosition, duration?: number \| null)` | `Promise<void>`           | Animate camera to a new position. Defaults to 500 ms when duration is omitted              |
 | `setZoomLevel(level: number)`                     | `void`                    | Set the map zoom level                                                                     |
 | `setPadding(padding: Padding)`                    | `void`                    | Set padding on the map                                                                     |
 | `getCameraPosition()`                             | `Promise<CameraPosition>` | Get the current camera position                                                            |

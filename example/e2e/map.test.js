@@ -41,56 +41,63 @@ describe('Map view tests', () => {
     await expectSuccess();
   });
 
-  it('MT03 - initialize map and test camera tilt bearing zoom', async () => {
+  it('MT03 - initialize map and test animate camera', async () => {
+    await selectTestByName('testAnimateCamera');
+    await waitForTestToFinish();
+    await expectNoErrors();
+    await expectSuccess();
+  });
+
+  it('MT04 - initialize map and test camera tilt bearing zoom', async () => {
     await selectTestByName('testTiltZoomBearingCamera');
     await waitForTestToFinish();
     await expectNoErrors();
     await expectSuccess();
   });
 
-  it('MT04 - test adding and removing markers', async () => {
+  it('MT05 - test adding and removing markers', async () => {
     await selectTestByName('testMapMarkers');
     await waitForTestToFinish();
     await expectNoErrors();
     await expectSuccess();
   });
 
-  it('MT05 - test adding and removing circles', async () => {
+  it('MT06 - test adding and removing circles', async () => {
     await selectTestByName('testMapCircles');
     await waitForTestToFinish();
     await expectNoErrors();
     await expectSuccess();
   });
 
-  it('MT06 - test adding and removing polylines', async () => {
+  it('MT07 - test adding and removing polylines', async () => {
     await selectTestByName('testMapPolylines');
     await waitForTestToFinish();
     await expectNoErrors();
     await expectSuccess();
   });
 
-  it('MT07 - test adding and removing polygons', async () => {
+  it('MT08 - test adding and removing polygons', async () => {
     await selectTestByName('testMapPolygons');
     await waitForTestToFinish();
     await expectNoErrors();
     await expectSuccess();
   });
 
-  it('MT08 - test adding and removing ground overlays', async () => {
+  it('MT09 - test adding and removing ground overlays', async () => {
     await selectTestByName('testMapGroundOverlays');
     await waitForTestToFinish();
     await expectNoErrors();
     await expectSuccess();
   });
 
-  it('MT09 - test setting map style via JSON', async () => {
+  it('MT10 - test setting map style via JSON', async () => {
     await selectTestByName('testMapStyle');
     await waitForTestToFinish();
     await expectNoErrors();
     await expectSuccess();
   });
 
-  it('MT10 - test min and max zoom level constraints', async () => {
+  it('MT11 - test min and max zoom level constraints', async () => {
     await selectTestByName('testMinMaxZoomLevels');
     await waitForTestToFinish();
     await expectNoErrors();

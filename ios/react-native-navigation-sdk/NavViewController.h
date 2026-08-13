@@ -73,6 +73,9 @@ typedef void (^OnArrayResult)(NSArray *_Nullable result);
 - (void)setRecenterButtonEnabled:(BOOL)isEnabled;
 - (void)resetMinMaxZoomLevel;
 - (void)animateCamera:(GMSCameraUpdate *)update;
+- (void)animateCameraToPosition:(GMSCameraPosition *)position
+                       duration:(double)duration
+                         result:(OnBooleanResult)completionBlock;
 - (void)setMapStyle:(GMSMapStyle *)mapStyle;
 - (void)setMapType:(GMSMapViewType)mapType;
 - (void)clearMapView;
