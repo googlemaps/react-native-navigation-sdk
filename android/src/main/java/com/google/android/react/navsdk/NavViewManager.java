@@ -25,6 +25,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.uimanager.PixelUtil;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.ViewManagerDelegate;
@@ -464,12 +465,17 @@ public class NavViewManager extends SimpleViewManager<FrameLayout>
   @ReactProp(name = "mapPadding")
   public void setMapPadding(FrameLayout view, @Nullable ReadableMap padding) {
     if (padding != null) {
-      int top = padding.hasKey("top") ? padding.getInt("top") : 0;
-      int left = padding.hasKey("left") ? padding.getInt("left") : 0;
-      int bottom = padding.hasKey("bottom") ? padding.getInt("bottom") : 0;
-      int right = padding.hasKey("right") ? padding.getInt("right") : 0;
-      getMapControllerProperties(view.getId()).setPadding(top, left, bottom, right);
+      getMapControllerProperties(view.getId())
+          .setPadding(
+              getPaddingInPixels(padding, "top"),
+              getPaddingInPixels(padding, "left"),
+              getPaddingInPixels(padding, "bottom"),
+              getPaddingInPixels(padding, "right"));
     }
+  }
+
+  private int getPaddingInPixels(ReadableMap padding, String edge) {
+    return padding.hasKey(edge) ? Math.round(PixelUtil.toPixelFromDIP(padding.getDouble(edge))) : 0;
   }
 
   @ReactProp(name = "mapStyle")
