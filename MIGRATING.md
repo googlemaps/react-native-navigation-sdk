@@ -17,38 +17,38 @@ Version 0.17.0 upgrades the underlying Google Navigation SDKs and raises the min
 
 | Category          | Change                                                                                  |
 | ----------------- | --------------------------------------------------------------------------------------- |
-| Native SDKs       | Android Navigation SDK upgraded to `7.7.0`, iOS Navigation SDK upgraded to `10.14.0`   |
-| Kotlin            | Minimum required Kotlin version is now `2.3.0`                                          |
-| Android Gradle    | Android Gradle Plugin (AGP) must be `8.13.2` or newer                                  |
-| Kotlin Gradle     | Kotlin Gradle Plugin must be `2.3.21` or newer                                          |
+| React Native      | Minimum supported React Native version is now `0.87.0`                                 |
+| Native SDKs       | Android Navigation SDK upgraded to `7.9.0`, iOS Navigation SDK upgraded to `10.15.0`   |
+| Kotlin            | Kotlin Gradle Plugin `2.3.0+` is required; `2.3.21` is the tested version              |
 
 ### What changed
 
 This release updates the native Navigation SDK dependencies to:
 
-- **Android:** Google Maps Navigation SDK `7.7.0`
-- **iOS:** Google Maps Navigation SDK `10.14.0`
+- **Android:** Google Maps Navigation SDK `7.9.0`
+- **iOS:** Google Maps Navigation SDK `10.15.0`
 
-There are no JavaScript API changes in this release, but **Android projects must update their Gradle/Kotlin toolchain** to build successfully.
+There are no JavaScript API changes in this release. React Native `0.87.0` is required and its bundled Android Gradle Plugin (AGP) `9.2.1` is compatible with Navigation SDK `7.9.0`.
 
-### Step 1: Update your Android build toolchain
+### Step 1: Update the Kotlin Gradle Plugin
 
-React Native's default Android Gradle Plugin and Kotlin Gradle Plugin versions are not yet new enough for this release, so you must override them in your Android project.
+Navigation SDK requires Kotlin Gradle Plugin `2.3.0+`. React Native `0.87.0` bundles Kotlin `2.2.0`, so Android projects must override it. This SDK is tested with Kotlin Gradle Plugin `2.3.21`.
 
 > [!NOTE]
-> This is currently required because the latest React Native release (`0.86.0`) still does not provide new enough default AGP and Kotlin plugin versions. This should be temporary, as future React Native releases are expected to update these defaults.
->
-> Some Android dependencies in your app may not yet be compatible with these manual toolchain upgrades. If upgrading AGP/Kotlin causes build or compatibility issues in your project, we recommend staying on `0.16.x` of this package until those dependencies are updated.
+> Do not override the AGP version when using React Native `0.87.0`; it already supplies a compatible AGP version. Navigation SDK `7.9.0` also fixes the Cronet namespace collision that prevented builds with AGP `9.0.0+`.
 
-#### Minimum required versions
+#### Configure AGP 9 compatibility
 
-- **AGP:** `8.13.2` or newer
-- **Kotlin Gradle Plugin:** `2.3.21` or newer
-- **Kotlin language version:** `2.3.0` or newer
+React Native `0.87.0` uses AGP 9. Add these properties to `android/gradle.properties` so AGP uses the overridden Kotlin Gradle Plugin and retains the DSL used by React Native and its libraries:
 
-#### Example root `android/build.gradle`
+```properties
+android.builtInKotlin=false
+android.newDsl=false
+```
 
-If your app uses a root `build.gradle` with a `buildscript` block, update it like this:
+#### Root `android/build.gradle`
+
+If your app uses a root `build.gradle` with a `buildscript` block, update only the Kotlin entries:
 
 ```diff
 buildscript {
@@ -57,17 +57,25 @@ buildscript {
 +       kotlinVersion = "2.3.21"
     }
     dependencies {
--       classpath("com.android.tools.build:gradle")
 -       classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
-+       classpath("com.android.tools.build:gradle:8.13.2")
 +       classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.21")
     }
 }
 ```
 
+#### Plugin DSL
+
+If your project declares plugins in `settings.gradle`, set the Kotlin plugin version there instead:
+
+```groovy
+plugins {
+  id("org.jetbrains.kotlin.android") version "2.3.21" apply false
+}
+```
+
 ### Step 2: Sync and rebuild Android
 
-After updating Gradle and Kotlin versions:
+After updating the Kotlin Gradle Plugin:
 
 ```bash
 cd android
@@ -80,7 +88,7 @@ If you run into dependency or build cache issues, reinstall dependencies and reb
 
 ### Step 3: Reinstall iOS pods
 
-The iOS SDK is upgraded to `10.14.0`, so after upgrading the package you should reinstall pods:
+The iOS SDK is upgraded to `10.15.0`, so after upgrading the package you should reinstall pods:
 
 ```bash
 cd ios && pod install
@@ -90,16 +98,16 @@ cd ios && pod install
 
 For native SDK changes introduced upstream, review the official release notes:
 
-- [Android Navigation SDK 7.7.0 release notes](https://developers.google.com/maps/documentation/navigation/android-sdk/release-notes)
-- [iOS Navigation SDK 10.14.0 release notes](https://developers.google.com/maps/documentation/navigation/ios-sdk/release-notes)
+- [Android Navigation SDK 7.9.0 release notes](https://developers.google.com/maps/documentation/navigation/android-sdk/release-notes)
+- [iOS Navigation SDK 10.15.0 release notes](https://developers.google.com/maps/documentation/navigation/ios-sdk/release-notes)
 
 ### Troubleshooting
 
 If Android builds start failing after upgrading, first verify:
 
-1. Your project is using **AGP 8.13.2+**
-2. Your project is using **Kotlin Gradle Plugin 2.3.21+**
-3. Your Kotlin version is at least **2.3.0**
+1. Your project uses **React Native 0.87.0+**
+2. Your project uses **Kotlin Gradle Plugin 2.3.0+** (`2.3.21` is tested)
+3. You have not overridden React Native 0.87's bundled AGP version
 4. You have refreshed Gradle dependencies and rebuilt the app
 
 ## Migrating from 0.13.x to 0.14.x

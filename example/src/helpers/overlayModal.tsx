@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   overlayTouchable: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   modalContent: {
     height: '60%',
