@@ -263,7 +263,7 @@ export interface MapViewProps {
   readonly mapType?: MapViewType;
 
   /**
-   * Sets padding on the map in pixels.
+   * Sets padding on the map in density-independent pixels.
    */
   readonly mapPadding?: Padding;
 

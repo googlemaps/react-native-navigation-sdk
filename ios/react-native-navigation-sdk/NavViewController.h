@@ -51,6 +51,7 @@ typedef void (^OnArrayResult)(NSArray *_Nullable result);
 - (void)setSpeedLimitIconEnabled:(BOOL)isEnabled;
 - (void)setZoomLevel:(NSNumber *)level;
 - (void)setNavigationViewCallbacks:(id<INavigationViewCallback>)fn;
+- (void)cleanup;
 - (void)setIndoorEnabled:(BOOL)isEnabled;
 - (void)setIndoorLevelPickerEnabled:(BOOL)isEnabled;
 - (void)setTrafficEnabled:(BOOL)isEnabled;
