@@ -37,6 +37,9 @@ The current version of this package has been tested and verified with **React Na
 > This package requires React Native 0.87+ with the new architecture (Fabric & TurboModules) enabled. Make sure the new architecture is enabled in your project configuration as shown in the [Installation](#installation) section.
 
 > [!NOTE]
+> If you need support for earlier React Native versions, use version 0.16.3 of this package.
+
+> [!NOTE]
 > Navigation SDK requires Kotlin Gradle Plugin 2.3.0+. React Native 0.87 bundles Kotlin 2.2.0, so override it with Kotlin Gradle Plugin 2.3.21 as described in the [Migration Guide](./MIGRATING.md).
 
 > [!NOTE]
