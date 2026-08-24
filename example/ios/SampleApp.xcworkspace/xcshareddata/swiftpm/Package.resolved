@@ -1,0 +1,24 @@
+{
+  "originHash" : "d019271120bd6ba66c643fd40240ec82425d2ff6bfc56160815084a565cd83bf",
+  "pins" : [
+    {
+      "identity" : "ios-maps-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/googlemaps/ios-maps-sdk",
+      "state" : {
+        "revision" : "a951b24ac0ca7720f87d4be3d5bd539552d13882",
+        "version" : "10.15.0"
+      }
+    },
+    {
+      "identity" : "ios-navigation-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/googlemaps/ios-navigation-sdk.git",
+      "state" : {
+        "revision" : "d7deb8c592e6832d7089eea037d517f76b4a7429",
+        "version" : "10.15.0"
+      }
+    }
+  ],
+  "version" : 3
+}

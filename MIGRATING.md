@@ -18,7 +18,7 @@ Version 0.17.0 upgrades the underlying Google Navigation SDKs and raises the min
 | Category          | Change                                                                                  |
 | ----------------- | --------------------------------------------------------------------------------------- |
 | React Native      | Minimum supported React Native version is now `0.87.0`                                 |
-| Native SDKs       | Android Navigation SDK upgraded to `7.9.0`, iOS Navigation SDK upgraded to `10.15.0`   |
+| Native SDKs       | Android Navigation SDK upgraded to `7.9.0`; iOS Navigation SDK `10.15.0` is now resolved through Swift Package Manager |
 | Kotlin            | Kotlin Gradle Plugin `2.3.0+` is required; `2.3.21` is the tested version              |
 
 ### What changed
@@ -26,7 +26,7 @@ Version 0.17.0 upgrades the underlying Google Navigation SDKs and raises the min
 This release updates the native Navigation SDK dependencies to:
 
 - **Android:** Google Maps Navigation SDK `7.9.0`
-- **iOS:** Google Maps Navigation SDK `10.15.0`
+- **iOS:** Google Maps Navigation SDK `10.15.0`, resolved through Swift Package Manager rather than CocoaPods
 
 There are no JavaScript API changes in this release. React Native `0.87.0` is required and its bundled Android Gradle Plugin (AGP) `9.2.1` is compatible with Navigation SDK `7.9.0`.
 
@@ -88,7 +88,7 @@ If you run into dependency or build cache issues, reinstall dependencies and reb
 
 ### Step 3: Reinstall iOS pods
 
-The iOS SDK is upgraded to `10.15.0`, so after upgrading the package you should reinstall pods:
+Google Navigation is now resolved through Swift Package Manager during `pod install`, rather than through a CocoaPods `GoogleNavigation` dependency. React Native `0.87.0+` is required. CocoaPods continues to manage React Native autolinking and other pods, but it no longer fetches Google Navigation. Configure framework linkage in your app's Podfile according to your app's dependency requirements; the example app uses dynamic frameworks. Reinstall pods after upgrading:
 
 ```bash
 cd ios && pod install
