@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Snackbar from 'react-native-snackbar';
+import { Snackbar } from 'react-native-snackbar';
 
 /**
  * Shows a snackbar message.
