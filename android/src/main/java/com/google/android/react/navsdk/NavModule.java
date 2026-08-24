@@ -825,6 +825,8 @@ public class NavModule extends NativeNavModuleSpec
           mNavigator.setAudioGuidanceSettings(
               AudioGuidanceSettings.builder()
                   .setGuidanceMode(EnumTranslationUtil.getAudioGuidanceModeFromJsValue(jsValue))
+                  .setVibrationEnabled(false)
+                  .setBluetoothAudioEnabled(false)
                   .build());
         });
     promise.resolve(null);
