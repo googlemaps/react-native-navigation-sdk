@@ -46,7 +46,7 @@ Pod::Spec.new do |s|
   spm_dependency(
     s,
     url: "https://github.com/googlemaps/ios-navigation-sdk.git",
-    requirement: { kind: "exactVersion", version: "10.15.0" },
+    requirement: { kind: "exactVersion", version: "11.0.0" },
     products: ["GoogleNavigation"]
   )
 

@@ -129,6 +129,15 @@ Google Navigation is resolved through Swift Package Manager when you run `pod in
 
 CocoaPods continues to manage React Native autolinking and other pods, but it no longer fetches Google Navigation. Configure framework linkage in your app's Podfile according to your app's dependency requirements; the example app uses dynamic frameworks.
 
+#### Motion sensor usage description
+
+Navigation SDK 11 requires an `NSMotionUsageDescription` entry in your app's `Info.plist` to prevent future motion sensor-related crashes:
+
+```xml
+<key>NSMotionUsageDescription</key>
+<string>Used to improve navigation features.</string>
+```
+
 #### Set Google Maps API Key
 
 To set up, specify your API key in the application delegate `ios/Runner/AppDelegate.m`:
@@ -304,8 +313,6 @@ try {
 
   const displayOptions: DisplayOptions = {
     showDestinationMarkers: true,
-    showStopSigns: true,
-    showTrafficLights: true,
   };
 
   await navigationController.setDestinations([waypoint], { routingOptions, displayOptions });

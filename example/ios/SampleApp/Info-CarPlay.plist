@@ -39,6 +39,8 @@
 	<string>[Enter any description related to the key]</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>[Add your description here]</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Used to improve navigation features.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
