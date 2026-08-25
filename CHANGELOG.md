@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.17.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.16.3...v0.17.0) (2026-08-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade android sdk to 7.9.0 and ios sdk to 10.15.0 ([#621](https://github.com/googlemaps/react-native-navigation-sdk/issues/621))
+* correct pixels for android auto padding ([#630](https://github.com/googlemaps/react-native-navigation-sdk/issues/630))
+* unify map padding to use density-independent pixels ([#628](https://github.com/googlemaps/react-native-navigation-sdk/issues/628))
+
+### Features
+
+* unify map padding to use density-independent pixels ([#628](https://github.com/googlemaps/react-native-navigation-sdk/issues/628)) ([fcf583f](https://github.com/googlemaps/react-native-navigation-sdk/commit/fcf583f0cd69b48bb36436c5bc1eecfbadf3d464))
+* upgrade android sdk to 7.9.0 and ios sdk to 10.15.0 ([#621](https://github.com/googlemaps/react-native-navigation-sdk/issues/621)) ([846e27f](https://github.com/googlemaps/react-native-navigation-sdk/commit/846e27fec7ca386b70484d7187712707b0bfce8a))
+
+
+### Bug Fixes
+
+* correct pixels for android auto padding ([#630](https://github.com/googlemaps/react-native-navigation-sdk/issues/630)) ([b8ec4ff](https://github.com/googlemaps/react-native-navigation-sdk/commit/b8ec4ff7a599aedc4b00e4dd28ee846fdaacf35c))
+* remove NavView fragment via the FragmentManager it is attached to ([#625](https://github.com/googlemaps/react-native-navigation-sdk/issues/625)) ([8c264b5](https://github.com/googlemaps/react-native-navigation-sdk/commit/8c264b57dd684085161396e8eb379f7aadb717ef))
+* tear down iOS NavView on Fabric invalidate so the map releases location ([#632](https://github.com/googlemaps/react-native-navigation-sdk/issues/632)) ([651416e](https://github.com/googlemaps/react-native-navigation-sdk/commit/651416e76d54a1b9e2a53b39915ef6b1fcedeb1e))
+
 ## [0.16.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.16.2...v0.16.3) (2026-06-12)
 
 
