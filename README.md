@@ -134,7 +134,7 @@ CocoaPods continues to manage React Native autolinking and other pods, but it no
 
 #### Motion sensor usage description
 
-Navigation SDK 11 requires an `NSMotionUsageDescription` entry in your app's `Info.plist` to prevent future motion sensor-related crashes:
+Google recommends adding an `NSMotionUsageDescription` entry to your app's `Info.plist` to ensure compatibility with future motion sensor-related functionality in the underlying Navigation SDK for iOS.
 
 ```xml
 <key>NSMotionUsageDescription</key>
