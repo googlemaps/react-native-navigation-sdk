@@ -206,6 +206,11 @@ jobs:
       - name: Select XCode 26.5
         run: sudo xcode-select -s '/Applications/Xcode_26.5.0.app/Contents/Developer'
 
+      - name: Install CocoaPods 1.17.0
+        run: |
+          sudo gem install cocoapods --version 1.17.0 --no-document
+          pod --version
+
       - name: Cache turborepo for iOS
         uses: actions/cache@v3
         with:
