@@ -5,7 +5,7 @@
 
 ### ⚠ BREAKING CHANGES
 
-* upgrade android sdk to 7.9.0 and ios sdk to 10.15.0 ([#621](https://github.com/googlemaps/react-native-navigation-sdk/issues/621))
+* upgrade android sdk to 7.9.0 and ios sdk to 10.15.0 ([#621](https://github.com/googlemaps/react-native-navigation-sdk/issues/621)) — minimum supported React Native version is now `0.87.0`, and Kotlin Gradle Plugin `2.3.0+` (`2.3.21` tested) is now required. See [MIGRATING.md](./MIGRATING.md#migrating-from-016x-to-017x) for upgrade steps.
 * correct pixels for android auto padding ([#630](https://github.com/googlemaps/react-native-navigation-sdk/issues/630))
 * unify map padding to use density-independent pixels ([#628](https://github.com/googlemaps/react-native-navigation-sdk/issues/628))
 
