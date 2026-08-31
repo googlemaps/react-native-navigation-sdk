@@ -126,12 +126,6 @@ This package requires React Native's new architecture. Make sure new architectur
 ENV['RCT_NEW_ARCH_ENABLED'] = '1'
 ```
 
-#### Swift Package Manager dependency
-
-Google Navigation is resolved through Swift Package Manager when you run `pod install`; it is not installed from CocoaPods. This requires React Native 0.87 or later.
-
-CocoaPods continues to manage React Native autolinking and other pods, but it no longer fetches Google Navigation. Configure framework linkage in your app's Podfile according to your app's dependency requirements; the example app uses dynamic frameworks.
-
 #### Motion sensor usage description
 
 Google recommends adding an `NSMotionUsageDescription` entry to your app's `Info.plist` to ensure compatibility with future motion sensor-related functionality in the underlying Navigation SDK for iOS.

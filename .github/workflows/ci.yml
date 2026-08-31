@@ -248,7 +248,7 @@ jobs:
         if: env.turbo_cache_hit != 1 || steps.cocoapods-cache.outputs.cache-hit != 'true'
         run: |
           cd example/ios
-          USE_FRAMEWORKS=dynamic pod install
+          pod install
         env:
           NO_FLIPPER: 1
 
