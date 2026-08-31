@@ -240,7 +240,7 @@ jobs:
         with:
           path: |
             **/ios/Pods
-          key: ${{ runner.os }}-cocoapods-${{ hashFiles('**/package.json') }}
+          key: ${{ runner.os }}-cocoapods-${{ hashFiles('**/package.json', '**/*.podspec', '**/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-cocoapods-
 
@@ -248,7 +248,7 @@ jobs:
         if: env.turbo_cache_hit != 1 || steps.cocoapods-cache.outputs.cache-hit != 'true'
         run: |
           cd example/ios
-          RCT_NEW_ARCH_ENABLED=0 pod install
+          pod install
         env:
           NO_FLIPPER: 1
 

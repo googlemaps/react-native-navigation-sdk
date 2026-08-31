@@ -4,10 +4,41 @@ This document covers breaking changes and migration steps between major versions
 
 ## Table of Contents
 
+- [Migrating from 0.17.x to 0.18.x](#migrating-from-017x-to-018x)
 - [Migrating from 0.16.x to 0.17.x](#migrating-from-016x-to-017x)
 - [Migrating from 0.13.x to 0.14.x](#migrating-from-013x-to-014x)
 
 ---
+
+## Migrating from 0.17.x to 0.18.x
+
+Version 0.18.0 resolves the iOS Google Navigation SDK through Swift Package Manager and upgrades it to `11.0.0`.
+
+### Summary of Breaking Changes
+
+| Category    | Change                                                                                |
+| ----------- | ------------------------------------------------------------------------------------- |
+| Native SDKs | iOS Navigation SDK upgraded to `11.0.0` and resolved through Swift Package Manager   |
+| iOS display | `showTrafficLights` and `showStopSigns` no longer affect iOS navigation views         |
+| iOS maps    | `MapType.TERRAIN` is unavailable during active navigation on iOS                      |
+
+### What changed
+
+Google Navigation is now resolved through Swift Package Manager during `pod install`, rather than through a CocoaPods `GoogleNavigation` dependency. CocoaPods continues to manage React Native autolinking and other pods, but it no longer fetches Google Navigation. Configure framework linkage in your app's Podfile according to your app's dependency requirements; the example app uses dynamic frameworks.
+
+Navigation SDK 11 always displays traffic lights and stop signs during navigation. The deprecated `showTrafficLights` and `showStopSigns` display options have no effect on iOS, but continue to apply on Android. Terrain map type is no longer available during active navigation on iOS; `MapType.TERRAIN` remains available for non-navigation maps. Add an `NSMotionUsageDescription` entry to your app's `Info.plist` to prevent future motion sensor-related crashes.
+
+### Reinstall iOS pods
+
+Reinstall pods after upgrading:
+
+```bash
+cd ios && pod install
+```
+
+### Release notes
+
+For native SDK changes introduced upstream, review the [iOS Navigation SDK 11.0.0 release notes](https://developers.google.com/maps/documentation/navigation/ios-sdk/release-notes).
 
 ## Migrating from 0.16.x to 0.17.x
 
