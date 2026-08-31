@@ -24,7 +24,7 @@ Version 0.18.0 resolves the iOS Google Navigation SDK through Swift Package Mana
 
 ### What changed
 
-Google Navigation is now resolved through Swift Package Manager during `pod install`, rather than through a CocoaPods `GoogleNavigation` dependency. React Native `0.87.0+` is required. CocoaPods continues to manage React Native autolinking and other pods, but it no longer fetches Google Navigation. Configure framework linkage in your app's Podfile according to your app's dependency requirements; the example app uses dynamic frameworks.
+Google Navigation is now resolved through Swift Package Manager during `pod install`, rather than through a CocoaPods `GoogleNavigation` dependency. CocoaPods continues to manage React Native autolinking and other pods, but it no longer fetches Google Navigation. Configure framework linkage in your app's Podfile according to your app's dependency requirements; the example app uses dynamic frameworks.
 
 Navigation SDK 11 always displays traffic lights and stop signs during navigation. The deprecated `showTrafficLights` and `showStopSigns` display options have no effect on iOS, but continue to apply on Android. Terrain map type is no longer available during active navigation on iOS; `MapType.TERRAIN` remains available for non-navigation maps. Add an `NSMotionUsageDescription` entry to your app's `Info.plist` to prevent future motion sensor-related crashes.
 
