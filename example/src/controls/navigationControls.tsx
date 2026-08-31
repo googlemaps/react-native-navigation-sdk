@@ -20,6 +20,7 @@ import { ExampleAppButton } from './ExampleAppButton';
 import { Accordion } from './Accordion';
 import { showSnackbar, Snackbar } from '../helpers/snackbar';
 import {
+  AudioGuidanceMode,
   CameraPerspective,
   NavigationNightMode,
   type NavigationViewController,
@@ -87,6 +88,11 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         : 0;
   const nightModeLabel = nightModeOptions[nightModeIndex];
   const audioGuidanceOptions = ['Silent', 'Alerts only', 'Alerts and guidance'];
+  const [audioGuidanceMode, setAudioGuidanceMode] = useState(
+    AudioGuidanceMode.VOICE_ALERTS_AND_GUIDANCE
+  );
+  const [vibrationEnabled, setVibrationEnabled] = useState(false);
+  const [bluetoothAudioEnabled, setBluetoothAudioEnabled] = useState(false);
   const [tripProgressBarEnabled, setTripProgressBarEnabled] = useState(false);
   const [reportIncidentButtonEnabled, setReportIncidentButtonEnabled] =
     useState(true);
@@ -309,8 +315,23 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
     onNavigationNightModeChange?.(mode);
   };
 
-  const setAudioGuidanceType = (index: number) => {
-    navigationController.setAudioGuidanceType(index);
+  const setAudioGuidanceSettings = async (
+    guidanceMode: AudioGuidanceMode,
+    isVibrationEnabled: boolean,
+    isBluetoothAudioEnabled: boolean
+  ) => {
+    try {
+      await navigationController.setAudioGuidanceSettings({
+        guidanceMode,
+        vibrationEnabled: isVibrationEnabled,
+        bluetoothAudioEnabled: isBluetoothAudioEnabled,
+      });
+      setAudioGuidanceMode(guidanceMode);
+      setVibrationEnabled(isVibrationEnabled);
+      setBluetoothAudioEnabled(isBluetoothAudioEnabled);
+    } catch (e) {
+      showSnackbar(`Error setting audio guidance: ${e}`);
+    }
   };
 
   const getCurrentRouteSegment = async () => {
@@ -681,11 +702,15 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
       {/* Audio & Logging */}
       <Accordion title="Audio & Logging">
         <View style={ControlStyles.rowContainer}>
-          <Text style={ControlStyles.rowLabel}>Audio guidance type</Text>
+          <Text style={ControlStyles.rowLabel}>Audio guidance mode</Text>
           <SelectDropdown
             data={audioGuidanceOptions}
             onSelect={(_selectedItem, index) => {
-              setAudioGuidanceType(index);
+              setAudioGuidanceSettings(
+                index as AudioGuidanceMode,
+                vibrationEnabled,
+                bluetoothAudioEnabled
+              );
             }}
             renderButton={(selectedItem, _isOpened) => {
               return (
@@ -708,7 +733,34 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
                 </View>
               );
             }}
+            defaultValue={audioGuidanceOptions[audioGuidanceMode]}
             dropdownStyle={ControlStyles.dropdownMenu}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Vibration</Text>
+          <ExampleAppButton
+            title={vibrationEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
+              setAudioGuidanceSettings(
+                audioGuidanceMode,
+                !vibrationEnabled,
+                bluetoothAudioEnabled
+              );
+            }}
+          />
+        </View>
+        <View style={ControlStyles.rowContainer}>
+          <Text style={ControlStyles.rowLabel}>Bluetooth audio</Text>
+          <ExampleAppButton
+            title={bluetoothAudioEnabled ? 'Disable' : 'Enable'}
+            onPress={() => {
+              setAudioGuidanceSettings(
+                audioGuidanceMode,
+                vibrationEnabled,
+                !bluetoothAudioEnabled
+              );
+            }}
           />
         </View>
         <View style={ControlStyles.rowContainer}>

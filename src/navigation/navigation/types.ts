@@ -18,6 +18,7 @@ import type { LatLng, Location } from '../../shared/types';
 import type {
   AlternateRoutingStrategy,
   AudioGuidance,
+  AudioGuidanceSettings,
   RouteSegment,
   RouteStatus,
   RoutingStrategy,
@@ -504,12 +505,16 @@ export interface NavigationController {
   setSpeedAlertOptions(speed: SpeedAlertOptions | null): void;
 
   /**
-   * Sets the audio guidance type according to the provided index.
-   *
-   * @param index - The index representing the desired audio
-   * guidance type.
+   * @deprecated Use setAudioGuidanceSettings instead.
    */
-  setAudioGuidanceType(index: AudioGuidance): void;
+  setAudioGuidanceType(index: AudioGuidance): Promise<void>;
+
+  /**
+   * Sets the voice guidance mode, vibration, and Bluetooth-audio behavior.
+   *
+   * @param settings - The audio guidance settings to apply on Android and iOS.
+   */
+  setAudioGuidanceSettings(settings: AudioGuidanceSettings): Promise<void>;
 
   /**
    * Disables location updates by the library. This should be
