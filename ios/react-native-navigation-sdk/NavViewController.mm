@@ -16,6 +16,7 @@
 
 #import "NavViewController.h"
 #import <GoogleNavigation/GoogleNavigation.h>
+#import <QuartzCore/QuartzCore.h>
 #import <React/RCTLog.h>
 #import <UserNotifications/UserNotifications.h>
 #import "CustomTypes.h"
@@ -950,7 +951,37 @@
 }
 
 - (void)animateCamera:(GMSCameraUpdate *)update result:(OnBooleanResult)completionBlock {
+  if (_mapView == nil || update == nil) {
+    if (completionBlock) {
+      completionBlock(NO);
+    }
+    return;
+  }
   [_mapView animateWithCameraUpdate:update];
+  if (completionBlock) {
+    completionBlock(YES);
+  }
+}
+
+- (void)animateCameraToPosition:(GMSCameraPosition *)position
+                       duration:(double)duration
+                         result:(OnBooleanResult)completionBlock {
+  if (_mapView == nil || position == nil) {
+    if (completionBlock) {
+      completionBlock(NO);
+    }
+    return;
+  }
+
+  if (duration > 0) {
+    [CATransaction begin];
+    [CATransaction setAnimationDuration:duration / 1000.0];
+    [_mapView animateToCameraPosition:position];
+    [CATransaction commit];
+  } else {
+    [_mapView animateToCameraPosition:position];
+  }
+
   if (completionBlock) {
     completionBlock(YES);
   }

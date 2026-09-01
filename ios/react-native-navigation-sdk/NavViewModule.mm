@@ -409,6 +409,47 @@ static NavViewModule *sharedInstance = nil;
   }
 }
 
+- (void)animateCamera:(NSString *)nativeID
+       cameraPosition:(CameraPositionSpec &)cameraPosition
+             duration:(double)duration
+              resolve:(RCTPromiseResolveBlock)resolve
+               reject:(RCTPromiseRejectBlock)reject {
+  NavViewController *viewController = [self getViewControllerForNativeID:nativeID];
+  CameraPositionSpec positionCopy(cameraPosition);
+  if (viewController) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      GMSMutableCameraPosition *position = [[GMSMutableCameraPosition alloc] init];
+
+      if (positionCopy.target().has_value()) {
+        auto target = positionCopy.target().value();
+        position.target = CLLocationCoordinate2DMake(target.lat(), target.lng());
+      }
+
+      if (positionCopy.zoom().has_value()) {
+        position.zoom = positionCopy.zoom().value();
+      }
+
+      if (positionCopy.bearing().has_value()) {
+        position.bearing = positionCopy.bearing().value();
+      }
+
+      if (positionCopy.tilt().has_value()) {
+        position.viewingAngle = positionCopy.tilt().value();
+      }
+
+      [viewController animateCameraToPosition:position
+                                     duration:duration
+                                       result:^(BOOL success) {
+                                         if (resolve) {
+                                           resolve(@(success));
+                                         }
+                                       }];
+    });
+  } else {
+    reject(@"NO_VIEW_CONTROLLER", @"No view controller found for the specified nativeID", nil);
+  }
+}
+
 - (void)getCameraPosition:(NSString *)nativeID
                   resolve:(RCTPromiseResolveBlock)resolve
                    reject:(RCTPromiseRejectBlock)reject {

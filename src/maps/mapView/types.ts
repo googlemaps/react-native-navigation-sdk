@@ -378,7 +378,19 @@ export interface MapViewController {
    *
    * @param cameraPosition - Defines the position the camera will take with the move.
    */
-  moveCamera(cameraPosition: CameraPosition): void;
+  moveCamera(cameraPosition: CameraPosition): Promise<void>;
+
+  /**
+   * Animate the camera to a new position based on the object given.
+   *
+   * @param cameraPosition - Defines the position the camera will animate to.
+   * @param duration - Animation duration in milliseconds. Defaults to 500 ms when undefined.
+   * Pass null to use the native SDK's default animation duration.
+   */
+  animateCamera(
+    cameraPosition: CameraPosition,
+    duration?: number | null
+  ): Promise<void>;
 
   /**
    * Sets padding on the map in density-independent pixels.
