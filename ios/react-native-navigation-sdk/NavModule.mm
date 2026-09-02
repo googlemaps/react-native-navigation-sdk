@@ -347,6 +347,36 @@ RCT_EXPORT_MODULE(NavModule);
   });
 }
 
+- (void)setAudioGuidanceSettings:(AudioGuidanceSettingsSpec &)settings
+                         resolve:(RCTPromiseResolveBlock)resolve
+                          reject:(RCTPromiseRejectBlock)reject {
+  AudioGuidanceSettingsSpec settingsCopy(settings);
+  dispatch_async(dispatch_get_main_queue(), ^{
+    GMSNavigator *navigator = nil;
+    if (![self checkNavigatorWithError:reject navigator:&navigator]) {
+      return;
+    }
+
+    double guidanceMode = settingsCopy.guidanceMode();
+    if (guidanceMode == 0) {
+      navigator.voiceGuidance = GMSNavigationVoiceGuidanceSilent;
+    } else if (guidanceMode == 1) {
+      navigator.voiceGuidance = GMSNavigationVoiceGuidanceAlertsOnly;
+    } else if (guidanceMode == 2) {
+      navigator.voiceGuidance = GMSNavigationVoiceGuidanceAlertsAndGuidance;
+    } else {
+      reject(@"INVALID_OPTIONS", @"Invalid audio guidance mode.", nil);
+      return;
+    }
+
+    navigator.vibrationEnabled = settingsCopy.vibrationEnabled();
+    navigator.audioDeviceType = settingsCopy.bluetoothAudioEnabled()
+                                    ? GMSVoiceGuidanceAudioDeviceTypeBluetooth
+                                    : GMSVoiceGuidanceAudioDeviceTypeBuiltInOnly;
+    resolve(@(YES));
+  });
+}
+
 - (void)startGuidance:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
   dispatch_async(dispatch_get_main_queue(), ^{
     GMSNavigator *navigator = nil;

@@ -833,6 +833,36 @@ public class NavModule extends NativeNavModuleSpec
   }
 
   @Override
+  public void setAudioGuidanceSettings(@NonNull ReadableMap settings, final Promise promise) {
+    if (mNavigator == null) {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
+      return;
+    }
+    if (!settings.hasKey("guidanceMode")
+        || !settings.hasKey("vibrationEnabled")
+        || !settings.hasKey("bluetoothAudioEnabled")) {
+      promise.reject(JsErrors.INVALID_OPTIONS_ERROR_CODE, "Invalid audio guidance settings.");
+      return;
+    }
+
+    int guidanceMode = (int) settings.getDouble("guidanceMode");
+    boolean vibrationEnabled = settings.getBoolean("vibrationEnabled");
+    boolean bluetoothAudioEnabled = settings.getBoolean("bluetoothAudioEnabled");
+
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          mNavigator.setAudioGuidanceSettings(
+              AudioGuidanceSettings.builder()
+                  .setGuidanceMode(
+                      EnumTranslationUtil.getAudioGuidanceModeFromJsValue(guidanceMode))
+                  .setVibrationEnabled(vibrationEnabled)
+                  .setBluetoothAudioEnabled(bluetoothAudioEnabled)
+                  .build());
+        });
+    promise.resolve(null);
+  }
+
+  @Override
   public void getCurrentTimeAndDistance(final Promise promise) {
     if (mNavigator == null) {
       promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
