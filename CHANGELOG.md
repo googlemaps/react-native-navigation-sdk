@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.1...v0.17.2) (2026-09-07)
+
+
+### Bug Fixes
+
+* call Navigator#cleanup() during cleanup on Android to release location updates ([#635](https://github.com/googlemaps/react-native-navigation-sdk/issues/635)) ([036c83e](https://github.com/googlemaps/react-native-navigation-sdk/commit/036c83ec9bb0d8b4054d90ffd378b8f8297601d1))
+
 ## [0.17.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.0...v0.17.1) (2026-08-31)
 
 
