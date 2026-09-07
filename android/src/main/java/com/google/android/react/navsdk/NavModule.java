@@ -192,6 +192,7 @@ public class NavModule extends NativeNavModuleSpec
           navigator.stopGuidance();
           navigator.clearDestinations();
           navigator.getSimulator().unsetUserLocation();
+          navigator.cleanup();
           promise.resolve(true);
         });
   }
