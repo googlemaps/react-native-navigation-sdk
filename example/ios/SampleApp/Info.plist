@@ -43,6 +43,8 @@
 	<string>[Add your description here]</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>[Add your description here]</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Used to improve navigation features.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIBackgroundModes</key>

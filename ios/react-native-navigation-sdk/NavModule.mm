@@ -16,6 +16,7 @@
 
 #import "NavModule.h"
 #import <GoogleMaps/GoogleMaps.h>
+#import <React/RCTLog.h>
 #import "NavAutoModule.h"
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
@@ -28,6 +29,7 @@ static NSString *const kNoNavigatorErrorMessage =
     @"Make sure to initialize the navigator is ready before executing.";
 static NSString *const kNoDestinationsErrorCode = @"NO_DESTINATIONS";
 static NSString *const kNoDestinationsErrorMessage = @"Destinations not set";
+static dispatch_once_t deprecatedDisplayOptionsWarningOnce;
 
 @implementation NavModule {
   GMSNavigationSession *_session;
@@ -468,11 +470,14 @@ RCT_EXPORT_MODULE(NavModule);
       std::optional<bool> showDestinationMarkers = displayOptionsCopy.showDestinationMarkers();
       std::optional<bool> showStopSigns = displayOptionsCopy.showStopSigns();
       std::optional<bool> showTrafficLights = displayOptionsCopy.showTrafficLights();
-      if (showDestinationMarkers.has_value() || showStopSigns.has_value() ||
-          showTrafficLights.has_value()) {
-        [strongSelf applyNavigationUISettingsShowDestinationMarkers:showDestinationMarkers
-                                                      showStopSigns:showStopSigns
-                                                  showTrafficLights:showTrafficLights];
+      if (showDestinationMarkers.has_value()) {
+        [strongSelf applyNavigationUISettingsShowDestinationMarkers:showDestinationMarkers];
+      }
+      if (showStopSigns.has_value() || showTrafficLights.has_value()) {
+        dispatch_once(&deprecatedDisplayOptionsWarningOnce, ^{
+          RCTLogWarn(@"showStopSigns and showTrafficLights are ignored on iOS because "
+                      "Navigation SDK 11 always shows them during navigation.");
+        });
       }
     }
 
@@ -551,20 +556,11 @@ RCT_EXPORT_MODULE(NavModule);
   });
 }
 
-- (void)applyNavigationUISettingsShowDestinationMarkers:(std::optional<bool>)showDestinationMarkers
-                                          showStopSigns:(std::optional<bool>)showStopSigns
-                                      showTrafficLights:(std::optional<bool>)showTrafficLights {
+- (void)applyNavigationUISettingsShowDestinationMarkers:
+    (std::optional<bool>)showDestinationMarkers {
   for (NavViewController *viewController in
        [[NavViewModule viewControllersRegistry] objectEnumerator]) {
-    if (showDestinationMarkers.has_value()) {
-      [viewController setShowDestinationMarkersEnabled:showDestinationMarkers.value()];
-    }
-    if (showStopSigns.has_value()) {
-      [viewController setShowStopSignsEnabled:showStopSigns.value()];
-    }
-    if (showTrafficLights.has_value()) {
-      [viewController setShowTrafficLightsEnabled:showTrafficLights.value()];
-    }
+    [viewController setShowDestinationMarkersEnabled:showDestinationMarkers.value()];
   }
 }
 

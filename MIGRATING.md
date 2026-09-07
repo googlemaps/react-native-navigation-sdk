@@ -4,9 +4,142 @@ This document covers breaking changes and migration steps between major versions
 
 ## Table of Contents
 
+- [Migrating from 0.17.x to 0.18.x](#migrating-from-017x-to-018x)
+- [Migrating from 0.16.x to 0.17.x](#migrating-from-016x-to-017x)
 - [Migrating from 0.13.x to 0.14.x](#migrating-from-013x-to-014x)
 
 ---
+
+## Migrating from 0.17.x to 0.18.x
+
+Version 0.18.0 resolves the iOS Google Navigation SDK through Swift Package Manager and upgrades it to `11.0.0`.
+
+### Summary of Breaking Changes
+
+| Category    | Change                                                                                |
+| ----------- | ------------------------------------------------------------------------------------- |
+| Native SDKs | iOS Navigation SDK upgraded to `11.0.0` and resolved through Swift Package Manager   |
+| iOS display | `showTrafficLights` and `showStopSigns` no longer affect iOS navigation views         |
+| iOS maps    | `MapType.TERRAIN` is unavailable during active navigation on iOS                      |
+
+### What changed
+
+Google Navigation is now resolved through Swift Package Manager during `pod install`, rather than through a CocoaPods `GoogleNavigation` dependency. CocoaPods continues to manage React Native autolinking and other pods, but it no longer fetches Google Navigation. Configure framework linkage in your app's Podfile according to your app's dependency requirements; the example app uses dynamic frameworks.
+
+Navigation SDK 11 always displays traffic lights and stop signs during navigation. The deprecated `showTrafficLights` and `showStopSigns` display options have no effect on iOS, but continue to apply on Android. Terrain map type is no longer available during active navigation on iOS; `MapType.TERRAIN` remains available for non-navigation maps. Add an `NSMotionUsageDescription` entry to your app's `Info.plist` to prevent future motion sensor-related crashes.
+
+### Reinstall iOS pods
+
+Reinstall pods after upgrading:
+
+```bash
+cd ios && pod install
+```
+
+### Release notes
+
+For native SDK changes introduced upstream, review the [iOS Navigation SDK 11.0.0 release notes](https://developers.google.com/maps/documentation/navigation/ios-sdk/release-notes).
+
+## Migrating from 0.16.x to 0.17.x
+
+Version 0.17.0 upgrades the underlying Google Navigation SDKs and raises the minimum Android build toolchain requirements.
+
+### Summary of Breaking Changes
+
+| Category          | Change                                                                                  |
+| ----------------- | --------------------------------------------------------------------------------------- |
+| React Native      | Minimum supported React Native version is now `0.87.0`                                 |
+| Native SDKs       | Android Navigation SDK upgraded to `7.9.0`, iOS Navigation SDK upgraded to `10.15.0`   |
+| Kotlin            | Kotlin Gradle Plugin `2.3.0+` is required; `2.3.21` is the tested version              |
+
+### What changed
+
+This release updates the native Navigation SDK dependencies to:
+
+- **Android:** Google Maps Navigation SDK `7.9.0`
+- **iOS:** Google Maps Navigation SDK `10.15.0`
+
+There are no JavaScript API changes in this release. React Native `0.87.0` is required and its bundled Android Gradle Plugin (AGP) `9.2.1` is compatible with Navigation SDK `7.9.0`.
+
+### Step 1: Update the Kotlin Gradle Plugin
+
+Navigation SDK requires Kotlin Gradle Plugin `2.3.0+`. React Native `0.87.0` bundles Kotlin `2.2.0`, so Android projects must override it. This SDK is tested with Kotlin Gradle Plugin `2.3.21`.
+
+> [!NOTE]
+> Do not override the AGP version when using React Native `0.87.0`; it already supplies a compatible AGP version. Navigation SDK `7.9.0` also fixes the Cronet namespace collision that prevented builds with AGP `9.0.0+`.
+
+#### Configure AGP 9 compatibility
+
+React Native `0.87.0` uses AGP 9. Add these properties to `android/gradle.properties` so AGP uses the overridden Kotlin Gradle Plugin and retains the DSL used by React Native and its libraries:
+
+```properties
+android.builtInKotlin=false
+android.newDsl=false
+```
+
+#### Root `android/build.gradle`
+
+If your app uses a root `build.gradle` with a `buildscript` block, update only the Kotlin entries:
+
+```diff
+buildscript {
+    ext {
+-       kotlinVersion = "<old version>"
++       kotlinVersion = "2.3.21"
+    }
+    dependencies {
+-       classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
++       classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.21")
+    }
+}
+```
+
+#### Plugin DSL
+
+If your project declares plugins in `settings.gradle`, set the Kotlin plugin version there instead:
+
+```groovy
+plugins {
+  id("org.jetbrains.kotlin.android") version "2.3.21" apply false
+}
+```
+
+### Step 2: Sync and rebuild Android
+
+After updating the Kotlin Gradle Plugin:
+
+```bash
+cd android
+./gradlew clean
+```
+
+Then rebuild your app.
+
+If you run into dependency or build cache issues, reinstall dependencies and rebuild from scratch.
+
+### Step 3: Reinstall iOS pods
+
+The iOS SDK is upgraded to `10.15.0`, so after upgrading the package you should reinstall pods:
+
+```bash
+cd ios && pod install
+```
+
+### Release notes
+
+For native SDK changes introduced upstream, review the official release notes:
+
+- [Android Navigation SDK 7.9.0 release notes](https://developers.google.com/maps/documentation/navigation/android-sdk/release-notes)
+- [iOS Navigation SDK 10.15.0 release notes](https://developers.google.com/maps/documentation/navigation/ios-sdk/release-notes)
+
+### Troubleshooting
+
+If Android builds start failing after upgrading, first verify:
+
+1. Your project uses **React Native 0.87.0+**
+2. Your project uses **Kotlin Gradle Plugin 2.3.0+** (`2.3.21` is tested)
+3. You have not overridden React Native 0.87's bundled AGP version
+4. You have refreshed Gradle dependencies and rebuilt the app
 
 ## Migrating from 0.13.x to 0.14.x
 

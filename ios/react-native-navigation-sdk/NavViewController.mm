@@ -536,26 +536,6 @@
   [_mapView.settings setShowsDestinationMarkers:isEnabled];
 }
 
-- (void)setShowTrafficLightsEnabled:(BOOL)isEnabled {
-  // setShowsTrafficLights: is deprecated in Google Maps SDK 10.1.0+.
-  // Traffic lights are shown by default.
-  if ([_mapView.settings respondsToSelector:@selector(setShowsTrafficLights:)]) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    [_mapView.settings setShowsTrafficLights:isEnabled];
-#pragma clang diagnostic pop
-  }
-}
-
-- (void)setShowStopSignsEnabled:(BOOL)isEnabled {
-  // setShowStopSignsEnabled: is deprecated in Google Maps SDK 10.1.0+.
-  // Stop signs are shown by default.
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-  [_mapView.settings setShowsStopSigns:isEnabled];
-#pragma clang diagnostic pop
-}
-
 - (void)setMyLocationEnabled:(BOOL)isEnabled {
   _mapView.myLocationEnabled = isEnabled;
 }

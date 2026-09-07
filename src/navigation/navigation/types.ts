@@ -122,22 +122,14 @@ export interface DisplayOptions {
   showDestinationMarkers?: boolean;
 
   /**
-   * @deprecated Stop signs are enabled by default and this option will be removed in a future release.
-   *
-   * Configures whether stop signs are shown during navigation.
-   * If true, stop signs are shown.
-   *
-   * Defaults to true.
+   * @deprecated Stop signs are always shown during navigation on iOS Navigation SDK 11+ and
+   * this option will be removed in a future release. It currently applies only to Android.
    */
   showStopSigns?: boolean;
 
   /**
-   * @deprecated Traffic lights are enabled by default and this option will be removed in a future release.
-   *
-   * Configures whether traffic lights are shown during navigation.
-   * If true, traffic lights are shown.
-   *
-   * Defaults to true.
+   * @deprecated Traffic lights are always shown during navigation on iOS Navigation SDK 11+ and
+   * this option will be removed in a future release. It currently applies only to Android.
    */
   showTrafficLights?: boolean;
 }
