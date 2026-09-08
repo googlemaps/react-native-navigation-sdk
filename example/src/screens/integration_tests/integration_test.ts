@@ -814,6 +814,55 @@ export const testMoveCamera = async (testTools: TestTools) => {
   passTest();
 };
 
+export const testAnimateCamera = async (testTools: TestTools) => {
+  const { mapViewController, passTest, failTest, expectFalseError } = testTools;
+  if (!mapViewController) {
+    return failTest('mapViewController was expected to exist');
+  }
+
+  // Animate camera to Hong Kong
+  await mapViewController.animateCamera({
+    target: {
+      lat: 22.2987849,
+      lng: 114.1719271,
+    },
+  });
+
+  const hongKongPosition = await waitForCondition(
+    () => mapViewController.getCameraPosition(),
+    position =>
+      roundDown(position.target.lat) === 22 &&
+      roundDown(position.target.lng) === 114
+  );
+  if (!hongKongPosition) {
+    expectFalseError(
+      'roundDown(hongKongPosition.target.lat) !== 22 || roundDown(hongKongPosition.target.lng) !== 114'
+    );
+  }
+
+  // Animate camera to Tokyo
+  await mapViewController.animateCamera({
+    target: {
+      lat: 35.6805707,
+      lng: 139.7658596,
+    },
+  });
+
+  const tokyoPosition = await waitForCondition(
+    () => mapViewController.getCameraPosition(),
+    position =>
+      roundDown(position.target.lat) === 35 &&
+      roundDown(position.target.lng) === 139
+  );
+  if (!tokyoPosition) {
+    expectFalseError(
+      'roundDown(tokyoPosition.target.lat) !== 35 || roundDown(tokyoPosition.target.lng) !== 139'
+    );
+  }
+
+  passTest();
+};
+
 export const testTiltZoomBearingCamera = async (testTools: TestTools) => {
   const { mapViewController, passTest, failTest, expectFalseError } = testTools;
   if (!mapViewController) {

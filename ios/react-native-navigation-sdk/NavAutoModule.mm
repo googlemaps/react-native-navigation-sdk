@@ -441,6 +441,43 @@ static NavAutoModuleReadyCallback _navAutoModuleReadyCallback;
   }
 }
 
+- (void)animateCamera:(CameraPositionSpec &)cameraPosition
+             duration:(double)duration
+              resolve:(RCTPromiseResolveBlock)resolve
+               reject:(RCTPromiseRejectBlock)reject {
+  CameraPositionSpec positionCopy(cameraPosition);
+  if (_viewController) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      GMSMutableCameraPosition *position = [[GMSMutableCameraPosition alloc] init];
+
+      if (positionCopy.target().has_value()) {
+        auto target = positionCopy.target().value();
+        position.target = CLLocationCoordinate2DMake(target.lat(), target.lng());
+      }
+
+      if (positionCopy.zoom().has_value()) {
+        position.zoom = positionCopy.zoom().value();
+      }
+
+      if (positionCopy.bearing().has_value()) {
+        position.bearing = positionCopy.bearing().value();
+      }
+
+      if (positionCopy.tilt().has_value()) {
+        position.viewingAngle = positionCopy.tilt().value();
+      }
+
+      [self->_viewController animateCameraToPosition:position
+                                            duration:duration
+                                              result:^(BOOL success) {
+                                                resolve(@(success));
+                                              }];
+    });
+  } else {
+    reject(@"NO_VIEW_CONTROLLER", @"No view controller found", nil);
+  }
+}
+
 - (void)removeMarker:(NSString *)id
              resolve:(RCTPromiseResolveBlock)resolve
               reject:(RCTPromiseRejectBlock)reject {
