@@ -25,11 +25,12 @@ import {
 import type {
   Waypoint,
   AudioGuidance,
+  AudioGuidanceSettings,
   RouteSegment,
   TimeAndDistance,
   RouteStatus,
 } from '../types';
-import { NavigationSessionStatus } from '../types';
+import { AudioGuidanceMode, NavigationSessionStatus } from '../types';
 import {
   TaskRemovedBehavior,
   type TurnByTurnEvent,
@@ -43,6 +44,20 @@ import {
 } from './types';
 
 const { NavModule } = NativeModules;
+
+const validateAudioGuidanceSettings = (
+  settings: AudioGuidanceSettings
+): void => {
+  if (
+    !settings ||
+    !Number.isInteger(settings.guidanceMode) ||
+    !Object.values(AudioGuidanceMode).includes(settings.guidanceMode) ||
+    typeof settings.vibrationEnabled !== 'boolean' ||
+    typeof settings.bluetoothAudioEnabled !== 'boolean'
+  ) {
+    throw new Error('Invalid audio guidance settings.');
+  }
+};
 
 /**
  * Individual listener setters type - maps each callback key to a setter function.
@@ -485,8 +500,13 @@ export const useNavigationController = (
         return NavModule.setAbnormalTerminatingReportingEnabled(enabled);
       },
 
-      setAudioGuidanceType: (index: AudioGuidance) => {
-        NavModule.setAudioGuidanceType(index);
+      setAudioGuidanceType: async (index: AudioGuidance) => {
+        return await NavModule.setAudioGuidanceType(index);
+      },
+
+      setAudioGuidanceSettings: async (settings: AudioGuidanceSettings) => {
+        validateAudioGuidanceSettings(settings);
+        return await NavModule.setAudioGuidanceSettings(settings);
       },
 
       setBackgroundLocationUpdatesEnabled: (isEnabled: boolean) => {
