@@ -330,7 +330,7 @@ Normal dependency changes can still require manifest and lockfile updates.
 - Follow `CONTRIBUTING.md` for CLA and review requirements.
 - Do not bypass Lefthook checks to conceal failures. Its hooks check native
   formatting, licenses, lint, and types; they do not run full integration tests.
-- Mark intentional breaking changes clearly and include migration instructions.
+- Mark intentional breaking changes by appending an exclamation mark to the type in the pull request title (e.g., `feat!:`). Always include migration instructions in the PR body.
 - Explain what changed and why, link the issue when applicable, and list checks
   that were actually run.
 - Keep implementation, tests, and documentation for one concern together;
