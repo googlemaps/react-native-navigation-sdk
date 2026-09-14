@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/googlemaps/ios-maps-sdk",
       "state" : {
-        "revision" : "c37c4946d60f0ab069476d5781053b837771546e",
-        "version" : "11.0.0"
+        "revision" : "bb35529d3660739497b35d5de53dc7e6c5942198",
+        "version" : "11.1.0"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/googlemaps/ios-navigation-sdk.git",
       "state" : {
-        "revision" : "a1918c947b971570a8f7167a6ec09e9d08ee2b3f",
-        "version" : "11.0.0"
+        "revision" : "2964b585f8a58843d1f1260934af2e1f38a45f6c",
+        "version" : "11.1.0"
       }
     }
   ],
