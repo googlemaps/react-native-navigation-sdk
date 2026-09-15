@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.0...v0.17.1) (2026-08-31)
+
+
+### Features
+
+* migration to SPM only and iOS SDK update to 11.0.0 ([#637](https://github.com/googlemaps/react-native-navigation-sdk/issues/637)) ([e84c074](https://github.com/googlemaps/react-native-navigation-sdk/commit/e84c0745c98c83f20600768fe2e0535681c1ebfb))
+
 ## [0.17.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.16.3...v0.17.0) (2026-08-25)
 
 

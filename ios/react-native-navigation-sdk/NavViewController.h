@@ -59,8 +59,6 @@ typedef void (^OnArrayResult)(NSArray *_Nullable result);
 - (void)setMyLocationButtonEnabled:(BOOL)isEnabled;
 - (void)setMyLocationEnabled:(BOOL)isEnabled;
 - (void)setShowDestinationMarkersEnabled:(BOOL)isEnabled;
-- (void)setShowTrafficLightsEnabled:(BOOL)isEnabled;
-- (void)setShowStopSignsEnabled:(BOOL)isEnabled;
 - (void)setRotateGesturesEnabled:(BOOL)isEnabled;
 - (void)setScrollGesturesEnabled:(BOOL)isEnabled;
 - (void)setScrollGesturesEnabledDuringRotateOrZoom:(BOOL)isEnabled;

@@ -126,6 +126,15 @@ This package requires React Native's new architecture. Make sure new architectur
 ENV['RCT_NEW_ARCH_ENABLED'] = '1'
 ```
 
+#### Motion sensor usage description
+
+Google recommends adding an `NSMotionUsageDescription` entry to your app's `Info.plist` to ensure compatibility with future motion sensor-related functionality in the underlying Navigation SDK for iOS.
+
+```xml
+<key>NSMotionUsageDescription</key>
+<string>Used to improve navigation features.</string>
+```
+
 #### Set Google Maps API Key
 
 To set up, specify your API key in the application delegate `ios/Runner/AppDelegate.m`:
@@ -301,8 +310,6 @@ try {
 
   const displayOptions: DisplayOptions = {
     showDestinationMarkers: true,
-    showStopSigns: true,
-    showTrafficLights: true,
   };
 
   await navigationController.setDestinations([waypoint], { routingOptions, displayOptions });

@@ -154,6 +154,9 @@ dependencies {
 
     // Include the Google Navigation SDK.
     implementation 'com.google.android.libraries.navigation:navigation:7.9.0'
+
+    // 1.2.1 pads libdatastore_shared_counter.so's GNU_RELRO segment for 16 KB pages.
+    implementation 'androidx.datastore:datastore-core:1.2.1'
 }
 
 secrets {
