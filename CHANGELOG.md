@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.17.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.1...v0.17.2) (2026-09-15)
+
+
+### Features
+
+* add support for audio guidance settings ([#643](https://github.com/googlemaps/react-native-navigation-sdk/issues/643)) ([af5bdda](https://github.com/googlemaps/react-native-navigation-sdk/commit/af5bddafb911f5fbe89130c4c162ac2004d3333a))
+* android auto improvements ([#626](https://github.com/googlemaps/react-native-navigation-sdk/issues/626)) ([4f4c400](https://github.com/googlemaps/react-native-navigation-sdk/commit/4f4c400fa72100f67c883437dad7d798841827ab))
+* upgrade ios sdk to 11.1.0 ([#650](https://github.com/googlemaps/react-native-navigation-sdk/issues/650)) ([6bac610](https://github.com/googlemaps/react-native-navigation-sdk/commit/6bac610352447367d53d42cb843a30028098cb30))
+
+
+### Bug Fixes
+
+* avoid npe by checking map controller state in nav view module ([#651](https://github.com/googlemaps/react-native-navigation-sdk/issues/651)) ([19171a8](https://github.com/googlemaps/react-native-navigation-sdk/commit/19171a8e90e98f82c5c44eea1a527ceed9908655))
+* call Navigator#cleanup() during cleanup on Android to release location updates ([#635](https://github.com/googlemaps/react-native-navigation-sdk/issues/635)) ([036c83e](https://github.com/googlemaps/react-native-navigation-sdk/commit/036c83ec9bb0d8b4054d90ffd378b8f8297601d1))
+* resolve Android 16 KB page-size compatibility warning ([#652](https://github.com/googlemaps/react-native-navigation-sdk/issues/652)) ([95f5137](https://github.com/googlemaps/react-native-navigation-sdk/commit/95f51373097f9e6897287f4dd1a0119cc7b75a26))
+
 ## [0.17.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.0...v0.17.1) (2026-08-31)
 
 
