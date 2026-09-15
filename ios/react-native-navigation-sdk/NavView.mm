@@ -40,6 +40,7 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps = [] {
 
 @property(nonatomic, strong) NavViewController *viewController;
 @property(nonatomic, assign) BOOL initialized;
+@property(nonatomic, copy) NSString *registeredNativeID;
 
 @end
 
@@ -63,12 +64,20 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps = [] {
   [self unregisterView];
 }
 
-- (void)unregisterView {
-  const auto &currentProps = *std::static_pointer_cast<NavViewProps const>(_props);
+- (void)invalidate {
+  [self unregisterView];
+  [super invalidate];
+}
 
-  if (!currentProps.nativeID.empty()) {
-    NSString *nativeIDString = [NSString stringWithUTF8String:currentProps.nativeID.c_str()];
-    [[NavViewModule viewControllersRegistry] removeObjectForKey:nativeIDString];
+- (void)unregisterView {
+  if (_registeredNativeID != nil) {
+    [[NavViewModule viewControllersRegistry] removeObjectForKey:_registeredNativeID];
+    _registeredNativeID = nil;
+  }
+
+  if (_viewController != nil) {
+    [_viewController cleanup];
+    _viewController = nil;
   }
 }
 
@@ -140,6 +149,7 @@ static const std::shared_ptr<const NavViewProps> kDefaultNavViewProps = [] {
     // Register view controller with nativeID in the registry
     NSString *nativeIDString = [NSString stringWithUTF8String:newViewProps.nativeID.c_str()];
     [NavViewModule viewControllersRegistry][nativeIDString] = _viewController;
+    self.registeredNativeID = nativeIDString;
 
     // If navigation session is already initialized, trigger attachment check
     NavModule *navModule = [NavModule sharedInstance];

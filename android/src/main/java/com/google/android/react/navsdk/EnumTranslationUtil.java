@@ -17,6 +17,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.CameraPerspective;
 import com.google.android.gms.maps.model.MapColorScheme;
 import com.google.android.libraries.navigation.AlternateRoutesStrategy;
+import com.google.android.libraries.navigation.AudioGuidanceSettings;
 import com.google.android.libraries.navigation.ForceNightMode;
 import com.google.android.libraries.navigation.Navigator;
 import com.google.android.libraries.navigation.RoutingOptions;
@@ -33,16 +34,12 @@ public class EnumTranslationUtil {
     }
   }
 
-  public static @Navigator.AudioGuidance int getAudioGuidanceFromJsValue(int jsValue) {
-    switch (jsValue) {
-      case 0:
-        return Navigator.AudioGuidance.SILENT;
-      case 1:
-        return Navigator.AudioGuidance.VOICE_ALERTS_ONLY;
-      case 2:
-      default:
-        return Navigator.AudioGuidance.VOICE_ALERTS_AND_GUIDANCE;
-    }
+  public static AudioGuidanceSettings.GuidanceMode getAudioGuidanceModeFromJsValue(int jsValue) {
+    return switch (jsValue) {
+      case 0 -> AudioGuidanceSettings.GuidanceMode.SILENT;
+      case 1 -> AudioGuidanceSettings.GuidanceMode.VOICE_ALERTS_ONLY;
+      default -> AudioGuidanceSettings.GuidanceMode.VOICE_ALERTS_AND_GUIDANCE;
+    };
   }
 
   public static @Navigator.TaskRemovedBehavior int getTaskRemovedBehaviourFromJsValue(int jsValue) {

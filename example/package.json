@@ -23,28 +23,28 @@
     "detox:test:android-release": "detox test --configuration android.emu.release"
   },
   "dependencies": {
-    "@react-navigation/native": "^6.1.18",
-    "@react-navigation/stack": "^6.4.1",
-    "react": "19.2.0",
-    "react-native": "0.83.1",
-    "react-native-gesture-handler": "2.29.1",
+    "@react-navigation/native": "^7.3.16",
+    "@react-navigation/stack": "^7.10.22",
+    "react": "19.2.3",
+    "react-native": "0.87.0",
+    "react-native-gesture-handler": "3.0.2",
     "react-native-pager-view": "^6.9.1",
     "react-native-permissions": "^5.1.0",
-    "react-native-safe-area-context": "^5.5.2",
-    "react-native-screens": "4.15.4",
+    "react-native-safe-area-context": "^5.9.0",
+    "react-native-screens": "4.27.0",
     "react-native-select-dropdown": "^4.0.1",
-    "react-native-snackbar": "^2.8.0"
+    "react-native-snackbar": "^3.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
     "@babel/runtime": "^7.25.0",
-    "@react-native-community/cli": "20.1.0",
-    "@react-native-community/cli-platform-android": "20.1.0",
-    "@react-native-community/cli-platform-ios": "20.1.0",
-    "@react-native/babel-preset": "0.83.1",
-    "@react-native/metro-config": "0.83.1",
-    "@react-native/typescript-config": "0.83.1",
+    "@react-native-community/cli": "20.2.0",
+    "@react-native-community/cli-platform-android": "20.2.0",
+    "@react-native-community/cli-platform-ios": "20.2.0",
+    "@react-native/babel-preset": "0.87.0",
+    "@react-native/metro-config": "0.87.0",
+    "@react-native/typescript-config": "0.87.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.9.0",
     "detox": "^20.47.0",
@@ -54,6 +54,6 @@
     "ts-jest": "^29.2.5"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13.0"
   }
 }

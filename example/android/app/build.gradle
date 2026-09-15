@@ -127,7 +127,7 @@ android {
             // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro"
         }
     }
     compileOptions {
@@ -153,7 +153,10 @@ dependencies {
     implementation "androidx.car.app:app-projected:1.4.0"
 
     // Include the Google Navigation SDK.
-    implementation 'com.google.android.libraries.navigation:navigation:7.6.1'
+    implementation 'com.google.android.libraries.navigation:navigation:7.9.0'
+
+    // 1.2.1 pads libdatastore_shared_counter.so's GNU_RELRO segment for 16 KB pages.
+    implementation 'androidx.datastore:datastore-core:1.2.1'
 }
 
 secrets {
