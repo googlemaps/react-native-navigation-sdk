@@ -96,6 +96,12 @@ type LocationSimulationOptionsSpec = Readonly<{
   readonly speedMultiplier: Float;
 }>;
 
+type AudioGuidanceSettingsSpec = Readonly<{
+  guidanceMode: Double;
+  vibrationEnabled: boolean;
+  bluetoothAudioEnabled: boolean;
+}>;
+
 type ArrivalEventSpec = Readonly<{
   waypoint: WaypointSpec;
   isFinalDestination?: boolean;
@@ -186,6 +192,7 @@ export interface Spec extends TurboModule {
   setSpeedAlertOptions(alertOptions: SpeedAlertOptionsSpec): Promise<void>;
   setAbnormalTerminatingReportingEnabled(enabled: boolean): void;
   setAudioGuidanceType(index: Double): Promise<void>;
+  setAudioGuidanceSettings(settings: AudioGuidanceSettingsSpec): Promise<void>;
   setBackgroundLocationUpdatesEnabled(isEnabled: boolean): void;
   setTurnByTurnLoggingEnabled(isEnabled: boolean): void;
   getCurrentRouteSegment(): Promise<RouteSegment>;

@@ -15,7 +15,7 @@
  */
 
 import {
-  AudioGuidance,
+  AudioGuidanceMode,
   CameraPerspective,
   TravelMode,
   NavigationSessionStatus,
@@ -181,9 +181,12 @@ const waitForTimeAndDistance = async (
 
 const disableVoiceGuidanceForTests = (
   navigationController: NavigationController
-) => {
-  navigationController.setAudioGuidanceType(AudioGuidance.SILENT);
-};
+) =>
+  navigationController.setAudioGuidanceSettings({
+    guidanceMode: AudioGuidanceMode.SILENT,
+    vibrationEnabled: false,
+    bluetoothAudioEnabled: false,
+  });
 
 const LOCATION_THRESHOLD_METERS = 100;
 const LOCATION_WAIT_TIMEOUT_MS = 15000;

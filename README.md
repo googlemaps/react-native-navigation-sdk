@@ -652,7 +652,8 @@ const {
 | `getCurrentRouteSegment()`                                                    | `Promise<RouteSegment \| null>`    | Get the current route segment                                                              |
 | `getRouteSegments()`                                                          | `Promise<RouteSegment[]>`          | Get all route segments                                                                     |
 | `getTraveledPath()`                                                           | `Promise<LatLng[]>`                | Get the path traveled so far                                                               |
-| `setAudioGuidanceType(type: AudioGuidanceType)`                               | `Promise<void>`                    | Set audio guidance type (SILENT, ALERTS_ONLY, VOICE_ALERTS_AND_GUIDANCE)                   |
+| `setAudioGuidanceType(type: AudioGuidance)`                                   | `Promise<void>`                    | Deprecated. Set the voice guidance mode only                                                 |
+| `setAudioGuidanceSettings(settings: AudioGuidanceSettings)`                    | `Promise<void>`                    | Set voice guidance mode and enable/disable vibration and Bluetooth audio                    |
 | `setSpeedAlertOptions(options: SpeedAlertOptions)`                            | `Promise<void>`                    | Configure speed alert thresholds                                                           |
 | `setAbnormalTerminatingReportingEnabled(enabled: boolean)`                    | `void`                             | Enable/disable abnormal termination reporting                                              |
 | `startUpdatingLocation()`                                                     | `Promise<void>`                    | Start receiving location updates                                                           |

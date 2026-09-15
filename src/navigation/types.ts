@@ -132,8 +132,8 @@ export enum Status {
 }
 
 /**
- * AudioGuidance is a set of flags used to specify what kinds of audio alerts and guidance are
- * used during navigation.
+ * @deprecated Use AudioGuidanceSettings with setAudioGuidanceSettings instead.
+ * This legacy enum is retained for setAudioGuidanceType compatibility only.
  */
 export enum AudioGuidance {
   /**
@@ -162,6 +162,30 @@ export enum AudioGuidance {
    * to be played over Bluetooth; to enable that, BLUETOOTH_AUDIO should be added.
    */
   VOICE_ALERTS_ONLY = 2,
+}
+
+/**
+ * The voice guidance mode used during navigation.
+ */
+export enum AudioGuidanceMode {
+  /** Disables voice guidance. */
+  SILENT = 0,
+  /** Enables voice guidance for alerts only. */
+  VOICE_ALERTS_ONLY,
+  /** Enables voice guidance for alerts and turn-by-turn instructions. */
+  VOICE_ALERTS_AND_GUIDANCE,
+}
+
+/**
+ * Settings for audio guidance during navigation on Android and iOS.
+ */
+export interface AudioGuidanceSettings {
+  /** The voice guidance mode. */
+  guidanceMode: AudioGuidanceMode;
+  /** Whether the device vibrates when voice alerts are played. */
+  vibrationEnabled: boolean;
+  /** Whether voice guidance uses Bluetooth when it is available. */
+  bluetoothAudioEnabled: boolean;
 }
 
 /**

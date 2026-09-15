@@ -25,6 +25,7 @@ import {
 import type {
   Waypoint,
   AudioGuidance,
+  AudioGuidanceSettings,
   RouteSegment,
   TimeAndDistance,
   RouteStatus,
@@ -485,8 +486,12 @@ export const useNavigationController = (
         return NavModule.setAbnormalTerminatingReportingEnabled(enabled);
       },
 
-      setAudioGuidanceType: (index: AudioGuidance) => {
-        NavModule.setAudioGuidanceType(index);
+      setAudioGuidanceType: async (index: AudioGuidance) => {
+        return await NavModule.setAudioGuidanceType(index);
+      },
+
+      setAudioGuidanceSettings: async (settings: AudioGuidanceSettings) => {
+        return await NavModule.setAudioGuidanceSettings(settings);
       },
 
       setBackgroundLocationUpdatesEnabled: (isEnabled: boolean) => {
