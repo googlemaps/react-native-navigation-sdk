@@ -370,6 +370,20 @@ export const useNavigationAuto = (): UseNavigationAutoResult => {
         return NavAutoModule.moveCamera(cameraPosition);
       },
 
+      // set default values to transition similar to Google Maps app
+      animateCamera: (
+        cameraPosition: CameraPosition,
+        duration?: number | null
+      ) => {
+        return NavAutoModule.animateCamera(
+          {
+            ...cameraPosition,
+            zoom: cameraPosition.zoom ?? 15,
+          },
+          duration === undefined ? 500 : duration
+        );
+      },
+
       setPadding: (padding: Padding) => {
         const { top = 0, left = 0, bottom = 0, right = 0 } = padding;
         return NavAutoModule.setMapPadding(top, left, bottom, right);

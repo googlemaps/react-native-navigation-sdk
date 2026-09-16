@@ -142,6 +142,15 @@ const MapsControls: React.FC<MapControlsProps> = ({
     });
   };
 
+  const animateCamera = () => {
+    mapViewController.animateCamera({
+      target: { lat: Number(latitude), lng: Number(longitude) },
+      zoom: 1,
+      bearing: 60,
+      tilt: 60,
+    });
+  };
+
   const setMapType = (newMapType: MapType) => {
     onMapTypeChange?.(newMapType);
   };
@@ -410,6 +419,7 @@ const MapsControls: React.FC<MapControlsProps> = ({
           keyboardType="numeric"
         />
         <ExampleAppButton title="Move camera" onPress={moveCamera} />
+        <ExampleAppButton title="Animate camera" onPress={animateCamera} />
         <ExampleAppButton
           title="Zoom in"
           onPress={() => {
