@@ -29,7 +29,7 @@ import { Colors, Spacing, Typography } from '../styles/theme';
 
 // Waypoints for testing: Golden Gate to 1 Market St, San Francisco
 const WAYPOINTS = [
-  { placeId: 'ChIJw____96GhYARCVVwg5cT7c0' }, // Golden Gate, SF
+  { placeId: 'ChIJw____96GhYARCVVwg5cT7c0', preferredHeading: 0 }, // Golden Gate, SF
   { placeId: 'ChIJkXCsHWSAhYARsGBBQYcj-V0' }, // 1 Market St, SF
 ];
 
