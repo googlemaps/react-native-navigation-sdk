@@ -20,6 +20,10 @@ permissions:
 
 on:
   workflow_call: # called when release-please steps.release.outputs.release_created
+    secrets:
+      NPM_WOMBOT_TOKEN:
+        description: Token for publishing to the npm registry.
+        required: true
   workflow_dispatch: # manually trigger if previous runs failed
 
 concurrency:
