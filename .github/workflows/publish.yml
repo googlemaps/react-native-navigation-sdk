@@ -15,6 +15,9 @@
 # A workflow that publishes the library to CocoaPods
 name: Publish
 
+permissions:
+  contents: read
+
 on:
   workflow_call: # called when release-please steps.release.outputs.release_created
   workflow_dispatch: # manually trigger if previous runs failed
@@ -32,20 +35,21 @@ jobs:
     needs: build-and-test
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node for Dependency Installation
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 20
-          cache: npm
 
       - name: Install Dependencies
         run: npm install
 
       # Now configure node with the registry used for publishing
       - name: Setup Node for Publishing
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 20
           registry-url: 'https://wombat-dressing-room.appspot.com/'
