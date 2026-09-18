@@ -14,7 +14,59 @@
 
 version: 2
 updates:
+  # The root manifest is the yarn workspace root, so this covers example/ too.
   - package-ecosystem: "npm"
-    directory: "/"
+    directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+  - package-ecosystem: "gradle"
+    directory: "/android" # Location of package manifests
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      android-dependencies:
+        patterns:
+          - "*"
+  - package-ecosystem: "gradle"
+    directory: "/example/android" # Location of package manifests
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      example-android-dependencies:
+        patterns:
+          - "*"
+  # Composite actions live outside .github/workflows and need their own directory.
+  - package-ecosystem: "github-actions"
+    directories: # Location of package manifests
+      - "/"
+      - "/.github/actions/*"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      actions-dependencies:
+        patterns:
+          - "*"

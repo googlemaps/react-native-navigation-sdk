@@ -24,6 +24,11 @@ on:
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.github/workflows/license-check.yaml'
+      - '.github/workflows/release-please.yml'
   workflow_call:
 
 jobs:
@@ -188,6 +193,7 @@ jobs:
           yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}"
 
   build-ios:
+    if: github.actor != 'dependabot[bot]'
     runs-on:
       labels: macos-26-xlarge
     timeout-minutes: 45
