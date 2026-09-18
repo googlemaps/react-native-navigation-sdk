@@ -32,10 +32,10 @@ jobs:
     needs: build-and-test
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node for Dependency Installation
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -45,7 +45,7 @@ jobs:
 
       # Now configure node with the registry used for publishing
       - name: Setup Node for Publishing
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 20
           registry-url: 'https://wombat-dressing-room.appspot.com/'

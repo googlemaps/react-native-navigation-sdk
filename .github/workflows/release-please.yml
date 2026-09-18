@@ -43,7 +43,7 @@ jobs:
     steps:
       - id: release
         name: Release Please
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@v5
         with:
           token: ${{ secrets.SYNCED_GITHUB_TOKEN_REPO }}
 
