@@ -570,7 +570,7 @@ public class NavModule extends NativeNavModuleSpec
               .setPreferSameSideOfRoad(preferSameSideOfRoad);
 
       if (map.containsKey("preferredHeading")) {
-        int preferredHeading = (int) map.get("preferredHeading");
+        int preferredHeading = CollectionUtil.getInt("preferredHeading", map, 0);
         waypointBuilder.setPreferredHeading(preferredHeading);
       }
 

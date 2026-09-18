@@ -539,6 +539,7 @@ export const testNavigationToMultipleDestination = async (
             lat: 37.7917,
             lng: -122.4142,
           },
+          preferredHeading: 0,
         },
         {
           position: {
