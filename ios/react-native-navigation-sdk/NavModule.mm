@@ -616,8 +616,12 @@ RCT_EXPORT_MODULE(NavModule);
 - (void)configureNavigatorWithTravelMode:(GMSNavigator *)navigator
                               travelMode:(std::optional<double>)travelMode {
   if (travelMode.has_value()) {
+    GMSNavigationTravelMode mode = (GMSNavigationTravelMode)travelMode.value();
+    if (_session != nil) {
+      _session.travelMode = mode;
+    }
     NavViewModule *navViewModule = [NavViewModule sharedInstance];
-    [navViewModule setTravelMode:(GMSNavigationTravelMode)travelMode.value()];
+    [navViewModule setTravelMode:mode];
   }
 }
 

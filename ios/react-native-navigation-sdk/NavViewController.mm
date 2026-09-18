@@ -144,6 +144,7 @@
   if (result) {
     _isSessionAttached = YES;
     _mapView.navigationUIDelegate = self;
+    [_mapView setTravelMode:session.travelMode];
     [self applyStylingOptions];
     [self restoreNavigationUIState];
     [self applyTrafficPromptsSetting];
