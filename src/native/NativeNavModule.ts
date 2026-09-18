@@ -132,11 +132,16 @@ type TurnByTurnEventSpec = Readonly<{
 }>;
 
 type StepInfoSpec = Readonly<{
-  instruction: string;
-  distanceMeters: Double;
-  durationSeconds: Double;
-  maneuver: string;
-  position: LatLngSpec;
+  instruction?: string;
+  fullRoadName?: string;
+  simpleRoadName?: string;
+  maneuver: Double;
+  drivingSide: Double;
+  stepNumber?: Double;
+  distanceFromPrevStepMeters?: Double;
+  timeFromPrevStepSeconds?: Double;
+  exitNumber?: string;
+  roundaboutTurnNumber?: Double;
 }>;
 
 enum RouteStatusSpec {

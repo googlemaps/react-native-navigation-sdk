@@ -156,17 +156,56 @@ public class ObjectTranslationUtil {
     return map;
   }
 
+  /**
+   * Translates a step into the payload of the turn-by-turn event. Every getter used here except the
+   * maneuver and the driving side is nullable, and a value the Navigation SDK does not provide is
+   * left out of the payload so that it reads as undefined on the JavaScript side.
+   */
   public static WritableMap getMapFromStepInfo(StepInfo stepInfo) {
     WritableMap map = Arguments.createMap();
-    map.putInt("distanceFromPrevStepMeters", stepInfo.getDistanceFromPrevStepMeters());
-    map.putInt("timeFromPrevStepSeconds", stepInfo.getTimeFromPrevStepSeconds());
-    map.putInt("drivingSide", stepInfo.getDrivingSide());
-    map.putInt("stepNumber", stepInfo.getStepNumber());
     map.putInt("maneuver", stepInfo.getManeuver());
-    map.putInt("roundaboutTurnNumber", stepInfo.getRoundaboutTurnNumber());
-    map.putString("exitNumber", stepInfo.getExitNumber());
-    map.putString("fullRoadName", stepInfo.getFullRoadName());
-    map.putString("instruction", stepInfo.getFullInstructionText());
+    map.putInt("drivingSide", stepInfo.getDrivingSide());
+
+    Integer distanceFromPrevStepMeters = stepInfo.getDistanceFromPrevStepMeters();
+    if (distanceFromPrevStepMeters != null) {
+      map.putInt("distanceFromPrevStepMeters", distanceFromPrevStepMeters);
+    }
+
+    Integer timeFromPrevStepSeconds = stepInfo.getTimeFromPrevStepSeconds();
+    if (timeFromPrevStepSeconds != null) {
+      map.putInt("timeFromPrevStepSeconds", timeFromPrevStepSeconds);
+    }
+
+    Integer stepNumber = stepInfo.getStepNumber();
+    if (stepNumber != null) {
+      map.putInt("stepNumber", stepNumber);
+    }
+
+    Integer roundaboutTurnNumber = stepInfo.getRoundaboutTurnNumber();
+    if (roundaboutTurnNumber != null) {
+      map.putInt("roundaboutTurnNumber", roundaboutTurnNumber);
+    }
+
+    String exitNumber = stepInfo.getExitNumber();
+    if (exitNumber != null) {
+      map.putString("exitNumber", exitNumber);
+    }
+
+    String fullRoadName = stepInfo.getFullRoadName();
+    if (fullRoadName != null) {
+      map.putString("fullRoadName", fullRoadName);
+    }
+
+    String simpleRoadName = stepInfo.getSimpleRoadName();
+    if (simpleRoadName != null) {
+      map.putString("simpleRoadName", simpleRoadName);
+    }
+
+    String instruction = stepInfo.getFullInstructionText();
+    if (instruction != null) {
+      map.putString("instruction", instruction);
+    }
+
     return map;
   }
 

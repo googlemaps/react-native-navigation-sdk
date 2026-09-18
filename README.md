@@ -721,7 +721,7 @@ setOnArrival(null);
 | `setOnReroutingRequestedByOffRoute`   | `void`                                                | Called when rerouting is triggered by off-route |
 | `setOnTrafficUpdated`                 | `void`                                                | Called when traffic data is updated             |
 | `setOnRemainingTimeOrDistanceChanged` | `void`                                                | Called when remaining time or distance changes  |
-| `setOnTurnByTurn`                     | `{ navInfo: NavInfo }`                                | Called with turn-by-turn navigation info        |
+| `setOnTurnByTurn`                     | `TurnByTurnEvent[]`                                   | Called with turn-by-turn navigation info        |
 
 ### MapViewAutoController (useNavigationAuto hook)
 

@@ -19,6 +19,9 @@ import type {
   AlternateRoutingStrategy,
   AudioGuidance,
   AudioGuidanceSettings,
+  DrivingSide,
+  Maneuver,
+  NavState,
   RouteSegment,
   RouteStatus,
   RoutingStrategy,
@@ -551,7 +554,94 @@ export enum TaskRemovedBehavior {
 }
 
 /**
+ * Information about a single step along the navigation route.
+ *
+ * Fields that the Navigation SDK does not provide for a step are omitted from
+ * the payload, so every optional field has to be checked before use.
+ */
+export interface StepInfo {
+  /**
+   * The full text of the instruction for this step, for example
+   * "Turn left onto Lean Ave."
+   *
+   * The arrival step is emitted with an empty instruction, so treat an empty
+   * string the same way as a missing one.
+   */
+  instruction?: string;
+
+  /**
+   * The full road name for this step, containing all information for the road
+   * including direction, for example "Exit 9A / North First Street".
+   */
+  fullRoadName?: string;
+
+  /**
+   * The shortened version of the road name, which may leave out identifying
+   * information such as direction or the name of an exit, for example
+   * "Exit 9A".
+   */
+  simpleRoadName?: string;
+
+  /** The navigation action to take for this step. */
+  maneuver: Maneuver;
+
+  /** Whether this step is on a drive-on-right or drive-on-left route. */
+  drivingSide: DrivingSide;
+
+  /** The index of the step in the list of all steps in the route, starting at 0. */
+  stepNumber?: number;
+
+  /** The total distance of this step. This value does not change. */
+  distanceFromPrevStepMeters?: number;
+
+  /** The estimated time it takes to complete this step. This value does not change. */
+  timeFromPrevStepSeconds?: number;
+
+  /** Exit number of this step, for steps that leave a turnpike or freeway. */
+  exitNumber?: string;
+
+  /**
+   * The counted number of the exit to take relative to the location where the
+   * roundabout was entered. Only set for roundabouts.
+   */
+  roundaboutTurnNumber?: number;
+}
+
+/**
  * Defines the turn-by-turn event data.
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface TurnByTurnEvent {}
+export interface TurnByTurnEvent {
+  /** The current state of navigation. */
+  navState: NavState;
+
+  /**
+   * Whether the route has changed since the previous event. A route change may
+   * be caused by a reroute, the addition or removal of a waypoint, the user
+   * selecting or driving onto an alternate route, or a traffic update.
+   */
+  routeChanged: boolean;
+
+  /** The estimated remaining distance along the route to the current step. */
+  distanceToCurrentStepMeters?: number;
+
+  /** The estimated remaining time along the route to the current step. */
+  timeToCurrentStepSeconds?: number;
+
+  /** The estimated remaining distance to the next destination. */
+  distanceToNextDestinationMeters?: number;
+
+  /** The estimated remaining time to the next destination. */
+  timeToNextDestinationSeconds?: number;
+
+  /** The estimated remaining distance to the final destination. */
+  distanceToFinalDestinationMeters?: number;
+
+  /** The estimated remaining time to the final destination. */
+  timeToFinalDestinationSeconds?: number;
+
+  /** Information about the upcoming maneuver step. Only set while navState is {@link NavState.ENROUTE}. */
+  currentStep?: StepInfo;
+
+  /** The remaining steps after the current step. */
+  getRemainingSteps: StepInfo[];
+}
