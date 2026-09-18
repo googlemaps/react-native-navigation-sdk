@@ -15,8 +15,15 @@
 # A workflow that publishes the library to CocoaPods
 name: Publish
 
+permissions:
+  contents: read
+
 on:
   workflow_call: # called when release-please steps.release.outputs.release_created
+    secrets:
+      NPM_WOMBOT_TOKEN:
+        description: Token for publishing to the npm registry.
+        required: true
   workflow_dispatch: # manually trigger if previous runs failed
 
 concurrency:
@@ -32,26 +39,29 @@ jobs:
     needs: build-and-test
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node for Dependency Installation
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 20
-          cache: npm
 
       - name: Install Dependencies
         run: npm install
 
       # Now configure node with the registry used for publishing
       - name: Setup Node for Publishing
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 20
           registry-url: 'https://wombat-dressing-room.appspot.com/'
 
       - name: Publish
-        # npm publish will trigger the build via the prepack hook
-        run: npm publish
+        # npm publish will trigger the build via the prepack hook.
+        # Publishing goes through Wombat Dressing Room, which enforces 2FA on a
+        # bot account, so npm's OIDC trusted publishing does not apply here.
+        run: npm publish # zizmor: ignore[use-trusted-publishing]
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_WOMBOT_TOKEN }}
