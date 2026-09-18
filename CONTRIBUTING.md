@@ -120,9 +120,6 @@ Integration tests are responsible for ensuring that the plugin works against the
 To run the test you must first install and setup detox. Please follow the guide here:
 https://wix.github.io/Detox/docs/introduction/environment-setup
 
-> [!NOTE]
-> The current (pinned) version of Detox does not work with the latest React Native version used in the example app. To run Android Detox tests, the example app must first be downgraded to React Native 0.79.5 until support for newer versions is available.
-
 Build the tests using detox-cli in the example folder:
 
 iOS:
@@ -141,6 +138,9 @@ iOS
 ```bash
 yarn run example detox:test:ios-release
 ```
+
+> [!NOTE]
+> On Xcode 27 and later, Detox logs `Unable to find application named 'Simulator'` followed by a hint to reinstall Xcode or run `xcode-select`. Both messages are safe to ignore, and the `xcode-select` hint does not apply: Xcode 27 replaced Simulator.app with Device Hub, while Detox drives the simulator through `simctl`. The tests run normally, just without a simulator window. Append `--headless` to skip opening the window and silence the warning.
 
 Android:
 
