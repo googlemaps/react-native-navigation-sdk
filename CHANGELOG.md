@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.2...v0.17.3) (2026-09-18)
+
+
+### Bug Fixes
+
+* **ios:** apply the travel mode to the navigation session ([#656](https://github.com/googlemaps/react-native-navigation-sdk/issues/656)) ([e1e923c](https://github.com/googlemaps/react-native-navigation-sdk/commit/e1e923cf483f847d9a83ff533cf2dfab2fd06bb9))
+* preferred heading int conversion ([#657](https://github.com/googlemaps/react-native-navigation-sdk/issues/657)) ([f3597b9](https://github.com/googlemaps/react-native-navigation-sdk/commit/f3597b9d62d1e23c8ebbfc8044818089a5389a43))
+
 ## [0.17.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.1...v0.17.2) (2026-09-15)
 
 
