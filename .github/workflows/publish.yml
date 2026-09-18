@@ -59,7 +59,9 @@ jobs:
           registry-url: 'https://wombat-dressing-room.appspot.com/'
 
       - name: Publish
-        # npm publish will trigger the build via the prepack hook
-        run: npm publish
+        # npm publish will trigger the build via the prepack hook.
+        # Publishing goes through Wombat Dressing Room, which enforces 2FA on a
+        # bot account, so npm's OIDC trusted publishing does not apply here.
+        run: npm publish # zizmor: ignore[use-trusted-publishing]
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_WOMBOT_TOKEN }}
