@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.4](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.3...v0.17.4) (2026-09-21)
+
+
+### Bug Fixes
+
+* **android:** drop the unused kotlin-android plugin ([#644](https://github.com/googlemaps/react-native-navigation-sdk/issues/644)) ([b5c8bb6](https://github.com/googlemaps/react-native-navigation-sdk/commit/b5c8bb6eef91e45ae0f46f3cbb458f83a002821f))
+
 ## [0.17.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.2...v0.17.3) (2026-09-18)
 
 
