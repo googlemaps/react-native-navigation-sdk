@@ -77,6 +77,46 @@ const NAVIGATOR_NOT_READY_ERROR_CODE = 'NO_NAVIGATOR_ERROR_CODE';
 const NO_DESTINATIONS_ERROR_CODE = 'NO_DESTINATIONS';
 export const NO_ERRORS_DETECTED_LABEL = 'No errors detected';
 
+const validateTurnByTurnPayload = (
+  events: TurnByTurnEvent[]
+): string | null => {
+  const event = events[0];
+  if (!event) {
+    return 'Turn-by-turn event payload was empty';
+  }
+  if (
+    typeof event.navState !== 'number' ||
+    typeof event.routeChanged !== 'boolean'
+  ) {
+    return 'Turn-by-turn event had invalid navigation state fields';
+  }
+  if (!Array.isArray(event.getRemainingSteps)) {
+    return 'Turn-by-turn event had invalid remaining steps';
+  }
+
+  const step = event.currentStep ?? event.getRemainingSteps[0];
+  if (!step) {
+    return 'Turn-by-turn event did not include a step';
+  }
+
+  const numericStepFields = [
+    step.distanceFromPrevStepMeters,
+    step.timeFromPrevStepSeconds,
+    step.drivingSide,
+    step.stepNumber,
+    step.maneuver,
+    step.roundaboutTurnNumber,
+  ];
+  if (!numericStepFields.every(field => typeof field === 'number')) {
+    return 'Turn-by-turn step had invalid numeric fields';
+  }
+  if (step.instruction != null && typeof step.instruction !== 'string') {
+    return 'Turn-by-turn step had an invalid instruction';
+  }
+
+  return null;
+};
+
 type NativeModuleError = {
   code?: string;
 };
@@ -1911,8 +1951,15 @@ export const testNavInfoEventsAfterCleanup = async (testTools: TestTools) => {
 
   let phase: 'first' | 'second' = 'first';
 
-  setOnTurnByTurn(async (_events: TurnByTurnEvent[]) => {
+  setOnTurnByTurn(async (events: TurnByTurnEvent[]) => {
     if (phase === 'first') {
+      const payloadError = validateTurnByTurnPayload(events);
+      if (payloadError) {
+        setOnTurnByTurn(null);
+        failTest(payloadError);
+        return;
+      }
+
       // Received navInfo in first session — now cleanup and re-init
       phase = 'second';
       setOnTurnByTurn(null);

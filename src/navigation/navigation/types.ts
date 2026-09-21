@@ -26,6 +26,9 @@ import type {
   TravelMode,
   Waypoint,
   TermsAndConditionsUIParams,
+  DrivingSide,
+  Maneuver,
+  NavState,
 } from '../types';
 import { NavigationSessionStatus } from '../types';
 
@@ -550,8 +553,48 @@ export enum TaskRemovedBehavior {
   QUIT_SERVICE,
 }
 
-/**
- * Defines the turn-by-turn event data.
- */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface TurnByTurnEvent {}
+/** Information about one step in a turn-by-turn navigation route. */
+export interface TurnByTurnStep {
+  /** The step instruction. It can be absent or empty for arrival steps. */
+  instruction?: string | null;
+  /** Distance from the previous step, in meters. */
+  distanceFromPrevStepMeters: number;
+  /** Estimated duration of the step, in seconds. */
+  timeFromPrevStepSeconds: number;
+  /** The side of the road used for this step. */
+  drivingSide: DrivingSide;
+  /** The zero-based index of this step in the route. */
+  stepNumber: number;
+  /** The maneuver to perform for this step. */
+  maneuver: Maneuver;
+  /** The number of the exit after entering a roundabout, or -1 when not applicable. */
+  roundaboutTurnNumber: number;
+  /** The route exit number, when available. */
+  exitNumber?: string | null;
+  /** The full road name, when available. */
+  fullRoadName?: string | null;
+}
+
+/** Defines the turn-by-turn event data. */
+export interface TurnByTurnEvent {
+  /** The current navigation state. */
+  navState: NavState;
+  /** Whether the route changed since the previous event. */
+  routeChanged: boolean;
+  /** Distance to the current step, in meters. */
+  distanceToCurrentStepMeters?: number;
+  /** Distance to the final destination, in meters. */
+  distanceToFinalDestinationMeters?: number;
+  /** Estimated time to the current step, in seconds. */
+  timeToCurrentStepSeconds?: number;
+  /** Distance to the next destination, in meters. */
+  distanceToNextDestinationMeters?: number;
+  /** Estimated time to the next destination, in seconds. */
+  timeToNextDestinationSeconds?: number;
+  /** Estimated time to the final destination, in seconds. */
+  timeToFinalDestinationSeconds?: number;
+  /** The step currently being navigated, when available. */
+  currentStep?: TurnByTurnStep;
+  /** The remaining route steps. This name mirrors the native event payload. */
+  getRemainingSteps: TurnByTurnStep[];
+}

@@ -1028,6 +1028,8 @@ RCT_EXPORT_MODULE(NavModule);
   [obj setValue:[NSNumber numberWithInteger:stepInfo.drivingSide] forKey:@"drivingSide"];
   [obj setValue:[NSNumber numberWithInteger:stepInfo.stepNumber] forKey:@"stepNumber"];
   [obj setValue:[NSNumber numberWithInteger:stepInfo.maneuver] forKey:@"maneuver"];
+  [obj setValue:[NSNumber numberWithInteger:stepInfo.roundaboutTurnNumber]
+         forKey:@"roundaboutTurnNumber"];
   [obj setValue:stepInfo.exitNumber forKey:@"exitNumber"];
   [obj setValue:stepInfo.fullRoadName forKey:@"fullRoadName"];
   [obj setValue:stepInfo.fullInstructionText forKey:@"instruction"];

@@ -721,7 +721,34 @@ setOnArrival(null);
 | `setOnReroutingRequestedByOffRoute`   | `void`                                                | Called when rerouting is triggered by off-route |
 | `setOnTrafficUpdated`                 | `void`                                                | Called when traffic data is updated             |
 | `setOnRemainingTimeOrDistanceChanged` | `void`                                                | Called when remaining time or distance changes  |
-| `setOnTurnByTurn`                     | `{ navInfo: NavInfo }`                                | Called with turn-by-turn navigation info        |
+| `setOnTurnByTurn`                     | `TurnByTurnEvent[]`                                   | Called with turn-by-turn navigation info        |
+
+Turn-by-turn events include navigation state, distance and time estimates, the current step, and
+remaining steps. Step distances are in meters and durations are in seconds. `instruction`,
+`exitNumber`, and `fullRoadName` can be absent; an arrival instruction can also be empty.
+`roundaboutTurnNumber` is `-1` when the step is not in a roundabout.
+
+```tsx
+import { useEffect } from 'react';
+import { Maneuver, useNavigation } from '@googlemaps/react-native-navigation-sdk';
+
+const { setOnTurnByTurn } = useNavigation();
+
+useEffect(() => {
+  setOnTurnByTurn(events => {
+    const step = events[0]?.currentStep;
+    if (!step) {
+      return;
+    }
+
+    if (step.maneuver === Maneuver.TURN_LEFT) {
+      console.log(step.instruction ?? 'Turn left');
+    }
+  });
+
+  return () => setOnTurnByTurn(null);
+}, [setOnTurnByTurn]);
+```
 
 ### MapViewAutoController (useNavigationAuto hook)
 
