@@ -238,10 +238,9 @@ layer before finishing:
 - Documentation-only changes: validate referenced paths, commands, and diff
   whitespace; native builds are not necessary.
 
-Do not treat a green CI test job as evidence of runtime coverage: the current
-`.github/workflows/ci.yml` test job is a placeholder. There is no root `yarn test`
-script. The example has a Jest script, but it is not a substitute for the Detox
-build-and-test flow.
+CI does not run tests: `.github/workflows/ci.yml` has no test job, and there is
+no root `yarn test` script. The example has a Jest script, but it is not a
+substitute for the Detox build-and-test flow.
 
 ### Detox integration tests
 

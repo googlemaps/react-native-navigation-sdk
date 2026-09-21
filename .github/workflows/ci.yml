@@ -32,12 +32,60 @@ on:
   workflow_call:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      android: ${{ steps.filter.outputs.android }}
+      ios: ${{ steps.filter.outputs.ios }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Full history, so the merge base with the target branch is reachable.
+          fetch-depth: 0
+
+      - name: Classify changed files
+        id: filter
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          android=true
+          ios=true
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            changed=$(git diff --name-only "origin/$BASE_REF...HEAD")
+            echo "Changed files:"
+            echo "$changed"
+
+            if [[ -n "$changed" ]]; then
+              android=false
+              ios=false
+              while IFS= read -r file; do
+                case "$file" in
+                  android/*|example/android/*) android=true ;;
+                  ios/*|example/ios/*|*.podspec|example/Gemfile|example/Gemfile.lock) ios=true ;;
+                  # Shared sources and root-level files reach both platforms.
+                  *) android=true; ios=true ;;
+                esac
+              done <<< "$changed"
+            fi
+          fi
+
+          echo "Build Android: $android, build iOS: $ios"
+          echo "android=$android" >> "$GITHUB_OUTPUT"
+          echo "ios=$ios" >> "$GITHUB_OUTPUT"
+
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -53,7 +101,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install clang-format
         run: sudo apt-get install clang-format
@@ -66,10 +116,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install JDK
-        uses: actions/setup-java@e9fbacdec3bb3b6036605a3e6f7995d66773a8c6
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -104,28 +156,24 @@ jobs:
         run: |
           find . -name "*.kt" -not -path "*/build/*" | xargs java -jar $HOME/ktfmt/ktfmt.jar --google-style --dry-run --set-exit-if-changed
 
+  # Required check on the googlemaps organization, so the job has to report a
+  # status. There is no test orchestration for Android and iOS yet; replace the
+  # placeholder step once Detox runs on both platforms.
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
-      - name: Placeholder Test Step
-        run: echo "No tests to run yet" && true
-      # TODO: build test orchestration for Android and iOS and run detox tests on both platforms.
-      #  - name: Checkout
-      #    uses: actions/checkout@v4
-
-      #  - name: Setup
-      #    uses: ./.github/actions/setup
-
-      #  - name: Run unit tests
-      #    run: yarn test --maxWorkers=2 --coverage
+      - name: Placeholder test step
+        run: echo "No tests to run yet"
 
   build-library:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -134,19 +182,23 @@ jobs:
         run: yarn prepare
 
   build-android:
+    needs: changes
+    if: needs.changes.outputs.android == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       TURBO_CACHE_DIR: .turbo/android
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
 
       - name: Cache turborepo for Android
-        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.TURBO_CACHE_DIR }}
           key: ${{ runner.os }}-turborepo-android-${{ hashFiles('yarn.lock') }}
@@ -163,7 +215,7 @@ jobs:
 
       - name: Install JDK
         if: env.turbo_cache_hit != 1
-        uses: actions/setup-java@e9fbacdec3bb3b6036605a3e6f7995d66773a8c6
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -176,7 +228,7 @@ jobs:
 
       - name: Cache Gradle
         if: env.turbo_cache_hit != 1
-        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.gradle/wrapper
@@ -193,7 +245,8 @@ jobs:
           yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}"
 
   build-ios:
-    if: github.actor != 'dependabot[bot]'
+    needs: changes
+    if: needs.changes.outputs.ios == 'true' && github.actor != 'dependabot[bot]'
     runs-on:
       labels: macos-26-xlarge
     timeout-minutes: 45
@@ -208,11 +261,13 @@ jobs:
           echo "TOOLCHAINS=com.apple.dt.toolchain.XcodeDefault" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
-      
+
       - name: Select XCode 26.5
         run: sudo xcode-select -s '/Applications/Xcode_26.5.0.app/Contents/Developer'
 
@@ -222,7 +277,7 @@ jobs:
           pod --version
 
       - name: Cache turborepo for iOS
-        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.TURBO_CACHE_DIR }}
           key: ${{ runner.os }}-turborepo-ios-${{ hashFiles('yarn.lock') }}
@@ -242,7 +297,7 @@ jobs:
       - name: Cache cocoapods
         if: env.turbo_cache_hit != 1
         id: cocoapods-cache
-        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             **/ios/Pods
