@@ -56,15 +56,15 @@ post_install do |installer|
     # :ccache_enabled => true
   )
 
-  # Fix fmt compilation issue with Xcode 26.4+ (stricter consteval enforcement)
-  # fmt/base.h unconditionally redefines FMT_USE_CONSTEVAL based on __cplusplus,
-  # so preprocessor defines are overwritten. Compiling fmt in C++17 mode ensures
-  # FMT_CPLUSPLUS (201703L) < 201709L → FMT_USE_CONSTEVAL = 0.
-  # Fixed in React Native 0.85+, can be removed after upgrading.
+  # Resource bundle targets generated from `s.resource_bundles` keep the deployment
+  # target declared by their own podspec, which react_native_post_install leaves
+  # untouched. Xcode fails the build when a target's minimum falls below the range
+  # the active SDK supports, so align every target with what React Native requires.
   installer.pods_project.targets.each do |target|
-    if target.name == 'fmt'
-      target.build_configurations.each do |config|
-        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+    target.build_configurations.each do |config|
+      deployment_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+      if deployment_target && Gem::Version.new(deployment_target) < Gem::Version.new(min_ios_version_supported)
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_ios_version_supported
       end
     end
   end
