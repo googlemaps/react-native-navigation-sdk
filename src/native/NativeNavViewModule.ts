@@ -149,6 +149,11 @@ export interface Spec extends TurboModule {
     nativeID: string,
     cameraPosition: CameraPositionSpec
   ): Promise<void>;
+  animateCamera(
+    nativeID: string,
+    cameraPosition: CameraPositionSpec,
+    duration?: WithDefault<Double, null>
+  ): Promise<void>;
   getCameraPosition(nativeID: string): Promise<CameraPosition>;
   getMyLocation(nativeID: string): Promise<Location>;
   getUiSettings(nativeID: string): Promise<UISettings>;
