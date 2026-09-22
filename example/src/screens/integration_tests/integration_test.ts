@@ -17,6 +17,9 @@
 import {
   AudioGuidanceMode,
   CameraPerspective,
+  DrivingSide,
+  Maneuver,
+  NavState,
   TravelMode,
   NavigationSessionStatus,
   RouteStatus,
@@ -1968,6 +1971,151 @@ export const testNavInfoEventsAfterCleanup = async (testTools: TestTools) => {
       );
     }
     await navigationController.setDestination(destination);
+    await navigationController.startGuidance();
+    await navigationController.simulator.simulateLocationsAlongExistingRoute({
+      speedMultiplier: 5,
+    });
+  });
+
+  await initializeNavigation(navigationController, failTest);
+};
+
+/**
+ * Verifies that a turn-by-turn event carries the fields that TurnByTurnEvent
+ * and StepInfo declare, so that the TypeScript types and the native emitters
+ * keep describing the same payload.
+ */
+export const testTurnByTurnEventPayload = async (testTools: TestTools) => {
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnLocationChanged,
+    setOnTurnByTurn,
+    passTest,
+    failTest,
+  } = testTools;
+
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
+  }
+
+  const startLocation: LatLng = {
+    lat: 37.79136614772824,
+    lng: -122.41565900473043,
+  };
+
+  setOnTurnByTurn(async (events: TurnByTurnEvent[]) => {
+    const event = events[0];
+    const step = event?.currentStep;
+    if (!event || !step) {
+      return;
+    }
+
+    setOnTurnByTurn(null);
+    await navigationController.cleanup();
+
+    if (NavState[event.navState] === undefined) {
+      return failTest(`navState is not a NavState value: ${event.navState}`);
+    }
+    if (typeof event.routeChanged !== 'boolean') {
+      return failTest(`routeChanged is not a boolean: ${event.routeChanged}`);
+    }
+    if (!Array.isArray(event.getRemainingSteps)) {
+      return failTest('getRemainingSteps is not an array');
+    }
+    if (Maneuver[step.maneuver] === undefined) {
+      return failTest(
+        `currentStep.maneuver is not a Maneuver value: ${step.maneuver}`
+      );
+    }
+    if (DrivingSide[step.drivingSide] === undefined) {
+      return failTest(
+        `currentStep.drivingSide is not a DrivingSide value: ${step.drivingSide}`
+      );
+    }
+    if (typeof step.stepNumber !== 'number') {
+      return failTest(
+        `currentStep.stepNumber is not a number: ${step.stepNumber}`
+      );
+    }
+    if (typeof step.distanceFromPrevStepMeters !== 'number') {
+      return failTest(
+        `currentStep.distanceFromPrevStepMeters is not a number: ${step.distanceFromPrevStepMeters}`
+      );
+    }
+    if (typeof step.timeFromPrevStepSeconds !== 'number') {
+      return failTest(
+        `currentStep.timeFromPrevStepSeconds is not a number: ${step.timeFromPrevStepSeconds}`
+      );
+    }
+    if (typeof step.instruction !== 'string') {
+      return failTest(
+        `currentStep.instruction is not a string: ${step.instruction}`
+      );
+    }
+    if (
+      step.fullRoadName !== undefined &&
+      typeof step.fullRoadName !== 'string'
+    ) {
+      return failTest(
+        `currentStep.fullRoadName is not a string: ${step.fullRoadName}`
+      );
+    }
+    if (
+      step.simpleRoadName !== undefined &&
+      typeof step.simpleRoadName !== 'string'
+    ) {
+      return failTest(
+        `currentStep.simpleRoadName is not a string: ${step.simpleRoadName}`
+      );
+    }
+    if (step.exitNumber !== undefined && typeof step.exitNumber !== 'string') {
+      return failTest(
+        `currentStep.exitNumber is not a string: ${step.exitNumber}`
+      );
+    }
+    if (
+      step.roundaboutTurnNumber !== undefined &&
+      typeof step.roundaboutTurnNumber !== 'number'
+    ) {
+      return failTest(
+        `currentStep.roundaboutTurnNumber is not a number: ${step.roundaboutTurnNumber}`
+      );
+    }
+    if (
+      step.roundaboutTurnNumber !== undefined &&
+      step.roundaboutTurnNumber < 0
+    ) {
+      return failTest(
+        `currentStep.roundaboutTurnNumber must be omitted for non-roundabouts: ${step.roundaboutTurnNumber}`
+      );
+    }
+
+    passTest();
+  });
+
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    navigationController.setTurnByTurnLoggingEnabled(true);
+
+    const located = await simulateAndWaitForLocation(
+      navigationController,
+      setOnLocationChanged,
+      startLocation
+    );
+    if (!located) {
+      return failTest(
+        'Timed out waiting for simulated location to be confirmed'
+      );
+    }
+    await navigationController.setDestination({
+      title: 'Grace Cathedral',
+      position: {
+        lat: 37.791957,
+        lng: -122.412529,
+      },
+    });
     await navigationController.startGuidance();
     await navigationController.simulator.simulateLocationsAlongExistingRoute({
       speedMultiplier: 5,
