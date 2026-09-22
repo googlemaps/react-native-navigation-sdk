@@ -131,6 +131,8 @@ type TurnByTurnEventSpec = Readonly<{
   getRemainingSteps: ReadonlyArray<StepInfoSpec>;
 }>;
 
+// This mirrors the fields emitted by Android's StepInfo and iOS's
+// GMSNavigationStepInfo. Keep it aligned with the public StepInfo type.
 type StepInfoSpec = Readonly<{
   instruction?: string;
   fullRoadName?: string;
