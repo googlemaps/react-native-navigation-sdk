@@ -182,7 +182,7 @@ public class ObjectTranslationUtil {
     }
 
     Integer roundaboutTurnNumber = stepInfo.getRoundaboutTurnNumber();
-    if (roundaboutTurnNumber != null) {
+    if (roundaboutTurnNumber != null && roundaboutTurnNumber >= 0) {
       map.putInt("roundaboutTurnNumber", roundaboutTurnNumber);
     }
 

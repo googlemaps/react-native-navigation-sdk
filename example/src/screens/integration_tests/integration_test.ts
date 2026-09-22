@@ -2083,6 +2083,14 @@ export const testTurnByTurnEventPayload = async (testTools: TestTools) => {
         `currentStep.roundaboutTurnNumber is not a number: ${step.roundaboutTurnNumber}`
       );
     }
+    if (
+      step.roundaboutTurnNumber !== undefined &&
+      step.roundaboutTurnNumber < 0
+    ) {
+      return failTest(
+        `currentStep.roundaboutTurnNumber must be omitted for non-roundabouts: ${step.roundaboutTurnNumber}`
+      );
+    }
 
     passTest();
   });
