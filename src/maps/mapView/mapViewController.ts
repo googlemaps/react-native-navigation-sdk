@@ -16,7 +16,7 @@
 
 import NavViewModule from '../../native/NativeNavViewModule';
 import { processColorValue, colorIntToRGBA } from '../../shared';
-import type { Location } from '../../shared/types';
+import type { Location, Point, LatLng, Bounds } from '../../shared/types';
 import type {
   CameraPosition,
   Circle,
@@ -27,6 +27,7 @@ import type {
   UISettings,
 } from '../types';
 import type {
+  BoundsOptions,
   CircleOptions,
   GroundOverlayBoundsOptions,
   GroundOverlayOptions,
@@ -65,6 +66,22 @@ export const getMapViewController = (nativeID: string): MapViewController => {
           ? colorIntToRGBA(circle.strokeColor as unknown as number)
           : undefined,
       };
+    },
+
+    coordinateForPoint: async (point: Point): Promise<LatLng> => {
+      return await NavViewModule.coordinateForPoint(nativeID, point);
+    },
+
+    pointForCoordinate: async (coordinate: LatLng): Promise<Point> => {
+      return await NavViewModule.pointForCoordinate(nativeID, coordinate);
+    },
+
+    fitBounds: async (boundsOptions: BoundsOptions) => {
+      return await NavViewModule.fitBounds(nativeID, boundsOptions);
+    },
+
+    getBounds: async (): Promise<Bounds> => {
+      return await NavViewModule.getBounds(nativeID);
     },
 
     addMarker: async (markerOptions: MarkerOptions): Promise<Marker> => {

@@ -132,6 +132,22 @@ export interface NativeNavViewProps extends ViewProps {
   // Event handlers
   onMapReady?: DirectEventHandler<null>;
   onMapClick?: DirectEventHandler<{ lat: Float; lng: Float }>;
+  onMapDrag?: DirectEventHandler<{
+    cameraPosition: {
+      target: { lat: Float; lng: Float };
+      bearing?: Float;
+      tilt?: Float;
+      zoom?: Float;
+    };
+  }>;
+  onMapDragEnd?: DirectEventHandler<{
+    cameraPosition: {
+      target: { lat: Float; lng: Float };
+      bearing?: Float;
+      tilt?: Float;
+      zoom?: Float;
+    };
+  }>;
   onMarkerClick?: DirectEventHandler<{
     position: { lat: Float; lng: Float };
     id: string;
