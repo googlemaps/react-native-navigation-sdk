@@ -30,6 +30,7 @@ import {
   type MapViewController,
   type NavigationController,
   type NavigationViewController,
+  type StepInfo,
   type TimeAndDistance,
   type TurnByTurnEvent,
 } from '@googlemaps/react-native-navigation-sdk';
@@ -1980,6 +1981,61 @@ export const testNavInfoEventsAfterCleanup = async (testTools: TestTools) => {
   await initializeNavigation(navigationController, failTest);
 };
 
+const OPTIONAL_STEP_INTEGER_FIELDS = [
+  'stepNumber',
+  'distanceFromPrevStepMeters',
+  'timeFromPrevStepSeconds',
+  'roundaboutTurnNumber',
+] as const;
+
+const OPTIONAL_STEP_STRING_FIELDS = [
+  'instruction',
+  'fullRoadName',
+  'simpleRoadName',
+  'exitNumber',
+] as const;
+
+const OPTIONAL_EVENT_INTEGER_FIELDS = [
+  'distanceToCurrentStepMeters',
+  'timeToCurrentStepSeconds',
+  'distanceToNextDestinationMeters',
+  'timeToNextDestinationSeconds',
+  'distanceToFinalDestinationMeters',
+  'timeToFinalDestinationSeconds',
+] as const;
+
+/** Returns why a step does not match StepInfo, or undefined when it does. */
+const findStepInfoMismatch = (
+  step: StepInfo,
+  label: string
+): string | undefined => {
+  if (Maneuver[step.maneuver] === undefined) {
+    return `${label}.maneuver is not a Maneuver value: ${step.maneuver}`;
+  }
+  if (DrivingSide[step.drivingSide] === undefined) {
+    return `${label}.drivingSide is not a DrivingSide value: ${step.drivingSide}`;
+  }
+  for (const field of OPTIONAL_STEP_INTEGER_FIELDS) {
+    const value = step[field];
+    if (value !== undefined && !Number.isInteger(value)) {
+      return `${label}.${field} is not an integer: ${value}`;
+    }
+  }
+  for (const field of OPTIONAL_STEP_STRING_FIELDS) {
+    const value = step[field];
+    if (value !== undefined && typeof value !== 'string') {
+      return `${label}.${field} is not a string: ${value}`;
+    }
+  }
+  if (
+    step.roundaboutTurnNumber !== undefined &&
+    step.roundaboutTurnNumber < 0
+  ) {
+    return `${label}.roundaboutTurnNumber must be omitted for non-roundabouts: ${step.roundaboutTurnNumber}`;
+  }
+  return undefined;
+};
+
 /**
  * Verifies that a turn-by-turn event carries the fields that TurnByTurnEvent
  * and StepInfo declare, so that the TypeScript types and the native emitters
@@ -2007,89 +2063,40 @@ export const testTurnByTurnEventPayload = async (testTools: TestTools) => {
 
   setOnTurnByTurn(async (events: TurnByTurnEvent[]) => {
     const event = events[0];
-    const step = event?.currentStep;
-    if (!event || !step) {
+    if (!event?.currentStep) {
       return;
     }
 
     setOnTurnByTurn(null);
     await navigationController.cleanup();
 
-    if (NavState[event.navState] === undefined) {
-      return failTest(`navState is not a NavState value: ${event.navState}`);
+    if (event.navState !== NavState.ENROUTE) {
+      return failTest(
+        `currentStep is set while navState is not ENROUTE: ${event.navState}`
+      );
     }
     if (typeof event.routeChanged !== 'boolean') {
       return failTest(`routeChanged is not a boolean: ${event.routeChanged}`);
     }
+    for (const field of OPTIONAL_EVENT_INTEGER_FIELDS) {
+      const value = event[field];
+      if (value !== undefined && !Number.isInteger(value)) {
+        return failTest(`${field} is not an integer: ${value}`);
+      }
+    }
     if (!Array.isArray(event.getRemainingSteps)) {
       return failTest('getRemainingSteps is not an array');
     }
-    if (Maneuver[step.maneuver] === undefined) {
-      return failTest(
-        `currentStep.maneuver is not a Maneuver value: ${step.maneuver}`
-      );
-    }
-    if (DrivingSide[step.drivingSide] === undefined) {
-      return failTest(
-        `currentStep.drivingSide is not a DrivingSide value: ${step.drivingSide}`
-      );
-    }
-    if (typeof step.stepNumber !== 'number') {
-      return failTest(
-        `currentStep.stepNumber is not a number: ${step.stepNumber}`
-      );
-    }
-    if (typeof step.distanceFromPrevStepMeters !== 'number') {
-      return failTest(
-        `currentStep.distanceFromPrevStepMeters is not a number: ${step.distanceFromPrevStepMeters}`
-      );
-    }
-    if (typeof step.timeFromPrevStepSeconds !== 'number') {
-      return failTest(
-        `currentStep.timeFromPrevStepSeconds is not a number: ${step.timeFromPrevStepSeconds}`
-      );
-    }
-    if (typeof step.instruction !== 'string') {
-      return failTest(
-        `currentStep.instruction is not a string: ${step.instruction}`
-      );
-    }
-    if (
-      step.fullRoadName !== undefined &&
-      typeof step.fullRoadName !== 'string'
-    ) {
-      return failTest(
-        `currentStep.fullRoadName is not a string: ${step.fullRoadName}`
-      );
-    }
-    if (
-      step.simpleRoadName !== undefined &&
-      typeof step.simpleRoadName !== 'string'
-    ) {
-      return failTest(
-        `currentStep.simpleRoadName is not a string: ${step.simpleRoadName}`
-      );
-    }
-    if (step.exitNumber !== undefined && typeof step.exitNumber !== 'string') {
-      return failTest(
-        `currentStep.exitNumber is not a string: ${step.exitNumber}`
-      );
-    }
-    if (
-      step.roundaboutTurnNumber !== undefined &&
-      typeof step.roundaboutTurnNumber !== 'number'
-    ) {
-      return failTest(
-        `currentStep.roundaboutTurnNumber is not a number: ${step.roundaboutTurnNumber}`
-      );
-    }
-    if (
-      step.roundaboutTurnNumber !== undefined &&
-      step.roundaboutTurnNumber < 0
-    ) {
-      return failTest(
-        `currentStep.roundaboutTurnNumber must be omitted for non-roundabouts: ${step.roundaboutTurnNumber}`
-      );
+
+    const mismatch =
+      findStepInfoMismatch(event.currentStep, 'currentStep') ??
+      event.getRemainingSteps
+        .map((step, index) =>
+          findStepInfoMismatch(step, `getRemainingSteps[${index}]`)
+        )
+        .find(message => message !== undefined);
+    if (mismatch) {
+      return failTest(mismatch);
     }
 
     passTest();

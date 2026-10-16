@@ -563,9 +563,6 @@ export interface StepInfo {
   /**
    * The full text of the instruction for this step, for example
    * "Turn left onto Lean Ave."
-   *
-   * The arrival step is emitted with an empty instruction, so treat an empty
-   * string the same way as a missing one.
    */
   instruction?: string;
 

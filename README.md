@@ -724,8 +724,9 @@ setOnArrival(null);
 | `setOnTurnByTurn`                     | `TurnByTurnEvent[]`                                   | Called with turn-by-turn navigation info        |
 
 Turn-by-turn events include the navigation state, distance and time estimates, the current step,
-and remaining steps. Distances are in meters and durations are in seconds. Step fields that the
-Navigation SDK does not provide are omitted. In particular, `roundaboutTurnNumber` is present only
+and remaining steps. Events are emitted in every navigation state, and `currentStep` is present only
+while `navState` is `NavState.ENROUTE`. Distances are in meters and durations are in seconds. Step
+fields that the Navigation SDK does not provide are omitted. In particular, `roundaboutTurnNumber` is present only
 for roundabout steps; check that optional fields are defined before using them.
 
 ```tsx

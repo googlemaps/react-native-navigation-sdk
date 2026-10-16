@@ -181,6 +181,8 @@ public class ObjectTranslationUtil {
       map.putInt("stepNumber", stepNumber);
     }
 
+    // The SDK documents both null and -1 for steps that are not roundabouts, so either one leaves
+    // the key out.
     Integer roundaboutTurnNumber = stepInfo.getRoundaboutTurnNumber();
     if (roundaboutTurnNumber != null && roundaboutTurnNumber >= 0) {
       map.putInt("roundaboutTurnNumber", roundaboutTurnNumber);

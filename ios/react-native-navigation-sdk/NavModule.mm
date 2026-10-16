@@ -32,11 +32,11 @@ static NSString *const kNoDestinationsErrorMessage = @"Destinations not set";
 static dispatch_once_t deprecatedDisplayOptionsWarningOnce;
 
 /**
- * Adds a Navigation SDK distance or duration to a turn-by-turn payload, rounded to the whole
- * meters and seconds that the JavaScript side declares. The navigator reports
- * `CLLocationDistanceMax` and `CLTimeIntervalMax` while no route is available, and rounding a
- * value that does not fit an integer is undefined, so an unavailable value is left out of the
- * payload rather than converted.
+ * Adds a Navigation SDK distance or duration to a turn-by-turn payload, rounded to whole meters
+ * and seconds to match the integers that the Android Navigation SDK reports. The navigator reports
+ * `CLLocationDistanceMax` and `CLTimeIntervalMax` while no route is available, and `llround` gives
+ * an unspecified result for a value outside the integer range, so an unavailable value is left out
+ * of the payload rather than converted.
  */
 static void setRoundedValue(NSMutableDictionary *payload, NSString *key, double value) {
   if (!isfinite(value) || fabs(value) >= (double)NSIntegerMax) {
@@ -894,7 +894,7 @@ RCT_EXPORT_MODULE(NavModule);
 }
 
 - (void)navigator:(GMSNavigator *)navigator didUpdateNavInfo:(GMSNavigationNavInfo *)navInfo {
-  if (self.enableUpdateInfo == TRUE && navInfo.navState == GMSNavigationNavStateEnroute) {
+  if (self.enableUpdateInfo == TRUE) {
     [self onTurnByTurn:navInfo
         distanceToNextDestinationMeters:navigator.distanceToNextDestination
            timeToNextDestinationSeconds:navigator.timeToNextDestination];
@@ -968,10 +968,6 @@ RCT_EXPORT_MODULE(NavModule);
     default:
       return @"UNKNOWN";
   }
-}
-
-- (void)onTurnByTurn:(nonnull GMSNavigationNavInfo *)navInfo {
-  [self onTurnByTurn:navInfo distanceToNextDestinationMeters:0 timeToNextDestinationSeconds:0];
 }
 
 - (void)onTurnByTurn:(GMSNavigationNavInfo *)navInfo
