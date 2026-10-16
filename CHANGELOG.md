@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.18.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.3...v0.18.0) (2026-10-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* expose turn-by-turn event payloads ([#678](https://github.com/googlemaps/react-native-navigation-sdk/issues/678))
+
+### Features
+
+* expose turn-by-turn event payloads ([#678](https://github.com/googlemaps/react-native-navigation-sdk/issues/678)) ([b50240a](https://github.com/googlemaps/react-native-navigation-sdk/commit/b50240a05c9d0554b8ddaa442dd5eb46721d9625))
+
+
+### Bug Fixes
+
+* **android:** drop the unused kotlin-android plugin ([#644](https://github.com/googlemaps/react-native-navigation-sdk/issues/644)) ([b5c8bb6](https://github.com/googlemaps/react-native-navigation-sdk/commit/b5c8bb6eef91e45ae0f46f3cbb458f83a002821f))
+
 ## [0.17.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.2...v0.17.3) (2026-09-18)
 
 
