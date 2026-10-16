@@ -23,6 +23,7 @@ import {
   NavigationView,
   MapColorScheme,
   CameraPerspective,
+  Maneuver,
   NavigationNightMode,
   NavigationSessionStatus,
   type ArrivalEvent,
@@ -177,8 +178,13 @@ const NavigationScreen = () => {
     setOnTrafficUpdated(() => showSnackbar('Traffic Updated'));
     setOnStartGuidance(() => showSnackbar('Start Guidance'));
 
-    setOnTurnByTurn((_turnByTurn: TurnByTurnEvent[]) => {
-      console.debug(`Received ${_turnByTurn.length} turn-by-turn events`);
+    setOnTurnByTurn((turnByTurn: TurnByTurnEvent[]) => {
+      const currentStep = turnByTurn[0]?.currentStep;
+      console.debug(
+        `Received ${turnByTurn.length} turn-by-turn events, current step: ` +
+          `${currentStep ? Maneuver[currentStep.maneuver] : 'none'} ` +
+          `"${currentStep?.instruction ?? ''}"`
+      );
     });
   }, [
     setOnNavigationReady,

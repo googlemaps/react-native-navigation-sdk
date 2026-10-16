@@ -58,6 +58,7 @@ import {
   testMinMaxZoomLevels,
   testSetFollowingPerspective,
   testNavInfoEventsAfterCleanup,
+  testTurnByTurnEventPayload,
   NO_ERRORS_DETECTED_LABEL,
 } from './integration_tests/integration_test';
 
@@ -327,6 +328,9 @@ const IntegrationTestsScreen = () => {
       case 'testNavInfoEventsAfterCleanup':
         await testNavInfoEventsAfterCleanup(getTestTools());
         break;
+      case 'testTurnByTurnEventPayload':
+        await testTurnByTurnEventPayload(getTestTools());
+        break;
       default:
         resetTestState();
         break;
@@ -562,6 +566,13 @@ const IntegrationTestsScreen = () => {
             runTest('testNavInfoEventsAfterCleanup');
           }}
           testID="testNavInfoEventsAfterCleanup"
+        />
+        <ExampleAppButton
+          title="testTurnByTurnEventPayload"
+          onPress={() => {
+            runTest('testTurnByTurnEventPayload');
+          }}
+          testID="testTurnByTurnEventPayload"
         />
       </OverlayModal>
     </View>

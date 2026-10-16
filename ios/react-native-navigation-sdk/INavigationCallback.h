@@ -28,7 +28,6 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)onRemainingTimeOrDistanceChanged;
 - (void)onRouteChanged;
 - (void)onArrival:(NSDictionary *)waypoint;
-- (void)onTurnByTurn:(GMSNavigationNavInfo *)navInfo;
 - (void)onTurnByTurn:(GMSNavigationNavInfo *)navInfo
     distanceToNextDestinationMeters:(double)distanceToNextDestinationMeters
        timeToNextDestinationSeconds:(double)timeToNextDestinationSeconds;

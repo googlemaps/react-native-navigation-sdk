@@ -30,6 +30,144 @@ export enum DrivingSide {
 }
 
 /**
+ * A set of values that specify the navigation action to take.
+ */
+export enum Maneuver {
+  /** Unknown maneuver. */
+  UNKNOWN = 0,
+  /** Starting point of the maneuver. */
+  DEPART = 1,
+  /** Arrival at a destination. */
+  DESTINATION = 2,
+  /** Arrival at a destination located on the left side of the road. */
+  DESTINATION_LEFT = 3,
+  /** Arrival at a destination located on the right side of the road. */
+  DESTINATION_RIGHT = 4,
+  /** Continue straight. */
+  STRAIGHT = 5,
+  /** Regular left turn at an intersection. */
+  TURN_LEFT = 6,
+  /** Regular right turn at an intersection. */
+  TURN_RIGHT = 7,
+  /** Keep left as the road diverges. */
+  TURN_KEEP_LEFT = 8,
+  /** Keep right as the road diverges. */
+  TURN_KEEP_RIGHT = 9,
+  /** Slight left turn at an intersection. */
+  TURN_SLIGHT_LEFT = 10,
+  /** Slight right turn at an intersection. */
+  TURN_SLIGHT_RIGHT = 11,
+  /** Sharp left turn at an intersection. */
+  TURN_SHARP_LEFT = 12,
+  /** Sharp right turn at an intersection. */
+  TURN_SHARP_RIGHT = 13,
+  /** Clockwise turn onto the opposite side of the street. */
+  TURN_U_TURN_CLOCKWISE = 14,
+  /** Counterclockwise turn onto the opposite side of the street. */
+  TURN_U_TURN_COUNTERCLOCKWISE = 15,
+  /** Current road joins another. */
+  MERGE_UNSPECIFIED = 16,
+  /** Current road joins another on the left. */
+  MERGE_LEFT = 17,
+  /** Current road joins another on the right. */
+  MERGE_RIGHT = 18,
+  /** Current road joins another road slightly on the left. */
+  FORK_LEFT = 19,
+  /** Current road joins another road slightly on the right. */
+  FORK_RIGHT = 20,
+  /** Enter a turnpike or freeway. */
+  ON_RAMP_UNSPECIFIED = 21,
+  /** Regular left turn to enter a turnpike or freeway. */
+  ON_RAMP_LEFT = 22,
+  /** Regular right turn to enter a turnpike or freeway. */
+  ON_RAMP_RIGHT = 23,
+  /** Keep to the left side of the road when entering a turnpike or freeway as the road diverges. */
+  ON_RAMP_KEEP_LEFT = 24,
+  /** Keep to the right side of the road when entering a turnpike or freeway as the road diverges. */
+  ON_RAMP_KEEP_RIGHT = 25,
+  /** Slight left turn to enter a turnpike or freeway. */
+  ON_RAMP_SLIGHT_LEFT = 26,
+  /** Slight right turn to enter a turnpike or freeway. */
+  ON_RAMP_SLIGHT_RIGHT = 27,
+  /** Sharp left turn to enter a turnpike or freeway. */
+  ON_RAMP_SHARP_LEFT = 28,
+  /** Sharp right turn to enter a turnpike or freeway. */
+  ON_RAMP_SHARP_RIGHT = 29,
+  /** Clockwise turn onto the opposite side of the street to enter a turnpike or freeway. */
+  ON_RAMP_U_TURN_CLOCKWISE = 30,
+  /** Counterclockwise turn onto the opposite side of the street to enter a turnpike or freeway. */
+  ON_RAMP_U_TURN_COUNTERCLOCKWISE = 31,
+  /** Exit a turnpike or freeway. */
+  OFF_RAMP_UNSPECIFIED = 32,
+  /** Regular left turn to exit a turnpike or freeway. */
+  OFF_RAMP_LEFT = 33,
+  /** Regular right turn to exit a turnpike or freeway. */
+  OFF_RAMP_RIGHT = 34,
+  /** Keep to the left side of the road when exiting a turnpike or freeway as the road diverges. */
+  OFF_RAMP_KEEP_LEFT = 35,
+  /** Keep to the right side of the road when exiting a turnpike or freeway as the road diverges. */
+  OFF_RAMP_KEEP_RIGHT = 36,
+  /** Slight left turn to exit a turnpike or freeway. */
+  OFF_RAMP_SLIGHT_LEFT = 37,
+  /** Slight right turn to exit a turnpike or freeway. */
+  OFF_RAMP_SLIGHT_RIGHT = 38,
+  /** Sharp left turn to exit a turnpike or freeway. */
+  OFF_RAMP_SHARP_LEFT = 39,
+  /** Sharp right turn to exit a turnpike or freeway. */
+  OFF_RAMP_SHARP_RIGHT = 40,
+  /** Clockwise turn onto the opposite side of the street to exit a turnpike or freeway. */
+  OFF_RAMP_U_TURN_CLOCKWISE = 41,
+  /** Counterclockwise turn onto the opposite side of the street to exit a turnpike or freeway. */
+  OFF_RAMP_U_TURN_COUNTERCLOCKWISE = 42,
+  /** Enter a roundabout in the clockwise direction. */
+  ROUNDABOUT_CLOCKWISE = 43,
+  /** Enter a roundabout in the counterclockwise direction. */
+  ROUNDABOUT_COUNTERCLOCKWISE = 44,
+  /** Enter a roundabout in the clockwise direction and continue straight. */
+  ROUNDABOUT_STRAIGHT_CLOCKWISE = 45,
+  /** Enter a roundabout in the counterclockwise direction and continue straight. */
+  ROUNDABOUT_STRAIGHT_COUNTERCLOCKWISE = 46,
+  /** Enter a roundabout in the clockwise direction and turn left. */
+  ROUNDABOUT_LEFT_CLOCKWISE = 47,
+  /** Enter a roundabout in the counterclockwise direction and turn left. */
+  ROUNDABOUT_LEFT_COUNTERCLOCKWISE = 48,
+  /** Enter a roundabout in the clockwise direction and turn right. */
+  ROUNDABOUT_RIGHT_CLOCKWISE = 49,
+  /** Enter a roundabout in the counterclockwise direction and turn right. */
+  ROUNDABOUT_RIGHT_COUNTERCLOCKWISE = 50,
+  /** Enter a roundabout in the clockwise direction and turn slightly left. */
+  ROUNDABOUT_SLIGHT_LEFT_CLOCKWISE = 51,
+  /** Enter a roundabout in the counterclockwise direction and turn slightly to the left. */
+  ROUNDABOUT_SLIGHT_LEFT_COUNTERCLOCKWISE = 52,
+  /** Enter a roundabout in the clockwise direction and turn slightly to the right. */
+  ROUNDABOUT_SLIGHT_RIGHT_CLOCKWISE = 53,
+  /** Enter a roundabout in the counterclockwise direction and turn slightly to the right. */
+  ROUNDABOUT_SLIGHT_RIGHT_COUNTERCLOCKWISE = 54,
+  /** Enter a roundabout in the clockwise direction and turn sharply to the left. */
+  ROUNDABOUT_SHARP_LEFT_CLOCKWISE = 55,
+  /** Enter a roundabout in the counterclockwise direction and turn sharply to the left. */
+  ROUNDABOUT_SHARP_LEFT_COUNTERCLOCKWISE = 56,
+  /** Enter a roundabout in the clockwise direction and turn sharply to the right. */
+  ROUNDABOUT_SHARP_RIGHT_CLOCKWISE = 57,
+  /** Enter a roundabout in the counterclockwise direction and turn sharply to the right. */
+  ROUNDABOUT_SHARP_RIGHT_COUNTERCLOCKWISE = 58,
+  /** Enter a roundabout in the clockwise direction and turn onto the opposite side of the street. */
+  ROUNDABOUT_U_TURN_CLOCKWISE = 59,
+  /** Enter a roundabout in the counterclockwise direction and turn onto the opposite side of the street. */
+  ROUNDABOUT_U_TURN_COUNTERCLOCKWISE = 60,
+  /** Exit a roundabout in the clockwise direction. */
+  ROUNDABOUT_EXIT_CLOCKWISE = 61,
+  /** Exit a roundabout in the counterclockwise direction. */
+  ROUNDABOUT_EXIT_COUNTERCLOCKWISE = 62,
+  /** Take the boat ferry. */
+  FERRY_BOAT = 63,
+  /** Take the train ferry. */
+  FERRY_TRAIN = 64,
+  /** The street name changes. */
+  NAME_CHANGE = 65,
+}
+
+/**
  * The state of navigation in Navigation SDK.
  */
 export enum NavState {

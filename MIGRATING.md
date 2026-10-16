@@ -21,12 +21,19 @@ Version 0.18.0 resolves the iOS Google Navigation SDK through Swift Package Mana
 | Native SDKs | iOS Navigation SDK upgraded to `11.0.0` and resolved through Swift Package Manager   |
 | iOS display | `showTrafficLights` and `showStopSigns` no longer affect iOS navigation views         |
 | iOS maps    | `MapType.TERRAIN` is unavailable during active navigation on iOS                      |
+| Events      | `TurnByTurnEvent` declares its payload fields; iOS emits it in every state            |
 
 ### What changed
 
 Google Navigation is now resolved through Swift Package Manager during `pod install`, rather than through a CocoaPods `GoogleNavigation` dependency. CocoaPods continues to manage React Native autolinking and other pods, but it no longer fetches Google Navigation. Configure framework linkage in your app's Podfile according to your app's dependency requirements; the example app uses dynamic frameworks.
 
 Navigation SDK 11 always displays traffic lights and stop signs during navigation. The deprecated `showTrafficLights` and `showStopSigns` display options have no effect on iOS, but continue to apply on Android. Terrain map type is no longer available during active navigation on iOS; `MapType.TERRAIN` remains available for non-navigation maps. Add an `NSMotionUsageDescription` entry to your app's `Info.plist` to prevent future motion sensor-related crashes.
+
+### Turn-by-turn events
+
+`TurnByTurnEvent` declares the fields that `setOnTurnByTurn` delivers, and its steps are typed as `StepInfo` with a `Maneuver` value. Code that constructs `TurnByTurnEvent` objects, such as test mocks, must provide `navState`, `routeChanged`, and `getRemainingSteps`, and each step must provide `maneuver` and `drivingSide`.
+
+On iOS, turn-by-turn events are emitted in every navigation state, matching Android. Events received while `navState` is not `NavState.ENROUTE` have no `currentStep`, so check `navState` or `currentStep` before reading step data.
 
 ### Reinstall iOS pods
 

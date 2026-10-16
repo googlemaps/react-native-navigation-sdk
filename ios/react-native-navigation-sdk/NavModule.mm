@@ -31,6 +31,20 @@ static NSString *const kNoDestinationsErrorCode = @"NO_DESTINATIONS";
 static NSString *const kNoDestinationsErrorMessage = @"Destinations not set";
 static dispatch_once_t deprecatedDisplayOptionsWarningOnce;
 
+/**
+ * Adds a Navigation SDK distance or duration to a turn-by-turn payload, rounded to whole meters
+ * and seconds to match the integers that the Android Navigation SDK reports. The navigator reports
+ * `CLLocationDistanceMax` and `CLTimeIntervalMax` while no route is available, and `llround` gives
+ * an unspecified result for a value outside the integer range, so an unavailable value is left out
+ * of the payload rather than converted.
+ */
+static void setRoundedValue(NSMutableDictionary *payload, NSString *key, double value) {
+  if (!isfinite(value) || fabs(value) >= (double)NSIntegerMax) {
+    return;
+  }
+  [payload setValue:@(llround(value)) forKey:key];
+}
+
 @implementation NavModule {
   GMSNavigationSession *_session;
   NSMutableArray<GMSNavigationMutableWaypoint *> *_destinations;
@@ -880,7 +894,7 @@ RCT_EXPORT_MODULE(NavModule);
 }
 
 - (void)navigator:(GMSNavigator *)navigator didUpdateNavInfo:(GMSNavigationNavInfo *)navInfo {
-  if (self.enableUpdateInfo == TRUE && navInfo.navState == GMSNavigationNavStateEnroute) {
+  if (self.enableUpdateInfo == TRUE) {
     [self onTurnByTurn:navInfo
         distanceToNextDestinationMeters:navigator.distanceToNextDestination
            timeToNextDestinationSeconds:navigator.timeToNextDestination];
@@ -956,10 +970,6 @@ RCT_EXPORT_MODULE(NavModule);
   }
 }
 
-- (void)onTurnByTurn:(nonnull GMSNavigationNavInfo *)navInfo {
-  [self onTurnByTurn:navInfo distanceToNextDestinationMeters:0 timeToNextDestinationSeconds:0];
-}
-
 - (void)onTurnByTurn:(GMSNavigationNavInfo *)navInfo
     distanceToNextDestinationMeters:(double)distanceToNextDestinationMeters
        timeToNextDestinationSeconds:(double)timeToNextDestinationSeconds {
@@ -967,34 +977,13 @@ RCT_EXPORT_MODULE(NavModule);
 
   [obj setValue:[NSNumber numberWithLong:navInfo.navState] forKey:@"navState"];
   [obj setValue:[NSNumber numberWithBool:navInfo.routeChanged] forKey:@"routeChanged"];
-  if (navInfo.distanceToCurrentStepMeters) {
-    [obj setValue:[NSNumber numberWithLong:navInfo.distanceToCurrentStepMeters]
-           forKey:@"distanceToCurrentStepMeters"];
-  }
-
-  if (navInfo.distanceToFinalDestinationMeters) {
-    [obj setValue:[NSNumber numberWithLong:navInfo.distanceToFinalDestinationMeters]
-           forKey:@"distanceToFinalDestinationMeters"];
-  }
-  if (navInfo.timeToCurrentStepSeconds) {
-    [obj setValue:[NSNumber numberWithLong:navInfo.timeToCurrentStepSeconds]
-           forKey:@"timeToCurrentStepSeconds"];
-  }
-
-  if (distanceToNextDestinationMeters) {
-    [obj setValue:[NSNumber numberWithLong:distanceToNextDestinationMeters]
-           forKey:@"distanceToNextDestinationMeters"];
-  }
-
-  if (timeToNextDestinationSeconds) {
-    [obj setValue:[NSNumber numberWithLong:timeToNextDestinationSeconds]
-           forKey:@"timeToNextDestinationSeconds"];
-  }
-
-  if (navInfo.timeToFinalDestinationSeconds) {
-    [obj setValue:[NSNumber numberWithLong:navInfo.timeToFinalDestinationSeconds]
-           forKey:@"timeToFinalDestinationSeconds"];
-  }
+  setRoundedValue(obj, @"distanceToCurrentStepMeters", navInfo.distanceToCurrentStepMeters);
+  setRoundedValue(obj, @"distanceToFinalDestinationMeters",
+                  navInfo.distanceToFinalDestinationMeters);
+  setRoundedValue(obj, @"timeToCurrentStepSeconds", navInfo.timeToCurrentStepSeconds);
+  setRoundedValue(obj, @"timeToFinalDestinationSeconds", navInfo.timeToFinalDestinationSeconds);
+  setRoundedValue(obj, @"distanceToNextDestinationMeters", distanceToNextDestinationMeters);
+  setRoundedValue(obj, @"timeToNextDestinationSeconds", timeToNextDestinationSeconds);
 
   if (navInfo.currentStep != NULL) {
     [obj setObject:[self getStepInfo:navInfo.currentStep] forKey:@"currentStep"];
@@ -1021,15 +1010,22 @@ RCT_EXPORT_MODULE(NavModule);
 - (NSDictionary *)getStepInfo:(GMSNavigationStepInfo *)stepInfo {
   NSMutableDictionary *obj = [[NSMutableDictionary alloc] init];
 
-  [obj setValue:[NSNumber numberWithInteger:stepInfo.distanceFromPrevStepMeters]
-         forKey:@"distanceFromPrevStepMeters"];
-  [obj setValue:[NSNumber numberWithInteger:stepInfo.timeFromPrevStepSeconds]
-         forKey:@"timeFromPrevStepSeconds"];
+  setRoundedValue(obj, @"distanceFromPrevStepMeters", stepInfo.distanceFromPrevStepMeters);
+  setRoundedValue(obj, @"timeFromPrevStepSeconds", stepInfo.timeFromPrevStepSeconds);
   [obj setValue:[NSNumber numberWithInteger:stepInfo.drivingSide] forKey:@"drivingSide"];
   [obj setValue:[NSNumber numberWithInteger:stepInfo.stepNumber] forKey:@"stepNumber"];
   [obj setValue:[NSNumber numberWithInteger:stepInfo.maneuver] forKey:@"maneuver"];
+
+  // Only roundabout steps count an exit; the SDK reports -1 for every other step, and the
+  // JavaScript side expects the key to be absent there.
+  if (stepInfo.roundaboutTurnNumber >= 0) {
+    [obj setValue:[NSNumber numberWithInteger:stepInfo.roundaboutTurnNumber]
+           forKey:@"roundaboutTurnNumber"];
+  }
+
   [obj setValue:stepInfo.exitNumber forKey:@"exitNumber"];
   [obj setValue:stepInfo.fullRoadName forKey:@"fullRoadName"];
+  [obj setValue:stepInfo.simpleRoadName forKey:@"simpleRoadName"];
   [obj setValue:stepInfo.fullInstructionText forKey:@"instruction"];
 
   return obj;

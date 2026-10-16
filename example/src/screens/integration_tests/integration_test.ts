@@ -17,6 +17,9 @@
 import {
   AudioGuidanceMode,
   CameraPerspective,
+  DrivingSide,
+  Maneuver,
+  NavState,
   TravelMode,
   NavigationSessionStatus,
   RouteStatus,
@@ -27,6 +30,7 @@ import {
   type MapViewController,
   type NavigationController,
   type NavigationViewController,
+  type StepInfo,
   type TimeAndDistance,
   type TurnByTurnEvent,
 } from '@googlemaps/react-native-navigation-sdk';
@@ -1968,6 +1972,157 @@ export const testNavInfoEventsAfterCleanup = async (testTools: TestTools) => {
       );
     }
     await navigationController.setDestination(destination);
+    await navigationController.startGuidance();
+    await navigationController.simulator.simulateLocationsAlongExistingRoute({
+      speedMultiplier: 5,
+    });
+  });
+
+  await initializeNavigation(navigationController, failTest);
+};
+
+const OPTIONAL_STEP_INTEGER_FIELDS = [
+  'stepNumber',
+  'distanceFromPrevStepMeters',
+  'timeFromPrevStepSeconds',
+  'roundaboutTurnNumber',
+] as const;
+
+const OPTIONAL_STEP_STRING_FIELDS = [
+  'instruction',
+  'fullRoadName',
+  'simpleRoadName',
+  'exitNumber',
+] as const;
+
+const OPTIONAL_EVENT_INTEGER_FIELDS = [
+  'distanceToCurrentStepMeters',
+  'timeToCurrentStepSeconds',
+  'distanceToNextDestinationMeters',
+  'timeToNextDestinationSeconds',
+  'distanceToFinalDestinationMeters',
+  'timeToFinalDestinationSeconds',
+] as const;
+
+/** Returns why a step does not match StepInfo, or undefined when it does. */
+const findStepInfoMismatch = (
+  step: StepInfo,
+  label: string
+): string | undefined => {
+  if (Maneuver[step.maneuver] === undefined) {
+    return `${label}.maneuver is not a Maneuver value: ${step.maneuver}`;
+  }
+  if (DrivingSide[step.drivingSide] === undefined) {
+    return `${label}.drivingSide is not a DrivingSide value: ${step.drivingSide}`;
+  }
+  for (const field of OPTIONAL_STEP_INTEGER_FIELDS) {
+    const value = step[field];
+    if (value !== undefined && !Number.isInteger(value)) {
+      return `${label}.${field} is not an integer: ${value}`;
+    }
+  }
+  for (const field of OPTIONAL_STEP_STRING_FIELDS) {
+    const value = step[field];
+    if (value !== undefined && typeof value !== 'string') {
+      return `${label}.${field} is not a string: ${value}`;
+    }
+  }
+  if (
+    step.roundaboutTurnNumber !== undefined &&
+    step.roundaboutTurnNumber < 0
+  ) {
+    return `${label}.roundaboutTurnNumber must be omitted for non-roundabouts: ${step.roundaboutTurnNumber}`;
+  }
+  return undefined;
+};
+
+/**
+ * Verifies that a turn-by-turn event carries the fields that TurnByTurnEvent
+ * and StepInfo declare, so that the TypeScript types and the native emitters
+ * keep describing the same payload.
+ */
+export const testTurnByTurnEventPayload = async (testTools: TestTools) => {
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnLocationChanged,
+    setOnTurnByTurn,
+    passTest,
+    failTest,
+  } = testTools;
+
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
+  }
+
+  const startLocation: LatLng = {
+    lat: 37.79136614772824,
+    lng: -122.41565900473043,
+  };
+
+  setOnTurnByTurn(async (events: TurnByTurnEvent[]) => {
+    const event = events[0];
+    if (!event?.currentStep) {
+      return;
+    }
+
+    setOnTurnByTurn(null);
+    await navigationController.cleanup();
+
+    if (event.navState !== NavState.ENROUTE) {
+      return failTest(
+        `currentStep is set while navState is not ENROUTE: ${event.navState}`
+      );
+    }
+    if (typeof event.routeChanged !== 'boolean') {
+      return failTest(`routeChanged is not a boolean: ${event.routeChanged}`);
+    }
+    for (const field of OPTIONAL_EVENT_INTEGER_FIELDS) {
+      const value = event[field];
+      if (value !== undefined && !Number.isInteger(value)) {
+        return failTest(`${field} is not an integer: ${value}`);
+      }
+    }
+    if (!Array.isArray(event.getRemainingSteps)) {
+      return failTest('getRemainingSteps is not an array');
+    }
+
+    const mismatch =
+      findStepInfoMismatch(event.currentStep, 'currentStep') ??
+      event.getRemainingSteps
+        .map((step, index) =>
+          findStepInfoMismatch(step, `getRemainingSteps[${index}]`)
+        )
+        .find(message => message !== undefined);
+    if (mismatch) {
+      return failTest(mismatch);
+    }
+
+    passTest();
+  });
+
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    navigationController.setTurnByTurnLoggingEnabled(true);
+
+    const located = await simulateAndWaitForLocation(
+      navigationController,
+      setOnLocationChanged,
+      startLocation
+    );
+    if (!located) {
+      return failTest(
+        'Timed out waiting for simulated location to be confirmed'
+      );
+    }
+    await navigationController.setDestination({
+      title: 'Grace Cathedral',
+      position: {
+        lat: 37.791957,
+        lng: -122.412529,
+      },
+    });
     await navigationController.startGuidance();
     await navigationController.simulator.simulateLocationsAlongExistingRoute({
       speedMultiplier: 5,
