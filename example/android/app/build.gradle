@@ -139,7 +139,7 @@ android {
 
 dependencies {
     androidTestImplementation('com.wix:detox:+')
-    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.8.0'
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
@@ -154,7 +154,7 @@ dependencies {
     implementation "androidx.car.app:app-projected:1.4.0"
 
     // Include the Google Navigation SDK.
-    implementation 'com.google.android.libraries.navigation:navigation:7.9.0'
+    implementation 'com.google.android.libraries.navigation:navigation:8.0.0'
 
     // 1.2.1 pads libdatastore_shared_counter.so's GNU_RELRO segment for 16 KB pages.
     implementation 'androidx.datastore:datastore-core:1.2.1'
