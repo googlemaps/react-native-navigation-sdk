@@ -29,7 +29,6 @@ static NSString *const kNoNavigatorErrorMessage =
     @"Make sure to initialize the navigator is ready before executing.";
 static NSString *const kNoDestinationsErrorCode = @"NO_DESTINATIONS";
 static NSString *const kNoDestinationsErrorMessage = @"Destinations not set";
-static dispatch_once_t deprecatedDisplayOptionsWarningOnce;
 
 /**
  * Adds a Navigation SDK distance or duration to a turn-by-turn payload, rounded to whole meters
@@ -512,16 +511,8 @@ RCT_EXPORT_MODULE(NavModule);
     // Apply display options to views (only if valid flag is set)
     if (displayOptionsCopy.valid().value_or(false)) {
       std::optional<bool> showDestinationMarkers = displayOptionsCopy.showDestinationMarkers();
-      std::optional<bool> showStopSigns = displayOptionsCopy.showStopSigns();
-      std::optional<bool> showTrafficLights = displayOptionsCopy.showTrafficLights();
       if (showDestinationMarkers.has_value()) {
         [strongSelf applyNavigationUISettingsShowDestinationMarkers:showDestinationMarkers];
-      }
-      if (showStopSigns.has_value() || showTrafficLights.has_value()) {
-        dispatch_once(&deprecatedDisplayOptionsWarningOnce, ^{
-          RCTLogWarn(@"showStopSigns and showTrafficLights are ignored on iOS because "
-                      "Navigation SDK 11 always shows them during navigation.");
-        });
       }
     }
 

@@ -14,6 +14,7 @@
 package com.google.android.react.navsdk;
 
 import android.app.Activity;
+import android.app.Application;
 import android.location.Location;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,12 +35,12 @@ import com.google.android.libraries.navigation.ArrivalEvent;
 import com.google.android.libraries.navigation.AudioGuidanceSettings;
 import com.google.android.libraries.navigation.CustomRoutesOptions;
 import com.google.android.libraries.navigation.DisplayOptions;
-import com.google.android.libraries.navigation.ListenableResultFuture;
 import com.google.android.libraries.navigation.NavigationApi;
 import com.google.android.libraries.navigation.NavigationApi.OnTermsResponseListener;
 import com.google.android.libraries.navigation.Navigator;
 import com.google.android.libraries.navigation.RoadSnappedLocationProvider;
 import com.google.android.libraries.navigation.RoadSnappedLocationProvider.LocationListener;
+import com.google.android.libraries.navigation.RouteDescriptionLoadCallback;
 import com.google.android.libraries.navigation.RouteSegment;
 import com.google.android.libraries.navigation.RoutingOptions;
 import com.google.android.libraries.navigation.SimulationOptions;
@@ -69,7 +70,6 @@ public class NavModule extends NativeNavModuleSpec
   ReactApplicationContext reactContext;
   private Navigator mNavigator;
   private final ArrayList<Waypoint> mWaypoints = new ArrayList<>();
-  private ListenableResultFuture<Navigator.RouteStatus> pendingRoute;
   private RoadSnappedLocationProvider mRoadSnappedLocationProvider;
   private NavViewManager mNavViewManager;
   private final CopyOnWriteArrayList<NavigationReadyListener> mNavigationReadyListeners =
@@ -267,16 +267,8 @@ public class NavModule extends NativeNavModuleSpec
   @Override
   public void initializeNavigationSession(
       boolean abnormalTerminationReportingEnabled, double taskRemovedBehavior, Promise promise) {
-    // Check if terms are accepted first
-    if (!getTermsAccepted()) {
-      promise.reject(
-          "termsNotAccepted",
-          "The session initialization failed, because the user has not yet accepted the navigation"
-              + " terms and conditions.");
-      return;
-    }
-
-    // Store the promise to resolve/reject when navigation is ready or fails
+    // Let getNavigator validate consent and access. A synchronous terms query can
+    // return false on an access-check failure or timeout.
     this.pendingInitPromise = promise;
     this.taskRemovedBehaviour =
         EnumTranslationUtil.getTaskRemovedBehaviourFromJsValue((int) taskRemovedBehavior);
@@ -359,22 +351,18 @@ public class NavModule extends NativeNavModuleSpec
 
   /** Starts the Navigation API, saving a reference to the ready Navigator instance. */
   private void initializeNavigationApi() {
-    final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
-    if (currentActivity == null) return;
+    final Application application = (Application) reactContext.getApplicationContext();
     NavigationApi.getNavigator(
-        currentActivity.getApplication(),
+        application,
         new NavigationApi.NavigatorListener() {
           @Override
           public void onNavigatorReady(Navigator navigator) {
-            final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
-            if (currentActivity == null) return;
-
             // Keep a reference to the Navigator (used to configure and start nav)
             mNavigator = navigator;
             mNavigator.setTaskRemovedBehavior(taskRemovedBehaviour);
             if (mRoadSnappedLocationProvider == null) {
               mRoadSnappedLocationProvider =
-                  NavigationApi.getRoadSnappedLocationProvider(currentActivity.getApplication());
+                  NavigationApi.getRoadSnappedLocationProvider(application);
             }
             registerNavigationListeners();
             onNavigationReady();
@@ -597,7 +585,6 @@ public class NavModule extends NativeNavModuleSpec
       return;
     }
 
-    pendingRoute = null; // reset pendingRoute.
     mWaypoints.clear(); // reset waypoints
 
     // Set up a waypoint for each place that we want to go to.
@@ -626,6 +613,11 @@ public class NavModule extends NativeNavModuleSpec
             ? ObjectTranslationUtil.getDisplayOptionsFromMap(displayOptions.toHashMap())
             : null;
 
+    RouteDescriptionLoadCallback routeCallback =
+        routeDescription ->
+            promise.resolve(
+                EnumTranslationUtil.getRouteStatusStringValue(routeDescription.getRouteStatus()));
+
     // If route token options are provided, use CustomRoutesOptions
     if (hasValidRouteTokenOptions) {
       CustomRoutesOptions customRoutesOptions;
@@ -638,39 +630,27 @@ public class NavModule extends NativeNavModuleSpec
       }
 
       if (parsedDisplayOptions != null) {
-        pendingRoute =
-            mNavigator.setDestinations(mWaypoints, customRoutesOptions, parsedDisplayOptions);
+        mNavigator.setDestinations(
+            mWaypoints, customRoutesOptions, parsedDisplayOptions, routeCallback);
       } else {
-        pendingRoute = mNavigator.setDestinations(mWaypoints, customRoutesOptions);
+        mNavigator.setDestinations(mWaypoints, customRoutesOptions, routeCallback);
       }
     } else if (hasValidRoutingOptions) {
       RoutingOptions parsedRoutingOptions =
           ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap());
 
       if (parsedDisplayOptions != null) {
-        pendingRoute =
-            mNavigator.setDestinations(mWaypoints, parsedRoutingOptions, parsedDisplayOptions);
+        mNavigator.setDestinations(
+            mWaypoints, parsedRoutingOptions, parsedDisplayOptions, routeCallback);
       } else {
-        pendingRoute = mNavigator.setDestinations(mWaypoints, parsedRoutingOptions);
+        mNavigator.setDestinations(mWaypoints, parsedRoutingOptions, routeCallback);
       }
     } else if (parsedDisplayOptions != null) {
       // No routing options provided: use defaults, but still honor display options if supplied.
-      pendingRoute =
-          mNavigator.setDestinations(mWaypoints, new RoutingOptions(), parsedDisplayOptions);
+      mNavigator.setDestinations(
+          mWaypoints, new RoutingOptions(), parsedDisplayOptions, routeCallback);
     } else {
-      pendingRoute = mNavigator.setDestinations(mWaypoints);
-    }
-
-    if (pendingRoute != null) {
-      // Set an action to perform when a route is determined to the destination
-      pendingRoute.setOnResultListener(
-          code -> {
-            // Convert RouteStatus to string matching codegen RouteStatusSpec
-            promise.resolve(EnumTranslationUtil.getRouteStatusStringValue(code));
-          });
-    } else {
-      // If no pending route, resolve with OK status
-      promise.resolve(EnumTranslationUtil.getRouteStatusStringValue(Navigator.RouteStatus.OK));
+      mNavigator.setDestinations(mWaypoints, routeCallback);
     }
   }
 

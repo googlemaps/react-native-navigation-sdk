@@ -154,7 +154,6 @@ export default function App() {
       termsAndConditionsDialogOptions={{
         title: 'RN NavSDK Sample',
         companyName: 'Sample Company',
-        showOnlyDisclaimer: true,
       }}
       taskRemovedBehavior={TaskRemovedBehavior.CONTINUE_SERVICE}
     >

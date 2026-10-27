@@ -96,8 +96,6 @@ const NavigationActionPath: React.FC<NavigationActionPathProps> = ({
 
       const displayOptions: DisplayOptions = {
         showDestinationMarkers: true,
-        showStopSigns: true,
-        showTrafficLights: true,
       };
 
       const routeStatus = await navigationController.setDestinations(
@@ -111,6 +109,8 @@ const NavigationActionPath: React.FC<NavigationActionPathProps> = ({
       if (routeStatus === RouteStatus.OK) {
         showSnackbar('Route created successfully');
         onStepChange(ActionPathStep.DESTINATIONS_SET);
+      } else if (routeStatus === RouteStatus.ROUTING_TIMEOUT) {
+        showSnackbar('Route calculation timed out. Please try again.');
       } else {
         showSnackbar(`Route error: ${routeStatus}`);
       }

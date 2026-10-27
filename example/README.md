@@ -51,3 +51,26 @@ First, make sure you go through the setup from the main [README](../README.md).
 1. On your Emulator, go to App Info for the installed app, then Permissions > Location and allow location for the app.
 
 2. Restart the app, now the Navigation view should be displayed instead of the map.
+
+## Navigation integration tests
+
+After configuring real API keys, run the navigation suite from the repository
+root. For an already-running Android device or emulator:
+
+```sh
+yarn example detox build --configuration android.att.release
+yarn example detox test --configuration android.att.release e2e/navigation.test.js
+```
+
+For the iOS simulator configured in `.detoxrc.js`:
+
+```sh
+yarn example detox:build:ios-release
+yarn example detox:test:ios-release --headless e2e/navigation.test.js
+```
+
+The Android example explicitly includes `kotlin-reflect` in its release runtime
+for Detox. Navigation SDK 8.0.0 no longer supplies it transitively. R8 must see
+reflection's Kotlin runtime dependencies while shrinking the app, because the
+instrumentation APK is shrunk separately. This dependency is example-only; the
+library does not add it to consuming apps.

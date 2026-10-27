@@ -1,14 +1,137 @@
 # Migration Guide
 
-This document covers breaking changes and migration steps between major versions of `@googlemaps/react-native-navigation-sdk`.
+This document covers breaking changes and migration steps for `@googlemaps/react-native-navigation-sdk`.
 
 ## Table of Contents
 
+- [Migrating to Android Navigation SDK 8.0.0](#migrating-to-android-navigation-sdk-800)
 - [Migrating from 0.17.x to 0.18.x](#migrating-from-017x-to-018x)
 - [Migrating from 0.16.x to 0.17.x](#migrating-from-016x-to-017x)
 - [Migrating from 0.13.x to 0.14.x](#migrating-from-013x-to-014x)
 
 ---
+
+## Migrating to Android Navigation SDK 8.0.0
+
+This upgrade replaces Android Navigation SDK 7.9.0 with 8.0.0. The iOS native
+SDK is unchanged, but the shared display-option removals apply on both platforms.
+
+### Summary of Breaking Changes
+
+| Category | Change |
+| -------- | ------ |
+| Native SDK | Android Navigation SDK upgraded to `8.0.0` |
+| Android build tools | AGP `9.0.1+`, Gradle `9.1.0+`, and Kotlin `2.3.0+` are required |
+| Display options | `showStopSigns` and `showTrafficLights` are removed |
+| Route results | `RouteStatus.ROUTING_TIMEOUT` is a new Android result |
+| Terrain maps | Android uses normal maps instead of terrain during navigation |
+| Google Play | Apps must complete the Location Purpose Declaration |
+
+### Step 1: Verify the Android build configuration
+
+Keep React Native **0.87+** with the new architecture enabled. Its bundled AGP
+**9.2.1** already satisfies the native SDK requirement; do not downgrade it or
+add another AGP override. The example retains Gradle **9.4.1**, Kotlin
+**2.3.21**, and JDK **17**. No React Native or JDK upgrade is required.
+
+Keep the existing Kotlin override and AGP compatibility flags described in
+[Migrating from 0.16.x to 0.17.x](#migrating-from-016x-to-017x). Core library
+desugaring must remain enabled with
+`com.android.tools:desugar_jdk_libs_nio:2.1.5`.
+
+The minimum supported Android version remains **API 24**. The native SDK's
+target API level 37 does not by itself change your app's `targetSdk` setting.
+
+### Step 2: Remove the deprecated display options
+
+Remove `showStopSigns` and `showTrafficLights` from `DisplayOptions` passed to
+`setDestination` or `setDestinations`:
+
+```diff
+ const displayOptions = {
+   showDestinationMarkers: true,
+-  showStopSigns: true,
+-  showTrafficLights: true,
+ };
+```
+
+Stop signs and traffic lights are always enabled during navigation when data is
+available on both Android and iOS. There is no replacement option to hide them.
+`showDestinationMarkers` remains supported.
+
+### Step 3: Handle routing timeouts
+
+Handle `RouteStatus.ROUTING_TIMEOUT` in route-result switches. Android returns
+this result when route calculation times out on the routing backend. It is
+distinct from `NETWORK_ERROR` and `UNKNOWN`; no equivalent status is emitted by
+this wrapper on iOS.
+
+The JavaScript destination methods still return promises. The wrapper now uses
+the native SDK's callback overloads internally, with no callback migration
+required for JavaScript callers.
+
+#### Terms and initialization
+
+Before `init()`, await acceptance of the Google terms dialog. Leave
+`showOnlyDisclaimer` false or omit it for first-time users; disclaimer-only mode
+assumes the user has already accepted appropriate terms covering Google
+Navigation. The example and integration tests now request the full terms
+rather than assuming prior consent.
+
+SDK initialization can also return `NavigationSessionStatus.NETWORK_ERROR` for
+transient network or timeout failures during navigator access checks.
+
+### Step 4: Review map behavior and native deprecations
+
+On Android, terrain maps selected before navigation fall back to normal maps
+while navigation is active. Keep `MapType.TERRAIN` for non-navigation maps.
+
+Android header text-size properties and custom zoom in `setFollowingPerspective`
+remain functional, but their underlying native APIs are deprecated in 8.0.0.
+Plan for their removal in a future native SDK release.
+
+The Android navigation view now uses `NavigationFragment` instead of the
+deprecated `SupportNavigationFragment`. Apps with custom native integrations
+should make the same replacement. Both use AndroidX fragments.
+
+If custom native code directly uses Glide, its OkHttp integration, or
+`kotlin-reflect`, declare those dependencies explicitly rather than relying on
+the Navigation SDK to supply them transitively. This wrapper does not directly
+use those libraries or the removed internal `StylingOptions` methods.
+
+The library supplies a consumer ProGuard rule to keep SDK 8's reflective
+protobuf registry loader in its original package. This prevents a release-only
+`IllegalAccessException` after R8 repackaging. The example also declares
+`kotlin-reflect` explicitly for its minified Detox release tests; this is not a
+new runtime dependency for library consumers.
+
+Existing location event APIs are unchanged. This wrapper did not use the
+experimental GPS availability callback removed by the native SDK.
+
+### Step 5: Check Android Auto and publishing requirements
+
+Android Auto integrations must use `androidx.car.app:app` and
+`androidx.car.app:app-projected` **1.3.0 or later** so their consumer ProGuard
+rules are included. Navigation SDK 8.0.0 no longer bundles those rules. The
+wrapper and example already use **1.4.0**.
+
+When publishing to Google Play, complete the
+[Location Purpose Declaration](https://support.google.com/googleplay/android-developer/answer/17033915#play_console_declaration),
+selecting **Navigation** and any additional precise-location use cases.
+
+### Rebuild both platforms
+
+Rebuild Android after upgrading. Although the iOS SDK is unchanged, the shared
+Codegen schema changed, so rerun `pod install` and rebuild iOS as well:
+
+```sh
+cd ios && pod install
+```
+
+### Release notes
+
+For upstream changes, review the
+[Android Navigation SDK 8.0.0 release notes](https://developers.google.com/maps/documentation/navigation/android-sdk/release-notes#October_01_2026).
 
 ## Migrating from 0.17.x to 0.18.x
 

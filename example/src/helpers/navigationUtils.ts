@@ -43,6 +43,9 @@ export const handleRouteStatus = (routeStatus: RouteStatus): boolean => {
     case RouteStatus.NETWORK_ERROR:
       Alert.alert('Error', 'Network Error');
       return false;
+    case RouteStatus.ROUTING_TIMEOUT:
+      Alert.alert('Error', 'Route calculation timed out. Please try again.');
+      return false;
     case RouteStatus.LOCATION_DISABLED:
       Alert.alert('Error', 'Location Disabled');
       return false;

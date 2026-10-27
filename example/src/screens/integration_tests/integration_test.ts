@@ -32,6 +32,7 @@ import {
   type NavigationViewController,
   type StepInfo,
   type TimeAndDistance,
+  type SetDestinationsOptions,
   type TurnByTurnEvent,
 } from '@googlemaps/react-native-navigation-sdk';
 import { Platform } from 'react-native';
@@ -114,8 +115,10 @@ const acceptToS = async (
   // Reset ToS acceptance state to ensure dialog is shown
   await navigationController.resetTermsAccepted();
 
-  // Show the ToS dialog - Detox will tap the accept button
-  const accepted = await navigationController.showTermsAndConditionsDialog();
+  // Full Google terms are required for navigation-session initialization.
+  const accepted = await navigationController.showTermsAndConditionsDialog({
+    showOnlyDisclaimer: false,
+  });
 
   if (!accepted) {
     failTest('Terms and Conditions were not accepted');
@@ -443,60 +446,79 @@ export const testNavigationToSingleDestination = async (
     failTest,
   } = testTools;
 
-  // Accept ToS first
   if (!(await acceptToS(navigationController, failTest))) {
     return;
   }
 
   const startLocation: LatLng = { lat: 37.4195823, lng: -122.0799018 };
+  const destination = { position: { lat: 37.418761, lng: -122.080484 } };
+  const replacement = { position: { lat: 37.421999, lng: -122.084057 } };
+  const optionCases: (SetDestinationsOptions | undefined)[] = [
+    undefined,
+    { displayOptions: { showDestinationMarkers: true } },
+    { routingOptions: { travelMode: TravelMode.DRIVING } },
+    {
+      routingOptions: {
+        travelMode: TravelMode.DRIVING,
+        avoidFerries: true,
+        avoidTolls: false,
+      },
+      displayOptions: { showDestinationMarkers: true },
+    },
+  ];
 
   setOnNavigationReady(async () => {
-    disableVoiceGuidanceForTests(navigationController);
-    const located = await simulateAndWaitForLocation(
-      navigationController,
-      setOnLocationChanged,
-      startLocation
-    );
-    if (!located) {
-      return failTest(
-        'Timed out waiting for simulated location to be confirmed'
+    try {
+      disableVoiceGuidanceForTests(navigationController);
+      const located = await simulateAndWaitForLocation(
+        navigationController,
+        setOnLocationChanged,
+        startLocation
       );
-    }
-    await navigationController.setDestinations(
-      [
-        {
-          position: {
-            lat: 37.418761,
-            lng: -122.080484,
-          },
-        },
-      ],
-      {
-        routingOptions: {
-          travelMode: TravelMode.DRIVING,
-          avoidFerries: true,
-          avoidTolls: false,
-        },
+      if (!located) {
+        return failTest(
+          'Timed out waiting for simulated location to be confirmed'
+        );
       }
-    );
-    await navigationController.startGuidance();
 
-    const routeSegments = await waitForCondition(
-      () => navigationController.getRouteSegments(),
-      segments => segments.length > 0
-    );
-    if (!routeSegments) {
-      return failTest(
-        'Timed out waiting for route segments before starting simulation'
-      );
+      // Each callback must complete its Promise, including when replacing
+      // a route with a different destination and different optional settings.
+      for (const [index, options] of optionCases.entries()) {
+        const waypoint = index % 2 === 0 ? replacement : destination;
+        const status = await navigationController.setDestination(
+          waypoint,
+          options
+        );
+        if (status !== RouteStatus.OK) {
+          return failTest(
+            `Single destination option case ${index} returned ${status}`
+          );
+        }
+        const segments = await waitForCondition(
+          () => navigationController.getRouteSegments(),
+          route =>
+            route.length === 1 &&
+            distanceBetween(route[0]!.destinationLatLng, waypoint.position) <=
+              LOCATION_THRESHOLD_METERS
+        );
+        if (!segments) {
+          return failTest(
+            `Single destination option case ${index} did not replace the route`
+          );
+        }
+      }
+
+      await navigationController.startGuidance();
+      await navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
+      });
+    } catch (error) {
+      failTest(`Single destination route calculation failed: ${error}`);
     }
-    await navigationController.simulator.simulateLocationsAlongExistingRoute({
-      speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
-    });
   });
   setOnArrival(async () => {
-    navigationController.cleanup();
-    return passTest();
+    await navigationController.cleanup();
+    passTest();
   });
   await initializeNavigation(navigationController, failTest);
 };
@@ -513,7 +535,6 @@ export const testNavigationToMultipleDestination = async (
     failTest,
   } = testTools;
 
-  // Accept ToS first
   if (!(await acceptToS(navigationController, failTest))) {
     return;
   }
@@ -522,63 +543,89 @@ export const testNavigationToMultipleDestination = async (
     lat: 37.79136614772824,
     lng: -122.41565900473043,
   };
+  const firstDestination = {
+    position: { lat: 37.7917, lng: -122.4142 },
+    preferredHeading: 0,
+  };
+  const secondDestination = {
+    position: { lat: 37.79196, lng: -122.41253 },
+  };
+  const optionCases: (SetDestinationsOptions | undefined)[] = [
+    undefined,
+    { displayOptions: { showDestinationMarkers: true } },
+    { routingOptions: { travelMode: TravelMode.DRIVING } },
+    {
+      routingOptions: {
+        travelMode: TravelMode.DRIVING,
+        avoidFerries: true,
+        avoidTolls: false,
+      },
+      displayOptions: { showDestinationMarkers: true },
+    },
+  ];
 
   let onArrivalCount = 0;
   setOnNavigationReady(async () => {
-    disableVoiceGuidanceForTests(navigationController);
-    const located = await simulateAndWaitForLocation(
-      navigationController,
-      setOnLocationChanged,
-      startLocation
-    );
-    if (!located) {
-      return failTest(
-        'Timed out waiting for simulated location to be confirmed'
+    try {
+      disableVoiceGuidanceForTests(navigationController);
+      const located = await simulateAndWaitForLocation(
+        navigationController,
+        setOnLocationChanged,
+        startLocation
       );
-    }
-    await navigationController.setDestinations(
-      [
-        {
-          position: {
-            lat: 37.7917,
-            lng: -122.4142,
-          },
-          preferredHeading: 0,
-        },
-        {
-          position: {
-            lat: 37.79196,
-            lng: -122.41253,
-          },
-        },
-      ],
-      {
-        routingOptions: {
-          travelMode: TravelMode.DRIVING,
-          avoidFerries: true,
-          avoidTolls: false,
-        },
+      if (!located) {
+        return failTest(
+          'Timed out waiting for simulated location to be confirmed'
+        );
       }
-    );
-    await navigationController.startGuidance();
 
-    const routeSegments = await waitForCondition(
-      () => navigationController.getRouteSegments(),
-      segments => segments.length > 0
-    );
-    if (!routeSegments) {
-      return failTest(
-        'Timed out waiting for route segments before starting simulation'
-      );
+      // Reverse the waypoints between requests so stale route data cannot
+      // satisfy the assertions after a replacement callback resolves.
+      for (const [index, options] of optionCases.entries()) {
+        const waypoints =
+          index % 2 === 0
+            ? [secondDestination, firstDestination]
+            : [firstDestination, secondDestination];
+        const status = await navigationController.setDestinations(
+          waypoints,
+          options
+        );
+        if (status !== RouteStatus.OK) {
+          return failTest(
+            `Multiple destination option case ${index} returned ${status}`
+          );
+        }
+        const segments = await waitForCondition(
+          () => navigationController.getRouteSegments(),
+          route =>
+            route.length === waypoints.length &&
+            route.every(
+              (segment, waypointIndex) =>
+                distanceBetween(
+                  segment.destinationLatLng,
+                  waypoints[waypointIndex]!.position
+                ) <= LOCATION_THRESHOLD_METERS
+            )
+        );
+        if (!segments) {
+          return failTest(
+            `Multiple destination option case ${index} did not replace the route`
+          );
+        }
+      }
+
+      await navigationController.startGuidance();
+      await navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: 5,
+      });
+    } catch (error) {
+      failTest(`Multiple destination route calculation failed: ${error}`);
     }
-    await navigationController.simulator.simulateLocationsAlongExistingRoute({
-      speedMultiplier: 5,
-    });
   });
   setOnArrival(async () => {
     onArrivalCount += 1;
     if (onArrivalCount > 1) {
-      navigationController.cleanup();
+      await navigationController.cleanup();
       return passTest();
     }
     const response: ContinueToNextDestinationResponse =
@@ -588,12 +635,9 @@ export const testNavigationToMultipleDestination = async (
         'continueToNextDestination returned null waypoint when next destination exists'
       );
     }
-    if (
-      Platform.OS === 'ios' &&
-      !Object.values(RouteStatus).includes(response.routeStatus as RouteStatus)
-    ) {
+    if (Platform.OS === 'ios' && response.routeStatus !== RouteStatus.OK) {
       return failTest(
-        `continueToNextDestination returned unexpected routeStatus on iOS: ${response.routeStatus}`
+        `continueToNextDestination returned unsuccessful routeStatus on iOS: ${response.routeStatus}`
       );
     }
     await navigationController.startGuidance();
