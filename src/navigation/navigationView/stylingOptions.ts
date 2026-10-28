@@ -24,13 +24,18 @@ export interface AndroidStylingOptions {
   headerLargeManeuverIconColor?: ColorValue;
   headerSmallManeuverIconColor?: ColorValue;
   headerNextStepTextColor?: ColorValue;
+  /** @deprecated Deprecated by Android Navigation SDK 8.0. */
   headerNextStepTextSize?: string;
   headerDistanceValueTextColor?: ColorValue;
   headerDistanceUnitsTextColor?: ColorValue;
+  /** @deprecated Deprecated by Android Navigation SDK 8.0. */
   headerDistanceValueTextSize?: string;
+  /** @deprecated Deprecated by Android Navigation SDK 8.0. */
   headerDistanceUnitsTextSize?: string;
   headerInstructionsTextColor?: ColorValue;
+  /** @deprecated Deprecated by Android Navigation SDK 8.0. */
   headerInstructionsFirstRowTextSize?: string;
+  /** @deprecated Deprecated by Android Navigation SDK 8.0. */
   headerInstructionsSecondRowTextSize?: string;
   headerGuidanceRecommendedLaneColor?: ColorValue;
 }

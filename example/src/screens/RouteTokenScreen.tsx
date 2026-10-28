@@ -153,6 +153,9 @@ const RouteTokenScreen = () => {
             case RouteStatus.NETWORK_ERROR:
               showSnackbar('Error: Network Error');
               break;
+            case RouteStatus.ROUTING_TIMEOUT:
+              showSnackbar('Route calculation timed out. Please try again.');
+              break;
             default:
               showSnackbar('Error: Route creation failed');
           }

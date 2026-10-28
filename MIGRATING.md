@@ -4,11 +4,70 @@ This document covers breaking changes and migration steps between major versions
 
 ## Table of Contents
 
+- [Migrating to Android Navigation SDK 8.0.0](#migrating-to-android-navigation-sdk-800)
 - [Migrating from 0.17.x to 0.18.x](#migrating-from-017x-to-018x)
 - [Migrating from 0.16.x to 0.17.x](#migrating-from-016x-to-017x)
 - [Migrating from 0.13.x to 0.14.x](#migrating-from-013x-to-014x)
 
 ---
+
+## Migrating to Android Navigation SDK 8.0.0
+
+This upgrade replaces Android Navigation SDK 7.9.0 with 8.0.0.
+
+### Build requirements
+
+Use AGP **9.0.1+**, Gradle **9.1.0+**, Kotlin Gradle Plugin **2.3.0+**, and
+JDK **17+**. React Native 0.87 already satisfies most requirements, including
+AGP, but its bundled Kotlin plugin needs an override to **2.3.0+**.
+
+### Display options and routing
+
+Remove `showStopSigns` and `showTrafficLights` from `DisplayOptions` passed to
+`setDestination` or `setDestinations` on **both Android and iOS**. Stop signs and
+traffic lights are always enabled during navigation when data is available;
+there is no replacement option to hide them. Keep `showDestinationMarkers`,
+which remains supported.
+
+Handle the new **Android-only** `RouteStatus.ROUTING_TIMEOUT` in route-result
+switches. It indicates a routing-backend timeout, distinct from `NETWORK_ERROR`
+and `UNKNOWN`; the wrapper does not emit this status on iOS.
+
+On Android, `MapType.TERRAIN` falls back to a normal map during navigation.
+Terrain remains available for non-navigation maps.
+
+### Native integrations and release builds
+
+- Replace `SupportNavigationFragment` with `NavigationFragment` in custom
+  Android integrations; both use AndroidX fragments.
+- Migrate native `setDestinations` calls to the callback overloads. The wrapper
+  handles this internally; JavaScript destination methods still return promises.
+- Android header text-size APIs and custom zoom in `setFollowingPerspective`
+  are deprecated in SDK 8.0.0 but still work.
+- If custom native code relies on Glide, its OkHttp integration, or
+  `kotlin-reflect`, declare those dependencies explicitly: the Navigation SDK
+  no longer supplies them transitively.
+- The wrapper includes a consumer ProGuard rule that preserves the package of
+  SDK 8's reflective protobuf registry loader, preventing a release-only
+  `IllegalAccessException` caused by R8 repackaging.
+
+### Android Auto and Google Play
+
+Android Auto integrations must use `androidx.car.app:app` and
+`androidx.car.app:app-projected` **1.3.0+** for their consumer ProGuard rules.
+Navigation SDK 8.0.0 no longer bundles those rules.
+
+When publishing to Google Play, complete the
+[Location Purpose Declaration](https://support.google.com/googleplay/android-developer/answer/17033915#play_console_declaration),
+selecting **Navigation** and any additional precise-location use cases.
+
+### Rebuild both platforms
+
+Rebuild Android, then run `pod install` in your iOS directory and rebuild iOS.
+The shared Codegen schema changed, so both platform rebuilds are required.
+
+See the [Android Navigation SDK 8.0.0 release notes](https://developers.google.com/maps/documentation/navigation/android-sdk/release-notes#October_01_2026)
+for upstream details.
 
 ## Migrating from 0.17.x to 0.18.x
 

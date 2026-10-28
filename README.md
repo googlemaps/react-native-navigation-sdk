@@ -61,6 +61,10 @@ import { NavigationView } from '@googlemaps/react-native-navigation-sdk';
 
 ### Android
 
+This package uses Navigation SDK for Android **8.0.0**. See the
+[SDK 8.0.0 migration guide](./MIGRATING.md#migrating-to-android-navigation-sdk-800)
+for build requirements and breaking API changes.
+
 #### Enable new architecture
 
 This package requires React Native's new architecture. Make sure new architecture is enabled in your `android/gradle.properties` file:

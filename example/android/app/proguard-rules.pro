@@ -13,9 +13,6 @@
 # merging can relocate the caller and break that package access. Its consumer
 # rules require optimizations, including class merging, to remain disabled.
 -dontoptimize
-# This reflection helper must also remain in its package so it can construct
-# package-private Navigation SDK implementations.
--keep class com.google.android.libraries.navigation.internal.alt.ax { *; }
 
 # Detox includes an old-architecture bridge idling resource. This app requires
 # Fabric, so Detox uses its Fabric idling-resource strategy instead.

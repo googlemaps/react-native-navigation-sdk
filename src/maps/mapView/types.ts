@@ -203,7 +203,11 @@ export enum MapType {
   NORMAL,
   /** Satellite maps with a transparent layer of major streets. */
   SATELLITE,
-  /** Shows the terrain of the map only. This map type does not work during navigation. */
+  /**
+   * Shows terrain. During navigation on Android, Navigation SDK 8.0+ uses NORMAL
+   * instead until navigation ends. Terrain remains supported outside navigation
+   * on Android and on iOS.
+   */
   TERRAIN,
   /** Satellite maps with a transparent layer of major streets. */
   HYBRID,
