@@ -16,11 +16,6 @@
 
 import type { ColorValue } from 'react-native';
 
-/**
- * Styling options for the Android navigation UI.
- *
- * @see https://developers.google.com/maps/documentation/navigation/android-sdk/release-notes#October_01_2026
- */
 export interface AndroidStylingOptions {
   primaryDayModeThemeColor?: ColorValue;
   secondaryDayModeThemeColor?: ColorValue;
@@ -29,18 +24,18 @@ export interface AndroidStylingOptions {
   headerLargeManeuverIconColor?: ColorValue;
   headerSmallManeuverIconColor?: ColorValue;
   headerNextStepTextColor?: ColorValue;
-  /** @deprecated Deprecated by Android Navigation SDK 8.0; still functional, but scheduled for removal by the native SDK. */
+  /** @deprecated Deprecated by Android Navigation SDK 8.0. */
   headerNextStepTextSize?: string;
   headerDistanceValueTextColor?: ColorValue;
   headerDistanceUnitsTextColor?: ColorValue;
-  /** @deprecated Deprecated by Android Navigation SDK 8.0; still functional, but scheduled for removal by the native SDK. */
+  /** @deprecated Deprecated by Android Navigation SDK 8.0. */
   headerDistanceValueTextSize?: string;
-  /** @deprecated Deprecated by Android Navigation SDK 8.0; still functional, but scheduled for removal by the native SDK. */
+  /** @deprecated Deprecated by Android Navigation SDK 8.0. */
   headerDistanceUnitsTextSize?: string;
   headerInstructionsTextColor?: ColorValue;
-  /** @deprecated Deprecated by Android Navigation SDK 8.0; still functional, but scheduled for removal by the native SDK. */
+  /** @deprecated Deprecated by Android Navigation SDK 8.0. */
   headerInstructionsFirstRowTextSize?: string;
-  /** @deprecated Deprecated by Android Navigation SDK 8.0; still functional, but scheduled for removal by the native SDK. */
+  /** @deprecated Deprecated by Android Navigation SDK 8.0. */
   headerInstructionsSecondRowTextSize?: string;
   headerGuidanceRecommendedLaneColor?: ColorValue;
 }

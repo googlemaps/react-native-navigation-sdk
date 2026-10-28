@@ -36,7 +36,7 @@ describe('Navigation tests', () => {
     await expectSuccess();
   });
 
-  it('NT02 - complete single-destination route replacements with optional routing and display settings, then navigate', async () => {
+  it('NT02 - initialize navigation controller and navigate to single destination', async () => {
     await selectTestByName('testNavigationToSingleDestination');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
@@ -44,7 +44,7 @@ describe('Navigation tests', () => {
     await expectSuccess();
   });
 
-  it('NT03 - complete multiple-destination route replacements with optional routing and display settings, then navigate', async () => {
+  it('NT03 - initialize navigation controller and navigate to multiple destinations', async () => {
     await selectTestByName('testNavigationToMultipleDestination');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();

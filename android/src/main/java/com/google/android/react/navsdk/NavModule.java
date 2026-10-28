@@ -14,7 +14,6 @@
 package com.google.android.react.navsdk;
 
 import android.app.Activity;
-import android.app.Application;
 import android.location.Location;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -85,10 +84,6 @@ public class NavModule extends NativeNavModuleSpec
 
   private @Navigator.TaskRemovedBehavior int taskRemovedBehaviour =
       Navigator.TaskRemovedBehavior.CONTINUE_SERVICE;
-  // Only host teardown on the UI thread advances this; initialization may read from a native
-  // thread.
-  private volatile long navigationInitGeneration;
-  // Initialization promise ownership and settlement are confined to the UI thread.
   private Promise pendingInitPromise;
 
   public interface ModuleReadyListener {
@@ -271,42 +266,49 @@ public class NavModule extends NativeNavModuleSpec
   @Override
   public void initializeNavigationSession(
       boolean abnormalTerminationReportingEnabled, double taskRemovedBehavior, Promise promise) {
-    // Capture validity before queuing so host teardown also cancels initialization not yet started.
-    final long generation = navigationInitGeneration;
+    // Check if terms are accepted first
+    if (!getTermsAccepted()) {
+      promise.reject(
+          "termsNotAccepted",
+          "The session initialization failed, because the user has not yet accepted the navigation"
+              + " terms and conditions.");
+      return;
+    }
+
+    // Store the promise to resolve/reject when navigation is ready or fails
+    this.pendingInitPromise = promise;
+    this.taskRemovedBehaviour =
+        EnumTranslationUtil.getTaskRemovedBehaviourFromJsValue((int) taskRemovedBehavior);
+
+    // Set abnormal termination reporting
+    NavigationApi.setAbnormalTerminationReportingEnabled(abnormalTerminationReportingEnabled);
+
+    // Initialize the navigation API
+    initializeNavigationApi();
+
+    // Observe nav info independently from the current Activity lifecycle.
+    // Background turn-by-turn updates continue to arrive in NavInfoReceivingService even when the
+    // app is paused, so using an Activity-bound LiveData observer drops them while backgrounded.
+    // Remove any existing observer first to prevent duplicates after cleanup+reinit cycles.
     UiThreadUtil.runOnUiThread(
         () -> {
-          if (generation != navigationInitGeneration) {
-            rejectCancelledInitialization(promise);
-            return;
-          }
-          pendingInitPromise = promise;
-          taskRemovedBehaviour =
-              EnumTranslationUtil.getTaskRemovedBehaviourFromJsValue((int) taskRemovedBehavior);
-
-          NavigationApi.setAbnormalTerminationReportingEnabled(abnormalTerminationReportingEnabled);
-          // Let getNavigator validate consent and access instead of a synchronous terms query.
-          initializeNavigationApi(generation);
+          removeNavInfoObserver();
+          mNavInfoObserver = this::showNavInfo;
+          NavInfoReceivingService.getNavInfoLiveData().observeForever(mNavInfoObserver);
         });
   }
 
   private void onNavigationReady() {
-    // SDK callbacks run on the UI thread. Complete readiness in this turn, not after queued
-    // teardown.
-    // Observe independently of the Activity lifecycle to retain background turn-by-turn updates.
-    removeNavInfoObserver();
-    mNavInfoObserver = this::showNavInfo;
-    NavInfoReceivingService.getNavInfoLiveData().observeForever(mNavInfoObserver);
-
     mNavViewManager.onNavigationReady();
 
     for (NavigationReadyListener listener : mNavigationReadyListeners) {
       listener.onReady(true);
     }
 
+    // Resolve the pending init promise
     if (pendingInitPromise != null) {
-      Promise promise = pendingInitPromise;
+      pendingInitPromise.resolve(null);
       pendingInitPromise = null;
-      promise.resolve(null);
     }
   }
 
@@ -348,36 +350,30 @@ public class NavModule extends NativeNavModuleSpec
           errorCodeStr = "locationPermissionMissing";
           errorMessage = "Location permission is not granted.";
       }
-      Promise promise = pendingInitPromise;
+      pendingInitPromise.reject(errorCodeStr, errorMessage);
       pendingInitPromise = null;
-      promise.reject(errorCodeStr, errorMessage);
-      removeNavInfoObserver();
+      UiThreadUtil.runOnUiThread(this::removeNavInfoObserver);
     }
   }
 
-  private static void rejectCancelledInitialization(Promise promise) {
-    promise.reject(
-        "navigationInitializationCancelled",
-        "Navigation initialization was cancelled before completion.");
-  }
-
   /** Starts the Navigation API, saving a reference to the ready Navigator instance. */
-  private void initializeNavigationApi(long generation) {
-    final Application application = (Application) reactContext.getApplicationContext();
-    requestNavigator(
-        application,
+  private void initializeNavigationApi() {
+    final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
+    if (currentActivity == null) return;
+    NavigationApi.getNavigator(
+        currentActivity.getApplication(),
         new NavigationApi.NavigatorListener() {
           @Override
           public void onNavigatorReady(Navigator navigator) {
-            if (generation != navigationInitGeneration) {
-              return;
-            }
+            final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
+            if (currentActivity == null) return;
+
             // Keep a reference to the Navigator (used to configure and start nav)
             mNavigator = navigator;
             mNavigator.setTaskRemovedBehavior(taskRemovedBehaviour);
             if (mRoadSnappedLocationProvider == null) {
               mRoadSnappedLocationProvider =
-                  NavigationApi.getRoadSnappedLocationProvider(application);
+                  NavigationApi.getRoadSnappedLocationProvider(currentActivity.getApplication());
             }
             registerNavigationListeners();
             onNavigationReady();
@@ -385,9 +381,6 @@ public class NavModule extends NativeNavModuleSpec
 
           @Override
           public void onError(@NavigationApi.ErrorCode int errorCode) {
-            if (generation != navigationInitGeneration) {
-              return;
-            }
             String errMsg;
             switch (errorCode) {
               case NavigationApi.ErrorCode.NOT_AUTHORIZED:
@@ -414,11 +407,6 @@ public class NavModule extends NativeNavModuleSpec
             onNavigationInitError(errorCode);
           }
         });
-  }
-
-  // Keep navigator acquisition replaceable for deterministic initialization failure tests.
-  void requestNavigator(Application application, NavigationApi.NavigatorListener listener) {
-    NavigationApi.getNavigator(application, listener);
   }
 
   /**
@@ -1132,12 +1120,6 @@ public class NavModule extends NativeNavModuleSpec
 
   @Override
   public void onHostDestroy() {
-    navigationInitGeneration++;
-    if (pendingInitPromise != null) {
-      Promise promise = pendingInitPromise;
-      pendingInitPromise = null;
-      rejectCancelledInitialization(promise);
-    }
-    removeNavInfoObserver();
+    UiThreadUtil.runOnUiThread(this::removeNavInfoObserver);
   }
 }

@@ -151,19 +151,3 @@ yarn run example detox:test:android-release
 ```
 
 When adding new tests, you need to first add the detox part in the [e2e folder](./example/e2e) and then the actual logical part of the test in the [integration tests page](./example/src/screens/IntegrationTestsScreen.tsx) of the example app.
-
-### Android native initialization regression
-
-With an Android device or emulator connected, run this command from the repository root:
-
-```bash
-(
-  cd example/android
-  ./gradlew :app:connectedDebugAndroidTest \
-    -Pandroid.testInstrumentationRunnerArguments.class=com.google.android.react.navsdk.NavModuleInitializationTest
-)
-```
-
-These regressions cover rejected initialization and callbacks after host teardown.
-They do not require Metro or terms acceptance and are skipped during Detox launches.
-

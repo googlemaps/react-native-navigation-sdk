@@ -30,9 +30,8 @@ const iOSDelay = ms =>
  * to become visible, then taps the accept button.
  */
 export const agreeToTermsAndConditions = async () => {
-  // SDK 8 pads and title-cases the raw Android text, which renders in uppercase.
-  const acceptButtonText =
-    device.getPlatform() === 'ios' ? 'OK' : /^\s*Got It$/i;
+  // Determine which button text to look for based on platform
+  const acceptButtonText = device.getPlatform() === 'ios' ? 'OK' : 'GOT IT';
 
   log.info(`Waiting for ToS dialog with "${acceptButtonText}" button...`);
 

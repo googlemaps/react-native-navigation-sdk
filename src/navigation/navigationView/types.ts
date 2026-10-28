@@ -173,10 +173,7 @@ export interface FollowMyLocationOptions {
    * When set, the Navigation SDK's auto-zoom is overridden with this value.
    * Omit or set to undefined to use the default Nav SDK auto-zoom.
    *
-   * @deprecated Custom following zoom is deprecated by Android Navigation SDK 8.0
-   * and scheduled for removal by the native SDK, but remains functional.
-   * Omit this option to use the unaffected default following behavior.
-   * iOS support is unchanged.
+   * @deprecated Deprecated by Android Navigation SDK 8.0; iOS support is unchanged.
    */
   zoomLevel?: number;
 }

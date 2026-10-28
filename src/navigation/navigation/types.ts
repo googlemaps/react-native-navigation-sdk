@@ -155,8 +155,6 @@ export interface TermsAndConditionsDialogOptions {
   /**
    * If true, only the driver awareness disclaimer is shown (Android only).
    * On iOS, this parameter is ignored.
-   * Use only if the user has already accepted terms covering Google Navigation.
-   * Defaults to false.
    */
   readonly showOnlyDisclaimer?: boolean;
   /**
@@ -354,8 +352,7 @@ export interface NavigationController {
    *   - `NavigationSessionStatus.TERMS_NOT_ACCEPTED` if the user has not accepted the ToS.
    *   - `NavigationSessionStatus.NETWORK_ERROR` if there is a network connectivity issue.
    *   - `NavigationSessionStatus.LOCATION_PERMISSION_MISSING` if location permission is not granted.
-   *   - `NavigationSessionStatus.UNKNOWN_ERROR` for any other error, including cancellation
-   *     during Android host teardown.
+   *   - `NavigationSessionStatus.UNKNOWN_ERROR` for any other error.
    *
    * @example
    * ```typescript

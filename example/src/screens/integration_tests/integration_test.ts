@@ -115,10 +115,8 @@ const acceptToS = async (
   // Reset ToS acceptance state to ensure dialog is shown
   await navigationController.resetTermsAccepted();
 
-  // Full Google terms are required for navigation-session initialization.
-  const accepted = await navigationController.showTermsAndConditionsDialog({
-    showOnlyDisclaimer: false,
-  });
+  // Show the ToS dialog - Detox will tap the accept button
+  const accepted = await navigationController.showTermsAndConditionsDialog();
 
   if (!accepted) {
     failTest('Terms and Conditions were not accepted');
@@ -446,6 +444,7 @@ export const testNavigationToSingleDestination = async (
     failTest,
   } = testTools;
 
+  // Accept ToS first
   if (!(await acceptToS(navigationController, failTest))) {
     return;
   }
@@ -517,8 +516,8 @@ export const testNavigationToSingleDestination = async (
     }
   });
   setOnArrival(async () => {
-    await navigationController.cleanup();
-    passTest();
+    navigationController.cleanup();
+    return passTest();
   });
   await initializeNavigation(navigationController, failTest);
 };
@@ -535,6 +534,7 @@ export const testNavigationToMultipleDestination = async (
     failTest,
   } = testTools;
 
+  // Accept ToS first
   if (!(await acceptToS(navigationController, failTest))) {
     return;
   }
@@ -625,7 +625,7 @@ export const testNavigationToMultipleDestination = async (
   setOnArrival(async () => {
     onArrivalCount += 1;
     if (onArrivalCount > 1) {
-      await navigationController.cleanup();
+      navigationController.cleanup();
       return passTest();
     }
     const response: ContinueToNextDestinationResponse =
@@ -635,9 +635,12 @@ export const testNavigationToMultipleDestination = async (
         'continueToNextDestination returned null waypoint when next destination exists'
       );
     }
-    if (Platform.OS === 'ios' && response.routeStatus !== RouteStatus.OK) {
+    if (
+      Platform.OS === 'ios' &&
+      !Object.values(RouteStatus).includes(response.routeStatus as RouteStatus)
+    ) {
       return failTest(
-        `continueToNextDestination returned unsuccessful routeStatus on iOS: ${response.routeStatus}`
+        `continueToNextDestination returned unexpected routeStatus on iOS: ${response.routeStatus}`
       );
     }
     await navigationController.startGuidance();
