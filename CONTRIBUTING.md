@@ -164,7 +164,6 @@ With an Android device or emulator connected, run this command from the reposito
 )
 ```
 
-This test injects an immediate terms-rejection callback and verifies that failed
-initialization leaves no turn-by-turn observer registered. It does not require
-Metro or terms acceptance and is intentionally skipped during Detox launches.
+These regressions cover rejected initialization and callbacks after host teardown.
+They do not require Metro or terms acceptance and are skipped during Detox launches.
 

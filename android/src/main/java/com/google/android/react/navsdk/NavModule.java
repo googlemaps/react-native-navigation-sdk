@@ -85,6 +85,10 @@ public class NavModule extends NativeNavModuleSpec
 
   private @Navigator.TaskRemovedBehavior int taskRemovedBehaviour =
       Navigator.TaskRemovedBehavior.CONTINUE_SERVICE;
+  // Only host teardown on the UI thread advances this; initialization may read from a native
+  // thread.
+  private volatile long navigationInitGeneration;
+  // Initialization promise ownership and settlement are confined to the UI thread.
   private Promise pendingInitPromise;
 
   public interface ModuleReadyListener {
@@ -267,42 +271,43 @@ public class NavModule extends NativeNavModuleSpec
   @Override
   public void initializeNavigationSession(
       boolean abnormalTerminationReportingEnabled, double taskRemovedBehavior, Promise promise) {
-    // Let getNavigator validate consent and access. A synchronous terms query can
-    // return false on an access-check failure or timeout.
-    this.pendingInitPromise = promise;
-    this.taskRemovedBehaviour =
-        EnumTranslationUtil.getTaskRemovedBehaviourFromJsValue((int) taskRemovedBehavior);
+    // Capture validity before queuing so host teardown also cancels initialization not yet started.
+    final long generation = navigationInitGeneration;
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          if (generation != navigationInitGeneration) {
+            rejectCancelledInitialization(promise);
+            return;
+          }
+          pendingInitPromise = promise;
+          taskRemovedBehaviour =
+              EnumTranslationUtil.getTaskRemovedBehaviourFromJsValue((int) taskRemovedBehavior);
 
-    // Set abnormal termination reporting
-    NavigationApi.setAbnormalTerminationReportingEnabled(abnormalTerminationReportingEnabled);
-
-    // Initialize the navigation API
-    initializeNavigationApi();
+          NavigationApi.setAbnormalTerminationReportingEnabled(abnormalTerminationReportingEnabled);
+          // Let getNavigator validate consent and access instead of a synchronous terms query.
+          initializeNavigationApi(generation);
+        });
   }
 
   private void onNavigationReady() {
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          // Attach only after successful initialization, before notifying callers. A synchronous
-          // getNavigator error must not leave an observer queued after error cleanup.
-          // Observe independently of the Activity lifecycle to retain background turn-by-turn
-          // updates.
-          removeNavInfoObserver();
-          mNavInfoObserver = this::showNavInfo;
-          NavInfoReceivingService.getNavInfoLiveData().observeForever(mNavInfoObserver);
+    // SDK callbacks run on the UI thread. Complete readiness in this turn, not after queued
+    // teardown.
+    // Observe independently of the Activity lifecycle to retain background turn-by-turn updates.
+    removeNavInfoObserver();
+    mNavInfoObserver = this::showNavInfo;
+    NavInfoReceivingService.getNavInfoLiveData().observeForever(mNavInfoObserver);
 
-          mNavViewManager.onNavigationReady();
+    mNavViewManager.onNavigationReady();
 
-          for (NavigationReadyListener listener : mNavigationReadyListeners) {
-            listener.onReady(true);
-          }
+    for (NavigationReadyListener listener : mNavigationReadyListeners) {
+      listener.onReady(true);
+    }
 
-          // Resolve the pending init promise
-          if (pendingInitPromise != null) {
-            pendingInitPromise.resolve(null);
-            pendingInitPromise = null;
-          }
-        });
+    if (pendingInitPromise != null) {
+      Promise promise = pendingInitPromise;
+      pendingInitPromise = null;
+      promise.resolve(null);
+    }
   }
 
   public void registerNavigationReadyListener(NavigationReadyListener listener) {
@@ -343,20 +348,30 @@ public class NavModule extends NativeNavModuleSpec
           errorCodeStr = "locationPermissionMissing";
           errorMessage = "Location permission is not granted.";
       }
-      pendingInitPromise.reject(errorCodeStr, errorMessage);
+      Promise promise = pendingInitPromise;
       pendingInitPromise = null;
-      UiThreadUtil.runOnUiThread(this::removeNavInfoObserver);
+      promise.reject(errorCodeStr, errorMessage);
+      removeNavInfoObserver();
     }
   }
 
+  private static void rejectCancelledInitialization(Promise promise) {
+    promise.reject(
+        "navigationInitializationCancelled",
+        "Navigation initialization was cancelled before completion.");
+  }
+
   /** Starts the Navigation API, saving a reference to the ready Navigator instance. */
-  private void initializeNavigationApi() {
+  private void initializeNavigationApi(long generation) {
     final Application application = (Application) reactContext.getApplicationContext();
     requestNavigator(
         application,
         new NavigationApi.NavigatorListener() {
           @Override
           public void onNavigatorReady(Navigator navigator) {
+            if (generation != navigationInitGeneration) {
+              return;
+            }
             // Keep a reference to the Navigator (used to configure and start nav)
             mNavigator = navigator;
             mNavigator.setTaskRemovedBehavior(taskRemovedBehaviour);
@@ -370,6 +385,9 @@ public class NavModule extends NativeNavModuleSpec
 
           @Override
           public void onError(@NavigationApi.ErrorCode int errorCode) {
+            if (generation != navigationInitGeneration) {
+              return;
+            }
             String errMsg;
             switch (errorCode) {
               case NavigationApi.ErrorCode.NOT_AUTHORIZED:
@@ -1114,6 +1132,12 @@ public class NavModule extends NativeNavModuleSpec
 
   @Override
   public void onHostDestroy() {
-    UiThreadUtil.runOnUiThread(this::removeNavInfoObserver);
+    navigationInitGeneration++;
+    if (pendingInitPromise != null) {
+      Promise promise = pendingInitPromise;
+      pendingInitPromise = null;
+      rejectCancelledInitialization(promise);
+    }
+    removeNavInfoObserver();
   }
 }

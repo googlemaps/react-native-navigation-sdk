@@ -354,7 +354,8 @@ export interface NavigationController {
    *   - `NavigationSessionStatus.TERMS_NOT_ACCEPTED` if the user has not accepted the ToS.
    *   - `NavigationSessionStatus.NETWORK_ERROR` if there is a network connectivity issue.
    *   - `NavigationSessionStatus.LOCATION_PERMISSION_MISSING` if location permission is not granted.
-   *   - `NavigationSessionStatus.UNKNOWN_ERROR` for any other error.
+   *   - `NavigationSessionStatus.UNKNOWN_ERROR` for any other error, including cancellation
+   *     during Android host teardown.
    *
    * @example
    * ```typescript

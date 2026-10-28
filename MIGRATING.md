@@ -81,9 +81,6 @@ rather than assuming prior consent.
 SDK initialization can also return `NavigationSessionStatus.NETWORK_ERROR` for
 transient network or timeout failures during navigator access checks.
 
-On Android, turn-by-turn subscriptions start only after initialization succeeds.
-A rejected initialization does not leave a subscription active.
-
 ### Step 4: Review map behavior and native deprecations
 
 On Android, terrain maps selected before navigation fall back to normal maps

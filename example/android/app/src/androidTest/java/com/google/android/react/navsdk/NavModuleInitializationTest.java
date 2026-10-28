@@ -19,10 +19,12 @@ package com.google.android.react.navsdk;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
 import android.app.Application;
+import android.app.Instrumentation;
 import android.util.Log;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -31,61 +33,185 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.runtime.BridgelessReactContext;
 import com.facebook.react.runtime.ReactHostImpl;
 import com.google.android.libraries.navigation.NavigationApi;
+import com.google.android.libraries.navigation.Navigator;
 import com.sampleapp.MainApplication;
-import java.util.concurrent.atomic.AtomicReference;
+import java.lang.reflect.Proxy;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public class NavModuleInitializationTest {
+  private Instrumentation instrumentation;
+  private TestNavModule module;
+  private int readyNotifications;
+
+  @Before
+  public void setUp() {
+    assumeFalse(InstrumentationRegistry.getArguments().containsKey("detoxServer"));
+    instrumentation = InstrumentationRegistry.getInstrumentation();
+    instrumentation.runOnMainSync(
+        () -> {
+          Application application =
+              (Application) instrumentation.getTargetContext().getApplicationContext();
+          module = new TestNavModule(application);
+          module.registerNavigationReadyListener(
+              ready -> {
+                if (ready) {
+                  readyNotifications++;
+                }
+              });
+          assertFalse(NavInfoReceivingService.getNavInfoLiveData().hasObservers());
+        });
+  }
+
+  @After
+  public void tearDown() {
+    if (module != null) {
+      instrumentation.runOnMainSync(module::onHostDestroy);
+      instrumentation.waitForIdleSync();
+    }
+  }
+
   @Test
   public void immediateTermsRejectionDoesNotRetainNavInfoObserver() {
-    assumeFalse(InstrumentationRegistry.getArguments().containsKey("detoxServer"));
-    var instrumentation = InstrumentationRegistry.getInstrumentation();
-    Application application =
-        (Application) instrumentation.getTargetContext().getApplicationContext();
-    var rejection = new AtomicReference<String>();
-    NavModule module =
-        new NavModule(
-            new BridgelessReactContext(
-                application, (ReactHostImpl) ((MainApplication) application).getReactHost()),
-            null) {
-          @Override
-          void requestNavigator(Application application, NavigationApi.NavigatorListener listener) {
-            listener.onError(NavigationApi.ErrorCode.TERMS_NOT_ACCEPTED);
-          }
+    module.rejectTermsImmediately = true;
+    InitResult result = initialize();
+    instrumentation.runOnMainSync(
+        () -> {
+          assertEquals("termsNotAccepted", result.rejection);
+          assertFalse(result.resolved);
+          assertNull(module.getNavigator());
+          assertFalse(NavInfoReceivingService.getNavInfoLiveData().hasObservers());
+          assertEquals(0, readyNotifications);
+        });
+  }
 
-          @Override
-          public void logDebugInfo(String info) {
-            // Capture diagnostics without requiring a running JavaScript event subscriber.
-            Log.d("NavModuleInitializationTest", info);
-          }
-        };
+  @Test
+  public void successfulCallbackAfterHostDestroyDoesNotPublishReadiness() {
+    InitResult result = initialize();
+    NavigationApi.NavigatorListener callback = module.callback;
+    Navigator navigator = createNavigator();
+    instrumentation.runOnMainSync(
+        () -> {
+          module.onHostDestroy();
+          callback.onNavigatorReady(navigator);
+        });
+    instrumentation.waitForIdleSync();
+    instrumentation.runOnMainSync(
+        () -> {
+          assertEquals("navigationInitializationCancelled", result.rejection);
+          assertFalse(result.resolved);
+          assertNull(module.getNavigator());
+          assertFalse(NavInfoReceivingService.getNavInfoLiveData().hasObservers());
+          assertEquals(0, readyNotifications);
+        });
+  }
 
-    try {
-      instrumentation.runOnMainSync(
-          () -> {
-            assertFalse(NavInfoReceivingService.getNavInfoLiveData().hasObservers());
-            module.initializeNavigationSession(
-                false,
-                0,
-                new PromiseImpl(
-                    args -> fail("Initialization succeeded without accepting terms"),
-                    args -> rejection.set(((ReadableMap) args[0]).getString("code"))));
-            // Reject synchronously to exercise removal-before-registration ordering.
-            assertEquals("termsNotAccepted", rejection.get());
-          });
-      instrumentation.waitForIdleSync();
-      instrumentation.runOnMainSync(
-          () -> {
-            assertNull(module.getNavigator());
-            assertFalse(
-                "Rejected initialization must not retain a turn-by-turn observer",
-                NavInfoReceivingService.getNavInfoLiveData().hasObservers());
-          });
-    } finally {
-      module.onHostDestroy();
-      instrumentation.waitForIdleSync();
+  @Test
+  public void initializationQueuedBeforeHostDestroyDoesNotAcquireNavigator() {
+    InitResult result = new InitResult();
+    instrumentation.runOnMainSync(
+        () -> {
+          module.initializeNavigationSession(false, 0, result.promise);
+          module.onHostDestroy();
+        });
+    instrumentation.waitForIdleSync();
+    instrumentation.runOnMainSync(
+        () -> {
+          assertEquals("navigationInitializationCancelled", result.rejection);
+          assertFalse(result.resolved);
+          assertNull(module.callback);
+          assertNull(module.getNavigator());
+          assertFalse(NavInfoReceivingService.getNavInfoLiveData().hasObservers());
+          assertEquals(0, readyNotifications);
+        });
+  }
+
+  @Test
+  public void freshHeadlessInitializationRemainsObservedUntilHostDestroy() {
+    instrumentation.runOnMainSync(module::onHostDestroy);
+    InitResult result = initialize();
+    NavigationApi.NavigatorListener callback = module.callback;
+    Navigator navigator = createNavigator();
+    boolean[] destroyed = {false};
+    int[] staleNotifications = {0};
+    instrumentation.runOnMainSync(
+        () -> {
+          assertNull(module.reactContext.getCurrentActivity());
+          module.registerNavigationReadyListener(
+              ready -> {
+                if (ready && destroyed[0]) {
+                  staleNotifications[0]++;
+                }
+              });
+          callback.onNavigatorReady(navigator);
+          assertTrue(result.resolved);
+          assertNull(result.rejection);
+          assertSame(navigator, module.getNavigator());
+          assertTrue(NavInfoReceivingService.getNavInfoLiveData().hasActiveObservers());
+          module.onHostPause();
+          assertTrue(NavInfoReceivingService.getNavInfoLiveData().hasActiveObservers());
+          destroyed[0] = true;
+          module.onHostDestroy();
+        });
+    instrumentation.waitForIdleSync();
+    instrumentation.runOnMainSync(
+        () -> {
+          assertEquals(1, readyNotifications);
+          assertEquals(0, staleNotifications[0]);
+          assertFalse(NavInfoReceivingService.getNavInfoLiveData().hasObservers());
+        });
+  }
+
+  private InitResult initialize() {
+    InitResult result = new InitResult();
+    instrumentation.runOnMainSync(
+        () -> module.initializeNavigationSession(false, 0, result.promise));
+    instrumentation.waitForIdleSync();
+    return result;
+  }
+
+  private static Navigator createNavigator() {
+    return (Navigator)
+        Proxy.newProxyInstance(
+            Navigator.class.getClassLoader(),
+            new Class<?>[] {Navigator.class},
+            (proxy, method, args) -> null);
+  }
+
+  private static final class InitResult {
+    boolean resolved;
+    String rejection;
+    final PromiseImpl promise =
+        new PromiseImpl(
+            args -> resolved = true, args -> rejection = ((ReadableMap) args[0]).getString("code"));
+  }
+
+  private static final class TestNavModule extends NavModule {
+    NavigationApi.NavigatorListener callback;
+    boolean rejectTermsImmediately;
+
+    TestNavModule(Application application) {
+      super(
+          new BridgelessReactContext(
+              application, (ReactHostImpl) ((MainApplication) application).getReactHost()),
+          new NavViewManager());
+    }
+
+    @Override
+    void requestNavigator(Application application, NavigationApi.NavigatorListener listener) {
+      callback = listener;
+      if (rejectTermsImmediately) {
+        listener.onError(NavigationApi.ErrorCode.TERMS_NOT_ACCEPTED);
+      }
+    }
+
+    @Override
+    public void logDebugInfo(String info) {
+      // Capture diagnostics without requiring a running JavaScript event subscriber.
+      Log.d("NavModuleInitializationTest", info);
     }
   }
 }
