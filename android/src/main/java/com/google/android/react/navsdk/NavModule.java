@@ -278,31 +278,31 @@ public class NavModule extends NativeNavModuleSpec
 
     // Initialize the navigation API
     initializeNavigationApi();
-
-    // Observe nav info independently from the current Activity lifecycle.
-    // Background turn-by-turn updates continue to arrive in NavInfoReceivingService even when the
-    // app is paused, so using an Activity-bound LiveData observer drops them while backgrounded.
-    // Remove any existing observer first to prevent duplicates after cleanup+reinit cycles.
-    UiThreadUtil.runOnUiThread(
-        () -> {
-          removeNavInfoObserver();
-          mNavInfoObserver = this::showNavInfo;
-          NavInfoReceivingService.getNavInfoLiveData().observeForever(mNavInfoObserver);
-        });
   }
 
   private void onNavigationReady() {
-    mNavViewManager.onNavigationReady();
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          // Attach only after successful initialization, before notifying callers. A synchronous
+          // getNavigator error must not leave an observer queued after error cleanup.
+          // Observe independently of the Activity lifecycle to retain background turn-by-turn
+          // updates.
+          removeNavInfoObserver();
+          mNavInfoObserver = this::showNavInfo;
+          NavInfoReceivingService.getNavInfoLiveData().observeForever(mNavInfoObserver);
 
-    for (NavigationReadyListener listener : mNavigationReadyListeners) {
-      listener.onReady(true);
-    }
+          mNavViewManager.onNavigationReady();
 
-    // Resolve the pending init promise
-    if (pendingInitPromise != null) {
-      pendingInitPromise.resolve(null);
-      pendingInitPromise = null;
-    }
+          for (NavigationReadyListener listener : mNavigationReadyListeners) {
+            listener.onReady(true);
+          }
+
+          // Resolve the pending init promise
+          if (pendingInitPromise != null) {
+            pendingInitPromise.resolve(null);
+            pendingInitPromise = null;
+          }
+        });
   }
 
   public void registerNavigationReadyListener(NavigationReadyListener listener) {
@@ -352,7 +352,7 @@ public class NavModule extends NativeNavModuleSpec
   /** Starts the Navigation API, saving a reference to the ready Navigator instance. */
   private void initializeNavigationApi() {
     final Application application = (Application) reactContext.getApplicationContext();
-    NavigationApi.getNavigator(
+    requestNavigator(
         application,
         new NavigationApi.NavigatorListener() {
           @Override
@@ -396,6 +396,11 @@ public class NavModule extends NativeNavModuleSpec
             onNavigationInitError(errorCode);
           }
         });
+  }
+
+  // Keep navigator acquisition replaceable for deterministic initialization failure tests.
+  void requestNavigator(Application application, NavigationApi.NavigatorListener listener) {
+    NavigationApi.getNavigator(application, listener);
   }
 
   /**
