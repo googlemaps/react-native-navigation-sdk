@@ -17,6 +17,7 @@
 #import "NavModule.h"
 #import <GoogleMaps/GoogleMaps.h>
 #import <React/RCTLog.h>
+#import <React/RCTUtils.h>
 #import "NavAutoModule.h"
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
@@ -96,6 +97,23 @@ RCT_EXPORT_MODULE(NavModule);
   }
   *navigator = self->_session.navigator;
   return YES;
+}
+
+// RCTInvalidating. NavModule is a process-wide singleton that outlives the React
+// Native instance, so after a reload (CMD+R, fast refresh) the navigator kept
+// calling back into an event emitter bound to the torn-down runtime (#539).
+// The listeners are re-added by initializeSession on the next initialization,
+// and the emitter is restored by setEventEmitterCallback.
+- (void)invalidate {
+  RCTUnsafeExecuteOnMainQueueSync(^{
+    [self->_session.navigator removeListener:self];
+    [self->_session.roadSnappedLocationProvider removeListener:self];
+    self->_eventEmitterCallback = nullptr;
+  });
+}
+
+- (BOOL)canEmitEvents {
+  return _eventEmitterCallback ? YES : NO;
 }
 
 - (void)initializeSession {
@@ -903,10 +921,16 @@ RCT_EXPORT_MODULE(NavModule);
 
 #pragma mark - INavigationCallback
 - (void)onLocationChanged:(NSDictionary *)mappedLocation {
+  if (![self canEmitEvents]) {
+    return;
+  }
   [self emitOnLocationChanged:@{@"location" : mappedLocation}];
 }
 
 - (void)onArrival:(NSDictionary *)eventMap {
+  if (![self canEmitEvents]) {
+    return;
+  }
   [self emitOnArrival:@{@"arrivalEvent" : eventMap}];
 }
 
@@ -921,6 +945,9 @@ RCT_EXPORT_MODULE(NavModule);
 }
 
 - (void)onRemainingTimeOrDistanceChangedWithNavigator:(GMSNavigator *)navigator {
+  if (![self canEmitEvents]) {
+    return;
+  }
   if (!navigator.currentRouteLeg) {
     return;
   }
@@ -936,14 +963,23 @@ RCT_EXPORT_MODULE(NavModule);
 }
 
 - (void)onRouteChanged {
+  if (![self canEmitEvents]) {
+    return;
+  }
   [self emitOnRouteChanged];
 }
 
 - (void)onReroutingRequestedByOffRoute {
+  if (![self canEmitEvents]) {
+    return;
+  }
   [self emitOnReroutingRequestedByOffRoute];
 }
 
 - (void)onStartGuidance {
+  if (![self canEmitEvents]) {
+    return;
+  }
   [self emitOnStartGuidance];
 }
 
@@ -973,6 +1009,9 @@ RCT_EXPORT_MODULE(NavModule);
 - (void)onTurnByTurn:(GMSNavigationNavInfo *)navInfo
     distanceToNextDestinationMeters:(double)distanceToNextDestinationMeters
        timeToNextDestinationSeconds:(double)timeToNextDestinationSeconds {
+  if (![self canEmitEvents]) {
+    return;
+  }
   NSMutableDictionary *obj = [[NSMutableDictionary alloc] init];
 
   [obj setValue:[NSNumber numberWithLong:navInfo.navState] forKey:@"navState"];
