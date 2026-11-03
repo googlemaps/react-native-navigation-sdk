@@ -4,16 +4,16 @@ This document covers breaking changes and migration steps between major versions
 
 ## Table of Contents
 
-- [Migrating to Android Navigation SDK 8.0.0](#migrating-to-android-navigation-sdk-800)
+- [Migrating from 0.18.x to 0.19.x](#migrating-from-018x-to-019x)
 - [Migrating from 0.17.x to 0.18.x](#migrating-from-017x-to-018x)
 - [Migrating from 0.16.x to 0.17.x](#migrating-from-016x-to-017x)
 - [Migrating from 0.13.x to 0.14.x](#migrating-from-013x-to-014x)
 
 ---
 
-## Migrating to Android Navigation SDK 8.0.0
+## Migrating from 0.18.x to 0.19.x
 
-This upgrade replaces Android Navigation SDK 7.9.0 with 8.0.0.
+Version 0.19.0 upgrades the Android Navigation SDK from `7.9.0` to `8.0.0`.
 
 ### Build requirements
 
