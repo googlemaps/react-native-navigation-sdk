@@ -75,8 +75,6 @@ type RoutingOptionsSpec = Readonly<{
 type DisplayOptionsSpec = Readonly<{
   valid?: WithDefault<boolean, false>;
   showDestinationMarkers?: boolean;
-  showStopSigns?: boolean;
-  showTrafficLights?: boolean;
 }>;
 
 type RouteTokenOptionsSpec = Readonly<{
@@ -158,6 +156,8 @@ enum RouteStatusSpec {
   INVALID_PLACE_ID,
   DUPLICATE_WAYPOINTS_ERROR,
   UNKNOWN,
+  /** Android only: the route calculation request timed out on the routing backend. */
+  ROUTING_TIMEOUT,
 }
 
 type TermsAndConditionsUIParamsSpec = Readonly<{

@@ -21,7 +21,7 @@
     android:fitsSystemWindows="true">
     <fragment
         android:id="@+id/navigation_fragment2"
-        android:name="com.google.android.libraries.navigation.SupportNavigationFragment"
+        android:name="com.google.android.libraries.navigation.NavigationFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"

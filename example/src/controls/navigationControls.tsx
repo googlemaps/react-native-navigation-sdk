@@ -148,8 +148,6 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
 
     const displayOptions: DisplayOptions = {
       showDestinationMarkers: true,
-      showStopSigns: true,
-      showTrafficLights: true,
     };
 
     const routeStatus = await navigationController.setDestination(waypoint, {
@@ -187,8 +185,6 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
 
     const displayOptions: DisplayOptions = {
       showDestinationMarkers: true,
-      showStopSigns: true,
-      showTrafficLights: true,
     };
 
     const routeStatus = await navigationController.setDestinations(waypoints, {

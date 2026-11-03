@@ -370,6 +370,8 @@ export enum RouteStatus {
   DUPLICATE_WAYPOINTS_ERROR = 'DUPLICATE_WAYPOINTS_ERROR',
   /** An unknown error has happened to generate the route. */
   UNKNOWN = 'UNKNOWN',
+  /** Android only: the route calculation request timed out on the routing backend. */
+  ROUTING_TIMEOUT = 'ROUTING_TIMEOUT',
 }
 
 /**

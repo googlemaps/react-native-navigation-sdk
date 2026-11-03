@@ -6,6 +6,8 @@ This guide explains how to enable and integrate Android Auto with the React Nati
 
 - Android device
 - Android Auto test device or Android Automotive OS emulator
+- `androidx.car.app:app` and `androidx.car.app:app-projected` **1.3.0+** for their
+  consumer ProGuard rules, which Navigation SDK 8.0.0 no longer bundles.
 
 ## Setup
 

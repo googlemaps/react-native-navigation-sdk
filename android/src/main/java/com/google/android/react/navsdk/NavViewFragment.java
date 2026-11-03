@@ -34,16 +34,16 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.libraries.navigation.ForceNightMode;
+import com.google.android.libraries.navigation.NavigationFragment;
 import com.google.android.libraries.navigation.NavigationView;
 import com.google.android.libraries.navigation.PromptVisibilityChangedListener;
 import com.google.android.libraries.navigation.StylingOptions;
-import com.google.android.libraries.navigation.SupportNavigationFragment;
 
 /**
- * A fragment that displays a navigation view with a Google Map using SupportNavigationFragment.
- * This fragment's lifecycle is managed by NavViewManager.
+ * A fragment that displays a navigation view with a Google Map using NavigationFragment. This
+ * fragment's lifecycle is managed by NavViewManager.
  */
-public class NavViewFragment extends SupportNavigationFragment
+public class NavViewFragment extends NavigationFragment
     implements INavViewFragment, INavigationViewCallback {
   private static final String TAG = "NavViewFragment";
   private int viewTag; // React native view tag.

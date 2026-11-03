@@ -157,6 +157,8 @@ public class EnumTranslationUtil {
         return "WAYPOINT_ERROR";
       case DUPLICATE_WAYPOINTS_ERROR:
         return "DUPLICATE_WAYPOINTS_ERROR";
+      case ROUTING_TIMEOUT:
+        return "ROUTING_TIMEOUT";
       default:
         return "UNKNOWN";
     }
