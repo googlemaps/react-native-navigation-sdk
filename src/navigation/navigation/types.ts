@@ -54,9 +54,9 @@ export interface RouteTokenOptions {
   /**
    * The travel mode used when generating the route token.
    *
-   * This must match the travel mode used to generate the route token.
-   * If there is a mismatch, this travel mode will override the one used
-   * to generate the route token.
+   * This must match the travel mode used to generate the route token. The
+   * routing options encoded in the route token, including travel mode and
+   * toll preferences, take precedence over client-side settings.
    */
   travelMode?: TravelMode;
 }
