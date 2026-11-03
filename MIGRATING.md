@@ -25,6 +25,7 @@ the iOS Navigation SDK from `11.1.0` to `11.3.0`.
 | Android  | New `RouteStatus.ROUTING_TIMEOUT` route result                                |
 | Android  | `MapType.TERRAIN` falls back to a normal map during navigation                |
 | iOS      | iOS Navigation SDK upgraded to `11.3.0`; minimum iOS version raised to `17.0` |
+| iOS      | Duplicate waypoints resolve with `RouteStatus.DUPLICATE_WAYPOINTS_ERROR`      |
 
 ### Both platforms
 
@@ -97,6 +98,19 @@ platform :ios, '17'
 ```
 
 Set `IPHONEOS_DEPLOYMENT_TARGET` to `17.0` or later for your app targets in Xcode.
+
+#### Routing
+
+- Route calculation with consecutive duplicate waypoints resolves with
+  `RouteStatus.DUPLICATE_WAYPOINTS_ERROR`, matching Android, instead of
+  `RouteStatus.UNKNOWN`.
+- When `routeTokenOptions` is set, the route token alone defines the
+  destinations; the waypoints passed to `setDestinations` are not sent to the
+  Navigation SDK.
+- Migrate native `setDestinations` calls in custom iOS integrations to the
+  `completionHandler` methods; the `callback` methods are deprecated in SDK
+  11.3.0. The wrapper handles this internally; JavaScript destination methods
+  still return promises.
 
 See the [iOS Navigation SDK release notes](https://developers.google.com/maps/documentation/navigation/ios-sdk/release-notes)
 for upstream details.

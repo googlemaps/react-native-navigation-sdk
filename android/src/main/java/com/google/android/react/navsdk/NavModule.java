@@ -624,10 +624,17 @@ public class NavModule extends NativeNavModuleSpec
             ? ObjectTranslationUtil.getDisplayOptionsFromMap(displayOptions.toHashMap())
             : null;
 
+    // The SDK does not annotate the route description as non-null. Without it there is no route
+    // status to resolve, so both platforms reject with "noRouteStatus".
     RouteDescriptionLoadCallback routeCallback =
-        routeDescription ->
-            promise.resolve(
-                EnumTranslationUtil.getRouteStatusStringValue(routeDescription.getRouteStatus()));
+        routeDescription -> {
+          if (routeDescription == null) {
+            promise.reject("noRouteStatus", "The Navigation SDK returned no route status.");
+            return;
+          }
+          promise.resolve(
+              EnumTranslationUtil.getRouteStatusStringValue(routeDescription.getRouteStatus()));
+        };
 
     // If route token options are provided, use CustomRoutesOptions
     if (hasValidRouteTokenOptions) {

@@ -29,6 +29,8 @@ static NSString *const kNoNavigatorErrorMessage =
     @"Make sure to initialize the navigator is ready before executing.";
 static NSString *const kNoDestinationsErrorCode = @"NO_DESTINATIONS";
 static NSString *const kNoDestinationsErrorMessage = @"Destinations not set";
+static NSString *const kNoRouteStatusErrorCode = @"noRouteStatus";
+static NSString *const kNoRouteStatusErrorMessage = @"The Navigation SDK returned no route status.";
 
 /**
  * Adds a Navigation SDK distance or duration to a turn-by-turn payload, rounded to whole meters
@@ -548,22 +550,26 @@ RCT_EXPORT_MODULE(NavModule);
       [strongSelf->_destinations addObject:w];
     }
 
-    void (^routeStatusCallback)(GMSRouteStatus) = ^(GMSRouteStatus routeStatus) {
-      __strong __typeof(weakSelf) innerStrongSelf = weakSelf;
-      if (!innerStrongSelf) return;
-      // Return the route status string to match codegen RouteStatusSpec enum
-      NSString *status = [NavModule routeStatusToString:routeStatus];
-      resolve(status);
-    };
+    GMSNavigationRouteCompletionHandler routeCompletionHandler =
+        ^(id<GMSNavigationRouteDescription> _Nullable routeDescription, NSError *_Nullable error) {
+          __strong __typeof(weakSelf) innerStrongSelf = weakSelf;
+          if (!innerStrongSelf) return;
+          // The SDK documents the route description as optional. Without it there is no route
+          // status to resolve, so both platforms reject with kNoRouteStatusErrorCode.
+          if (routeDescription == nil) {
+            reject(kNoRouteStatusErrorCode,
+                   error.localizedDescription ?: kNoRouteStatusErrorMessage, error);
+            return;
+          }
+          resolve([NavModule routeStatusToString:routeDescription.routeStatus]);
+        };
 
-    // If valid route token options are provided, use route token for navigation
     if (routeTokenOptionsCopy.valid().value_or(false)) {
       NSString *routeToken = routeTokenOptionsCopy.routeToken();
       std::optional<double> travelMode = routeTokenOptionsCopy.travelMode();
       [strongSelf configureNavigatorWithTravelMode:navigator travelMode:travelMode];
-      [navigator setDestinations:strongSelf->_destinations
-                      routeToken:routeToken
-                        callback:routeStatusCallback];
+      // The route token defines the destinations, so the SDK takes no waypoints here.
+      [navigator setDestinationsWithToken:routeToken completionHandler:routeCompletionHandler];
     } else if (routingOptionsCopy.valid().value_or(false)) {
       // Use routing options if valid
       std::optional<double> travelMode = routingOptionsCopy.travelMode();
@@ -583,10 +589,11 @@ RCT_EXPORT_MODULE(NavModule);
                         alternateRoutesStrategy:alternateRoutesStrategy];
       [navigator setDestinations:strongSelf->_destinations
                   routingOptions:gmRoutingOptions
-                        callback:routeStatusCallback];
+               completionHandler:routeCompletionHandler];
     } else {
       // No valid options provided, use defaults
-      [navigator setDestinations:strongSelf->_destinations callback:routeStatusCallback];
+      [navigator setDestinations:strongSelf->_destinations
+               completionHandler:routeCompletionHandler];
     }
   });
 }
@@ -956,9 +963,14 @@ RCT_EXPORT_MODULE(NavModule);
       return @"WAYPOINT_ERROR";
     case GMSRouteStatusWaypointError:
       return @"WAYPOINT_ERROR";
-    default:
+    case GMSRouteStatusDuplicateWaypointsError:
+      return @"DUPLICATE_WAYPOINTS_ERROR";
+    case GMSRouteStatusTravelModeUnsupported:
+    case GMSRouteStatusAPIKeyNotAuthorized:
+    case GMSRouteStatusInternalError:
       return @"UNKNOWN";
   }
+  return @"UNKNOWN";
 }
 
 - (void)onTurnByTurn:(GMSNavigationNavInfo *)navInfo
