@@ -38,6 +38,7 @@ import {
   type Polyline,
   useNavigation,
   MapView,
+  type DragResult,
 } from '@googlemaps/react-native-navigation-sdk';
 import MapsControls from '../controls/mapsControls';
 import NavigationControls from '../controls/navigationControls';
@@ -221,6 +222,18 @@ const MultipleMapsScreen = () => {
     );
   }, []);
 
+  const onMapDrag1 = useCallback((result: DragResult) => {
+    showSnackbar(
+      `Map 1: Camera at ${result.cameraPosition.target.lat.toFixed(4)}, ${result.cameraPosition.target.lng.toFixed(4)}, ${result.cameraPosition.zoom?.toFixed(4)}`
+    );
+  }, []);
+
+  const onMapDragEnd1 = useCallback((result: DragResult) => {
+    showSnackbar(
+      `Map 1: Camera at ${result.cameraPosition.target.lat.toFixed(4)}, ${result.cameraPosition.target.lng.toFixed(4)}, ${result.cameraPosition.zoom?.toFixed(4)}`
+    );
+  }, []);
+
   // Map 2 callbacks
   const onMarkerClick2 = useCallback(
     (marker: Marker) => {
@@ -261,6 +274,18 @@ const MultipleMapsScreen = () => {
   const onMapClick2 = useCallback((latLng: LatLng) => {
     showSnackbar(
       `Map 2: Clicked at ${latLng.lat.toFixed(4)}, ${latLng.lng.toFixed(4)}`
+    );
+  }, []);
+
+  const onMapDrag2 = useCallback((result: DragResult) => {
+    showSnackbar(
+      `Map 2: Camera at ${result.cameraPosition.target.lat.toFixed(4)}, ${result.cameraPosition.target.lng.toFixed(4)}, ${result.cameraPosition.zoom?.toFixed(4)}`
+    );
+  }, []);
+
+  const onMapDragEnd2 = useCallback((result: DragResult) => {
+    showSnackbar(
+      `Map 2: Camera at ${result.cameraPosition.target.lat.toFixed(4)}, ${result.cameraPosition.target.lng.toFixed(4)}, ${result.cameraPosition.zoom?.toFixed(4)}`
     );
   }, []);
 
@@ -326,6 +351,8 @@ const MultipleMapsScreen = () => {
                 onPolylineClick={onPolylineClick1}
                 onMarkerInfoWindowTapped={onMarkerInfoWindowTapped1}
                 onMapClick={onMapClick1}
+                onMapDrag={onMapDrag1}
+                onMapDragEnd={onMapDragEnd1}
                 onMapViewControllerCreated={setMapViewController1}
                 onNavigationViewControllerCreated={setNavigationViewController1}
               />
@@ -352,6 +379,8 @@ const MultipleMapsScreen = () => {
                 onPolylineClick={onPolylineClick2}
                 onMarkerInfoWindowTapped={onMarkerInfoWindowTapped2}
                 onMapClick={onMapClick2}
+                onMapDrag={onMapDrag2}
+                onMapDragEnd={onMapDragEnd2}
                 onMapViewControllerCreated={setMapViewController2}
               />
               {currentPage === 1 && (

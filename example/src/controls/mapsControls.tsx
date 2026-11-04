@@ -379,6 +379,42 @@ const MapsControls: React.FC<MapControlsProps> = ({
     setCustomPaddingEnabled(!customPaddingEnabled);
   };
 
+  const coordinateForPoint = async () => {
+    const cameraPosition = await mapViewController.getCameraPosition();
+    const point = await mapViewController.pointForCoordinate(
+      cameraPosition.target
+    );
+    const coordinate = await mapViewController.coordinateForPoint(point);
+    showSnackbar(
+      `point, corrdinate: ${point.x.toFixed(4)}, ${point.y.toFixed(4)} ${coordinate.lat.toFixed(4)}, ${coordinate.lng.toFixed(4)}`
+    );
+  };
+
+  const pointForCoordinate = async () => {
+    const { target: coordinate } = await mapViewController.getCameraPosition();
+    const point = await mapViewController.pointForCoordinate(coordinate);
+    showSnackbar(
+      `point, corrdinate: ${point.x.toFixed(4)}, ${point.y.toFixed(4)} ${coordinate.lat.toFixed(4)}, ${coordinate.lng.toFixed(4)}`
+    );
+  };
+
+  const fitBounds = async () => {
+    const bounds = await mapViewController.getBounds();
+    bounds.northEast.lat -= 1;
+    bounds.northEast.lng -= 1;
+    bounds.southWest.lat += 1;
+    bounds.southWest.lng += 1;
+
+    await mapViewController.fitBounds({ bounds });
+  };
+
+  const getBounds = async () => {
+    const bounds = await mapViewController.getBounds();
+    showSnackbar(
+      `ne, sw: ${bounds.northEast.lat.toFixed(4)}, ${bounds.northEast.lng.toFixed(4)} ${bounds.southWest.lat.toFixed(4)}, ${bounds.southWest.lng.toFixed(4)}`
+    );
+  };
+
   const setMapColorScheme = (index: number) => {
     const scheme =
       index === 1
@@ -421,6 +457,23 @@ const MapsControls: React.FC<MapControlsProps> = ({
           onPress={() => {
             setZoom((zoom ?? defaultZoom) - 1);
           }}
+        />
+        <ExampleAppButton
+          title="Get camera position"
+          onPress={getCameraPositionClicked}
+        />
+        <ExampleAppButton
+          title="Coordinate for point"
+          onPress={coordinateForPoint}
+        />
+        <ExampleAppButton
+          title="Point for coordinate"
+          onPress={pointForCoordinate}
+        />
+        <ExampleAppButton title="Get bounds" onPress={getBounds} />
+        <ExampleAppButton
+          title="Fit bounds (Shrink edges by 1°)"
+          onPress={fitBounds}
         />
         <ExampleAppButton
           title="Get camera position"

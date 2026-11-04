@@ -13,6 +13,7 @@
  */
 package com.google.android.react.navsdk;
 
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.LatLng;
@@ -36,4 +37,8 @@ public interface INavigationViewCallback {
   void onMarkerInfoWindowTapped(Marker marker);
 
   void onMapClick(LatLng latLng);
+
+  void onMapDrag(CameraPosition cameraPosition);
+
+  void onMapDragEnd(CameraPosition cameraPosition);
 }

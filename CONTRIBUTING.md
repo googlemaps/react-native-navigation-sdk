@@ -42,14 +42,14 @@ This project follows
   follow [GitHub's directions](https://help.github.com/articles/generating-ssh-keys/)
   to generate an SSH key.
 - `git clone git@github.com:<your_name_here>/googlemaps/react-native-navigation-sdk.git`
-- `git remote add upstream git@github.com:googlemaps/react-native-sdk.git` (So that you
+- `git remote add upstream git@github.com:googlemaps/react-native-navigation-sdk.git` (So that you
   fetch from the master repository, not your clone, when running `git fetch`
   et al.)
 
 #### Create branch
 
 1. `git fetch upstream`
-2. `git checkout upstream/master -b <name_of_your_branch>`
+2. `git checkout upstream/main -b <name_of_your_branch>`
 3. Start coding!
 
 #### Commit changes
