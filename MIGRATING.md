@@ -13,30 +13,52 @@ This document covers breaking changes and migration steps between major versions
 
 ## Migrating from 0.18.x to 0.19.x
 
-Version 0.19.0 upgrades the Android Navigation SDK from `7.9.0` to `8.0.0`.
+Version 0.19.0 upgrades the Android Navigation SDK from `7.9.0` to `8.0.0` and
+the iOS Navigation SDK from `11.1.0` to `11.3.0`.
 
-### Build requirements
+### Summary of Breaking Changes
+
+| Platform | Change                                                                        |
+| -------- | ----------------------------------------------------------------------------- |
+| Both     | `showStopSigns` and `showTrafficLights` removed from `DisplayOptions`         |
+| Android  | Android Navigation SDK upgraded to `8.0.0`, with new build requirements       |
+| Android  | New `RouteStatus.ROUTING_TIMEOUT` route result                                |
+| Android  | `MapType.TERRAIN` falls back to a normal map during navigation                |
+| iOS      | iOS Navigation SDK upgraded to `11.3.0`; minimum iOS version raised to `17.0` |
+| iOS      | Duplicate waypoints resolve with `RouteStatus.DUPLICATE_WAYPOINTS_ERROR`      |
+
+### Both platforms
+
+#### Display options
+
+Remove `showStopSigns` and `showTrafficLights` from `DisplayOptions` passed to
+`setDestination` or `setDestinations`. Stop signs and traffic lights are always
+enabled during navigation when data is available; there is no replacement
+option to hide them. Keep `showDestinationMarkers`, which remains supported.
+
+#### Rebuild both platforms
+
+Rebuild Android, then run `pod install` in your iOS directory and rebuild iOS.
+The shared Codegen schema changed, so both platform rebuilds are required.
+
+### Android
+
+#### Build requirements
 
 Use AGP **9.0.1+**, Gradle **9.1.0+**, Kotlin Gradle Plugin **2.3.0+**, and
 JDK **17+**. React Native 0.87 already satisfies most requirements, including
 AGP, but its bundled Kotlin plugin needs an override to **2.3.0+**.
 
-### Display options and routing
-
-Remove `showStopSigns` and `showTrafficLights` from `DisplayOptions` passed to
-`setDestination` or `setDestinations` on **both Android and iOS**. Stop signs and
-traffic lights are always enabled during navigation when data is available;
-there is no replacement option to hide them. Keep `showDestinationMarkers`,
-which remains supported.
+#### Routing and maps
 
 Handle the new **Android-only** `RouteStatus.ROUTING_TIMEOUT` in route-result
 switches. It indicates a routing-backend timeout, distinct from `NETWORK_ERROR`
 and `UNKNOWN`; the wrapper does not emit this status on iOS.
 
-On Android, `MapType.TERRAIN` falls back to a normal map during navigation.
-Terrain remains available for non-navigation maps.
+`MapType.TERRAIN` falls back to a normal map during navigation. Terrain remains
+available for non-navigation maps.
 
-### Native integrations and release builds
+#### Native integrations and release builds
 
 - Replace `SupportNavigationFragment` with `NavigationFragment` in custom
   Android integrations; both use AndroidX fragments.
@@ -51,7 +73,7 @@ Terrain remains available for non-navigation maps.
   SDK 8's reflective protobuf registry loader, preventing a release-only
   `IllegalAccessException` caused by R8 repackaging.
 
-### Android Auto and Google Play
+#### Android Auto and Google Play
 
 Android Auto integrations must use `androidx.car.app:app` and
 `androidx.car.app:app-projected` **1.3.0+** for their consumer ProGuard rules.
@@ -61,12 +83,36 @@ When publishing to Google Play, complete the
 [Location Purpose Declaration](https://support.google.com/googleplay/android-developer/answer/17033915#play_console_declaration),
 selecting **Navigation** and any additional precise-location use cases.
 
-### Rebuild both platforms
-
-Rebuild Android, then run `pod install` in your iOS directory and rebuild iOS.
-The shared Codegen schema changed, so both platform rebuilds are required.
-
 See the [Android Navigation SDK 8.0.0 release notes](https://developers.google.com/maps/documentation/navigation/android-sdk/release-notes#October_01_2026)
+for upstream details.
+
+### iOS
+
+#### Deployment target
+
+iOS Navigation SDK 11.3.0 requires iOS 17.0 or later. Set the platform in your
+app's `ios/Podfile` to iOS 17 or later:
+
+```ruby
+platform :ios, '17'
+```
+
+Set `IPHONEOS_DEPLOYMENT_TARGET` to `17.0` or later for your app targets in Xcode.
+
+#### Routing
+
+- Route calculation with consecutive duplicate waypoints resolves with
+  `RouteStatus.DUPLICATE_WAYPOINTS_ERROR`, matching Android, instead of
+  `RouteStatus.UNKNOWN`.
+- When `routeTokenOptions` is set, the route token alone defines the
+  destinations; the waypoints passed to `setDestinations` are not sent to the
+  Navigation SDK.
+- Migrate native `setDestinations` calls in custom iOS integrations to the
+  `completionHandler` methods; the `callback` methods are deprecated in SDK
+  11.3.0. The wrapper handles this internally; JavaScript destination methods
+  still return promises.
+
+See the [iOS Navigation SDK release notes](https://developers.google.com/maps/documentation/navigation/ios-sdk/release-notes)
 for upstream details.
 
 ## Migrating from 0.17.x to 0.18.x

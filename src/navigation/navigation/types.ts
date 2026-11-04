@@ -40,6 +40,10 @@ import { NavigationSessionStatus } from '../types';
  *
  * When using route token options, you should not provide routing options
  * as they are mutually exclusive.
+ *
+ * Pass the same waypoints that were used to request the route token. On iOS the
+ * route token alone defines the destinations, and the waypoints are not sent to
+ * the Navigation SDK.
  */
 export interface RouteTokenOptions {
   /**
@@ -50,9 +54,9 @@ export interface RouteTokenOptions {
   /**
    * The travel mode used when generating the route token.
    *
-   * This must match the travel mode used to generate the route token.
-   * If there is a mismatch, this travel mode will override the one used
-   * to generate the route token.
+   * This must match the travel mode used to generate the route token. The
+   * routing options encoded in the route token, including travel mode and
+   * toll preferences, take precedence over client-side settings.
    */
   travelMode?: TravelMode;
 }
@@ -426,6 +430,8 @@ export interface NavigationController {
    *                   coordinates (latitude and longitude).
    * @param options - Optional destination options including routing, display, or route token settings.
    *                  Note: routingOptions and routeTokenOptions are mutually exclusive.
+   * @returns A promise that resolves with the RouteStatus indicating the result of route calculation.
+   *          It rejects with error code `noRouteStatus` when the Navigation SDK returns no route status.
    */
   setDestination(
     waypoint: Waypoint,
@@ -440,6 +446,7 @@ export interface NavigationController {
    * @param options - Optional destination options including routing, display, or route token settings.
    *                  Note: routingOptions and routeTokenOptions are mutually exclusive.
    * @returns A promise that resolves with the RouteStatus indicating the result of route calculation.
+   *          It rejects with error code `noRouteStatus` when the Navigation SDK returns no route status.
    */
   setDestinations(
     waypoints: Waypoint[],
