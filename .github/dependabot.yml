@@ -19,20 +19,37 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 3
+    # Major updates arrive as separate pull requests and may stay open until migrated; they
+    # must not use up the limit that the grouped updates need.
+    open-pull-requests-limit: 10
     cooldown:
       default-days: 7
     commit-message:
       prefix: chore(deps)
     groups:
+      # React Native, its tooling packages, and the React version its renderer is built for
+      # are upgraded together, following React Native's upgrade helper. Dependabot assigns a
+      # dependency to the first group it matches, so this group precedes npm-dependencies.
+      react-native:
+        patterns:
+          - "react-native"
+          - "@react-native/*"
+          - "react"
+          - "react-test-renderer"
       npm-dependencies:
         patterns:
           - "*"
+        # TypeScript minor releases can exceed the range that @typescript-eslint supports.
+        exclude-patterns:
+          - "typescript"
+        update-types:
+          - "minor"
+          - "patch"
   - package-ecosystem: "gradle"
     directory: "/android" # Location of package manifests
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 10
     cooldown:
       default-days: 7
     commit-message:
@@ -41,19 +58,33 @@ updates:
       android-dependencies:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
   - package-ecosystem: "gradle"
     directory: "/example/android" # Location of package manifests
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 10
     cooldown:
       default-days: 7
     commit-message:
       prefix: chore(deps)
+    # The Gradle wrapper version follows React Native's template and changes when React Native
+    # is upgraded; newer Gradle bundles a Kotlin version that React Native's Gradle plugin
+    # cannot read.
+    ignore:
+      - dependency-name: "gradle-wrapper"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-major"
     groups:
       example-android-dependencies:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
   # Composite actions live outside .github/workflows and need their own directory.
   - package-ecosystem: "github-actions"
     directories: # Location of package manifests
