@@ -11180,13 +11180,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-monorepo-config@npm:^0.1.9":
-  version: 0.1.10
-  resolution: "react-native-monorepo-config@npm:0.1.10"
+"react-native-monorepo-config@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "react-native-monorepo-config@npm:0.4.0"
   dependencies:
     escape-string-regexp: ^5.0.0
     fast-glob: ^3.3.3
-  checksum: 9b1c6fefb4d67e4a9f3f11554d33072c2112f56d578b8e9b68becc3457383e4f487f31af00d9e85cd43f0b23996c1b22e10cbec57e80c3fb2e4557a0e3db176d
+  checksum: 671e6eb4cf9640c8963b78ec21e978ccd551eac260cd2197ad539e0f4226644cdaa4ad23b8de29212a2f75701ceac2931dd1ec192df427993a4ba7acbe0f2045
   languageName: node
   linkType: hard
 
@@ -11213,7 +11213,7 @@ __metadata:
     react-native: 0.87.1
     react-native-builder-bob: ^0.44.1
     react-native-gesture-handler: 3.3.0
-    react-native-monorepo-config: ^0.1.9
+    react-native-monorepo-config: ^0.4.0
     react-native-pager-view: ^6.9.1
     react-native-permissions: ^5.1.0
     react-native-safe-area-context: ^5.9.0
