@@ -65,8 +65,8 @@
     "@react-native/typescript-config": "0.87.1",
     "@testing-library/react-native": "^13.3.3",
     "@types/react": "19.3.0",
-    "@typescript-eslint/eslint-plugin": "^8.43.0",
-    "@typescript-eslint/parser": "^8.43.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
     "commitlint": "^21.2.4",
     "del-cli": "^8.0.1",
     "eslint": "^8.57.1",
@@ -84,7 +84,7 @@
     "react-native-builder-bob": "^0.44.1",
     "react-test-renderer": "19.3.0",
     "turbo": "^1.10.7",
-    "typescript": "^5.8.3"
+    "typescript": "~6.0.3"
   },
   "peerDependencies": {
     "react": "*",

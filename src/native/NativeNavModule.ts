@@ -14,16 +14,9 @@
  * limitations under the License.
  */
 
-import type { TurboModule } from 'react-native';
+import type { CodegenTypes, TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 import type { RouteSegment, TimeAndDistance } from '../navigation/types';
-
-import type {
-  Float,
-  EventEmitter,
-  Double,
-  WithDefault,
-} from 'react-native/Libraries/Types/CodegenTypesNamespace';
 import type { LatLng } from '../shared';
 
 // Note: Using Double instead of Int32 as codegen for TurboModules currently
@@ -37,20 +30,20 @@ import type { LatLng } from '../shared';
 // codegen objects. This is a limitation of the current codegen system.
 
 type LatLngSpec = Readonly<{
-  lat: Float;
-  lng: Float;
+  lat: CodegenTypes.Float;
+  lng: CodegenTypes.Float;
 }>;
 
 type LocationSpec = Readonly<{
-  lat: Float;
-  lng: Float;
-  altitude?: Float;
-  bearing?: Float;
-  speed: Float;
-  accuracy?: Float;
-  verticalAccuracy?: Float;
+  lat: CodegenTypes.Float;
+  lng: CodegenTypes.Float;
+  altitude?: CodegenTypes.Float;
+  bearing?: CodegenTypes.Float;
+  speed: CodegenTypes.Float;
+  accuracy?: CodegenTypes.Float;
+  verticalAccuracy?: CodegenTypes.Float;
   provider?: string;
-  time: Double;
+  time: CodegenTypes.Double;
 }>;
 
 type WaypointSpec = Readonly<{
@@ -59,43 +52,43 @@ type WaypointSpec = Readonly<{
   vehicleStopover?: boolean;
   preferSameSideOfRoad?: boolean;
   position?: LatLngSpec;
-  preferredHeading?: Double;
+  preferredHeading?: CodegenTypes.Double;
 }>;
 
 type RoutingOptionsSpec = Readonly<{
-  valid?: WithDefault<boolean, false>;
-  travelMode?: Double;
-  routingStrategy?: Double;
-  alternateRoutesStrategy?: Double;
+  valid?: CodegenTypes.WithDefault<boolean, false>;
+  travelMode?: CodegenTypes.Double;
+  routingStrategy?: CodegenTypes.Double;
+  alternateRoutesStrategy?: CodegenTypes.Double;
   avoidFerries?: boolean;
   avoidTolls?: boolean;
   avoidHighways?: boolean;
 }>;
 
 type DisplayOptionsSpec = Readonly<{
-  valid?: WithDefault<boolean, false>;
+  valid?: CodegenTypes.WithDefault<boolean, false>;
   showDestinationMarkers?: boolean;
 }>;
 
 type RouteTokenOptionsSpec = Readonly<{
-  valid?: WithDefault<boolean, false>;
+  valid?: CodegenTypes.WithDefault<boolean, false>;
   routeToken: string;
-  travelMode?: Double;
+  travelMode?: CodegenTypes.Double;
 }>;
 
 type SpeedAlertOptionsSpec = Readonly<{
-  valid?: WithDefault<boolean, false>;
-  majorSpeedAlertPercentThreshold: Float;
-  minorSpeedAlertPercentThreshold: Float;
-  severityUpgradeDurationSeconds: Double;
+  valid?: CodegenTypes.WithDefault<boolean, false>;
+  majorSpeedAlertPercentThreshold: CodegenTypes.Float;
+  minorSpeedAlertPercentThreshold: CodegenTypes.Float;
+  severityUpgradeDurationSeconds: CodegenTypes.Double;
 }>;
 
 type LocationSimulationOptionsSpec = Readonly<{
-  readonly speedMultiplier: Float;
+  readonly speedMultiplier: CodegenTypes.Float;
 }>;
 
 type AudioGuidanceSettingsSpec = Readonly<{
-  guidanceMode: Double;
+  guidanceMode: CodegenTypes.Double;
   vibrationEnabled: boolean;
   bluetoothAudioEnabled: boolean;
 }>;
@@ -111,20 +104,20 @@ type ContinueToNextDestinationResponseSpec = Readonly<{
 }>;
 
 type TimeAndDistanceSpec = Readonly<{
-  delaySeverity: Double;
-  meters: Double;
-  seconds: Double;
+  delaySeverity: CodegenTypes.Double;
+  meters: CodegenTypes.Double;
+  seconds: CodegenTypes.Double;
 }>;
 
 type TurnByTurnEventSpec = Readonly<{
-  navState: Double;
+  navState: CodegenTypes.Double;
   routeChanged: boolean;
-  distanceToCurrentStepMeters?: Double;
-  distanceToFinalDestinationMeters?: Double;
-  timeToCurrentStepSeconds?: Double;
-  distanceToNextDestinationMeters?: Double;
-  timeToNextDestinationSeconds?: Double;
-  timeToFinalDestinationSeconds?: Double;
+  distanceToCurrentStepMeters?: CodegenTypes.Double;
+  distanceToFinalDestinationMeters?: CodegenTypes.Double;
+  timeToCurrentStepSeconds?: CodegenTypes.Double;
+  distanceToNextDestinationMeters?: CodegenTypes.Double;
+  timeToNextDestinationSeconds?: CodegenTypes.Double;
+  timeToFinalDestinationSeconds?: CodegenTypes.Double;
   currentStep?: StepInfoSpec;
   getRemainingSteps: ReadonlyArray<StepInfoSpec>;
 }>;
@@ -135,13 +128,13 @@ type StepInfoSpec = Readonly<{
   instruction?: string;
   fullRoadName?: string;
   simpleRoadName?: string;
-  maneuver: Double;
-  drivingSide: Double;
-  stepNumber?: Double;
-  distanceFromPrevStepMeters?: Double;
-  timeFromPrevStepSeconds?: Double;
+  maneuver: CodegenTypes.Double;
+  drivingSide: CodegenTypes.Double;
+  stepNumber?: CodegenTypes.Double;
+  distanceFromPrevStepMeters?: CodegenTypes.Double;
+  timeFromPrevStepSeconds?: CodegenTypes.Double;
   exitNumber?: string;
-  roundaboutTurnNumber?: Double;
+  roundaboutTurnNumber?: CodegenTypes.Double;
 }>;
 
 enum RouteStatusSpec {
@@ -161,12 +154,12 @@ enum RouteStatusSpec {
 }
 
 type TermsAndConditionsUIParamsSpec = Readonly<{
-  valid?: WithDefault<boolean, false>;
-  backgroundColor?: Double;
-  titleColor?: Double;
-  mainTextColor?: Double;
-  acceptButtonTextColor?: Double;
-  cancelButtonTextColor?: Double;
+  valid?: CodegenTypes.WithDefault<boolean, false>;
+  backgroundColor?: CodegenTypes.Double;
+  titleColor?: CodegenTypes.Double;
+  mainTextColor?: CodegenTypes.Double;
+  acceptButtonTextColor?: CodegenTypes.Double;
+  cancelButtonTextColor?: CodegenTypes.Double;
 }>;
 
 export interface Spec extends TurboModule {
@@ -183,7 +176,7 @@ export interface Spec extends TurboModule {
   // Navigation session initialization
   initializeNavigationSession(
     abnormalTerminationReportingEnabled: boolean,
-    taskRemovedBehavior: Double
+    taskRemovedBehavior: CodegenTypes.Double
   ): Promise<void>;
   cleanup(): Promise<void>;
   setDestinations(
@@ -198,7 +191,7 @@ export interface Spec extends TurboModule {
   stopGuidance(): Promise<void>;
   setSpeedAlertOptions(alertOptions: SpeedAlertOptionsSpec): Promise<void>;
   setAbnormalTerminatingReportingEnabled(enabled: boolean): void;
-  setAudioGuidanceType(index: Double): Promise<void>;
+  setAudioGuidanceType(index: CodegenTypes.Double): Promise<void>;
   setAudioGuidanceSettings(settings: AudioGuidanceSettingsSpec): Promise<void>;
   setBackgroundLocationUpdatesEnabled(isEnabled: boolean): void;
   setTurnByTurnLoggingEnabled(isEnabled: boolean): void;
@@ -218,20 +211,20 @@ export interface Spec extends TurboModule {
   stopLocationSimulation(): Promise<void>;
 
   // Event emitters
-  onLocationChanged: EventEmitter<{ location: LocationSpec }>;
-  onArrival: EventEmitter<{ arrivalEvent: ArrivalEventSpec }>;
-  onRemainingTimeOrDistanceChanged: EventEmitter<{
+  onLocationChanged: CodegenTypes.EventEmitter<{ location: LocationSpec }>;
+  onArrival: CodegenTypes.EventEmitter<{ arrivalEvent: ArrivalEventSpec }>;
+  onRemainingTimeOrDistanceChanged: CodegenTypes.EventEmitter<{
     timeAndDistance: TimeAndDistanceSpec;
   }>;
-  onRouteChanged: EventEmitter<void>;
-  onReroutingRequestedByOffRoute: EventEmitter<void>;
-  onStartGuidance: EventEmitter<void>;
-  onTurnByTurn: EventEmitter<{
+  onRouteChanged: CodegenTypes.EventEmitter<void>;
+  onReroutingRequestedByOffRoute: CodegenTypes.EventEmitter<void>;
+  onStartGuidance: CodegenTypes.EventEmitter<void>;
+  onTurnByTurn: CodegenTypes.EventEmitter<{
     turnByTurnEvents: ReadonlyArray<TurnByTurnEventSpec>;
   }>;
-  onRawLocationChanged: EventEmitter<{ location: LocationSpec }>; // Android only
-  onTrafficUpdated: EventEmitter<void>; // Android only
-  logDebugInfo: EventEmitter<{ message: string }>;
+  onRawLocationChanged: CodegenTypes.EventEmitter<{ location: LocationSpec }>; // Android only
+  onTrafficUpdated: CodegenTypes.EventEmitter<void>; // Android only
+  logDebugInfo: CodegenTypes.EventEmitter<{ message: string }>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('NavModule');

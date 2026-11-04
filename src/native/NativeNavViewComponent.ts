@@ -14,48 +14,40 @@
  * limitations under the License.
  */
 
-import type { HostComponent, ViewProps } from 'react-native';
-import type {
-  DirectEventHandler,
-  Double,
-  Float,
-  Int32,
-  UnsafeMixed,
-  WithDefault,
-} from 'react-native/Libraries/Types/CodegenTypesNamespace';
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import type { CodegenTypes, HostComponent, ViewProps } from 'react-native';
+import { codegenNativeComponent } from 'react-native';
 
 export interface AndroidNavigationViewStylingOptionsProp {
-  primaryDayModeThemeColor?: Double;
-  secondaryDayModeThemeColor?: Double;
-  primaryNightModeThemeColor?: Double;
-  secondaryNightModeThemeColor?: Double;
-  headerLargeManeuverIconColor?: Double;
-  headerSmallManeuverIconColor?: Double;
-  headerNextStepTextColor?: Double;
+  primaryDayModeThemeColor?: CodegenTypes.Double;
+  secondaryDayModeThemeColor?: CodegenTypes.Double;
+  primaryNightModeThemeColor?: CodegenTypes.Double;
+  secondaryNightModeThemeColor?: CodegenTypes.Double;
+  headerLargeManeuverIconColor?: CodegenTypes.Double;
+  headerSmallManeuverIconColor?: CodegenTypes.Double;
+  headerNextStepTextColor?: CodegenTypes.Double;
   headerNextStepTextSize?: string;
-  headerDistanceValueTextColor?: Double;
-  headerDistanceUnitsTextColor?: Double;
+  headerDistanceValueTextColor?: CodegenTypes.Double;
+  headerDistanceUnitsTextColor?: CodegenTypes.Double;
   headerDistanceValueTextSize?: string;
   headerDistanceUnitsTextSize?: string;
-  headerInstructionsTextColor?: Double;
+  headerInstructionsTextColor?: CodegenTypes.Double;
   headerInstructionsFirstRowTextSize?: string;
   headerInstructionsSecondRowTextSize?: string;
-  headerGuidanceRecommendedLaneColor?: Double;
+  headerGuidanceRecommendedLaneColor?: CodegenTypes.Double;
 }
 
 export interface iOSNavigationViewStylingOptionsProp {
-  navigationHeaderPrimaryBackgroundColor?: Double;
-  navigationHeaderSecondaryBackgroundColor?: Double;
-  navigationHeaderPrimaryBackgroundColorNightMode?: Double;
-  navigationHeaderSecondaryBackgroundColorNightMode?: Double;
-  navigationHeaderLargeManeuverIconColor?: Double;
-  navigationHeaderSmallManeuverIconColor?: Double;
-  navigationHeaderGuidanceRecommendedLaneColor?: Double;
-  navigationHeaderNextStepTextColor?: Double;
-  navigationHeaderDistanceValueTextColor?: Double;
-  navigationHeaderDistanceUnitsTextColor?: Double;
-  navigationHeaderInstructionsTextColor?: Double;
+  navigationHeaderPrimaryBackgroundColor?: CodegenTypes.Double;
+  navigationHeaderSecondaryBackgroundColor?: CodegenTypes.Double;
+  navigationHeaderPrimaryBackgroundColorNightMode?: CodegenTypes.Double;
+  navigationHeaderSecondaryBackgroundColorNightMode?: CodegenTypes.Double;
+  navigationHeaderLargeManeuverIconColor?: CodegenTypes.Double;
+  navigationHeaderSmallManeuverIconColor?: CodegenTypes.Double;
+  navigationHeaderGuidanceRecommendedLaneColor?: CodegenTypes.Double;
+  navigationHeaderNextStepTextColor?: CodegenTypes.Double;
+  navigationHeaderDistanceValueTextColor?: CodegenTypes.Double;
+  navigationHeaderDistanceUnitsTextColor?: CodegenTypes.Double;
+  navigationHeaderInstructionsTextColor?: CodegenTypes.Double;
 }
 
 export interface NativeNavViewProps extends ViewProps {
@@ -66,134 +58,145 @@ export interface NativeNavViewProps extends ViewProps {
   // Initialization params - set once during view creation
   // Uses sentinel values and boolean flags to detect when actually set
   viewInitializationParams: Readonly<{
-    viewType?: WithDefault<Int32, -1>; // -1 = not set, 0 = MAP, 1 = NAVIGATION
-    mapId?: WithDefault<string, ''>; // Empty string default for optional string
-    mapType?: WithDefault<Int32, 1>; // Defaults to MapType.NORMAL
-    navigationUIEnabledPreference?: WithDefault<Int32, 0>; // 0 = AUTOMATIC, 1 = DISABLED
-    mapColorScheme?: WithDefault<Int32, 0>; // MapColorScheme: FOLLOW_SYSTEM=0, LIGHT=1, DARK=2
-    navigationNightMode?: WithDefault<Int32, 0>; // NavigationNightMode: AUTO=0, FORCE_DAY=1, FORCE_NIGHT=2
-    hasCameraPosition?: WithDefault<boolean, false>; // True when cameraPosition is provided
+    viewType?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>; // -1 = not set, 0 = MAP, 1 = NAVIGATION
+    mapId?: CodegenTypes.WithDefault<string, ''>; // Empty string default for optional string
+    mapType?: CodegenTypes.WithDefault<CodegenTypes.Int32, 1>; // Defaults to MapType.NORMAL
+    navigationUIEnabledPreference?: CodegenTypes.WithDefault<
+      CodegenTypes.Int32,
+      0
+    >; // 0 = AUTOMATIC, 1 = DISABLED
+    mapColorScheme?: CodegenTypes.WithDefault<CodegenTypes.Int32, 0>; // MapColorScheme: FOLLOW_SYSTEM=0, LIGHT=1, DARK=2
+    navigationNightMode?: CodegenTypes.WithDefault<CodegenTypes.Int32, 0>; // NavigationNightMode: AUTO=0, FORCE_DAY=1, FORCE_NIGHT=2
+    hasCameraPosition?: CodegenTypes.WithDefault<boolean, false>; // True when cameraPosition is provided
     cameraPosition?: Readonly<{
-      hasTarget?: WithDefault<boolean, false>; // True when target coordinates are provided
+      hasTarget?: CodegenTypes.WithDefault<boolean, false>; // True when target coordinates are provided
       target?: Readonly<{
-        lat?: Float;
-        lng?: Float;
+        lat?: CodegenTypes.Float;
+        lng?: CodegenTypes.Float;
       }> | null;
-      bearing?: WithDefault<Float, 0.0>;
-      tilt?: WithDefault<Float, 0.0>;
-      zoom?: WithDefault<Float, 0.0>;
+      bearing?: CodegenTypes.WithDefault<CodegenTypes.Float, 0.0>;
+      tilt?: CodegenTypes.WithDefault<CodegenTypes.Float, 0.0>;
+      zoom?: CodegenTypes.WithDefault<CodegenTypes.Float, 0.0>;
     }>;
   }>;
 
   // Dynamic props that can change after initialization
-  mapType?: WithDefault<Int32, 1>; // Can be updated after init
-  mapColorScheme?: WithDefault<Int32, 0>; // Can be updated after init
-  navigationNightMode?: WithDefault<Int32, 0>; // Can be updated after init
+  mapType?: CodegenTypes.WithDefault<CodegenTypes.Int32, 1>; // Can be updated after init
+  mapColorScheme?: CodegenTypes.WithDefault<CodegenTypes.Int32, 0>; // Can be updated after init
+  navigationNightMode?: CodegenTypes.WithDefault<CodegenTypes.Int32, 0>; // Can be updated after init
 
   // Map appearance and behavior settings
   mapPadding?: Readonly<{
-    top?: Int32;
-    left?: Int32;
-    bottom?: Int32;
-    right?: Int32;
+    top?: CodegenTypes.Int32;
+    left?: CodegenTypes.Int32;
+    bottom?: CodegenTypes.Int32;
+    right?: CodegenTypes.Int32;
   }> | null;
-  mapStyle?: WithDefault<string, ''>; // Empty string default for optional string
-  mapToolbarEnabled?: WithDefault<boolean, true>;
-  indoorEnabled?: WithDefault<boolean, true>;
-  indoorLevelPickerEnabled?: WithDefault<boolean, true>;
-  trafficEnabled?: WithDefault<boolean, false>;
-  compassEnabled?: WithDefault<boolean, true>;
-  myLocationButtonEnabled?: WithDefault<boolean, true>;
-  myLocationEnabled?: WithDefault<boolean, false>;
-  rotateGesturesEnabled?: WithDefault<boolean, true>;
-  scrollGesturesEnabled?: WithDefault<boolean, true>;
-  scrollGesturesEnabledDuringRotateOrZoom?: WithDefault<boolean, true>;
-  tiltGesturesEnabled?: WithDefault<boolean, true>;
-  zoomControlsEnabled?: WithDefault<boolean, true>;
-  zoomGesturesEnabled?: WithDefault<boolean, true>;
-  buildingsEnabled?: WithDefault<boolean, true>;
+  mapStyle?: CodegenTypes.WithDefault<string, ''>; // Empty string default for optional string
+  mapToolbarEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  indoorEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  indoorLevelPickerEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  trafficEnabled?: CodegenTypes.WithDefault<boolean, false>;
+  compassEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  myLocationButtonEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  myLocationEnabled?: CodegenTypes.WithDefault<boolean, false>;
+  rotateGesturesEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  scrollGesturesEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  scrollGesturesEnabledDuringRotateOrZoom?: CodegenTypes.WithDefault<
+    boolean,
+    true
+  >;
+  tiltGesturesEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  zoomControlsEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  zoomGesturesEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  buildingsEnabled?: CodegenTypes.WithDefault<boolean, true>;
 
   // Navigation UI settings
-  tripProgressBarEnabled?: WithDefault<boolean, false>;
-  trafficPromptsEnabled?: WithDefault<boolean, true>;
-  trafficIncidentCardsEnabled?: WithDefault<boolean, true>;
-  headerEnabled?: WithDefault<boolean, true>;
-  footerEnabled?: WithDefault<boolean, true>;
-  speedometerEnabled?: WithDefault<boolean, false>;
-  speedLimitIconEnabled?: WithDefault<boolean, false>;
-  recenterButtonEnabled?: WithDefault<boolean, true>;
-  reportIncidentButtonEnabled?: WithDefault<boolean, true>;
-  navigationViewStylingOptions?: UnsafeMixed;
+  tripProgressBarEnabled?: CodegenTypes.WithDefault<boolean, false>;
+  trafficPromptsEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  trafficIncidentCardsEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  headerEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  footerEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  speedometerEnabled?: CodegenTypes.WithDefault<boolean, false>;
+  speedLimitIconEnabled?: CodegenTypes.WithDefault<boolean, false>;
+  recenterButtonEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  reportIncidentButtonEnabled?: CodegenTypes.WithDefault<boolean, true>;
+  navigationViewStylingOptions?: CodegenTypes.UnsafeMixed;
 
   // Zoom level constraints
-  minZoomLevel?: WithDefault<Float, -1>;
-  maxZoomLevel?: WithDefault<Float, -1>;
+  minZoomLevel?: CodegenTypes.WithDefault<CodegenTypes.Float, -1>;
+  maxZoomLevel?: CodegenTypes.WithDefault<CodegenTypes.Float, -1>;
 
   // Event handlers
-  onMapReady?: DirectEventHandler<null>;
-  onMapClick?: DirectEventHandler<{ lat: Float; lng: Float }>;
-  onMarkerClick?: DirectEventHandler<{
-    position: { lat: Float; lng: Float };
+  onMapReady?: CodegenTypes.DirectEventHandler<null>;
+  onMapClick?: CodegenTypes.DirectEventHandler<{
+    lat: CodegenTypes.Float;
+    lng: CodegenTypes.Float;
+  }>;
+  onMarkerClick?: CodegenTypes.DirectEventHandler<{
+    position: { lat: CodegenTypes.Float; lng: CodegenTypes.Float };
     id: string;
     title?: string;
-    alpha?: Float;
-    rotation?: Float;
+    alpha?: CodegenTypes.Float;
+    rotation?: CodegenTypes.Float;
     snippet?: string;
-    zIndex?: Int32;
+    zIndex?: CodegenTypes.Int32;
   }>;
-  onPolylineClick?: DirectEventHandler<{
-    points: { lat: Float; lng: Float }[];
+  onPolylineClick?: CodegenTypes.DirectEventHandler<{
+    points: { lat: CodegenTypes.Float; lng: CodegenTypes.Float }[];
     id: string;
     color?: string;
-    width?: Float;
-    jointType?: Int32;
-    zIndex?: Int32;
+    width?: CodegenTypes.Float;
+    jointType?: CodegenTypes.Int32;
+    zIndex?: CodegenTypes.Int32;
   }>;
-  onPolygonClick?: DirectEventHandler<{
-    points: { lat: Float; lng: Float }[];
-    holes: { lat: Float; lng: Float }[][];
+  onPolygonClick?: CodegenTypes.DirectEventHandler<{
+    points: { lat: CodegenTypes.Float; lng: CodegenTypes.Float }[];
+    holes: { lat: CodegenTypes.Float; lng: CodegenTypes.Float }[][];
     id: string;
     fillColor?: string;
-    strokeWidth?: Float;
+    strokeWidth?: CodegenTypes.Float;
     strokeColor?: string;
-    strokeJointType?: Int32;
-    zIndex?: Int32;
+    strokeJointType?: CodegenTypes.Int32;
+    zIndex?: CodegenTypes.Int32;
     geodesic?: boolean;
   }>;
-  onCircleClick?: DirectEventHandler<{
-    center: { lat: Float; lng: Float };
+  onCircleClick?: CodegenTypes.DirectEventHandler<{
+    center: { lat: CodegenTypes.Float; lng: CodegenTypes.Float };
     id: string;
     fillColor?: string;
-    strokeWidth?: Float;
+    strokeWidth?: CodegenTypes.Float;
     strokeColor?: string;
-    radius?: Float;
-    zIndex?: Int32;
+    radius?: CodegenTypes.Float;
+    zIndex?: CodegenTypes.Int32;
   }>;
-  onGroundOverlayClick?: DirectEventHandler<{
+  onGroundOverlayClick?: CodegenTypes.DirectEventHandler<{
     id: string;
-    position?: { lat: Float; lng: Float };
+    position?: { lat: CodegenTypes.Float; lng: CodegenTypes.Float };
     bounds?: {
-      northEast: { lat: Float; lng: Float };
-      southWest: { lat: Float; lng: Float };
-      center: { lat: Float; lng: Float };
+      northEast: { lat: CodegenTypes.Float; lng: CodegenTypes.Float };
+      southWest: { lat: CodegenTypes.Float; lng: CodegenTypes.Float };
+      center: { lat: CodegenTypes.Float; lng: CodegenTypes.Float };
     };
-    height?: Float;
-    width?: Float;
-    bearing: Float;
-    transparency: Float;
-    zIndex?: Int32;
+    height?: CodegenTypes.Float;
+    width?: CodegenTypes.Float;
+    bearing: CodegenTypes.Float;
+    transparency: CodegenTypes.Float;
+    zIndex?: CodegenTypes.Int32;
   }>;
-  onMarkerInfoWindowTapped?: DirectEventHandler<{
-    position: { lat: Float; lng: Float };
+  onMarkerInfoWindowTapped?: CodegenTypes.DirectEventHandler<{
+    position: { lat: CodegenTypes.Float; lng: CodegenTypes.Float };
     id: string;
     title?: string;
-    alpha?: Float;
-    rotation?: Float;
+    alpha?: CodegenTypes.Float;
+    rotation?: CodegenTypes.Float;
     snippet?: string;
-    zIndex?: Int32;
+    zIndex?: CodegenTypes.Int32;
   }>;
-  onRecenterButtonClick?: DirectEventHandler<null>;
-  onPromptVisibilityChanged?: DirectEventHandler<{ visible: boolean }>;
+  onRecenterButtonClick?: CodegenTypes.DirectEventHandler<null>;
+  onPromptVisibilityChanged?: CodegenTypes.DirectEventHandler<{
+    visible: boolean;
+  }>;
 }
 
 export type NativeNavViewType = HostComponent<NativeNavViewProps>;

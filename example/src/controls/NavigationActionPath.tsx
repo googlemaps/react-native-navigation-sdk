@@ -86,7 +86,7 @@ const NavigationActionPath: React.FC<NavigationActionPathProps> = ({
       );
 
       // Wait a moment for location simulation to take effect
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise<void>(resolve => setTimeout(resolve, 500));
 
       const routingOptions: RoutingOptions = {
         travelMode: TravelMode.DRIVING,
