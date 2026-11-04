@@ -11167,16 +11167,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-gesture-handler@npm:3.3.0":
-  version: 3.3.0
-  resolution: "react-native-gesture-handler@npm:3.3.0"
+"react-native-gesture-handler@npm:3.4.0":
+  version: 3.4.0
+  resolution: "react-native-gesture-handler@npm:3.4.0"
   dependencies:
     "@types/react-test-renderer": ^19.1.0
     invariant: ^2.2.4
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 610434a26ff7a9214ffbc6e361eb8f01287541168dff11bbfa1313b1f57af79e7dec3a9ed28838d75bca71bbeb315d0a5d64d01a5639cdbf75dfb37a5f0fea92
+  checksum: 9fde4a30b6b68bbca4111c6510e8a734adce0670926a4dbecb5ddc4bdc644c96d3f5de419391bff52e11507577ad72de8e5e0a686dffe912e2cf72fd9649eae9
   languageName: node
   linkType: hard
 
@@ -11212,25 +11212,25 @@ __metadata:
     react: 19.3.0
     react-native: 0.87.1
     react-native-builder-bob: ^0.44.1
-    react-native-gesture-handler: 3.3.0
+    react-native-gesture-handler: 3.4.0
     react-native-monorepo-config: ^0.4.0
-    react-native-pager-view: ^6.9.1
+    react-native-pager-view: ^9.0.10
     react-native-permissions: ^5.1.0
     react-native-safe-area-context: ^5.9.0
-    react-native-screens: 4.27.0
+    react-native-screens: 4.30.0
     react-native-select-dropdown: ^4.0.1
     react-native-snackbar: ^3.0.1
     ts-jest: ^29.2.5
   languageName: unknown
   linkType: soft
 
-"react-native-pager-view@npm:^6.9.1":
-  version: 6.9.1
-  resolution: "react-native-pager-view@npm:6.9.1"
+"react-native-pager-view@npm:^9.0.10":
+  version: 9.0.11
+  resolution: "react-native-pager-view@npm:9.0.11"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 64f4f1b05173217ee5bb288c6c1e396ceaf686fd1ef9458a6ab9c9da44e5ee76c2a091e95b756c78bbcddd30caf37965ef37e0eabe54331f385fdcb87b5d5ab6
+  checksum: 2f92eeeee05ee9ea146edee3c4e8acdf73313d487b8fc82e8e679b6b9168f3262ef1d1b554178e544e2b23ccc4e6711cac7dcc8e7febe12e826b702febb6b48f
   languageName: node
   linkType: hard
 
@@ -11258,16 +11258,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-screens@npm:4.27.0":
-  version: 4.27.0
-  resolution: "react-native-screens@npm:4.27.0"
+"react-native-screens@npm:4.30.0":
+  version: 4.30.0
+  resolution: "react-native-screens@npm:4.30.0"
   dependencies:
     react-freeze: ^1.0.0
     warn-once: ^0.1.0
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 5f09b4f2a03fdbf85ca83900cd67cbd1c7c81513e4f9b9f5c0ac1ed1a1ea226959c43c85873757febad1059ac44edba0625d62a608acd21f8433731687561e77
+  checksum: 9159f5582b492a2f39b8dfd15552eb7206c4ff93f988d941a681546093de7103b71f848d776eb045f7906832bd532b9b0ab66093cfab2fe920f34a1204cce501
   languageName: node
   linkType: hard
 
