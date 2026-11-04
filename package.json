@@ -59,7 +59,7 @@
     "build": "bob build"
   },
   "devDependencies": {
-    "@commitlint/config-conventional": "^19.2.2",
+    "@commitlint/config-conventional": "^21.2.4",
     "@evilmartians/lefthook": "^1.5.0",
     "@react-native/babel-preset": "0.87.1",
     "@react-native/typescript-config": "0.87.1",
@@ -67,7 +67,7 @@
     "@types/react": "19.3.0",
     "@typescript-eslint/eslint-plugin": "^8.43.0",
     "@typescript-eslint/parser": "^8.43.0",
-    "commitlint": "^19.3.0",
+    "commitlint": "^21.2.4",
     "del-cli": "^5.1.0",
     "eslint": "^8.57.1",
     "eslint-config-google": "^0.14.0",
