@@ -184,6 +184,10 @@ export interface FollowMyLocationOptions {
 export interface NavigationViewController {
   /**
    * Shows an overview of the remaining route.
+   *
+   * On Android, the overview covers at most the next 45 minutes of driving
+   * time, so a longer route is not shown in full. This is the documented
+   * behavior of the Navigation SDK's `NavigationView.showRouteOverview()`.
    */
   showRouteOverview(): void;
 
