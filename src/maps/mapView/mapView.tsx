@@ -52,7 +52,7 @@ export const MapView = (props: MapViewProps): React.JSX.Element => {
           target: props.initialCameraPosition?.target ?? null,
           bearing: props.initialCameraPosition?.bearing ?? 0.0,
           tilt: props.initialCameraPosition?.tilt ?? 0.0,
-          zoom: props.initialCameraPosition?.zoom ?? 0.0,
+          zoom: props.initialCameraPosition?.zoom ?? 15,
         },
       }),
     };
