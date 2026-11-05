@@ -59,8 +59,7 @@ The repository contains one React Native library and its Yarn workspace example:
 - `react-native-navigation-sdk.podspec`: iOS package integration and native SDK
   dependency configuration.
 - `app.plugin.js` and `plugin/`: Expo config plugin, in CommonJS JavaScript
-  because Expo loads it directly. Its unit tests live in `plugin/__tests__/`,
-  and the Expo template files they run against live in `plugin/__fixtures__/`.
+  because Expo loads it directly. Its unit tests live in `plugin/__tests__/`.
 - `lib/`: Generated CommonJS, ES module, and TypeScript declaration outputs;
   ignored by Git.
 - `example/`: Sample app, native app projects, and test infrastructure.

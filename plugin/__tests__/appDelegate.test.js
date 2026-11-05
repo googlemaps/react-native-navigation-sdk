@@ -15,16 +15,29 @@
  */
 
 const assert = require('node:assert/strict');
-const { readFileSync } = require('node:fs');
-const { join } = require('node:path');
 const { test } = require('node:test');
 const { addGoogleMapsApiKey } = require('../appDelegate');
 
-// Copied from expo-template-bare-minimum@58.0.32.
-const template = readFileSync(
-  join(__dirname, '../__fixtures__/sdk58/AppDelegate.swift'),
-  'utf8'
-);
+// Has the shape of the AppDelegate.swift that Expo SDK 58 generates: the file
+// starts with `internal import Expo`, and didFinishLaunchingWithOptions takes a
+// default argument and spans several lines.
+const template = [
+  'internal import Expo',
+  'import React',
+  'import ReactAppDependencyProvider',
+  '',
+  '@main',
+  'class AppDelegate: ExpoAppDelegate {',
+  '  public override func application(',
+  '    _ application: UIApplication,',
+  '    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil',
+  '  ) -> Bool {',
+  '    let delegate = ReactNativeDelegate()',
+  '    return super.application(application, didFinishLaunchingWithOptions: launchOptions)',
+  '  }',
+  '}',
+  '',
+].join('\n');
 
 test('adds import GoogleMaps after the template imports, including internal import Expo', () => {
   const lines = addGoogleMapsApiKey(template).split('\n');

@@ -15,16 +15,21 @@
  */
 
 const assert = require('node:assert/strict');
-const { readFileSync } = require('node:fs');
-const { join } = require('node:path');
 const { test } = require('node:test');
 const { addCoreLibraryDesugaring } = require('../buildGradle');
 
-// Copied from expo-template-bare-minimum@58.0.32.
-const template = readFileSync(
-  join(__dirname, '../__fixtures__/sdk58/build.gradle'),
-  'utf8'
-);
+const template = [
+  'apply plugin: "com.android.application"',
+  '',
+  'android {',
+  '    namespace "com.example.app"',
+  '}',
+  '',
+  'dependencies {',
+  '    implementation("com.facebook.react:react-android")',
+  '}',
+  '',
+].join('\n');
 
 const block = [
   '// @generated begin react-native-navigation-sdk-desugaring',
