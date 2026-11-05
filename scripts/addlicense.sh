@@ -24,6 +24,7 @@ addlicense -f header_template.txt $@ \
         --ignore "example/vendor/**" \
         --ignore "lib/**" \
         --ignore "coverage/**" \
+        --ignore "plugin/__fixtures__/**" \
         --ignore ".yarn/**" \
         --ignore ".github/ISSUE_TEMPLATE/**" \
         --ignore ".github/java-upgrade/**" \

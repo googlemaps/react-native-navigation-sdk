@@ -77,6 +77,13 @@ module.exports = {
         '@typescript-eslint/no-require-imports': 'off',
       },
     },
+    // Expo loads config plugins as CommonJS
+    {
+      files: ['app.plugin.js', 'plugin/**/*.js'],
+      rules: {
+        '@typescript-eslint/no-require-imports': 'off',
+      },
+    },
     // Test files
     {
       files: ['**/*.test.js', '**/*.test.ts', '**/e2e/**/*.js'],

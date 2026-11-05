@@ -14,5 +14,4 @@
  * limitations under the License.
  */
 
-/* eslint-disable */
-module.exports = require('./src/plugins');
+module.exports = require('./plugin');
