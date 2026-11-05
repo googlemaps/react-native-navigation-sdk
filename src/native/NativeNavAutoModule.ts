@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import type { TurboModule } from 'react-native';
+import type { CodegenTypes, TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
-
 import type { Location } from '../shared';
 import type {
   Circle,
@@ -27,99 +26,104 @@ import type {
   UISettings,
   GroundOverlay,
 } from '../maps';
-import type {
-  Double,
-  EventEmitter,
-  Float,
-  Int32,
-  WithDefault,
-} from 'react-native/Libraries/Types/CodegenTypesNamespace';
 
 // Note: Using Double instead of Int32 as codegen for TurboModules currently
 // fails to unbox values to Integer on iOS. Transporting the value to integer is
 // done in the native code.
 
 type CameraPositionSpec = Readonly<{
-  target?: Readonly<{ lat: Float; lng: Float }> | null;
-  bearing?: WithDefault<Float, null>;
-  tilt?: WithDefault<Float, null>;
-  zoom?: WithDefault<Float, null>;
+  target?: Readonly<{
+    lat: CodegenTypes.Float;
+    lng: CodegenTypes.Float;
+  }> | null;
+  bearing?: CodegenTypes.WithDefault<CodegenTypes.Float, null>;
+  tilt?: CodegenTypes.WithDefault<CodegenTypes.Float, null>;
+  zoom?: CodegenTypes.WithDefault<CodegenTypes.Float, null>;
 }>;
 
 type MarkerOptionsSpec = Readonly<{
-  position: Readonly<{ lat: Float; lng: Float }>;
-  id?: WithDefault<string, null>;
-  imgPath?: WithDefault<string, null>;
-  title?: WithDefault<string, null>;
-  snippet?: WithDefault<string, null>;
-  alpha?: WithDefault<Float, 0>;
-  rotation?: WithDefault<Float, 0>;
-  draggable?: WithDefault<boolean, false>;
-  flat?: WithDefault<boolean, false>;
-  visible?: WithDefault<boolean, true>;
-  zIndex?: WithDefault<Double, null>;
+  position: Readonly<{ lat: CodegenTypes.Float; lng: CodegenTypes.Float }>;
+  id?: CodegenTypes.WithDefault<string, null>;
+  imgPath?: CodegenTypes.WithDefault<string, null>;
+  title?: CodegenTypes.WithDefault<string, null>;
+  snippet?: CodegenTypes.WithDefault<string, null>;
+  alpha?: CodegenTypes.WithDefault<CodegenTypes.Float, 0>;
+  rotation?: CodegenTypes.WithDefault<CodegenTypes.Float, 0>;
+  draggable?: CodegenTypes.WithDefault<boolean, false>;
+  flat?: CodegenTypes.WithDefault<boolean, false>;
+  anchor?: Readonly<{ u: CodegenTypes.Float; v: CodegenTypes.Float }>;
+  visible?: CodegenTypes.WithDefault<boolean, true>;
+  zIndex?: CodegenTypes.WithDefault<CodegenTypes.Double, null>;
 }>;
 
 type CircleOptionsSpec = Readonly<{
-  center: Readonly<{ lat: Float; lng: Float }>;
-  id?: WithDefault<string, null>;
-  radius: Float;
-  strokeWidth?: WithDefault<Float, 0>;
-  strokeColor?: WithDefault<Double, null>;
-  fillColor?: WithDefault<Double, null>;
-  clickable?: WithDefault<boolean, true>;
-  visible?: WithDefault<boolean, true>;
-  zIndex?: WithDefault<Double, null>;
+  center: Readonly<{ lat: CodegenTypes.Float; lng: CodegenTypes.Float }>;
+  id?: CodegenTypes.WithDefault<string, null>;
+  radius: CodegenTypes.Float;
+  strokeWidth?: CodegenTypes.WithDefault<CodegenTypes.Float, 0>;
+  strokeColor?: CodegenTypes.WithDefault<CodegenTypes.Double, null>;
+  fillColor?: CodegenTypes.WithDefault<CodegenTypes.Double, null>;
+  clickable?: CodegenTypes.WithDefault<boolean, true>;
+  visible?: CodegenTypes.WithDefault<boolean, true>;
+  zIndex?: CodegenTypes.WithDefault<CodegenTypes.Double, null>;
 }>;
 
 type PolygonOptionsSpec = Readonly<{
-  points: ReadonlyArray<Readonly<{ lat: Float; lng: Float }>>;
-  id?: WithDefault<string, null>;
-  holes: ReadonlyArray<ReadonlyArray<Readonly<{ lat: Float; lng: Float }>>>;
-  strokeWidth?: WithDefault<Float, 0>;
-  strokeColor?: WithDefault<Double, null>;
-  fillColor?: WithDefault<Double, null>;
-  geodesic?: WithDefault<boolean, false>;
+  points: ReadonlyArray<
+    Readonly<{ lat: CodegenTypes.Float; lng: CodegenTypes.Float }>
+  >;
+  id?: CodegenTypes.WithDefault<string, null>;
+  holes: ReadonlyArray<
+    ReadonlyArray<
+      Readonly<{ lat: CodegenTypes.Float; lng: CodegenTypes.Float }>
+    >
+  >;
+  strokeWidth?: CodegenTypes.WithDefault<CodegenTypes.Float, 0>;
+  strokeColor?: CodegenTypes.WithDefault<CodegenTypes.Double, null>;
+  fillColor?: CodegenTypes.WithDefault<CodegenTypes.Double, null>;
+  geodesic?: CodegenTypes.WithDefault<boolean, false>;
   /** Mitered join (default): 0, Bevel: 1, Round: 2. */
   //strokeJointType?: WithDefault<Double, 0>;
-  clickable?: WithDefault<boolean, true>;
-  visible?: WithDefault<boolean, true>;
-  zIndex?: WithDefault<Double, null>;
+  clickable?: CodegenTypes.WithDefault<boolean, true>;
+  visible?: CodegenTypes.WithDefault<boolean, true>;
+  zIndex?: CodegenTypes.WithDefault<CodegenTypes.Double, null>;
 }>;
 
 type PolylineOptionsSpec = Readonly<{
-  points: ReadonlyArray<Readonly<{ lat: Float; lng: Float }>>;
-  id?: WithDefault<string, null>;
-  color?: WithDefault<Double, null>;
-  width?: WithDefault<Float, 1>;
+  points: ReadonlyArray<
+    Readonly<{ lat: CodegenTypes.Float; lng: CodegenTypes.Float }>
+  >;
+  id?: CodegenTypes.WithDefault<string, null>;
+  color?: CodegenTypes.WithDefault<CodegenTypes.Double, null>;
+  width?: CodegenTypes.WithDefault<CodegenTypes.Float, 1>;
   /** Mitered join (default): 0, Bevel: 1, Round: 2. */
   //jointType?: WithDefault<Double, 0>;
-  clickable?: WithDefault<boolean, true>;
-  visible?: WithDefault<boolean, true>;
-  zIndex?: WithDefault<Double, null>;
+  clickable?: CodegenTypes.WithDefault<boolean, true>;
+  visible?: CodegenTypes.WithDefault<boolean, true>;
+  zIndex?: CodegenTypes.WithDefault<CodegenTypes.Double, null>;
 }>;
 
 type GroundOverlayOptionsSpec = Readonly<{
   imgPath: string;
-  id?: WithDefault<string, null>;
+  id?: CodegenTypes.WithDefault<string, null>;
   // Position-based positioning (use location + width/height)
-  location?: Readonly<{ lat: Float; lng: Float }>;
-  width?: WithDefault<Float, null>;
-  height?: WithDefault<Float, null>;
-  zoomLevel?: WithDefault<Float, null>;
+  location?: Readonly<{ lat: CodegenTypes.Float; lng: CodegenTypes.Float }>;
+  width?: CodegenTypes.WithDefault<CodegenTypes.Float, null>;
+  height?: CodegenTypes.WithDefault<CodegenTypes.Float, null>;
+  zoomLevel?: CodegenTypes.WithDefault<CodegenTypes.Float, null>;
   // Bounds-based positioning (alternative to location)
   bounds?: Readonly<{
-    northEast: Readonly<{ lat: Float; lng: Float }>;
-    southWest: Readonly<{ lat: Float; lng: Float }>;
+    northEast: Readonly<{ lat: CodegenTypes.Float; lng: CodegenTypes.Float }>;
+    southWest: Readonly<{ lat: CodegenTypes.Float; lng: CodegenTypes.Float }>;
   }>;
   // Common options
-  bearing?: WithDefault<Float, 0>;
+  bearing?: CodegenTypes.WithDefault<CodegenTypes.Float, 0>;
   /** Transparency of the ground overlay (0 = opaque, 1 = fully transparent). Default is 0. */
-  transparency?: WithDefault<Float, 0>;
-  anchor?: Readonly<{ u: Float; v: Float }>;
-  clickable?: WithDefault<boolean, false>;
-  visible?: WithDefault<boolean, true>;
-  zIndex?: WithDefault<Float, 0>;
+  transparency?: CodegenTypes.WithDefault<CodegenTypes.Float, 0>;
+  anchor?: Readonly<{ u: CodegenTypes.Float; v: CodegenTypes.Float }>;
+  clickable?: CodegenTypes.WithDefault<boolean, false>;
+  visible?: CodegenTypes.WithDefault<boolean, true>;
+  zIndex?: CodegenTypes.WithDefault<CodegenTypes.Float, 0>;
 }>;
 
 type CustomNavigationAutoEventSpec = Readonly<{
@@ -129,7 +133,7 @@ type CustomNavigationAutoEventSpec = Readonly<{
 
 export interface Spec extends TurboModule {
   isAutoScreenAvailable(): Promise<boolean>;
-  setMapType(mapType: Double): void;
+  setMapType(mapType: CodegenTypes.Double): void;
   setMapStyle(mapStyle: string): void;
   clearMapView(): Promise<boolean>;
   addCircle(options: CircleOptionsSpec): Promise<Circle>;
@@ -148,15 +152,20 @@ export interface Spec extends TurboModule {
   setCompassEnabled(enabled: boolean): void;
   setMyLocationEnabled(enabled: boolean): void;
   setMyLocationButtonEnabled(enabled: boolean): void;
-  setMapColorScheme(colorScheme: Int32): void;
-  setNightMode(nightMode: Int32): void;
+  setMapColorScheme(colorScheme: CodegenTypes.Int32): void;
+  setNightMode(nightMode: CodegenTypes.Int32): void;
   setFollowingPerspective(
-    perspective: Int32,
-    zoomLevel?: WithDefault<Float, null>
+    perspective: CodegenTypes.Int32,
+    zoomLevel?: CodegenTypes.WithDefault<CodegenTypes.Float, null>
   ): void;
   setBuildingsEnabled(enabled: boolean): void;
-  setZoomLevel(zoomLevel: Double): Promise<void>;
-  setMapPadding(top: Double, left: Double, bottom: Double, right: Double): void;
+  setZoomLevel(zoomLevel: CodegenTypes.Double): Promise<void>;
+  setMapPadding(
+    top: CodegenTypes.Double,
+    left: CodegenTypes.Double,
+    bottom: CodegenTypes.Double,
+    right: CodegenTypes.Double
+  ): void;
   getCameraPosition(): Promise<CameraPosition>;
   getMyLocation(): Promise<Location>;
   getUiSettings(): Promise<UISettings>;
@@ -169,8 +178,8 @@ export interface Spec extends TurboModule {
   sendCustomMessage(type: string, data: string | null): void;
 
   // Event emitters
-  onAutoScreenAvailabilityChanged: EventEmitter<boolean>;
-  onCustomNavigationAutoEvent: EventEmitter<CustomNavigationAutoEventSpec>;
+  onAutoScreenAvailabilityChanged: CodegenTypes.EventEmitter<boolean>;
+  onCustomNavigationAutoEvent: CodegenTypes.EventEmitter<CustomNavigationAutoEventSpec>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('NavAutoModule');

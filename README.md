@@ -15,7 +15,7 @@ This repository contains a React Native plugin that provides a [Google Navigatio
 
 |                                 | Android | iOS       |
 | ------------------------------- | ------- | --------- |
-| **Minimum mobile OS supported** | SDK 24+ | iOS 16.0+ |
+| **Minimum mobile OS supported** | SDK 24+ | iOS 17.0+ |
 
 * A React Native project
 * A Google Cloud project
@@ -31,15 +31,16 @@ This repository contains a React Native plugin that provides a [Google Navigatio
 
 ## React Native Compatibility
 
-The current version of this package has been tested and verified to work with the following React Native versions:
-
-**0.83.1, 0.82.1, 0.81.5, 0.80.3, 0.79.6**
+The current version of this package has been tested and verified with **React Native 0.87.0**.
 
 > [!IMPORTANT]
-> This package requires React Native 0.79+ with the new architecture (Fabric & TurboModules) enabled. Make sure the new architecture is enabled in your project configuration as shown in the [Installation](#installation) section.
+> This package requires React Native 0.87+ with the new architecture (Fabric & TurboModules) enabled. Make sure the new architecture is enabled in your project configuration as shown in the [Installation](#installation) section.
 
 > [!NOTE]
-> React Native 0.78.x and below are not supported due to Kotlin version incompatibility. If you need to use older React Native versions, please use version 0.13.x of this package with the old architecture.
+> If you need support for earlier React Native versions, use version 0.16.3 of this package.
+
+> [!NOTE]
+> Navigation SDK requires Kotlin Gradle Plugin 2.3.0+. React Native 0.87 bundles Kotlin 2.2.0, so override it with Kotlin Gradle Plugin 2.3.21 as described in the [Migration Guide](./MIGRATING.md).
 
 > [!NOTE]
 > For users upgrading from versions prior to 0.14.0, please refer to the [Migration Guide](./MIGRATING.md) for instructions on migrating to the new architecture and updated API.
@@ -68,6 +69,10 @@ Choose the setup guide that matches your project type:
 ## Bare Workflow Setup
 
 ### Android
+
+This package uses Navigation SDK for Android **8.0.0**. See the
+[0.19.x migration guide](./MIGRATING.md#migrating-from-018x-to-019x)
+for build requirements and breaking API changes.
 
 #### Enable new architecture
 
@@ -102,7 +107,7 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.0.4'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
 }
 ```
 
@@ -132,6 +137,15 @@ This package requires React Native's new architecture. Make sure new architectur
 
 ```ruby
 ENV['RCT_NEW_ARCH_ENABLED'] = '1'
+```
+
+#### Motion sensor usage description
+
+Google recommends adding an `NSMotionUsageDescription` entry to your app's `Info.plist` to ensure compatibility with future motion sensor-related functionality in the underlying Navigation SDK for iOS.
+
+```xml
+<key>NSMotionUsageDescription</key>
+<string>Used to improve navigation features.</string>
 ```
 
 #### Set Google Maps API Key
@@ -233,6 +247,15 @@ export default {
     deploymentTarget: '16.0',
   },
 };
+```
+
+#### Add the correct background modes to Info.plist file
+```xml
+<key>UIBackgroundModes</key>
+<array>
+    <string>location</string>
+    <string>audio</string>
+</array>
 ```
 
 ## Usage
@@ -384,8 +407,6 @@ try {
 
   const displayOptions: DisplayOptions = {
     showDestinationMarkers: true,
-    showStopSigns: true,
-    showTrafficLights: true,
   };
 
   await navigationController.setDestinations([waypoint], { routingOptions, displayOptions });
@@ -588,7 +609,7 @@ Both `NavigationView` and `MapView` support the following props. Props marked wi
 | `mapId`                         | `string`                        | -               |       | Cloud-based map styling ID from Google Cloud Console        |
 | `mapColorScheme`                | `MapColorScheme`                | `FOLLOW_SYSTEM` |       | Color scheme for map tiles (FOLLOW_SYSTEM, LIGHT, DARK)     |
 | `mapStyle`                      | `string`                        | -               |       | Custom map styling via JSON                                 |
-| `mapPadding`                    | `Padding`                       | -               |       | Padding applied to the map in pixels                        |
+| `mapPadding`                    | `Padding`                       | -               |       | Padding applied to the map in density-independent pixels    |
 | `initialCameraPosition`         | `CameraPosition`                | -               |       | Initial camera position when map loads                      |
 | `minZoomLevel`                  | `number`                        | -               |       | Minimum allowed zoom level                                  |
 | `maxZoomLevel`                  | `number`                        | -               |       | Maximum allowed zoom level                                  |
@@ -728,7 +749,8 @@ const {
 | `getCurrentRouteSegment()`                                                    | `Promise<RouteSegment \| null>`    | Get the current route segment                                                              |
 | `getRouteSegments()`                                                          | `Promise<RouteSegment[]>`          | Get all route segments                                                                     |
 | `getTraveledPath()`                                                           | `Promise<LatLng[]>`                | Get the path traveled so far                                                               |
-| `setAudioGuidanceType(type: AudioGuidanceType)`                               | `Promise<void>`                    | Set audio guidance type (SILENT, ALERTS_ONLY, VOICE_ALERTS_AND_GUIDANCE)                   |
+| `setAudioGuidanceType(type: AudioGuidance)`                                   | `Promise<void>`                    | Deprecated. Set the voice guidance mode only                                                 |
+| `setAudioGuidanceSettings(settings: AudioGuidanceSettings)`                    | `Promise<void>`                    | Set voice guidance mode and enable/disable vibration and Bluetooth audio                    |
 | `setSpeedAlertOptions(options: SpeedAlertOptions)`                            | `Promise<void>`                    | Configure speed alert thresholds                                                           |
 | `setAbnormalTerminatingReportingEnabled(enabled: boolean)`                    | `void`                             | Enable/disable abnormal termination reporting                                              |
 | `startUpdatingLocation()`                                                     | `Promise<void>`                    | Start receiving location updates                                                           |
@@ -792,12 +814,38 @@ setOnArrival(null);
 | `setOnRawLocationChanged`             | `{ location: Location }`                              | Called when raw GPS location changes            |
 | `setOnNavigationReady`                | `void`                                                | Called when navigation is ready                 |
 | `setOnNavigationInitError`            | `{ errorCode: NavigationInitErrorCode }`              | Called when navigation initialization fails     |
-| `setOnRouteStatusResult`              | `RouteStatus`                                         | Called with route calculation status            |
 | `setOnRouteChanged`                   | `void`                                                | Called when the route changes                   |
 | `setOnReroutingRequestedByOffRoute`   | `void`                                                | Called when rerouting is triggered by off-route |
 | `setOnTrafficUpdated`                 | `void`                                                | Called when traffic data is updated             |
 | `setOnRemainingTimeOrDistanceChanged` | `void`                                                | Called when remaining time or distance changes  |
-| `setOnTurnByTurn`                     | `{ navInfo: NavInfo }`                                | Called with turn-by-turn navigation info        |
+| `setOnTurnByTurn`                     | `TurnByTurnEvent[]`                                   | Called with turn-by-turn navigation info        |
+
+Turn-by-turn events include the navigation state, distance and time estimates, the current step,
+and remaining steps. Events are emitted in every navigation state, and `currentStep` is present only
+while `navState` is `NavState.ENROUTE`. Distances are in meters and durations are in seconds. Step
+fields that the Navigation SDK does not provide are omitted. In particular, `roundaboutTurnNumber` is present only
+for roundabout steps; check that optional fields are defined before using them.
+
+```tsx
+import { useEffect } from 'react';
+import {
+  Maneuver,
+  useNavigation,
+} from '@googlemaps/react-native-navigation-sdk';
+
+const { setOnTurnByTurn } = useNavigation();
+
+useEffect(() => {
+  setOnTurnByTurn(events => {
+    const step = events[0]?.currentStep;
+    if (step?.maneuver === Maneuver.TURN_LEFT) {
+      console.log(step.instruction ?? 'Turn left');
+    }
+  });
+
+  return () => setOnTurnByTurn(null);
+}, [setOnTurnByTurn]);
+```
 
 ### MapViewAutoController (useNavigationAuto hook)
 

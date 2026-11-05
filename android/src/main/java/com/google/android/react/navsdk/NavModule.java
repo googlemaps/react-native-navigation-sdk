@@ -17,7 +17,6 @@ import android.app.Activity;
 import android.location.Location;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
@@ -32,14 +31,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.NavInfo;
 import com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo;
 import com.google.android.libraries.navigation.ArrivalEvent;
+import com.google.android.libraries.navigation.AudioGuidanceSettings;
 import com.google.android.libraries.navigation.CustomRoutesOptions;
 import com.google.android.libraries.navigation.DisplayOptions;
-import com.google.android.libraries.navigation.ListenableResultFuture;
 import com.google.android.libraries.navigation.NavigationApi;
 import com.google.android.libraries.navigation.NavigationApi.OnTermsResponseListener;
 import com.google.android.libraries.navigation.Navigator;
 import com.google.android.libraries.navigation.RoadSnappedLocationProvider;
 import com.google.android.libraries.navigation.RoadSnappedLocationProvider.LocationListener;
+import com.google.android.libraries.navigation.RouteDescriptionLoadCallback;
 import com.google.android.libraries.navigation.RouteSegment;
 import com.google.android.libraries.navigation.RoutingOptions;
 import com.google.android.libraries.navigation.SimulationOptions;
@@ -69,7 +69,6 @@ public class NavModule extends NativeNavModuleSpec
   ReactApplicationContext reactContext;
   private Navigator mNavigator;
   private final ArrayList<Waypoint> mWaypoints = new ArrayList<>();
-  private ListenableResultFuture<Navigator.RouteStatus> pendingRoute;
   private RoadSnappedLocationProvider mRoadSnappedLocationProvider;
   private NavViewManager mNavViewManager;
   private final CopyOnWriteArrayList<NavigationReadyListener> mNavigationReadyListeners =
@@ -192,6 +191,7 @@ public class NavModule extends NativeNavModuleSpec
           navigator.stopGuidance();
           navigator.clearDestinations();
           navigator.getSimulator().unsetUserLocation();
+          navigator.cleanup();
           promise.resolve(true);
         });
   }
@@ -286,17 +286,15 @@ public class NavModule extends NativeNavModuleSpec
     // Initialize the navigation API
     initializeNavigationApi();
 
-    // Observe live data for nav info updates.
+    // Observe nav info independently from the current Activity lifecycle.
+    // Background turn-by-turn updates continue to arrive in NavInfoReceivingService even when the
+    // app is paused, so using an Activity-bound LiveData observer drops them while backgrounded.
     // Remove any existing observer first to prevent duplicates after cleanup+reinit cycles.
     UiThreadUtil.runOnUiThread(
         () -> {
           removeNavInfoObserver();
           mNavInfoObserver = this::showNavInfo;
-          final Activity currentActivity = getReactApplicationContext().getCurrentActivity();
-          if (currentActivity != null) {
-            NavInfoReceivingService.getNavInfoLiveData()
-                .observe((LifecycleOwner) currentActivity, mNavInfoObserver);
-          }
+          NavInfoReceivingService.getNavInfoLiveData().observeForever(mNavInfoObserver);
         });
   }
 
@@ -354,6 +352,7 @@ public class NavModule extends NativeNavModuleSpec
       }
       pendingInitPromise.reject(errorCodeStr, errorMessage);
       pendingInitPromise = null;
+      UiThreadUtil.runOnUiThread(this::removeNavInfoObserver);
     }
   }
 
@@ -570,7 +569,7 @@ public class NavModule extends NativeNavModuleSpec
               .setPreferSameSideOfRoad(preferSameSideOfRoad);
 
       if (map.containsKey("preferredHeading")) {
-        int preferredHeading = (int) map.get("preferredHeading");
+        int preferredHeading = CollectionUtil.getInt("preferredHeading", map, 0);
         waypointBuilder.setPreferredHeading(preferredHeading);
       }
 
@@ -597,7 +596,6 @@ public class NavModule extends NativeNavModuleSpec
       return;
     }
 
-    pendingRoute = null; // reset pendingRoute.
     mWaypoints.clear(); // reset waypoints
 
     // Set up a waypoint for each place that we want to go to.
@@ -626,6 +624,18 @@ public class NavModule extends NativeNavModuleSpec
             ? ObjectTranslationUtil.getDisplayOptionsFromMap(displayOptions.toHashMap())
             : null;
 
+    // The SDK does not annotate the route description as non-null. Without it there is no route
+    // status to resolve, so both platforms reject with "noRouteStatus".
+    RouteDescriptionLoadCallback routeCallback =
+        routeDescription -> {
+          if (routeDescription == null) {
+            promise.reject("noRouteStatus", "The Navigation SDK returned no route status.");
+            return;
+          }
+          promise.resolve(
+              EnumTranslationUtil.getRouteStatusStringValue(routeDescription.getRouteStatus()));
+        };
+
     // If route token options are provided, use CustomRoutesOptions
     if (hasValidRouteTokenOptions) {
       CustomRoutesOptions customRoutesOptions;
@@ -638,39 +648,27 @@ public class NavModule extends NativeNavModuleSpec
       }
 
       if (parsedDisplayOptions != null) {
-        pendingRoute =
-            mNavigator.setDestinations(mWaypoints, customRoutesOptions, parsedDisplayOptions);
+        mNavigator.setDestinations(
+            mWaypoints, customRoutesOptions, parsedDisplayOptions, routeCallback);
       } else {
-        pendingRoute = mNavigator.setDestinations(mWaypoints, customRoutesOptions);
+        mNavigator.setDestinations(mWaypoints, customRoutesOptions, routeCallback);
       }
     } else if (hasValidRoutingOptions) {
       RoutingOptions parsedRoutingOptions =
           ObjectTranslationUtil.getRoutingOptionsFromMap(routingOptions.toHashMap());
 
       if (parsedDisplayOptions != null) {
-        pendingRoute =
-            mNavigator.setDestinations(mWaypoints, parsedRoutingOptions, parsedDisplayOptions);
+        mNavigator.setDestinations(
+            mWaypoints, parsedRoutingOptions, parsedDisplayOptions, routeCallback);
       } else {
-        pendingRoute = mNavigator.setDestinations(mWaypoints, parsedRoutingOptions);
+        mNavigator.setDestinations(mWaypoints, parsedRoutingOptions, routeCallback);
       }
     } else if (parsedDisplayOptions != null) {
       // No routing options provided: use defaults, but still honor display options if supplied.
-      pendingRoute =
-          mNavigator.setDestinations(mWaypoints, new RoutingOptions(), parsedDisplayOptions);
+      mNavigator.setDestinations(
+          mWaypoints, new RoutingOptions(), parsedDisplayOptions, routeCallback);
     } else {
-      pendingRoute = mNavigator.setDestinations(mWaypoints);
-    }
-
-    if (pendingRoute != null) {
-      // Set an action to perform when a route is determined to the destination
-      pendingRoute.setOnResultListener(
-          code -> {
-            // Convert RouteStatus to string matching codegen RouteStatusSpec
-            promise.resolve(EnumTranslationUtil.getRouteStatusStringValue(code));
-          });
-    } else {
-      // If no pending route, resolve with OK status
-      promise.resolve(EnumTranslationUtil.getRouteStatusStringValue(Navigator.RouteStatus.OK));
+      mNavigator.setDestinations(mWaypoints, routeCallback);
     }
   }
 
@@ -823,7 +821,42 @@ public class NavModule extends NativeNavModuleSpec
 
     UiThreadUtil.runOnUiThread(
         () -> {
-          mNavigator.setAudioGuidance(EnumTranslationUtil.getAudioGuidanceFromJsValue(jsValue));
+          mNavigator.setAudioGuidanceSettings(
+              AudioGuidanceSettings.builder()
+                  .setGuidanceMode(EnumTranslationUtil.getAudioGuidanceModeFromJsValue(jsValue))
+                  .setVibrationEnabled(false)
+                  .setBluetoothAudioEnabled(false)
+                  .build());
+        });
+    promise.resolve(null);
+  }
+
+  @Override
+  public void setAudioGuidanceSettings(@NonNull ReadableMap settings, final Promise promise) {
+    if (mNavigator == null) {
+      promise.reject(JsErrors.NO_NAVIGATOR_ERROR_CODE, JsErrors.NO_NAVIGATOR_ERROR_MESSAGE);
+      return;
+    }
+    if (!settings.hasKey("guidanceMode")
+        || !settings.hasKey("vibrationEnabled")
+        || !settings.hasKey("bluetoothAudioEnabled")) {
+      promise.reject(JsErrors.INVALID_OPTIONS_ERROR_CODE, "Invalid audio guidance settings.");
+      return;
+    }
+
+    int guidanceMode = (int) settings.getDouble("guidanceMode");
+    boolean vibrationEnabled = settings.getBoolean("vibrationEnabled");
+    boolean bluetoothAudioEnabled = settings.getBoolean("bluetoothAudioEnabled");
+
+    UiThreadUtil.runOnUiThread(
+        () -> {
+          mNavigator.setAudioGuidanceSettings(
+              AudioGuidanceSettings.builder()
+                  .setGuidanceMode(
+                      EnumTranslationUtil.getAudioGuidanceModeFromJsValue(guidanceMode))
+                  .setVibrationEnabled(vibrationEnabled)
+                  .setBluetoothAudioEnabled(bluetoothAudioEnabled)
+                  .build());
         });
     promise.resolve(null);
   }
@@ -1093,5 +1126,7 @@ public class NavModule extends NativeNavModuleSpec
   public void onHostPause() {}
 
   @Override
-  public void onHostDestroy() {}
+  public void onHostDestroy() {
+    UiThreadUtil.runOnUiThread(this::removeNavInfoObserver);
+  }
 }

@@ -88,6 +88,16 @@ class SampleAndroidAutoScreen(carContext: CarContext) : AndroidAutoBaseScreen(ca
     invalidate()
   }
 
+  override fun onPromptVisibilityChanged(promptVisible: Boolean) {
+    // You can add custom logic here, such as:
+    // - Hiding/showing custom action buttons when prompts appear
+    // - Adjusting your template layout
+    // - Updating custom UI elements
+    //
+    // For example, you might want to refresh the template:
+    // invalidate()
+  }
+
   private fun buildStepFromStepInfo(
     stepInfo: com.google.android.libraries.mapsplatform.turnbyturn.model.StepInfo
   ): androidx.car.app.navigation.model.Step {

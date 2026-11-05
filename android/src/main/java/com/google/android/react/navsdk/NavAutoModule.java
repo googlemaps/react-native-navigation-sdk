@@ -619,18 +619,26 @@ public class NavAutoModule extends NativeNavAutoModuleSpec
 
   @Override
   public void setMapPadding(double top, double left, double bottom, double right) {
-    int topInt = (int) top;
-    int leftInt = (int) left;
-    int bottomInt = (int) bottom;
-    int rightInt = (int) right;
     UiThreadUtil.runOnUiThread(
         () -> {
           if (mMapViewController == null) {
             return;
           }
 
-          mMapViewController.setPadding(topInt, leftInt, bottomInt, rightInt);
+          float density = getAutoDisplayDensity();
+          mMapViewController.setPadding(
+              Math.round((float) (top * density)),
+              Math.round((float) (left * density)),
+              Math.round((float) (bottom * density)),
+              Math.round((float) (right * density)));
         });
+  }
+
+  private float getAutoDisplayDensity() {
+    if (mAutoScreen != null) {
+      return mAutoScreen.getDisplayDensity();
+    }
+    return reactContext.getResources().getDisplayMetrics().density;
   }
 
   @Override

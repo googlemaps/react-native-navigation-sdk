@@ -15,9 +15,12 @@
  */
 
 #import "NavModule.h"
+#import <GoogleMaps/GoogleMaps.h>
+#import <React/RCTLog.h>
 #import "NavAutoModule.h"
 #import "NavViewModule.h"
 #import "ObjectTranslationUtil.h"
+#import "SdkVersion.h"
 
 using namespace JS::NativeNavModule;
 
@@ -26,6 +29,22 @@ static NSString *const kNoNavigatorErrorMessage =
     @"Make sure to initialize the navigator is ready before executing.";
 static NSString *const kNoDestinationsErrorCode = @"NO_DESTINATIONS";
 static NSString *const kNoDestinationsErrorMessage = @"Destinations not set";
+static NSString *const kNoRouteStatusErrorCode = @"noRouteStatus";
+static NSString *const kNoRouteStatusErrorMessage = @"The Navigation SDK returned no route status.";
+
+/**
+ * Adds a Navigation SDK distance or duration to a turn-by-turn payload, rounded to whole meters
+ * and seconds to match the integers that the Android Navigation SDK reports. The navigator reports
+ * `CLLocationDistanceMax` and `CLTimeIntervalMax` while no route is available, and `llround` gives
+ * an unspecified result for a value outside the integer range, so an unavailable value is left out
+ * of the payload rather than converted.
+ */
+static void setRoundedValue(NSMutableDictionary *payload, NSString *key, double value) {
+  if (!isfinite(value) || fabs(value) >= (double)NSIntegerMax) {
+    return;
+  }
+  [payload setValue:@(llround(value)) forKey:key];
+}
 
 @implementation NavModule {
   GMSNavigationSession *_session;
@@ -343,6 +362,36 @@ RCT_EXPORT_MODULE(NavModule);
   });
 }
 
+- (void)setAudioGuidanceSettings:(AudioGuidanceSettingsSpec &)settings
+                         resolve:(RCTPromiseResolveBlock)resolve
+                          reject:(RCTPromiseRejectBlock)reject {
+  AudioGuidanceSettingsSpec settingsCopy(settings);
+  dispatch_async(dispatch_get_main_queue(), ^{
+    GMSNavigator *navigator = nil;
+    if (![self checkNavigatorWithError:reject navigator:&navigator]) {
+      return;
+    }
+
+    double guidanceMode = settingsCopy.guidanceMode();
+    if (guidanceMode == 0) {
+      navigator.voiceGuidance = GMSNavigationVoiceGuidanceSilent;
+    } else if (guidanceMode == 1) {
+      navigator.voiceGuidance = GMSNavigationVoiceGuidanceAlertsOnly;
+    } else if (guidanceMode == 2) {
+      navigator.voiceGuidance = GMSNavigationVoiceGuidanceAlertsAndGuidance;
+    } else {
+      reject(@"INVALID_OPTIONS", @"Invalid audio guidance mode.", nil);
+      return;
+    }
+
+    navigator.vibrationEnabled = settingsCopy.vibrationEnabled();
+    navigator.audioDeviceType = settingsCopy.bluetoothAudioEnabled()
+                                    ? GMSVoiceGuidanceAudioDeviceTypeBluetooth
+                                    : GMSVoiceGuidanceAudioDeviceTypeBuiltInOnly;
+    resolve(@(YES));
+  });
+}
+
 - (void)startGuidance:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
   dispatch_async(dispatch_get_main_queue(), ^{
     GMSNavigator *navigator = nil;
@@ -464,13 +513,8 @@ RCT_EXPORT_MODULE(NavModule);
     // Apply display options to views (only if valid flag is set)
     if (displayOptionsCopy.valid().value_or(false)) {
       std::optional<bool> showDestinationMarkers = displayOptionsCopy.showDestinationMarkers();
-      std::optional<bool> showStopSigns = displayOptionsCopy.showStopSigns();
-      std::optional<bool> showTrafficLights = displayOptionsCopy.showTrafficLights();
-      if (showDestinationMarkers.has_value() || showStopSigns.has_value() ||
-          showTrafficLights.has_value()) {
-        [strongSelf applyNavigationUISettingsShowDestinationMarkers:showDestinationMarkers
-                                                      showStopSigns:showStopSigns
-                                                  showTrafficLights:showTrafficLights];
+      if (showDestinationMarkers.has_value()) {
+        [strongSelf applyNavigationUISettingsShowDestinationMarkers:showDestinationMarkers];
       }
     }
 
@@ -506,22 +550,26 @@ RCT_EXPORT_MODULE(NavModule);
       [strongSelf->_destinations addObject:w];
     }
 
-    void (^routeStatusCallback)(GMSRouteStatus) = ^(GMSRouteStatus routeStatus) {
-      __strong __typeof(weakSelf) innerStrongSelf = weakSelf;
-      if (!innerStrongSelf) return;
-      // Return the route status string to match codegen RouteStatusSpec enum
-      NSString *status = [NavModule routeStatusToString:routeStatus];
-      resolve(status);
-    };
+    GMSNavigationRouteCompletionHandler routeCompletionHandler =
+        ^(id<GMSNavigationRouteDescription> _Nullable routeDescription, NSError *_Nullable error) {
+          __strong __typeof(weakSelf) innerStrongSelf = weakSelf;
+          if (!innerStrongSelf) return;
+          // The SDK documents the route description as optional. Without it there is no route
+          // status to resolve, so both platforms reject with kNoRouteStatusErrorCode.
+          if (routeDescription == nil) {
+            reject(kNoRouteStatusErrorCode,
+                   error.localizedDescription ?: kNoRouteStatusErrorMessage, error);
+            return;
+          }
+          resolve([NavModule routeStatusToString:routeDescription.routeStatus]);
+        };
 
-    // If valid route token options are provided, use route token for navigation
     if (routeTokenOptionsCopy.valid().value_or(false)) {
       NSString *routeToken = routeTokenOptionsCopy.routeToken();
       std::optional<double> travelMode = routeTokenOptionsCopy.travelMode();
       [strongSelf configureNavigatorWithTravelMode:navigator travelMode:travelMode];
-      [navigator setDestinations:strongSelf->_destinations
-                      routeToken:routeToken
-                        callback:routeStatusCallback];
+      // The route token defines the destinations, so the SDK takes no waypoints here.
+      [navigator setDestinationsWithToken:routeToken completionHandler:routeCompletionHandler];
     } else if (routingOptionsCopy.valid().value_or(false)) {
       // Use routing options if valid
       std::optional<double> travelMode = routingOptionsCopy.travelMode();
@@ -541,28 +589,20 @@ RCT_EXPORT_MODULE(NavModule);
                         alternateRoutesStrategy:alternateRoutesStrategy];
       [navigator setDestinations:strongSelf->_destinations
                   routingOptions:gmRoutingOptions
-                        callback:routeStatusCallback];
+               completionHandler:routeCompletionHandler];
     } else {
       // No valid options provided, use defaults
-      [navigator setDestinations:strongSelf->_destinations callback:routeStatusCallback];
+      [navigator setDestinations:strongSelf->_destinations
+               completionHandler:routeCompletionHandler];
     }
   });
 }
 
-- (void)applyNavigationUISettingsShowDestinationMarkers:(std::optional<bool>)showDestinationMarkers
-                                          showStopSigns:(std::optional<bool>)showStopSigns
-                                      showTrafficLights:(std::optional<bool>)showTrafficLights {
+- (void)applyNavigationUISettingsShowDestinationMarkers:
+    (std::optional<bool>)showDestinationMarkers {
   for (NavViewController *viewController in
        [[NavViewModule viewControllersRegistry] objectEnumerator]) {
-    if (showDestinationMarkers.has_value()) {
-      [viewController setShowDestinationMarkersEnabled:showDestinationMarkers.value()];
-    }
-    if (showStopSigns.has_value()) {
-      [viewController setShowStopSignsEnabled:showStopSigns.value()];
-    }
-    if (showTrafficLights.has_value()) {
-      [viewController setShowTrafficLightsEnabled:showTrafficLights.value()];
-    }
+    [viewController setShowDestinationMarkersEnabled:showDestinationMarkers.value()];
   }
 }
 
@@ -588,8 +628,12 @@ RCT_EXPORT_MODULE(NavModule);
 - (void)configureNavigatorWithTravelMode:(GMSNavigator *)navigator
                               travelMode:(std::optional<double>)travelMode {
   if (travelMode.has_value()) {
+    GMSNavigationTravelMode mode = (GMSNavigationTravelMode)travelMode.value();
+    if (_session != nil) {
+      _session.travelMode = mode;
+    }
     NavViewModule *navViewModule = [NavViewModule sharedInstance];
-    [navViewModule setTravelMode:(GMSNavigationTravelMode)travelMode.value()];
+    [navViewModule setTravelMode:mode];
   }
 }
 
@@ -848,7 +892,7 @@ RCT_EXPORT_MODULE(NavModule);
 }
 
 - (void)navigator:(GMSNavigator *)navigator didUpdateNavInfo:(GMSNavigationNavInfo *)navInfo {
-  if (self.enableUpdateInfo == TRUE && navInfo.navState == GMSNavigationNavStateEnroute) {
+  if (self.enableUpdateInfo == TRUE) {
     [self onTurnByTurn:navInfo
         distanceToNextDestinationMeters:navigator.distanceToNextDestination
            timeToNextDestinationSeconds:navigator.timeToNextDestination];
@@ -919,13 +963,14 @@ RCT_EXPORT_MODULE(NavModule);
       return @"WAYPOINT_ERROR";
     case GMSRouteStatusWaypointError:
       return @"WAYPOINT_ERROR";
-    default:
+    case GMSRouteStatusDuplicateWaypointsError:
+      return @"DUPLICATE_WAYPOINTS_ERROR";
+    case GMSRouteStatusTravelModeUnsupported:
+    case GMSRouteStatusAPIKeyNotAuthorized:
+    case GMSRouteStatusInternalError:
       return @"UNKNOWN";
   }
-}
-
-- (void)onTurnByTurn:(nonnull GMSNavigationNavInfo *)navInfo {
-  [self onTurnByTurn:navInfo distanceToNextDestinationMeters:0 timeToNextDestinationSeconds:0];
+  return @"UNKNOWN";
 }
 
 - (void)onTurnByTurn:(GMSNavigationNavInfo *)navInfo
@@ -935,34 +980,13 @@ RCT_EXPORT_MODULE(NavModule);
 
   [obj setValue:[NSNumber numberWithLong:navInfo.navState] forKey:@"navState"];
   [obj setValue:[NSNumber numberWithBool:navInfo.routeChanged] forKey:@"routeChanged"];
-  if (navInfo.distanceToCurrentStepMeters) {
-    [obj setValue:[NSNumber numberWithLong:navInfo.distanceToCurrentStepMeters]
-           forKey:@"distanceToCurrentStepMeters"];
-  }
-
-  if (navInfo.distanceToFinalDestinationMeters) {
-    [obj setValue:[NSNumber numberWithLong:navInfo.distanceToFinalDestinationMeters]
-           forKey:@"distanceToFinalDestinationMeters"];
-  }
-  if (navInfo.timeToCurrentStepSeconds) {
-    [obj setValue:[NSNumber numberWithLong:navInfo.timeToCurrentStepSeconds]
-           forKey:@"timeToCurrentStepSeconds"];
-  }
-
-  if (distanceToNextDestinationMeters) {
-    [obj setValue:[NSNumber numberWithLong:distanceToNextDestinationMeters]
-           forKey:@"distanceToNextDestinationMeters"];
-  }
-
-  if (timeToNextDestinationSeconds) {
-    [obj setValue:[NSNumber numberWithLong:timeToNextDestinationSeconds]
-           forKey:@"timeToNextDestinationSeconds"];
-  }
-
-  if (navInfo.timeToFinalDestinationSeconds) {
-    [obj setValue:[NSNumber numberWithLong:navInfo.timeToFinalDestinationSeconds]
-           forKey:@"timeToFinalDestinationSeconds"];
-  }
+  setRoundedValue(obj, @"distanceToCurrentStepMeters", navInfo.distanceToCurrentStepMeters);
+  setRoundedValue(obj, @"distanceToFinalDestinationMeters",
+                  navInfo.distanceToFinalDestinationMeters);
+  setRoundedValue(obj, @"timeToCurrentStepSeconds", navInfo.timeToCurrentStepSeconds);
+  setRoundedValue(obj, @"timeToFinalDestinationSeconds", navInfo.timeToFinalDestinationSeconds);
+  setRoundedValue(obj, @"distanceToNextDestinationMeters", distanceToNextDestinationMeters);
+  setRoundedValue(obj, @"timeToNextDestinationSeconds", timeToNextDestinationSeconds);
 
   if (navInfo.currentStep != NULL) {
     [obj setObject:[self getStepInfo:navInfo.currentStep] forKey:@"currentStep"];
@@ -989,15 +1013,22 @@ RCT_EXPORT_MODULE(NavModule);
 - (NSDictionary *)getStepInfo:(GMSNavigationStepInfo *)stepInfo {
   NSMutableDictionary *obj = [[NSMutableDictionary alloc] init];
 
-  [obj setValue:[NSNumber numberWithInteger:stepInfo.distanceFromPrevStepMeters]
-         forKey:@"distanceFromPrevStepMeters"];
-  [obj setValue:[NSNumber numberWithInteger:stepInfo.timeFromPrevStepSeconds]
-         forKey:@"timeFromPrevStepSeconds"];
+  setRoundedValue(obj, @"distanceFromPrevStepMeters", stepInfo.distanceFromPrevStepMeters);
+  setRoundedValue(obj, @"timeFromPrevStepSeconds", stepInfo.timeFromPrevStepSeconds);
   [obj setValue:[NSNumber numberWithInteger:stepInfo.drivingSide] forKey:@"drivingSide"];
   [obj setValue:[NSNumber numberWithInteger:stepInfo.stepNumber] forKey:@"stepNumber"];
   [obj setValue:[NSNumber numberWithInteger:stepInfo.maneuver] forKey:@"maneuver"];
+
+  // Only roundabout steps count an exit; the SDK reports -1 for every other step, and the
+  // JavaScript side expects the key to be absent there.
+  if (stepInfo.roundaboutTurnNumber >= 0) {
+    [obj setValue:[NSNumber numberWithInteger:stepInfo.roundaboutTurnNumber]
+           forKey:@"roundaboutTurnNumber"];
+  }
+
   [obj setValue:stepInfo.exitNumber forKey:@"exitNumber"];
   [obj setValue:stepInfo.fullRoadName forKey:@"fullRoadName"];
+  [obj setValue:stepInfo.simpleRoadName forKey:@"simpleRoadName"];
   [obj setValue:stepInfo.fullInstructionText forKey:@"instruction"];
 
   return obj;

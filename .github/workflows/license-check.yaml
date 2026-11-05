@@ -13,6 +13,10 @@
 # limitations under the License.
 
 name: Check license headers
+
+permissions:
+  contents: read
+
 on:
   pull_request:
   push:
@@ -24,8 +28,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: 'stable'
+          # The repo has no Go module, so there is nothing to key a module cache on.
+          cache: false
       - name: Install addlicense
         run: go install github.com/google/addlicense@latest
       - name: Check license header

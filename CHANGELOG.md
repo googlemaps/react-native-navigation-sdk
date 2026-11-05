@@ -1,5 +1,133 @@
 # Changelog
 
+## [0.19.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.18.0...v0.19.0) (2026-11-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* Raise the minimum iOS version to 17.0 for iOS Navigation SDK 11.3.0. On iOS, duplicate waypoints resolve with `RouteStatus.DUPLICATE_WAYPOINTS_ERROR` instead of `RouteStatus.UNKNOWN`, and waypoints are not sent to the SDK when `routeTokenOptions` is set. See `MIGRATING.md` for upgrade instructions.
+* Remove `DisplayOptions.showStopSigns` and `showTrafficLights` on both platforms. Remove these fields from destination options. Add handling for the new `RouteStatus.ROUTING_TIMEOUT` result. Android terrain maps now fall back to normal maps during navigation. See `MIGRATING.md` for upgrade instructions and build requirements.
+
+### Features
+
+* upgrade Android Navigation SDK to 8.0.0 ([#688](https://github.com/googlemaps/react-native-navigation-sdk/issues/688)) ([cedbdc1](https://github.com/googlemaps/react-native-navigation-sdk/commit/cedbdc1e1681c51f105f6bfa84e7b3dd17c1a538))
+* upgrade ios Navigation SDK to 11.3.0 ([#697](https://github.com/googlemaps/react-native-navigation-sdk/issues/697)) ([aed33ea](https://github.com/googlemaps/react-native-navigation-sdk/commit/aed33ea05048b51ffbd059717dd05b7adc8f5fce))
+
+## [0.18.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.3...v0.18.0) (2026-10-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* expose turn-by-turn event payloads ([#678](https://github.com/googlemaps/react-native-navigation-sdk/issues/678))
+
+### Features
+
+* expose turn-by-turn event payloads ([#678](https://github.com/googlemaps/react-native-navigation-sdk/issues/678)) ([b50240a](https://github.com/googlemaps/react-native-navigation-sdk/commit/b50240a05c9d0554b8ddaa442dd5eb46721d9625))
+
+
+### Bug Fixes
+
+* **android:** drop the unused kotlin-android plugin ([#644](https://github.com/googlemaps/react-native-navigation-sdk/issues/644)) ([b5c8bb6](https://github.com/googlemaps/react-native-navigation-sdk/commit/b5c8bb6eef91e45ae0f46f3cbb458f83a002821f))
+
+## [0.17.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.2...v0.17.3) (2026-09-18)
+
+
+### Bug Fixes
+
+* **ios:** apply the travel mode to the navigation session ([#656](https://github.com/googlemaps/react-native-navigation-sdk/issues/656)) ([e1e923c](https://github.com/googlemaps/react-native-navigation-sdk/commit/e1e923cf483f847d9a83ff533cf2dfab2fd06bb9))
+* preferred heading int conversion ([#657](https://github.com/googlemaps/react-native-navigation-sdk/issues/657)) ([f3597b9](https://github.com/googlemaps/react-native-navigation-sdk/commit/f3597b9d62d1e23c8ebbfc8044818089a5389a43))
+
+## [0.17.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.1...v0.17.2) (2026-09-15)
+
+
+### Features
+
+* add support for audio guidance settings ([#643](https://github.com/googlemaps/react-native-navigation-sdk/issues/643)) ([af5bdda](https://github.com/googlemaps/react-native-navigation-sdk/commit/af5bddafb911f5fbe89130c4c162ac2004d3333a))
+* android auto improvements ([#626](https://github.com/googlemaps/react-native-navigation-sdk/issues/626)) ([4f4c400](https://github.com/googlemaps/react-native-navigation-sdk/commit/4f4c400fa72100f67c883437dad7d798841827ab))
+* upgrade ios sdk to 11.1.0 ([#650](https://github.com/googlemaps/react-native-navigation-sdk/issues/650)) ([6bac610](https://github.com/googlemaps/react-native-navigation-sdk/commit/6bac610352447367d53d42cb843a30028098cb30))
+
+
+### Bug Fixes
+
+* avoid npe by checking map controller state in nav view module ([#651](https://github.com/googlemaps/react-native-navigation-sdk/issues/651)) ([19171a8](https://github.com/googlemaps/react-native-navigation-sdk/commit/19171a8e90e98f82c5c44eea1a527ceed9908655))
+* call Navigator#cleanup() during cleanup on Android to release location updates ([#635](https://github.com/googlemaps/react-native-navigation-sdk/issues/635)) ([036c83e](https://github.com/googlemaps/react-native-navigation-sdk/commit/036c83ec9bb0d8b4054d90ffd378b8f8297601d1))
+* resolve Android 16 KB page-size compatibility warning ([#652](https://github.com/googlemaps/react-native-navigation-sdk/issues/652)) ([95f5137](https://github.com/googlemaps/react-native-navigation-sdk/commit/95f51373097f9e6897287f4dd1a0119cc7b75a26))
+
+## [0.17.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.0...v0.17.1) (2026-08-31)
+
+
+### Features
+
+* migration to SPM only and iOS SDK update to 11.0.0 ([#637](https://github.com/googlemaps/react-native-navigation-sdk/issues/637)) ([e84c074](https://github.com/googlemaps/react-native-navigation-sdk/commit/e84c0745c98c83f20600768fe2e0535681c1ebfb))
+
+## [0.17.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.16.3...v0.17.0) (2026-08-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade android sdk to 7.9.0 and ios sdk to 10.15.0 ([#621](https://github.com/googlemaps/react-native-navigation-sdk/issues/621)) — minimum supported React Native version is now `0.87.0`, and Kotlin Gradle Plugin `2.3.0+` (`2.3.21` tested) is now required. See [MIGRATING.md](./MIGRATING.md#migrating-from-016x-to-017x) for upgrade steps.
+* correct pixels for android auto padding ([#630](https://github.com/googlemaps/react-native-navigation-sdk/issues/630))
+* unify map padding to use density-independent pixels ([#628](https://github.com/googlemaps/react-native-navigation-sdk/issues/628))
+
+### Features
+
+* unify map padding to use density-independent pixels ([#628](https://github.com/googlemaps/react-native-navigation-sdk/issues/628)) ([fcf583f](https://github.com/googlemaps/react-native-navigation-sdk/commit/fcf583f0cd69b48bb36436c5bc1eecfbadf3d464))
+* upgrade android sdk to 7.9.0 and ios sdk to 10.15.0 ([#621](https://github.com/googlemaps/react-native-navigation-sdk/issues/621)) ([846e27f](https://github.com/googlemaps/react-native-navigation-sdk/commit/846e27fec7ca386b70484d7187712707b0bfce8a))
+
+
+### Bug Fixes
+
+* correct pixels for android auto padding ([#630](https://github.com/googlemaps/react-native-navigation-sdk/issues/630)) ([b8ec4ff](https://github.com/googlemaps/react-native-navigation-sdk/commit/b8ec4ff7a599aedc4b00e4dd28ee846fdaacf35c))
+* remove NavView fragment via the FragmentManager it is attached to ([#625](https://github.com/googlemaps/react-native-navigation-sdk/issues/625)) ([8c264b5](https://github.com/googlemaps/react-native-navigation-sdk/commit/8c264b57dd684085161396e8eb379f7aadb717ef))
+* tear down iOS NavView on Fabric invalidate so the map releases location ([#632](https://github.com/googlemaps/react-native-navigation-sdk/issues/632)) ([651416e](https://github.com/googlemaps/react-native-navigation-sdk/commit/651416e76d54a1b9e2a53b39915ef6b1fcedeb1e))
+
+## [0.16.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.16.2...v0.16.3) (2026-06-12)
+
+
+### Bug Fixes
+
+* enable android turn by turn events on background ([#613](https://github.com/googlemaps/react-native-navigation-sdk/issues/613)) ([90f5fb5](https://github.com/googlemaps/react-native-navigation-sdk/commit/90f5fb50e568e58e0adb59d8f188ae8517ca6d75))
+
+## [0.16.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.16.1...v0.16.2) (2026-06-10)
+
+
+### Features
+
+* add marker rotation anchor support ([#608](https://github.com/googlemaps/react-native-navigation-sdk/issues/608)) ([4372c96](https://github.com/googlemaps/react-native-navigation-sdk/commit/4372c96c24a6019bc80fdd50d74155997f93b3f2))
+
+## [0.16.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.16.0...v0.16.1) (2026-05-25)
+
+
+### Features
+
+* upgrade Android SDK to 7.6.1 ([#601](https://github.com/googlemaps/react-native-navigation-sdk/issues/601)) ([fee8ad9](https://github.com/googlemaps/react-native-navigation-sdk/commit/fee8ad927fd244ae3abd55f9b3f58c8d450cb6be))
+* upgrade iOS SDK to 10.13.0 ([#602](https://github.com/googlemaps/react-native-navigation-sdk/issues/602)) ([6ec3ab6](https://github.com/googlemaps/react-native-navigation-sdk/commit/6ec3ab6c89929d506236cfc34e114ecdc48051b7))
+
+## [0.16.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.15.3...v0.16.0) (2026-05-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* speedLimitIconEnabled and speedometerEnabled prop value now defaults to false to match the platform SDK implementations.
+
+### Bug Fixes
+
+* change the fabric codegen defaults to match the native SDKs ([#596](https://github.com/googlemaps/react-native-navigation-sdk/issues/596)) ([420a5fe](https://github.com/googlemaps/react-native-navigation-sdk/commit/420a5fe2952eab5243f2f97a9f119826e418e054))
+
+## [0.15.3](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.15.2...v0.15.3) (2026-05-19)
+
+
+### Bug Fixes
+
+* prop handling on native Android implementation ([#592](https://github.com/googlemaps/react-native-navigation-sdk/issues/592)) ([931f23c](https://github.com/googlemaps/react-native-navigation-sdk/commit/931f23c456c4368f201b5bc7cce885fb27bf0e1d))
+
+## [0.15.2](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.15.1...v0.15.2) (2026-05-03)
+
+
+### Features
+
+* internal usage attribution ID ([#581](https://github.com/googlemaps/react-native-navigation-sdk/issues/581)) ([c754ade](https://github.com/googlemaps/react-native-navigation-sdk/commit/c754ade4ffbf78ecc6ef80407195b871cb12203c))
+
 ## [0.15.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.15.0...v0.15.1) (2026-04-21)
 
 

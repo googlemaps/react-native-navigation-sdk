@@ -172,6 +172,8 @@ export interface FollowMyLocationOptions {
    * A fixed zoom level to use when the camera is following the user's location.
    * When set, the Navigation SDK's auto-zoom is overridden with this value.
    * Omit or set to undefined to use the default Nav SDK auto-zoom.
+   *
+   * @deprecated Deprecated by Android Navigation SDK 8.0; iOS support is unchanged.
    */
   zoomLevel?: number;
 }

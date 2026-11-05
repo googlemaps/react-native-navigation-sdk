@@ -18,6 +18,10 @@ import type { LatLng, Location } from '../../shared/types';
 import type {
   AlternateRoutingStrategy,
   AudioGuidance,
+  AudioGuidanceSettings,
+  DrivingSide,
+  Maneuver,
+  NavState,
   RouteSegment,
   RouteStatus,
   RoutingStrategy,
@@ -36,6 +40,10 @@ import { NavigationSessionStatus } from '../types';
  *
  * When using route token options, you should not provide routing options
  * as they are mutually exclusive.
+ *
+ * Pass the same waypoints that were used to request the route token. On iOS the
+ * route token alone defines the destinations, and the waypoints are not sent to
+ * the Navigation SDK.
  */
 export interface RouteTokenOptions {
   /**
@@ -46,9 +54,9 @@ export interface RouteTokenOptions {
   /**
    * The travel mode used when generating the route token.
    *
-   * This must match the travel mode used to generate the route token.
-   * If there is a mismatch, this travel mode will override the one used
-   * to generate the route token.
+   * This must match the travel mode used to generate the route token. The
+   * routing options encoded in the route token, including travel mode and
+   * toll preferences, take precedence over client-side settings.
    */
   travelMode?: TravelMode;
 }
@@ -120,26 +128,6 @@ export interface DisplayOptions {
    * If true, destination markers are shown.
    */
   showDestinationMarkers?: boolean;
-
-  /**
-   * @deprecated Stop signs are enabled by default and this option will be removed in a future release.
-   *
-   * Configures whether stop signs are shown during navigation.
-   * If true, stop signs are shown.
-   *
-   * Defaults to true.
-   */
-  showStopSigns?: boolean;
-
-  /**
-   * @deprecated Traffic lights are enabled by default and this option will be removed in a future release.
-   *
-   * Configures whether traffic lights are shown during navigation.
-   * If true, traffic lights are shown.
-   *
-   * Defaults to true.
-   */
-  showTrafficLights?: boolean;
 }
 
 /**
@@ -442,6 +430,8 @@ export interface NavigationController {
    *                   coordinates (latitude and longitude).
    * @param options - Optional destination options including routing, display, or route token settings.
    *                  Note: routingOptions and routeTokenOptions are mutually exclusive.
+   * @returns A promise that resolves with the RouteStatus indicating the result of route calculation.
+   *          It rejects with error code `noRouteStatus` when the Navigation SDK returns no route status.
    */
   setDestination(
     waypoint: Waypoint,
@@ -456,6 +446,7 @@ export interface NavigationController {
    * @param options - Optional destination options including routing, display, or route token settings.
    *                  Note: routingOptions and routeTokenOptions are mutually exclusive.
    * @returns A promise that resolves with the RouteStatus indicating the result of route calculation.
+   *          It rejects with error code `noRouteStatus` when the Navigation SDK returns no route status.
    */
   setDestinations(
     waypoints: Waypoint[],
@@ -504,12 +495,16 @@ export interface NavigationController {
   setSpeedAlertOptions(speed: SpeedAlertOptions | null): void;
 
   /**
-   * Sets the audio guidance type according to the provided index.
-   *
-   * @param index - The index representing the desired audio
-   * guidance type.
+   * @deprecated Use setAudioGuidanceSettings instead.
    */
-  setAudioGuidanceType(index: AudioGuidance): void;
+  setAudioGuidanceType(index: AudioGuidance): Promise<void>;
+
+  /**
+   * Sets the voice guidance mode, vibration, and Bluetooth-audio behavior.
+   *
+   * @param settings - The audio guidance settings to apply on Android and iOS.
+   */
+  setAudioGuidanceSettings(settings: AudioGuidanceSettings): Promise<void>;
 
   /**
    * Disables location updates by the library. This should be
@@ -554,7 +549,91 @@ export enum TaskRemovedBehavior {
 }
 
 /**
+ * Information about a single step along the navigation route.
+ *
+ * Fields that the Navigation SDK does not provide for a step are omitted from
+ * the payload, so every optional field has to be checked before use.
+ */
+export interface StepInfo {
+  /**
+   * The full text of the instruction for this step, for example
+   * "Turn left onto Lean Ave."
+   */
+  instruction?: string;
+
+  /**
+   * The full road name for this step, containing all information for the road
+   * including direction, for example "Exit 9A / North First Street".
+   */
+  fullRoadName?: string;
+
+  /**
+   * The shortened version of the road name, which may leave out identifying
+   * information such as direction or the name of an exit, for example
+   * "Exit 9A".
+   */
+  simpleRoadName?: string;
+
+  /** The navigation action to take for this step. */
+  maneuver: Maneuver;
+
+  /** Whether this step is on a drive-on-right or drive-on-left route. */
+  drivingSide: DrivingSide;
+
+  /** The index of the step in the list of all steps in the route, starting at 0. */
+  stepNumber?: number;
+
+  /** The total distance of this step. This value does not change. */
+  distanceFromPrevStepMeters?: number;
+
+  /** The estimated time it takes to complete this step. This value does not change. */
+  timeFromPrevStepSeconds?: number;
+
+  /** Exit number of this step, for steps that leave a turnpike or freeway. */
+  exitNumber?: string;
+
+  /**
+   * The counted number of the exit to take relative to the location where the
+   * roundabout was entered. Only set for roundabouts.
+   */
+  roundaboutTurnNumber?: number;
+}
+
+/**
  * Defines the turn-by-turn event data.
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface TurnByTurnEvent {}
+export interface TurnByTurnEvent {
+  /** The current state of navigation. */
+  navState: NavState;
+
+  /**
+   * Whether the route has changed since the previous event. A route change may
+   * be caused by a reroute, the addition or removal of a waypoint, the user
+   * selecting or driving onto an alternate route, or a traffic update.
+   */
+  routeChanged: boolean;
+
+  /** The estimated remaining distance along the route to the current step. */
+  distanceToCurrentStepMeters?: number;
+
+  /** The estimated remaining time along the route to the current step. */
+  timeToCurrentStepSeconds?: number;
+
+  /** The estimated remaining distance to the next destination. */
+  distanceToNextDestinationMeters?: number;
+
+  /** The estimated remaining time to the next destination. */
+  timeToNextDestinationSeconds?: number;
+
+  /** The estimated remaining distance to the final destination. */
+  distanceToFinalDestinationMeters?: number;
+
+  /** The estimated remaining time to the final destination. */
+  timeToFinalDestinationSeconds?: number;
+
+  /** Information about the upcoming maneuver step. Only set while navState is {@link NavState.ENROUTE}. */
+  currentStep?: StepInfo;
+
+  /** The remaining steps after the current step. */
+  getRemainingSteps: StepInfo[];
+}

@@ -259,6 +259,15 @@ public class MapViewController implements INavigationViewControllerProperties {
     boolean draggable = CollectionUtil.getBool("draggable", optionsMap, false);
     boolean flat = CollectionUtil.getBool("flat", optionsMap, false);
     boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
+    float anchorU = 0.5f;
+    float anchorV = 1.0f;
+    if (optionsMap.containsKey("anchor")) {
+      Map<String, Object> anchor = (Map<String, Object>) optionsMap.get("anchor");
+      if (anchor != null) {
+        anchorU = Double.valueOf(CollectionUtil.getDouble("u", anchor, 0.5)).floatValue();
+        anchorV = Double.valueOf(CollectionUtil.getDouble("v", anchor, 1.0)).floatValue();
+      }
+    }
 
     MarkerOptions options = new MarkerOptions();
     if (imagePath != null && !imagePath.isEmpty()) {
@@ -284,6 +293,7 @@ public class MapViewController implements INavigationViewControllerProperties {
     options.flat(flat);
     options.alpha(alpha);
     options.rotation(rotation);
+    options.anchor(anchorU, anchorV);
     options.draggable(draggable);
     options.visible(visible);
 
@@ -307,6 +317,15 @@ public class MapViewController implements INavigationViewControllerProperties {
     boolean draggable = CollectionUtil.getBool("draggable", optionsMap, false);
     boolean flat = CollectionUtil.getBool("flat", optionsMap, false);
     boolean visible = CollectionUtil.getBool("visible", optionsMap, true);
+    float anchorU = 0.5f;
+    float anchorV = 1.0f;
+    if (optionsMap.containsKey("anchor")) {
+      Map<String, Object> anchor = (Map<String, Object>) optionsMap.get("anchor");
+      if (anchor != null) {
+        anchorU = Double.valueOf(CollectionUtil.getDouble("u", anchor, 0.5)).floatValue();
+        anchorV = Double.valueOf(CollectionUtil.getDouble("v", anchor, 1.0)).floatValue();
+      }
+    }
 
     if (imagePath != null && !imagePath.isEmpty()) {
       try {
@@ -331,6 +350,7 @@ public class MapViewController implements INavigationViewControllerProperties {
     marker.setFlat(flat);
     marker.setAlpha(alpha);
     marker.setRotation(rotation);
+    marker.setAnchor(anchorU, anchorV);
     marker.setDraggable(draggable);
     marker.setVisible(visible);
   }

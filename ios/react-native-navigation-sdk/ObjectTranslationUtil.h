@@ -42,6 +42,7 @@
                       alpha:(float)alpha
                    rotation:(double)rotation
                        flat:(BOOL)flat
+                     anchor:(CGPoint)anchor
                   draggable:(BOOL)draggable
                        icon:(nullable UIImage *)icon
                      zIndex:(nullable NSNumber *)zIndex
@@ -101,6 +102,7 @@
                alpha:(float)alpha
             rotation:(double)rotation
                 flat:(BOOL)flat
+              anchor:(CGPoint)anchor
            draggable:(BOOL)draggable
                 icon:(nullable UIImage *)icon
               zIndex:(nullable NSNumber *)zIndex

@@ -14,12 +14,22 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <application>
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="com.google.android.react.navsdk.NavSdkInitializer"
+                android:value="androidx.startup" />
+        </provider>
         <service
             android:name="com.google.android.react.navsdk.NavInfoReceivingService"
             android:exported="false" />

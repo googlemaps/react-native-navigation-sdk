@@ -70,6 +70,8 @@ export interface MarkerOptions {
   draggable?: boolean;
   /** Indicates whether this marker should be flat against the map true or a billboard facing the camera false. */
   flat?: boolean;
+  /** The anchor point of the marker image in normalized coordinates (0-1). Use `{ u: 0.5, v: 0.5 }` to rotate around the image center. Platform default is bottom-center `{ u: 0.5, v: 1.0 }`. */
+  anchor?: { u: number; v: number };
   /** Indicates the visibility of the polygon. True by default. */
   visible?: boolean;
 }
@@ -201,7 +203,11 @@ export enum MapType {
   NORMAL,
   /** Satellite maps with a transparent layer of major streets. */
   SATELLITE,
-  /** Shows the terrain of the map only. This map type does not work during navigation. */
+  /**
+   * Shows terrain. During navigation on Android, Navigation SDK 8.0+ uses NORMAL
+   * instead until navigation ends. Terrain remains supported outside navigation
+   * on Android and on iOS.
+   */
   TERRAIN,
   /** Satellite maps with a transparent layer of major streets. */
   HYBRID,
@@ -211,13 +217,13 @@ export enum MapType {
  * Defines the padding options for a map.
  */
 export interface Padding {
-  /** Top padding in pixels. */
+  /** Top padding in density-independent pixels. */
   top?: number;
-  /** Left padding in pixels. */
+  /** Left padding in density-independent pixels. */
   left?: number;
-  /** Bottom padding in pixels. */
+  /** Bottom padding in density-independent pixels. */
   bottom?: number;
-  /** Right padding in pixels. */
+  /** Right padding in density-independent pixels. */
   right?: number;
 }
 
@@ -379,7 +385,7 @@ export interface MapViewController {
   moveCamera(cameraPosition: CameraPosition): void;
 
   /**
-   * Sets padding to the map.
+   * Sets padding on the map in density-independent pixels.
    *
    * @param padding - An object defining padding for each side.
    *                  Example: { top: 10, left: 5, bottom: 15, right: 10 }

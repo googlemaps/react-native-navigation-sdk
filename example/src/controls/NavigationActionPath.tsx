@@ -29,7 +29,7 @@ import { Colors, Spacing, Typography } from '../styles/theme';
 
 // Waypoints for testing: Golden Gate to 1 Market St, San Francisco
 const WAYPOINTS = [
-  { placeId: 'ChIJw____96GhYARCVVwg5cT7c0' }, // Golden Gate, SF
+  { placeId: 'ChIJw____96GhYARCVVwg5cT7c0', preferredHeading: 0 }, // Golden Gate, SF
   { placeId: 'ChIJkXCsHWSAhYARsGBBQYcj-V0' }, // 1 Market St, SF
 ];
 
@@ -86,7 +86,7 @@ const NavigationActionPath: React.FC<NavigationActionPathProps> = ({
       );
 
       // Wait a moment for location simulation to take effect
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise<void>(resolve => setTimeout(resolve, 500));
 
       const routingOptions: RoutingOptions = {
         travelMode: TravelMode.DRIVING,
@@ -96,8 +96,6 @@ const NavigationActionPath: React.FC<NavigationActionPathProps> = ({
 
       const displayOptions: DisplayOptions = {
         showDestinationMarkers: true,
-        showStopSigns: true,
-        showTrafficLights: true,
       };
 
       const routeStatus = await navigationController.setDestinations(
@@ -111,6 +109,8 @@ const NavigationActionPath: React.FC<NavigationActionPathProps> = ({
       if (routeStatus === RouteStatus.OK) {
         showSnackbar('Route created successfully');
         onStepChange(ActionPathStep.DESTINATIONS_SET);
+      } else if (routeStatus === RouteStatus.ROUTING_TIMEOUT) {
+        showSnackbar('Route calculation timed out. Please try again.');
       } else {
         showSnackbar(`Route error: ${routeStatus}`);
       }

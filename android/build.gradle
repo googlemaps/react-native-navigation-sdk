@@ -17,7 +17,6 @@ def safeExtGet(prop, fallback) {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
 apply plugin: 'com.facebook.react'
 
 android {
@@ -38,9 +37,9 @@ android {
     buildConfig true
   }
 
-  lintOptions {
+  lint {
     abortOnError false
-    disable "GradleCompatible"
+    disable += "GradleCompatible"
   }
 
   sourceSets {
@@ -55,9 +54,10 @@ android {
 
 dependencies {
   implementation 'com.facebook.react:react-native:+'
+  implementation 'androidx.startup:startup-runtime:1.2.0'
   implementation "androidx.car.app:app:1.4.0"
   implementation "androidx.car.app:app-projected:1.4.0"
   implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-  implementation "com.google.android.libraries.navigation:navigation:7.6.0"
+  implementation "com.google.android.libraries.navigation:navigation:8.0.0"
   api 'com.google.guava:guava:31.0.1-android'
 }

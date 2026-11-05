@@ -25,30 +25,36 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
 
 name: Release Please
 
 jobs:
   build-and-test:
+    permissions:
+      contents: read
     uses: ./.github/workflows/ci.yml
 
   release-please:
     runs-on: ubuntu-latest
     needs: build-and-test
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
       release_ready: ${{ steps.release.outputs.release_created }}
     steps:
       - id: release
         name: Release Please
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           token: ${{ secrets.SYNCED_GITHUB_TOKEN_REPO }}
 
   publish:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_ready }}
+    permissions:
+      contents: read
     uses: ./.github/workflows/publish.yml
-    secrets: inherit
+    secrets:
+      NPM_WOMBOT_TOKEN: ${{ secrets.NPM_WOMBOT_TOKEN }}

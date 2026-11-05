@@ -28,14 +28,27 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "16.0" }
+  s.platforms    = { :ios => "17.0" }
   s.source       = { :git => "https://github.com/googlemaps/react-native-navigation-sdk.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,cpp}"
   s.public_header_files = "ios/**/*.h"
 
   s.dependency "React-Core"
-  s.dependency "GoogleNavigation", "10.12.0"
+
+  unless defined?(spm_dependency)
+    raise Pod::Informative, <<~MESSAGE
+      react-native-navigation-sdk requires React Native support for Swift Package Manager dependencies.
+      Upgrade React Native to 0.87 or later to install GoogleNavigation through Swift Package Manager.
+    MESSAGE
+  end
+
+  spm_dependency(
+    s,
+    url: "https://github.com/googlemaps/ios-navigation-sdk.git",
+    requirement: { kind: "exactVersion", version: "11.3.0" },
+    products: ["GoogleNavigation"]
+  )
 
   install_modules_dependencies(s)
 end

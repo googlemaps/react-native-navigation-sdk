@@ -106,4 +106,12 @@ describe('Navigation tests', () => {
     await expectNoErrors();
     await expectSuccess();
   });
+
+  it('NT11 - test turn-by-turn events carry the declared step fields', async () => {
+    await selectTestByName('testTurnByTurnEventPayload');
+    await agreeToTermsAndConditions();
+    await waitForTestToFinish();
+    await expectNoErrors();
+    await expectSuccess();
+  });
 });

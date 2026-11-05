@@ -154,7 +154,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -175,7 +175,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -192,7 +192,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -209,7 +209,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -226,7 +226,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -251,7 +251,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -285,7 +285,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -300,7 +300,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -315,7 +315,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -330,7 +330,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -345,7 +345,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -360,7 +360,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -375,7 +375,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -410,7 +410,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -432,7 +432,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -452,7 +452,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -472,7 +472,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -492,7 +492,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }
@@ -512,7 +512,7 @@ public class NavViewModule extends NativeNavViewModuleSpec {
     UiThreadUtil.runOnUiThread(
         () -> {
           IMapViewFragment fragment = mNavViewManager.getFragmentByNativeId(nativeID);
-          if (fragment == null) {
+          if (fragment == null || fragment.getMapController() == null) {
             promise.reject(JsErrors.NO_MAP_ERROR_CODE, JsErrors.NO_MAP_ERROR_MESSAGE);
             return;
           }

@@ -15,8 +15,11 @@
  */
 
 import {
-  AudioGuidance,
+  AudioGuidanceMode,
   CameraPerspective,
+  DrivingSide,
+  Maneuver,
+  NavState,
   TravelMode,
   NavigationSessionStatus,
   RouteStatus,
@@ -27,7 +30,9 @@ import {
   type MapViewController,
   type NavigationController,
   type NavigationViewController,
+  type StepInfo,
   type TimeAndDistance,
+  type SetDestinationsOptions,
   type TurnByTurnEvent,
 } from '@googlemaps/react-native-navigation-sdk';
 import { Platform } from 'react-native';
@@ -181,9 +186,12 @@ const waitForTimeAndDistance = async (
 
 const disableVoiceGuidanceForTests = (
   navigationController: NavigationController
-) => {
-  navigationController.setAudioGuidanceType(AudioGuidance.SILENT);
-};
+) =>
+  navigationController.setAudioGuidanceSettings({
+    guidanceMode: AudioGuidanceMode.SILENT,
+    vibrationEnabled: false,
+    bluetoothAudioEnabled: false,
+  });
 
 const LOCATION_THRESHOLD_METERS = 100;
 const LOCATION_WAIT_TIMEOUT_MS = 15000;
@@ -442,50 +450,70 @@ export const testNavigationToSingleDestination = async (
   }
 
   const startLocation: LatLng = { lat: 37.4195823, lng: -122.0799018 };
+  const destination = { position: { lat: 37.418761, lng: -122.080484 } };
+  const replacement = { position: { lat: 37.421999, lng: -122.084057 } };
+  const optionCases: (SetDestinationsOptions | undefined)[] = [
+    undefined,
+    { displayOptions: { showDestinationMarkers: true } },
+    { routingOptions: { travelMode: TravelMode.DRIVING } },
+    {
+      routingOptions: {
+        travelMode: TravelMode.DRIVING,
+        avoidFerries: true,
+        avoidTolls: false,
+      },
+      displayOptions: { showDestinationMarkers: true },
+    },
+  ];
 
   setOnNavigationReady(async () => {
-    disableVoiceGuidanceForTests(navigationController);
-    const located = await simulateAndWaitForLocation(
-      navigationController,
-      setOnLocationChanged,
-      startLocation
-    );
-    if (!located) {
-      return failTest(
-        'Timed out waiting for simulated location to be confirmed'
+    try {
+      disableVoiceGuidanceForTests(navigationController);
+      const located = await simulateAndWaitForLocation(
+        navigationController,
+        setOnLocationChanged,
+        startLocation
       );
-    }
-    await navigationController.setDestinations(
-      [
-        {
-          position: {
-            lat: 37.418761,
-            lng: -122.080484,
-          },
-        },
-      ],
-      {
-        routingOptions: {
-          travelMode: TravelMode.DRIVING,
-          avoidFerries: true,
-          avoidTolls: false,
-        },
+      if (!located) {
+        return failTest(
+          'Timed out waiting for simulated location to be confirmed'
+        );
       }
-    );
-    await navigationController.startGuidance();
 
-    const routeSegments = await waitForCondition(
-      () => navigationController.getRouteSegments(),
-      segments => segments.length > 0
-    );
-    if (!routeSegments) {
-      return failTest(
-        'Timed out waiting for route segments before starting simulation'
-      );
+      // Each callback must complete its Promise, including when replacing
+      // a route with a different destination and different optional settings.
+      for (const [index, options] of optionCases.entries()) {
+        const waypoint = index % 2 === 0 ? replacement : destination;
+        const status = await navigationController.setDestination(
+          waypoint,
+          options
+        );
+        if (status !== RouteStatus.OK) {
+          return failTest(
+            `Single destination option case ${index} returned ${status}`
+          );
+        }
+        const segments = await waitForCondition(
+          () => navigationController.getRouteSegments(),
+          route =>
+            route.length === 1 &&
+            distanceBetween(route[0]!.destinationLatLng, waypoint.position) <=
+              LOCATION_THRESHOLD_METERS
+        );
+        if (!segments) {
+          return failTest(
+            `Single destination option case ${index} did not replace the route`
+          );
+        }
+      }
+
+      await navigationController.startGuidance();
+      await navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
+      });
+    } catch (error) {
+      failTest(`Single destination route calculation failed: ${error}`);
     }
-    await navigationController.simulator.simulateLocationsAlongExistingRoute({
-      speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
-    });
   });
   setOnArrival(async () => {
     navigationController.cleanup();
@@ -515,57 +543,84 @@ export const testNavigationToMultipleDestination = async (
     lat: 37.79136614772824,
     lng: -122.41565900473043,
   };
+  const firstDestination = {
+    position: { lat: 37.7917, lng: -122.4142 },
+    preferredHeading: 0,
+  };
+  const secondDestination = {
+    position: { lat: 37.79196, lng: -122.41253 },
+  };
+  const optionCases: (SetDestinationsOptions | undefined)[] = [
+    undefined,
+    { displayOptions: { showDestinationMarkers: true } },
+    { routingOptions: { travelMode: TravelMode.DRIVING } },
+    {
+      routingOptions: {
+        travelMode: TravelMode.DRIVING,
+        avoidFerries: true,
+        avoidTolls: false,
+      },
+      displayOptions: { showDestinationMarkers: true },
+    },
+  ];
 
   let onArrivalCount = 0;
   setOnNavigationReady(async () => {
-    disableVoiceGuidanceForTests(navigationController);
-    const located = await simulateAndWaitForLocation(
-      navigationController,
-      setOnLocationChanged,
-      startLocation
-    );
-    if (!located) {
-      return failTest(
-        'Timed out waiting for simulated location to be confirmed'
+    try {
+      disableVoiceGuidanceForTests(navigationController);
+      const located = await simulateAndWaitForLocation(
+        navigationController,
+        setOnLocationChanged,
+        startLocation
       );
-    }
-    await navigationController.setDestinations(
-      [
-        {
-          position: {
-            lat: 37.7917,
-            lng: -122.4142,
-          },
-        },
-        {
-          position: {
-            lat: 37.79196,
-            lng: -122.41253,
-          },
-        },
-      ],
-      {
-        routingOptions: {
-          travelMode: TravelMode.DRIVING,
-          avoidFerries: true,
-          avoidTolls: false,
-        },
+      if (!located) {
+        return failTest(
+          'Timed out waiting for simulated location to be confirmed'
+        );
       }
-    );
-    await navigationController.startGuidance();
 
-    const routeSegments = await waitForCondition(
-      () => navigationController.getRouteSegments(),
-      segments => segments.length > 0
-    );
-    if (!routeSegments) {
-      return failTest(
-        'Timed out waiting for route segments before starting simulation'
-      );
+      // Reverse the waypoints between requests so stale route data cannot
+      // satisfy the assertions after a replacement callback resolves.
+      for (const [index, options] of optionCases.entries()) {
+        const waypoints =
+          index % 2 === 0
+            ? [secondDestination, firstDestination]
+            : [firstDestination, secondDestination];
+        const status = await navigationController.setDestinations(
+          waypoints,
+          options
+        );
+        if (status !== RouteStatus.OK) {
+          return failTest(
+            `Multiple destination option case ${index} returned ${status}`
+          );
+        }
+        const segments = await waitForCondition(
+          () => navigationController.getRouteSegments(),
+          route =>
+            route.length === waypoints.length &&
+            route.every(
+              (segment, waypointIndex) =>
+                distanceBetween(
+                  segment.destinationLatLng,
+                  waypoints[waypointIndex]!.position
+                ) <= LOCATION_THRESHOLD_METERS
+            )
+        );
+        if (!segments) {
+          return failTest(
+            `Multiple destination option case ${index} did not replace the route`
+          );
+        }
+      }
+
+      await navigationController.startGuidance();
+      await navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: 5,
+      });
+    } catch (error) {
+      failTest(`Multiple destination route calculation failed: ${error}`);
     }
-    await navigationController.simulator.simulateLocationsAlongExistingRoute({
-      speedMultiplier: 5,
-    });
   });
   setOnArrival(async () => {
     onArrivalCount += 1;
@@ -921,6 +976,7 @@ export const testMapMarkers = async (testTools: TestTools) => {
     position: { lat: 37.7849, lng: -122.4094 },
     title: 'Marker with Icon',
     imgPath: 'circle.png',
+    anchor: { u: 0.5, v: 0.5 },
   });
 
   if (!markerWithIcon.id) {
@@ -1963,6 +2019,157 @@ export const testNavInfoEventsAfterCleanup = async (testTools: TestTools) => {
       );
     }
     await navigationController.setDestination(destination);
+    await navigationController.startGuidance();
+    await navigationController.simulator.simulateLocationsAlongExistingRoute({
+      speedMultiplier: 5,
+    });
+  });
+
+  await initializeNavigation(navigationController, failTest);
+};
+
+const OPTIONAL_STEP_INTEGER_FIELDS = [
+  'stepNumber',
+  'distanceFromPrevStepMeters',
+  'timeFromPrevStepSeconds',
+  'roundaboutTurnNumber',
+] as const;
+
+const OPTIONAL_STEP_STRING_FIELDS = [
+  'instruction',
+  'fullRoadName',
+  'simpleRoadName',
+  'exitNumber',
+] as const;
+
+const OPTIONAL_EVENT_INTEGER_FIELDS = [
+  'distanceToCurrentStepMeters',
+  'timeToCurrentStepSeconds',
+  'distanceToNextDestinationMeters',
+  'timeToNextDestinationSeconds',
+  'distanceToFinalDestinationMeters',
+  'timeToFinalDestinationSeconds',
+] as const;
+
+/** Returns why a step does not match StepInfo, or undefined when it does. */
+const findStepInfoMismatch = (
+  step: StepInfo,
+  label: string
+): string | undefined => {
+  if (Maneuver[step.maneuver] === undefined) {
+    return `${label}.maneuver is not a Maneuver value: ${step.maneuver}`;
+  }
+  if (DrivingSide[step.drivingSide] === undefined) {
+    return `${label}.drivingSide is not a DrivingSide value: ${step.drivingSide}`;
+  }
+  for (const field of OPTIONAL_STEP_INTEGER_FIELDS) {
+    const value = step[field];
+    if (value !== undefined && !Number.isInteger(value)) {
+      return `${label}.${field} is not an integer: ${value}`;
+    }
+  }
+  for (const field of OPTIONAL_STEP_STRING_FIELDS) {
+    const value = step[field];
+    if (value !== undefined && typeof value !== 'string') {
+      return `${label}.${field} is not a string: ${value}`;
+    }
+  }
+  if (
+    step.roundaboutTurnNumber !== undefined &&
+    step.roundaboutTurnNumber < 0
+  ) {
+    return `${label}.roundaboutTurnNumber must be omitted for non-roundabouts: ${step.roundaboutTurnNumber}`;
+  }
+  return undefined;
+};
+
+/**
+ * Verifies that a turn-by-turn event carries the fields that TurnByTurnEvent
+ * and StepInfo declare, so that the TypeScript types and the native emitters
+ * keep describing the same payload.
+ */
+export const testTurnByTurnEventPayload = async (testTools: TestTools) => {
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnLocationChanged,
+    setOnTurnByTurn,
+    passTest,
+    failTest,
+  } = testTools;
+
+  // Accept ToS first
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
+  }
+
+  const startLocation: LatLng = {
+    lat: 37.79136614772824,
+    lng: -122.41565900473043,
+  };
+
+  setOnTurnByTurn(async (events: TurnByTurnEvent[]) => {
+    const event = events[0];
+    if (!event?.currentStep) {
+      return;
+    }
+
+    setOnTurnByTurn(null);
+    await navigationController.cleanup();
+
+    if (event.navState !== NavState.ENROUTE) {
+      return failTest(
+        `currentStep is set while navState is not ENROUTE: ${event.navState}`
+      );
+    }
+    if (typeof event.routeChanged !== 'boolean') {
+      return failTest(`routeChanged is not a boolean: ${event.routeChanged}`);
+    }
+    for (const field of OPTIONAL_EVENT_INTEGER_FIELDS) {
+      const value = event[field];
+      if (value !== undefined && !Number.isInteger(value)) {
+        return failTest(`${field} is not an integer: ${value}`);
+      }
+    }
+    if (!Array.isArray(event.getRemainingSteps)) {
+      return failTest('getRemainingSteps is not an array');
+    }
+
+    const mismatch =
+      findStepInfoMismatch(event.currentStep, 'currentStep') ??
+      event.getRemainingSteps
+        .map((step, index) =>
+          findStepInfoMismatch(step, `getRemainingSteps[${index}]`)
+        )
+        .find(message => message !== undefined);
+    if (mismatch) {
+      return failTest(mismatch);
+    }
+
+    passTest();
+  });
+
+  setOnNavigationReady(async () => {
+    disableVoiceGuidanceForTests(navigationController);
+    navigationController.setTurnByTurnLoggingEnabled(true);
+
+    const located = await simulateAndWaitForLocation(
+      navigationController,
+      setOnLocationChanged,
+      startLocation
+    );
+    if (!located) {
+      return failTest(
+        'Timed out waiting for simulated location to be confirmed'
+      );
+    }
+    await navigationController.setDestination({
+      title: 'Grace Cathedral',
+      position: {
+        lat: 37.791957,
+        lng: -122.412529,
+      },
+    });
     await navigationController.startGuidance();
     await navigationController.simulator.simulateLocationsAlongExistingRoute({
       speedMultiplier: 5,
