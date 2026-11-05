@@ -20,37 +20,52 @@ Install the package and `expo-build-properties`:
 npx expo install @googlemaps/react-native-navigation-sdk expo-build-properties
 ```
 
-Add the plugin and the required settings to your app config, for example
-`app.config.js`:
+Add the required settings to the `expo` object in `app.json`, keeping the
+fields your app already has:
 
-```js
-module.exports = {
-  expo: {
-    ios: {
-      deploymentTarget: '17.0',
-      config: { googleMapsApiKey: process.env.GOOGLE_MAPS_IOS_API_KEY },
-      infoPlist: {
-        NSLocationWhenInUseUsageDescription: 'Navigation needs your location.',
-        NSLocationAlwaysAndWhenInUseUsageDescription: 'Navigation needs your location.',
-        NSMotionUsageDescription: 'Used to improve navigation features.',
-        UIBackgroundModes: ['location', 'audio'],
-      },
+```json
+{
+  "expo": {
+    "ios": {
+      "deploymentTarget": "17.0",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Navigation needs your location.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Navigation needs your location.",
+        "NSMotionUsageDescription": "Used to improve navigation features.",
+        "UIBackgroundModes": ["location", "audio"]
+      }
     },
-    android: {
-      config: { googleMaps: { apiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY } },
-    },
-    plugins: [
-      '@googlemaps/react-native-navigation-sdk',
-      ['expo-build-properties', { android: { kotlinVersion: '2.3.21' } }],
-    ],
-  },
-};
+    "plugins": [
+      "@googlemaps/react-native-navigation-sdk",
+      ["expo-build-properties", { "android": { "kotlinVersion": "2.3.21" } }]
+    ]
+  }
+}
 ```
 
-Expo writes `ios.config.googleMapsApiKey` to `Info.plist` as `GMSApiKey`, and
-`android.config.googleMaps.apiKey` to `AndroidManifest.xml`. The Kotlin version
-override is required because the Navigation SDK needs Kotlin Gradle Plugin
-2.3.0 or later; see the [Migration Guide](./MIGRATING.md).
+`npx expo install` may already have added `expo-build-properties` to `plugins`
+without options; keep a single entry with the Kotlin version. The override is
+required because the Navigation SDK needs Kotlin Gradle Plugin 2.3.0 or later;
+see the [Migration Guide](./MIGRATING.md).
+
+Set the API keys in `ios.config.googleMapsApiKey` and
+`android.config.googleMaps.apiKey`. Expo writes them to `Info.plist` as
+`GMSApiKey` and to `AndroidManifest.xml`. To read them from environment
+variables, add an `app.config.js` that extends `app.json`:
+
+```js
+module.exports = ({ config }) => ({
+  ...config,
+  ios: {
+    ...config.ios,
+    config: { googleMapsApiKey: process.env.GOOGLE_MAPS_IOS_API_KEY },
+  },
+  android: {
+    ...config.android,
+    config: { googleMaps: { apiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY } },
+  },
+});
+```
 
 Then generate the native projects:
 
