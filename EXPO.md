@@ -73,6 +73,24 @@ Then generate the native projects:
 npx expo prebuild --clean
 ```
 
+## Location permission
+
+The `infoPlist` usage descriptions only provide the text of the iOS permission
+prompt. The app requests location permission at runtime before it initializes
+navigation; see
+[Requesting and handling permissions](./README.md#requesting-and-handling-permissions).
+In an Expo app, `expo-location` can request it:
+
+```shell
+npx expo install expo-location
+```
+
+```tsx
+import * as Location from 'expo-location';
+
+const { granted } = await Location.requestForegroundPermissionsAsync();
+```
+
 ## What the plugin changes
 
 The plugin applies the native setup that Expo's app config does not cover:
