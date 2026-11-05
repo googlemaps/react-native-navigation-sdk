@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.19.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.18.0...v0.19.0) (2026-11-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* Raise the minimum iOS version to 17.0 for iOS Navigation SDK 11.3.0. On iOS, duplicate waypoints resolve with `RouteStatus.DUPLICATE_WAYPOINTS_ERROR` instead of `RouteStatus.UNKNOWN`, and waypoints are not sent to the SDK when `routeTokenOptions` is set. See `MIGRATING.md` for upgrade instructions.
+* Remove `DisplayOptions.showStopSigns` and `showTrafficLights` on both platforms. Remove these fields from destination options. Add handling for the new `RouteStatus.ROUTING_TIMEOUT` result. Android terrain maps now fall back to normal maps during navigation. See `MIGRATING.md` for upgrade instructions and build requirements.
+
+### Features
+
+* upgrade Android Navigation SDK to 8.0.0 ([#688](https://github.com/googlemaps/react-native-navigation-sdk/issues/688)) ([cedbdc1](https://github.com/googlemaps/react-native-navigation-sdk/commit/cedbdc1e1681c51f105f6bfa84e7b3dd17c1a538))
+* upgrade ios Navigation SDK to 11.3.0 ([#697](https://github.com/googlemaps/react-native-navigation-sdk/issues/697)) ([aed33ea](https://github.com/googlemaps/react-native-navigation-sdk/commit/aed33ea05048b51ffbd059717dd05b7adc8f5fce))
+
 ## [0.18.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.17.3...v0.18.0) (2026-10-16)
 
 
