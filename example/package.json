@@ -31,7 +31,7 @@
     "react-native-pager-view": "^9.0.10",
     "react-native-permissions": "^5.1.0",
     "react-native-safe-area-context": "^5.9.0",
-    "react-native-screens": "4.30.0",
+    "react-native-screens": "4.30.1",
     "react-native-select-dropdown": "^4.0.1",
     "react-native-snackbar": "^3.0.1"
   },
