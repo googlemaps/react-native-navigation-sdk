@@ -58,6 +58,8 @@ The repository contains one React Native library and its Yarn workspace example:
   Objective-C++, including CarPlay support.
 - `react-native-navigation-sdk.podspec`: iOS package integration and native SDK
   dependency configuration.
+- `app.plugin.js` and `plugin/`: Expo config plugin, in CommonJS JavaScript
+  because Expo loads it directly. Its unit tests live in `plugin/__tests__/`.
 - `lib/`: Generated CommonJS, ES module, and TypeScript declaration outputs;
   ignored by Git.
 - `example/`: Sample app, native app projects, and test infrastructure.
@@ -66,8 +68,8 @@ The repository contains one React Native library and its Yarn workspace example:
   - `example/src/screens/integration_tests/`: Integration-test support code.
 - `scripts/`: Native formatting and license-header scripts.
 - `.github/workflows/` and `.github/actions/setup/`: CI checks and tool setup.
-- `ANDROIDAUTO.md`, `CARPLAY.md`, and `MIGRATING.md`: Specialized setup and
-  migration documentation.
+- `ANDROIDAUTO.md`, `CARPLAY.md`, `EXPO.md`, and `MIGRATING.md`: Specialized
+  setup and migration documentation.
 
 ## Development setup
 
@@ -124,6 +126,9 @@ Run commands from the repository root unless noted otherwise.
 # Static checks.
 yarn lint
 yarn test:types
+
+# Run the Node unit tests.
+yarn test
 
 # Build CommonJS, ES modules, and TypeScript declarations with Bob.
 yarn build
@@ -201,8 +206,12 @@ A cross-platform API change commonly touches several layers. Check each layer:
    Objective-C/Objective-C++ modules, views, and translation utilities.
 5. Regenerate and compile native bindings through both platform builds.
 6. Add integration coverage and update the example app.
-7. Update `README.md` and, when relevant, `MIGRATING.md`, `ANDROIDAUTO.md`, or
-   `CARPLAY.md`.
+7. Update `README.md` and, when relevant, `MIGRATING.md`, `ANDROIDAUTO.md`,
+   `CARPLAY.md`, or `EXPO.md`.
+
+A change to the native setup the package requires, such as a new Gradle
+setting or `AppDelegate` call, also updates the Expo config plugin in
+`plugin/`, its tests, and `EXPO.md`.
 
 For platform-specific limitations, preserve existing documented semantics and
 explain the limitation in public API documentation. Do not introduce an
@@ -229,6 +238,9 @@ Run the narrowest relevant checks while iterating, then verify every affected
 layer before finishing:
 
 - TypeScript changes: run `yarn lint`, `yarn test:types`, and `yarn build`.
+- Expo config plugin changes: run `yarn lint` and `yarn test`, then run
+  `npx expo prebuild --clean` in an Expo app that installs the packed package
+  (`npm pack`) and build the generated iOS and Android projects.
 - Android changes: also run native formatting checks and the Android example
   build.
 - iOS changes: also run native formatting checks, install pods as needed, and
@@ -238,8 +250,8 @@ layer before finishing:
 - Documentation-only changes: validate referenced paths, commands, and diff
   whitespace; native builds are not necessary.
 
-CI does not run tests: `.github/workflows/ci.yml` has no test job, and there is
-no root `yarn test` script. The example has a Jest script, but it is not a
+CI's `test` job runs `yarn test`, the Node unit tests for the Expo config
+plugin. CI does not run Detox. The example has a Jest script, but it is not a
 substitute for the Detox build-and-test flow.
 
 ### Detox integration tests

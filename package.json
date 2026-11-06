@@ -14,6 +14,8 @@
     "android",
     "ios",
     "cpp",
+    "app.plugin.js",
+    "plugin",
     "*.podspec",
     "!ios/build",
     "!android/build",
@@ -50,6 +52,7 @@
   },
   "scripts": {
     "example": "yarn workspace react-native-navigation-sdk-sample",
+    "test": "node --test \"plugin/**/*.test.js\"",
     "test:types": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "lint-fix": "eslint \"**/*.{js,ts,tsx}\" --fix",
@@ -87,8 +90,14 @@
     "typescript": "~6.0.3"
   },
   "peerDependencies": {
+    "expo": "*",
     "react": "*",
     "react-native": ">=0.87.0"
+  },
+  "peerDependenciesMeta": {
+    "expo": {
+      "optional": true
+    }
   },
   "workspaces": [
     "example"

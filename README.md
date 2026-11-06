@@ -59,6 +59,12 @@ In your TSX or JSX file, import the components you need:
 import { NavigationView } from '@googlemaps/react-native-navigation-sdk';
 ```
 
+### Expo
+
+Expo apps that generate their native projects with `npx expo prebuild` use the
+package's config plugin instead of the Android and iOS steps below. See the
+[Expo documentation](./EXPO.md).
+
 ### Android
 
 This package uses Navigation SDK for Android **8.0.0**. See the
@@ -266,7 +272,7 @@ const initializeNavigation = useCallback(async () => {
 
   // Initialize the navigation session and check the status
   const status = await navigationController.init();
-  
+
   switch (status) {
     case NavigationSessionStatus.OK:
       console.log('Navigation initialized successfully');
@@ -360,8 +366,8 @@ await navigationController.startGuidance();
 #### Adding navigation listeners
 
 ```tsx
-const { 
-  navigationController, 
+const {
+  navigationController,
   removeAllListeners,
   setOnArrival,
   setOnRouteChanged,
@@ -616,8 +622,8 @@ The `useNavigation()` hook provides access to the `NavigationController` and lis
 ```tsx
 import { useNavigation } from '@googlemaps/react-native-navigation-sdk';
 
-const { 
-  navigationController, 
+const {
+  navigationController,
   removeAllListeners,
   setOnArrival,
   setOnRouteChanged,
@@ -703,7 +709,7 @@ useEffect(() => {
     }
   });
   setOnRouteChanged(() => console.log('Route changed'));
-  
+
   // Use removeAllListeners() to clear all listeners at once on cleanup
   // Alternatively, clear individual listeners: setOnArrival(null)
   return () => removeAllListeners();
@@ -761,8 +767,8 @@ For Android Auto and CarPlay support, the `useNavigationAuto()` hook provides a 
 ```tsx
 import { useNavigationAuto } from '@googlemaps/react-native-navigation-sdk';
 
-const { 
-  mapViewAutoController, 
+const {
+  mapViewAutoController,
   removeAllListeners,
   setOnAutoScreenAvailabilityChanged,
   setOnCustomNavigationAutoEvent,
