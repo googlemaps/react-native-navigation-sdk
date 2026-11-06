@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.19.0...v0.19.1) (2026-11-06)
+
+
+### Features
+
+* add Expo config plugin ([#709](https://github.com/googlemaps/react-native-navigation-sdk/issues/709)) ([1ce1b2f](https://github.com/googlemaps/react-native-navigation-sdk/commit/1ce1b2fe1676760ea55edeefe1c4ca4760a37e1a))
+
 ## [0.19.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.18.0...v0.19.0) (2026-11-05)
 
 
