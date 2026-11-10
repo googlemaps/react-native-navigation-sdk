@@ -44,6 +44,8 @@ import { NavigationSessionStatus } from '../types';
  * Pass the same waypoints that were used to request the route token. On iOS the
  * route token alone defines the destinations, and the waypoints are not sent to
  * the Navigation SDK.
+ *
+ * @deprecated Use {@link NavigationController.setDestinationsWithToken} instead.
  */
 export interface RouteTokenOptions {
   /**
@@ -80,6 +82,8 @@ export interface SetDestinationsOptions {
   /**
    * Options for using a pre-computed route token from the Routes API.
    * Cannot be used with routingOptions.
+   *
+   * @deprecated Use {@link NavigationController.setDestinationsWithToken} instead.
    */
   routeTokenOptions?: RouteTokenOptions;
 }
@@ -186,7 +190,8 @@ export interface ContinueToNextDestinationResponse {
  */
 export interface ArrivalEvent {
   /**
-   * Waypoint the device has arrived to. This waypoint was used when setDestinations was called.
+   * The destination reported by the Navigation SDK. For token routes, the
+   * destination comes from the token rather than caller-provided waypoints.
    */
   waypoint: Waypoint;
 
@@ -279,7 +284,8 @@ export interface NavigationCallbacks {
  */
 export interface Simulator {
   /**
-   * Initiates a simulation of the navigation with a specified speed multiplier.
+   * Starts or resumes simulation along the current route with a specified speed multiplier.
+   * Requires a successfully calculated route, including after continueToNextDestination.
    * @param speedMultiplier - Multiplier to speed up the simulation.
    */
   simulateLocationsAlongExistingRoute(options: LocationSimulationOptions): void;
@@ -451,6 +457,24 @@ export interface NavigationController {
   setDestinations(
     waypoints: Waypoint[],
     options?: SetDestinationsOptions
+  ): Promise<RouteStatus>;
+
+  /**
+   * Replaces the current destinations with a route encoded in a route token.
+   * Call after navigation initialization. No waypoints or client-side travel
+   * mode are required; destinations and routing preferences come from the token.
+   *
+   * @param routeToken - A route token from the Routes API or Route Optimization API.
+   *                     Tokens support DRIVE or TWO_WHEELER routes.
+   * @param displayOptions - Route display options. Destination markers are shown by default.
+   * @returns The SDK's route calculation status. A successful status does not
+   *          guarantee exact replay when the starting location or road conditions change.
+   *          Rejects if navigation is unavailable, with `noRouteStatus` if the SDK
+   *          returns no route status, or when the native call fails.
+   */
+  setDestinationsWithToken(
+    routeToken: string,
+    displayOptions?: DisplayOptions
   ): Promise<RouteStatus>;
 
   /**

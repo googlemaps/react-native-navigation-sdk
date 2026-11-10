@@ -4,10 +4,71 @@ This document covers breaking changes and migration steps between major versions
 
 ## Table of Contents
 
+- [Upcoming release: token-only routing](#upcoming-release-token-only-routing)
 - [Migrating from 0.18.x to 0.19.x](#migrating-from-018x-to-019x)
 - [Migrating from 0.17.x to 0.18.x](#migrating-from-017x-to-018x)
 - [Migrating from 0.16.x to 0.17.x](#migrating-from-016x-to-017x)
 - [Migrating from 0.13.x to 0.14.x](#migrating-from-013x-to-014x)
+
+---
+
+## Upcoming release: token-only routing
+
+The upcoming release upgrades the Android Navigation SDK from `8.0.0` to
+`8.1.0`. The iOS Navigation SDK remains at `11.3.0`.
+
+The library's consumer ProGuard rule is updated for the SDK 8.1 reflective
+loader. Use the updated library when minifying Android builds; overriding the
+native SDK dependency alone does not apply that compatibility rule.
+
+### Migrate route tokens
+
+`SetDestinationsOptions.routeTokenOptions` and `RouteTokenOptions` are deprecated.
+They remain functional in this release for existing consumers; no removal is
+part of this change. Migrate token routing to `setDestinationsWithToken`.
+Regular waypoint routing through `setDestination` and `setDestinations` is
+unchanged.
+
+Before:
+
+```tsx
+await navigationController.setDestinations(waypoints, {
+  routeTokenOptions: { routeToken, travelMode: TravelMode.DRIVING },
+  displayOptions: { showDestinationMarkers: false },
+});
+```
+
+After:
+
+```tsx
+await navigationController.setDestinationsWithToken(routeToken, {
+  showDestinationMarkers: false,
+});
+```
+
+The new method takes the token and optional `DisplayOptions` directly, returns
+`Promise<RouteStatus>`, and defaults to showing destination markers. Do not
+pass waypoints, `routingOptions`, or a travel mode: the token encodes the
+destinations and routing preferences. Routes API tokens must use `DRIVE` or
+`TWO_WHEELER`, traffic-aware routing, and no `via` waypoints.
+
+Initialize navigation and wait for a valid location before setting the token.
+After `RouteStatus.OK`, start guidance normally; simulation and advancing to
+the next destination also use the SDK's token-derived route. Arrival waypoints
+come from the native SDK and need not preserve app-specific labels.
+On iOS, starting simulation resumes the SDK simulator after its automatic pause
+at a stop, so it can continue along the next token-derived leg.
+
+On iOS, the new call resets the client travel mode to the supported driving
+setting, including after walking or cycling routes. This does not override the
+travel mode encoded in the token. Route status alone does not establish that
+the exact planned route was applied; token execution details are not exposed
+by this API.
+
+The native Codegen contract has a new method. Rebuild Android, run `pod install`
+in the iOS directory, and rebuild iOS. The deprecated native and TypeScript
+paths remain available during this migration; they are not redirected to a
+different waypoint or travel-mode contract.
 
 ---
 

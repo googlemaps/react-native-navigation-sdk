@@ -148,6 +148,7 @@
     [self applyStylingOptions];
     [self restoreNavigationUIState];
     [self applyTrafficPromptsSetting];
+    [navModule applyTokenRouteDisplayOptionsToViewController:self];
     [self forceInvalidateView];
 
     // Notify state delegate that session is attached

@@ -185,6 +185,10 @@ export interface Spec extends TurboModule {
     displayOptions: DisplayOptionsSpec,
     routeTokenOptions: RouteTokenOptionsSpec
   ): Promise<RouteStatusSpec>;
+  setDestinationsWithToken(
+    routeToken: string,
+    displayOptions: DisplayOptionsSpec
+  ): Promise<RouteStatusSpec>;
   continueToNextDestination(): Promise<ContinueToNextDestinationResponseSpec>;
   clearDestinations(): Promise<void>;
   startGuidance(): Promise<void>;

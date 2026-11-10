@@ -16,7 +16,7 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { Text, View, useWindowDimensions } from 'react-native';
+import { Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { ExampleAppButton } from '../controls/ExampleAppButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -54,6 +54,8 @@ import {
   testNavigationStateGuards,
   testStartGuidanceWithoutDestinations,
   testRouteTokenOptionsValidation,
+  testTokenRouting,
+  testMultiStopTokenRouting,
   testMapStyle,
   testMinMaxZoomLevels,
   testSetFollowingPerspective,
@@ -84,6 +86,7 @@ const IntegrationTestsScreen = () => {
     TestRunStatus.NotRunning
   );
   const [testResult, setTestResult] = useState<TestResult>(TestResult.None);
+  const [routeToken, setRouteToken] = useState('');
 
   // Get navigationController and listener setters from useNavigation hook
   const {
@@ -227,6 +230,7 @@ const IntegrationTestsScreen = () => {
       navigationController,
       mapViewController,
       navigationViewController,
+      routeToken,
       setOnNavigationReady,
       setOnArrival,
       setOnRemainingTimeOrDistanceChanged,
@@ -316,6 +320,12 @@ const IntegrationTestsScreen = () => {
       case 'testRouteTokenOptionsValidation':
         await testRouteTokenOptionsValidation(getTestTools());
         break;
+      case 'testTokenRouting':
+        await testTokenRouting(getTestTools());
+        break;
+      case 'testMultiStopTokenRouting':
+        await testMultiStopTokenRouting(getTestTools());
+        break;
       case 'testMapStyle':
         await testMapStyle(getTestTools());
         break;
@@ -382,6 +392,17 @@ const IntegrationTestsScreen = () => {
         <Text testID="test_status_label">Test status: {testStatusString}</Text>
         <Text testID="test_result_label">Test result: {testResult}</Text>
         <Text testID="failure_message_label">{failureMessage}</Text>
+        <TextInput
+          testID="route_token_input"
+          style={CommonStyles.textInput}
+          value={routeToken}
+          onChangeText={setRouteToken}
+          placeholder="Fresh route token (token-routing test only)"
+          autoCapitalize="none"
+          autoCorrect={false}
+          secureTextEntry
+          returnKeyType="done"
+        />
         <ExampleAppButton
           title="Reset"
           onPress={() => {
@@ -538,6 +559,20 @@ const IntegrationTestsScreen = () => {
             runTest('testRouteTokenOptionsValidation');
           }}
           testID="testRouteTokenOptionsValidation"
+        />
+        <ExampleAppButton
+          title="testTokenRouting"
+          onPress={() => {
+            runTest('testTokenRouting');
+          }}
+          testID="testTokenRouting"
+        />
+        <ExampleAppButton
+          title="testMultiStopTokenRouting"
+          onPress={() => {
+            runTest('testMultiStopTokenRouting');
+          }}
+          testID="testMultiStopTokenRouting"
         />
         <ExampleAppButton
           title="testMapStyle"

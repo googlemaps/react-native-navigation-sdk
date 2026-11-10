@@ -673,6 +673,40 @@ public class NavModule extends NativeNavModuleSpec
   }
 
   @Override
+  public void setDestinationsWithToken(
+      String routeToken, ReadableMap displayOptions, final Promise promise) {
+    if (!ensureNavigatorAvailable(promise)) {
+      return;
+    }
+
+    mWaypoints.clear();
+
+    boolean showDestinationMarkers =
+        displayOptions == null
+            || !displayOptions.hasKey("showDestinationMarkers")
+            || displayOptions.isNull("showDestinationMarkers")
+            || displayOptions.getBoolean("showDestinationMarkers");
+    DisplayOptions parsedDisplayOptions =
+        new DisplayOptions().hideDestinationMarkers(!showDestinationMarkers);
+
+    try {
+      mNavigator.setDestinationsWithToken(
+          routeToken,
+          parsedDisplayOptions,
+          routeDescription -> {
+            if (routeDescription == null) {
+              promise.reject("noRouteStatus", "The Navigation SDK returned no route status.");
+              return;
+            }
+            promise.resolve(
+                EnumTranslationUtil.getRouteStatusStringValue(routeDescription.getRouteStatus()));
+          });
+    } catch (RuntimeException e) {
+      promise.reject("setDestinationsWithTokenFailed", e.getMessage(), e);
+    }
+  }
+
+  @Override
   public void clearDestinations(final Promise promise) {
     if (!ensureNavigatorAvailable(promise)) {
       return;
@@ -702,7 +736,7 @@ public class NavModule extends NativeNavModuleSpec
     if (!ensureNavigatorAvailable(promise)) {
       return;
     }
-    if (mWaypoints.isEmpty()) {
+    if (mNavigator.getCurrentRouteSegment() == null) {
       promise.reject(JsErrors.NO_DESTINATIONS_ERROR_CODE, JsErrors.NO_DESTINATIONS_ERROR_MESSAGE);
       return;
     }
@@ -723,14 +757,16 @@ public class NavModule extends NativeNavModuleSpec
 
   @Override
   public void simulateLocationsAlongExistingRoute(ReadableMap options, final Promise promise) {
+    if (!ensureNavigatorAvailable(promise)) {
+      return;
+    }
+    if (mNavigator.getCurrentRouteSegment() == null) {
+      promise.reject(JsErrors.NO_DESTINATIONS_ERROR_CODE, JsErrors.NO_DESTINATIONS_ERROR_MESSAGE);
+      return;
+    }
+
     float speedMultiplier =
         options.hasKey("speedMultiplier") ? (float) options.getDouble("speedMultiplier") : 1.0f;
-    if (mNavigator == null) {
-      return;
-    }
-    if (mWaypoints.isEmpty()) {
-      return;
-    }
 
     mNavigator
         .getSimulator()
