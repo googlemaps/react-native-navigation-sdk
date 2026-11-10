@@ -87,7 +87,7 @@
     "react-native-builder-bob": "^0.44.1",
     "react-test-renderer": "19.3.0",
     "turbo": "^1.10.7",
-    "typescript": "~6.0.3"
+    "typescript": "~7.0.2"
   },
   "peerDependencies": {
     "expo": "*",
