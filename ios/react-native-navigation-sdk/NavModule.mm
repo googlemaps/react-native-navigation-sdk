@@ -622,8 +622,8 @@ RCT_EXPORT_MODULE(NavModule);
       return;
     }
 
-    // Reset client configuration left by walking/cycling routes. The token supplies its route
-    // and may encode either driving or two-wheeler navigation.
+    // Token routing requires a driving or two-wheeler client mode. Normalize to driving;
+    // the token still determines the actual routing mode.
     [strongSelf configureNavigatorWithTravelMode:navigator
                                       travelMode:GMSNavigationTravelModeDriving];
     NavViewController *carViewController = [NavAutoModule sharedInstance].viewController;

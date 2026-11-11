@@ -357,7 +357,7 @@ For Routes API tokens, use `DRIVE` or `TWO_WHEELER`, a `TRAFFIC_AWARE` or `TRAFF
 
 `RouteStatus.OK` means the SDK found a route, not that it reproduced the planned route exactly. Starting location, traffic, or road changes can affect the route. This API returns `RouteStatus`, not token execution details.
 
-`SetDestinationsOptions.routeTokenOptions` and `RouteTokenOptions` are deprecated. Existing `setDestination` and `setDestinations` callers can migrate using the [token-routing migration guide](./MIGRATING.md#upcoming-release-token-only-routing). In the deprecated API, `routingOptions` and `routeTokenOptions` remain mutually exclusive.
+`SetDestinationsOptions.routeTokenOptions` and `RouteTokenOptions` are deprecated. Existing `setDestination` and `setDestinations` callers can migrate using the [token-routing migration guide](./MIGRATING.md#version-0191-token-only-routing). In the deprecated API, `routingOptions` and `routeTokenOptions` remain mutually exclusive.
 
 
 #### Adding navigation listeners
