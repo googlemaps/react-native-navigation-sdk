@@ -35,7 +35,7 @@ import {
   TaskRemovedBehavior,
   type TurnByTurnEvent,
   type SetDestinationsOptions,
-  type DisplayOptions,
+  type SetDestinationsWithTokenOptions,
   type TermsAndConditionsDialogOptions,
   type NavigationController,
   type SpeedAlertOptions,
@@ -448,14 +448,17 @@ export const useNavigationController = (
       },
 
       setDestinationsWithToken: async (
-        routeToken: string,
-        displayOptions?: DisplayOptions
+        options: SetDestinationsWithTokenOptions
       ) => {
-        const result = await NavModule.setDestinationsWithToken(routeToken, {
-          ...displayOptions,
-          valid: true,
-          showDestinationMarkers:
-            displayOptions?.showDestinationMarkers ?? true,
+        const result = await NavModule.setDestinationsWithToken({
+          routeToken: options.routeToken,
+          travelMode: options.travelMode,
+          displayOptions: {
+            ...options.displayOptions,
+            valid: true,
+            showDestinationMarkers:
+              options.displayOptions?.showDestinationMarkers ?? true,
+          },
         });
         return result as RouteStatus;
       },

@@ -24,6 +24,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -673,23 +674,41 @@ public class NavModule extends NativeNavModuleSpec
   }
 
   @Override
-  public void setDestinationsWithToken(
-      String routeToken, ReadableMap displayOptions, final Promise promise) {
+  public void setDestinationsWithToken(ReadableMap options, final Promise promise) {
     if (!ensureNavigatorAvailable(promise)) {
       return;
     }
 
-    mWaypoints.clear();
-
-    boolean showDestinationMarkers =
-        displayOptions == null
-            || !displayOptions.hasKey("showDestinationMarkers")
-            || displayOptions.isNull("showDestinationMarkers")
-            || displayOptions.getBoolean("showDestinationMarkers");
-    DisplayOptions parsedDisplayOptions =
-        new DisplayOptions().hideDestinationMarkers(!showDestinationMarkers);
-
     try {
+      if (options.hasKey("travelMode") && !options.isNull("travelMode")) {
+        double travelMode =
+            options.getType("travelMode") == ReadableType.Number
+                ? options.getDouble("travelMode")
+                : Double.NaN;
+        if (travelMode != 0 && travelMode != 3) {
+          promise.reject(
+              "travelModeUnsupported",
+              "Route tokens only support DRIVING (0) or TWO_WHEELER (3) travel modes.");
+          return;
+        }
+      }
+
+      String routeToken = options.getString("routeToken");
+      ReadableMap displayOptions =
+          options.hasKey("displayOptions") && !options.isNull("displayOptions")
+              ? options.getMap("displayOptions")
+              : null;
+      boolean showDestinationMarkers =
+          displayOptions == null
+              || !displayOptions.hasKey("showDestinationMarkers")
+              || displayOptions.isNull("showDestinationMarkers")
+              || displayOptions.getBoolean("showDestinationMarkers");
+      DisplayOptions parsedDisplayOptions =
+          new DisplayOptions().hideDestinationMarkers(!showDestinationMarkers);
+
+      mWaypoints.clear();
+
+      // The SDK uses the mode encoded in the token, not the validated client mode.
       mNavigator.setDestinationsWithToken(
           routeToken,
           parsedDisplayOptions,

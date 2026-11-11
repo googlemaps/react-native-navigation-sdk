@@ -83,7 +83,7 @@ describe('Navigation tests', () => {
     await expectSuccess();
   });
 
-  it('NT08 - singular/plural destination methods reject conflicting routing and token options without changing route state', async () => {
+  it('NT08 - rejects conflicting legacy options and unsupported token modes without changing route state', async () => {
     await selectTestByName('testRouteTokenOptionsValidation');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();

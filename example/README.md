@@ -55,9 +55,10 @@ First, make sure you go through the setup from the main [README](../README.md).
 ## Route-token integration tests
 
 The focused route-token suite requests fresh single- and multi-stop tokens from
-the Routes API, then exercises native routing, guidance, simulation, arrival,
-route replacement, and the deprecated API on both platforms. Configure the
-native Navigation SDK keys above and follow the [Detox setup](../CONTRIBUTING.md#integration-tests).
+the Routes API, then exercises native routing, omitted and supported client modes,
+nested display options, guidance, simulation, arrival, route replacement, and the
+deprecated API on both platforms. Configure the native Navigation SDK keys above
+and follow the [Detox setup](../CONTRIBUTING.md#integration-tests).
 
 Enable Routes API for a test key that permits requests from the test machine.
 An Android- or iOS-app-restricted key may not permit these Node-side requests.
@@ -80,5 +81,7 @@ yarn example detox:test:ios-release --testMatch "$PWD/example/e2e/route_token.e2
 unset ROUTES_API_KEY
 ```
 
-The default `*.test.js` suite does not require this additional key. The focused
-suite fails explicitly if `ROUTES_API_KEY` is missing or cannot obtain a token.
+The default `*.test.js` suite does not require this additional key. Its token
+validation coverage checks unsupported mode rejection and prior-route preservation
+using an invalid token. The focused suite fails explicitly if `ROUTES_API_KEY` is
+missing or cannot obtain a token.

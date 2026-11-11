@@ -602,12 +602,12 @@ RCT_EXPORT_MODULE(NavModule);
   });
 }
 
-- (void)setDestinationsWithToken:(NSString *)routeToken
-                  displayOptions:(DisplayOptionsSpec &)displayOptions
+- (void)setDestinationsWithToken:(SetDestinationsWithTokenOptionsSpec &)options
                          resolve:(RCTPromiseResolveBlock)resolve
                           reject:(RCTPromiseRejectBlock)reject {
-  NSString *routeTokenCopy = [routeToken copy];
-  DisplayOptionsSpec displayOptionsCopy(displayOptions);
+  NSString *routeTokenCopy = [options.routeToken() copy];
+  std::optional<double> travelMode = options.travelMode();
+  DisplayOptionsSpec displayOptionsCopy(options.displayOptions());
 
   __weak __typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
@@ -622,12 +622,20 @@ RCT_EXPORT_MODULE(NavModule);
       return;
     }
 
-    // Token routing requires a driving or two-wheeler client mode. Normalize to driving;
-    // the token still determines the actual routing mode.
-    [strongSelf configureNavigatorWithTravelMode:navigator
-                                      travelMode:GMSNavigationTravelModeDriving];
+    double clientTravelMode = travelMode.value_or(strongSelf->_session.travelMode);
+    if (clientTravelMode != GMSNavigationTravelModeDriving &&
+        clientTravelMode != GMSNavigationTravelModeTwoWheeler) {
+      reject(@"travelModeUnsupported",
+             @"Route tokens support only DRIVING and TWO_WHEELER travel modes.", nil);
+      return;
+    }
+
+    // Preserve the current client mode unless the caller explicitly requests another.
+    [strongSelf configureNavigatorWithTravelMode:navigator travelMode:travelMode];
     NavViewController *carViewController = [NavAutoModule sharedInstance].viewController;
-    [carViewController setTravelMode:GMSNavigationTravelModeDriving];
+    if (travelMode.has_value()) {
+      [carViewController setTravelMode:(GMSNavigationTravelMode)travelMode.value()];
+    }
 
     // Unlike the legacy API, every token-only call applies the default when omitted.
     strongSelf->_tokenRouteShowDestinationMarkers =
@@ -646,6 +654,14 @@ RCT_EXPORT_MODULE(NavModule);
                                    NSError *_Nullable error) {
                  __strong __typeof(weakSelf) innerStrongSelf = weakSelf;
                  if (!innerStrongSelf) return;
+                 if (routeDescription != nil &&
+                     routeDescription.routeStatus == GMSRouteStatusTravelModeUnsupported) {
+                   reject(@"travelModeUnsupported",
+                          error.localizedDescription
+                              ?: @"Route tokens support only DRIVING and TWO_WHEELER travel modes.",
+                          error);
+                   return;
+                 }
                  if (routeDescription == nil) {
                    reject(kNoRouteStatusErrorCode,
                           error.localizedDescription ?: kNoRouteStatusErrorMessage, error);

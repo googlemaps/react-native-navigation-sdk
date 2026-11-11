@@ -41,16 +41,19 @@ await navigationController.setDestinations(waypoints, {
 After:
 
 ```tsx
-await navigationController.setDestinationsWithToken(routeToken, {
-  showDestinationMarkers: false,
+await navigationController.setDestinationsWithToken({
+  routeToken,
+  travelMode: TravelMode.DRIVING,
+  displayOptions: { showDestinationMarkers: false },
 });
 ```
 
-The new method takes the token and optional `DisplayOptions` directly, returns
-`Promise<RouteStatus>`, and defaults to showing destination markers. Do not
-pass waypoints, `routingOptions`, or a travel mode: the token encodes the
-destinations and routing preferences. Routes API tokens must use `DRIVE` or
-`TWO_WHEELER`, traffic-aware routing, and no `via` waypoints.
+The new method takes one `SetDestinationsWithTokenOptions` object with required
+`routeToken`, optional `travelMode`, and optional nested `displayOptions`. It
+returns `Promise<RouteStatus>` and defaults to showing destination markers.
+Do not pass waypoints or `routingOptions`: the token encodes the destinations
+and routing preferences. Routes API tokens must use `DRIVE` or `TWO_WHEELER`,
+traffic-aware routing, and no `via` waypoints.
 
 Initialize navigation and wait for a valid location before setting the token.
 After `RouteStatus.OK`, start guidance normally; simulation and advancing to
@@ -59,11 +62,19 @@ come from the native SDK and need not preserve app-specific labels.
 On iOS, starting simulation resumes the SDK simulator after its automatic pause
 at a stop, so it can continue along the next token-derived leg.
 
-On iOS, the new call resets the client travel mode to the supported driving
-setting, including after walking or cycling routes. This does not override the
-travel mode encoded in the token. Route status alone does not establish that
-the exact planned route was applied; token execution details are not exposed
-by this API.
+The optional `travelMode` accepts only `TravelMode.DRIVING` or
+`TravelMode.TWO_WHEELER`. Explicit unsupported modes (including walking, cycling,
+and taxi) reject with native error code `travelModeUnsupported` on both platforms
+before changing the existing route.
+
+On iOS, omitting `travelMode` preserves the current client mode; if that mode is
+unsupported, the call rejects with `travelModeUnsupported`. Use an explicit
+supported mode to switch after walking or cycling. On Android, omission follows
+native token routing and uses the token's mode. A supported client mode never
+overrides the travel mode encoded in the token.
+
+Route status alone does not establish that the exact planned route was applied;
+token execution details are not exposed by this API.
 
 The native Codegen contract has a new method. Rebuild Android, run `pod install`
 in the iOS directory, and rebuild iOS. The deprecated native and TypeScript

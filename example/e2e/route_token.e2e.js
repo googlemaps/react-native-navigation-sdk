@@ -110,7 +110,7 @@ const runTokenTest = async (testName, multiStop = false) => {
 };
 
 describe('Fresh route-token navigation tests', () => {
-  it('NT12 - replaces routes, preserves legacy token callers, clears, guides and arrives using a token-only route', async () => {
+  it('NT12 - handles omitted and supported client modes, replaces routes, preserves legacy callers, clears, guides and arrives', async () => {
     await runTokenTest('testTokenRouting');
   }, 240000);
 

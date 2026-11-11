@@ -339,21 +339,24 @@ try {
 
 Use a route token from the [Routes API](https://developers.google.com/maps/documentation/routes/route_token) or [Route Optimization API](https://developers.google.com/maps/documentation/route-optimization/polylines-and-route-tokens) to navigate a route planned by your backend.
 
-After navigation initialization and a valid location update, pass the token directly:
+After navigation initialization and a valid location update, pass a `SetDestinationsWithTokenOptions` object:
 
 ```tsx
-const routeStatus = await navigationController.setDestinationsWithToken(
+const routeStatus = await navigationController.setDestinationsWithToken({
   routeToken,
-  { showDestinationMarkers: true }
-);
+  travelMode: TravelMode.DRIVING, // Optional client mode; does not override the token.
+  displayOptions: { showDestinationMarkers: true }, // Optional; defaults to true.
+});
 if (routeStatus === RouteStatus.OK) {
   await navigationController.startGuidance();
 }
 ```
 
-The token supplies the destinations and routing preferences; do not pass waypoints or a travel mode. The optional second argument is `DisplayOptions`, and destination markers are shown by default. Guidance, simulation, arrival events, and `continueToNextDestination` work with token routes as they do with waypoint routes. Arrival waypoints are reported by the native SDK, not matched against caller-provided labels.
+The required `routeToken` supplies the destinations and routing preferences; do not pass waypoints or `routingOptions`. The optional nested `displayOptions` defaults to showing destination markers. Guidance, simulation, arrival events, and `continueToNextDestination` work with token routes as they do with waypoint routes. Arrival waypoints are reported by the native SDK, not matched against caller-provided labels.
 
-For Routes API tokens, use `DRIVE` or `TWO_WHEELER`, a `TRAFFIC_AWARE` or `TRAFFIC_AWARE_OPTIMAL` routing preference, and no `via` waypoints. On iOS, the wrapper resets the client travel mode to a supported driving setting before applying the token; the token still determines the route's actual travel mode.
+The optional `travelMode` accepts only `TravelMode.DRIVING` or `TravelMode.TWO_WHEELER`. Explicit unsupported modes (including walking, cycling, and taxi) reject with native error code `travelModeUnsupported` before changing the existing route. On iOS, omitting `travelMode` preserves the current client mode and rejects with the same code if that mode is unsupported; pass an explicit supported mode to switch after walking or cycling. On Android, omission follows the native token-routing behavior and uses the token's mode. A supported client mode never overrides the travel mode encoded in the token.
+
+For Routes API tokens, use `DRIVE` or `TWO_WHEELER`, a `TRAFFIC_AWARE` or `TRAFFIC_AWARE_OPTIMAL` routing preference, and no `via` waypoints.
 
 `RouteStatus.OK` means the SDK found a route, not that it reproduced the planned route exactly. Starting location, traffic, or road changes can affect the route. This API returns `RouteStatus`, not token execution details.
 

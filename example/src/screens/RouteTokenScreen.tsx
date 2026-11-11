@@ -118,10 +118,10 @@ const RouteTokenScreen = () => {
 
         try {
           const routeStatus =
-            await navigationController.setDestinationsWithToken(
-              confirmedRouteToken,
-              { showDestinationMarkers: true }
-            );
+            await navigationController.setDestinationsWithToken({
+              routeToken: confirmedRouteToken,
+              displayOptions: { showDestinationMarkers: true },
+            });
 
           // Handle route status result
           switch (routeStatus) {

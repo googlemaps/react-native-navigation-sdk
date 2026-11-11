@@ -89,6 +89,40 @@ export interface SetDestinationsOptions {
 }
 
 /**
+ * Options for replacing destinations with a route encoded in a route token.
+ */
+export interface SetDestinationsWithTokenOptions {
+  /**
+   * A route token from the Routes API or Route Optimization API.
+   * Tokens support DRIVE or TWO_WHEELER routes. Destinations and routing
+   * preferences, including travel mode, come from the token and take precedence
+   * over supported client-side travel mode settings.
+   */
+  routeToken: string;
+
+  /**
+   * Optional client-side travel mode. Only TravelMode.DRIVING and
+   * TravelMode.TWO_WHEELER are supported; other values reject with error code
+   * `travelModeUnsupported` before changing the current route.
+   *
+   * On iOS, omitting this preserves the current client travel mode. If that mode
+   * is unsupported (for example, after walking or cycling), the call rejects
+   * with `travelModeUnsupported`; pass an explicit supported mode to switch.
+   * On Android, omitting this uses the token's routing mode.
+   *
+   * A supported client travel mode does not override the mode encoded in the
+   * route token.
+   */
+  travelMode?: TravelMode;
+
+  /**
+   * Route display options. Destination markers are shown by default, including
+   * when displayOptions or showDestinationMarkers is omitted.
+   */
+  displayOptions?: DisplayOptions;
+}
+
+/**
  * Defines the options used by the Navigator for calculating a route to a destination.
  */
 export interface RoutingOptions {
@@ -461,20 +495,25 @@ export interface NavigationController {
 
   /**
    * Replaces the current destinations with a route encoded in a route token.
-   * Call after navigation initialization. No waypoints or client-side travel
-   * mode are required; destinations and routing preferences come from the token.
+   * Call after navigation initialization. Destinations and routing preferences,
+   * including travel mode, come from the token; a supported client travel mode
+   * does not override the token's mode.
    *
-   * @param routeToken - A route token from the Routes API or Route Optimization API.
-   *                     Tokens support DRIVE or TWO_WHEELER routes.
-   * @param displayOptions - Route display options. Destination markers are shown by default.
+   * @param options - Route token, optional client travel mode, and optional display
+   *                  options. Only TravelMode.DRIVING and TravelMode.TWO_WHEELER
+   *                  are supported. On iOS, an omitted travelMode preserves the
+   *                  current client mode; pass a supported mode explicitly after
+   *                  walking or cycling. On Android, omission uses token routing.
+   *                  Destination markers are shown by default.
    * @returns The SDK's route calculation status. A successful status does not
    *          guarantee exact replay when the starting location or road conditions change.
-   *          Rejects if navigation is unavailable, with `noRouteStatus` if the SDK
-   *          returns no route status, or when the native call fails.
+   *          Rejects if navigation is unavailable, with `travelModeUnsupported`
+   *          before changing routes if an explicit travelMode is unsupported
+   *          (or the inherited iOS client mode is unsupported), with `noRouteStatus`
+   *          if the SDK returns no route status, or when the native call fails.
    */
   setDestinationsWithToken(
-    routeToken: string,
-    displayOptions?: DisplayOptions
+    options: SetDestinationsWithTokenOptions
   ): Promise<RouteStatus>;
 
   /**
