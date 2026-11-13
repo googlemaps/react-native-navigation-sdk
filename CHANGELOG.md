@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.1](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.19.0...v0.19.1) (2026-11-13)
+
+
+### Features
+
+* add Expo config plugin ([#709](https://github.com/googlemaps/react-native-navigation-sdk/issues/709)) ([1ce1b2f](https://github.com/googlemaps/react-native-navigation-sdk/commit/1ce1b2fe1676760ea55edeefe1c4ca4760a37e1a))
+* add token routing and Android SDK 8.1.0 ([#712](https://github.com/googlemaps/react-native-navigation-sdk/issues/712)) ([7d0a2a5](https://github.com/googlemaps/react-native-navigation-sdk/commit/7d0a2a555cd579f6bb2836555cc06822e6d7f8b0))
+
 ## [0.19.0](https://github.com/googlemaps/react-native-navigation-sdk/compare/v0.18.0...v0.19.0) (2026-11-05)
 
 
