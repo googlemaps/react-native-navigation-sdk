@@ -42,6 +42,7 @@ import {
   testRouteSegments,
   testGetCurrentTimeAndDistance,
   testMoveCamera,
+  testAnimateCamera,
   testTiltZoomBearingCamera,
   testMapMarkers,
   testMapCircles,
@@ -280,6 +281,9 @@ const IntegrationTestsScreen = () => {
       case 'testMoveCamera':
         await testMoveCamera(getTestTools());
         break;
+      case 'testAnimateCamera':
+        await testAnimateCamera(getTestTools());
+        break;
       case 'testTiltZoomBearingCamera':
         await testTiltZoomBearingCamera(getTestTools());
         break;
@@ -454,6 +458,13 @@ const IntegrationTestsScreen = () => {
             runTest('testMoveCamera');
           }}
           testID="testMoveCamera"
+        />
+        <ExampleAppButton
+          title="testAnimateCamera"
+          onPress={() => {
+            runTest('testAnimateCamera');
+          }}
+          testID="testAnimateCamera"
         />
         <ExampleAppButton
           title="testTiltZoomBearingCamera"
