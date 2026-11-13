@@ -17,17 +17,10 @@ This document covers breaking changes and migration steps between major versions
 Version 0.19.1 upgrades the Android Navigation SDK from `8.0.0` to
 `8.1.0`. The iOS Navigation SDK remains at `11.3.0`.
 
-The library's consumer ProGuard rule is updated for the SDK 8.1 reflective
-loader. Use the updated library when minifying Android builds; overriding the
-native SDK dependency alone does not apply that compatibility rule.
-
 ### Migrate route tokens
 
-`SetDestinationsOptions.routeTokenOptions` and `RouteTokenOptions` are deprecated.
-They remain functional in this release for existing consumers; no removal is
-part of this change. Migrate token routing to `setDestinationsWithToken`.
-Regular waypoint routing through `setDestination` and `setDestinations` is
-unchanged.
+`SetDestinationsOptions.routeTokenOptions` and `RouteTokenOptions` are
+deprecated and still work. Move token routing to `setDestinationsWithToken`.
 
 Before:
 
@@ -48,38 +41,19 @@ await navigationController.setDestinationsWithToken({
 });
 ```
 
-The new method takes one `SetDestinationsWithTokenOptions` object with required
-`routeToken`, optional `travelMode`, and optional nested `displayOptions`. It
-returns `Promise<RouteStatus>` and defaults to showing destination markers.
-Do not pass waypoints or `routingOptions`: the token encodes the destinations
-and routing preferences. Routes API tokens must use `DRIVE` or `TWO_WHEELER`,
-traffic-aware routing, and no `via` waypoints.
+- Drop the waypoints and `routingOptions`: the token supplies the destinations
+  and routing preferences.
+- Pass the travel mode the token was generated with. Modes other than
+  `TravelMode.DRIVING` and `TravelMode.TWO_WHEELER` reject with error code
+  `travelModeUnsupported`.
+- Destination markers are shown when `displayOptions` is omitted.
 
-Initialize navigation and wait for a valid location before setting the token.
-After `RouteStatus.OK`, start guidance normally; simulation and advancing to
-the next destination also use the SDK's token-derived route. Arrival waypoints
-come from the native SDK and need not preserve app-specific labels.
-On iOS, starting simulation resumes the SDK simulator after its automatic pause
-at a stop, so it can continue along the next token-derived leg.
+See [Using Route Tokens](README.md#using-route-tokens) for the full behavior,
+including the platform difference when `travelMode` is omitted.
 
-The optional `travelMode` accepts only `TravelMode.DRIVING` or
-`TravelMode.TWO_WHEELER`. Explicit unsupported modes (including walking, cycling,
-and taxi) reject with native error code `travelModeUnsupported` on both platforms
-before changing the existing route.
+### Rebuild both platforms
 
-On iOS, omitting `travelMode` preserves the current client mode; if that mode is
-unsupported, the call rejects with `travelModeUnsupported`. Use an explicit
-supported mode to switch after walking or cycling. On Android, omission follows
-native token routing and uses the token's mode. A supported client mode never
-overrides the travel mode encoded in the token.
-
-Route status alone does not establish that the exact planned route was applied;
-token execution details are not exposed by this API.
-
-The native Codegen contract has a new method. Rebuild Android, run `pod install`
-in the iOS directory, and rebuild iOS. The deprecated native and TypeScript
-paths remain available during this migration; they are not redirected to a
-different waypoint or travel-mode contract.
+Rebuild Android, then run `pod install` in your iOS directory and rebuild iOS.
 
 ---
 
