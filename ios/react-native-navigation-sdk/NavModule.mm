@@ -48,7 +48,7 @@ static void setRoundedValue(NSMutableDictionary *payload, NSString *key, double 
 
 @implementation NavModule {
   GMSNavigationSession *_session;
-  NSMutableArray<GMSNavigationMutableWaypoint *> *_destinations;
+  NSNumber *_tokenRouteShowDestinationMarkers;
   RCTPromiseResolveBlock _pendingInitResolve;
   RCTPromiseRejectBlock _pendingInitReject;
 }
@@ -303,6 +303,7 @@ RCT_EXPORT_MODULE(NavModule);
     self.enableUpdateInfo = NO;
     self->_session.started = NO;
     self->_session = nil;
+    self->_tokenRouteShowDestinationMarkers = nil;
 
     NavViewModule *navViewModule = [NavViewModule sharedInstance];
     [navViewModule navigationSessionDestroyed];
@@ -398,7 +399,7 @@ RCT_EXPORT_MODULE(NavModule);
     if (![self checkNavigatorWithError:reject navigator:&navigator]) {
       return;
     }
-    if (self->_destinations != NULL) {
+    if (navigator.routeLegs.count > 0) {
       navigator.guidanceActive = YES;
       [self onStartGuidance];
       navigator.sendsBackgroundNotifications = YES;
@@ -426,8 +427,10 @@ RCT_EXPORT_MODULE(NavModule);
                                      reject:(RCTPromiseRejectBlock)reject {
   LocationSimulationOptionsSpec optionsCopy(options);
   dispatch_async(dispatch_get_main_queue(), ^{
-    if (self->_destinations != nil && self->_session != nil) {
+    if (self->_session.navigator.routeLegs.count > 0) {
       [self->_session.locationSimulator setSpeedMultiplier:optionsCopy.speedMultiplier()];
+      // Arrival at a stop pauses the SDK simulator; starting the next leg must resume it.
+      self->_session.locationSimulator.paused = NO;
       [self->_session.locationSimulator simulateLocationsAlongExistingRoute];
       resolve(@(YES));
     } else {
@@ -456,7 +459,7 @@ RCT_EXPORT_MODULE(NavModule);
     }
 
     [navigator clearDestinations];
-    self->_destinations = NULL;
+    self->_tokenRouteShowDestinationMarkers = nil;
     resolve(@(YES));
   });
 }
@@ -510,6 +513,8 @@ RCT_EXPORT_MODULE(NavModule);
       return;
     }
 
+    strongSelf->_tokenRouteShowDestinationMarkers = nil;
+
     // Apply display options to views (only if valid flag is set)
     if (displayOptionsCopy.valid().value_or(false)) {
       std::optional<bool> showDestinationMarkers = displayOptionsCopy.showDestinationMarkers();
@@ -518,7 +523,7 @@ RCT_EXPORT_MODULE(NavModule);
       }
     }
 
-    strongSelf->_destinations = [[NSMutableArray alloc] init];
+    NSMutableArray<GMSNavigationMutableWaypoint *> *destinations = [[NSMutableArray alloc] init];
 
     for (NSDictionary *wp in waypointsCopy) {
       GMSNavigationMutableWaypoint *w;
@@ -547,7 +552,7 @@ RCT_EXPORT_MODULE(NavModule);
         w.preferredHeading = [wp[@"preferredHeading"] intValue];
       }
 
-      [strongSelf->_destinations addObject:w];
+      [destinations addObject:w];
     }
 
     GMSNavigationRouteCompletionHandler routeCompletionHandler =
@@ -587,15 +592,90 @@ RCT_EXPORT_MODULE(NavModule);
       GMSNavigationRoutingOptions *gmRoutingOptions =
           [NavModule routingOptionsWithStrategy:routingStrategy
                         alternateRoutesStrategy:alternateRoutesStrategy];
-      [navigator setDestinations:strongSelf->_destinations
+      [navigator setDestinations:destinations
                   routingOptions:gmRoutingOptions
                completionHandler:routeCompletionHandler];
     } else {
       // No valid options provided, use defaults
-      [navigator setDestinations:strongSelf->_destinations
-               completionHandler:routeCompletionHandler];
+      [navigator setDestinations:destinations completionHandler:routeCompletionHandler];
     }
   });
+}
+
+- (void)setDestinationsWithToken:(SetDestinationsWithTokenOptionsSpec &)options
+                         resolve:(RCTPromiseResolveBlock)resolve
+                          reject:(RCTPromiseRejectBlock)reject {
+  NSString *routeTokenCopy = [options.routeToken() copy];
+  std::optional<double> travelMode = options.travelMode();
+  DisplayOptionsSpec displayOptionsCopy(options.displayOptions());
+
+  __weak __typeof(self) weakSelf = self;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    __strong __typeof(weakSelf) strongSelf = weakSelf;
+    if (!strongSelf) {
+      reject(@"internal_error", @"An internal error occurred", nil);
+      return;
+    }
+
+    GMSNavigator *navigator = nil;
+    if (![strongSelf checkNavigatorWithError:reject navigator:&navigator]) {
+      return;
+    }
+
+    double clientTravelMode = travelMode.value_or(strongSelf->_session.travelMode);
+    if (clientTravelMode != GMSNavigationTravelModeDriving &&
+        clientTravelMode != GMSNavigationTravelModeTwoWheeler) {
+      reject(@"travelModeUnsupported",
+             @"Route tokens support only DRIVING and TWO_WHEELER travel modes.", nil);
+      return;
+    }
+
+    // Preserve the current client mode unless the caller explicitly requests another.
+    [strongSelf configureNavigatorWithTravelMode:navigator travelMode:travelMode];
+    NavViewController *carViewController = [NavAutoModule sharedInstance].viewController;
+    if (travelMode.has_value()) {
+      [carViewController setTravelMode:(GMSNavigationTravelMode)travelMode.value()];
+    }
+
+    // Unlike the legacy API, every token-only call applies the default when omitted.
+    strongSelf->_tokenRouteShowDestinationMarkers =
+        @(displayOptionsCopy.showDestinationMarkers().value_or(true));
+    for (NavViewController *viewController in
+         [[NavViewModule viewControllersRegistry] objectEnumerator]) {
+      [strongSelf applyTokenRouteDisplayOptionsToViewController:viewController];
+    }
+    if (carViewController != nil) {
+      [strongSelf applyTokenRouteDisplayOptionsToViewController:carViewController];
+    }
+
+    [navigator
+        setDestinationsWithToken:routeTokenCopy
+               completionHandler:^(id<GMSNavigationRouteDescription> _Nullable routeDescription,
+                                   NSError *_Nullable error) {
+                 __strong __typeof(weakSelf) innerStrongSelf = weakSelf;
+                 if (!innerStrongSelf) return;
+                 if (routeDescription != nil &&
+                     routeDescription.routeStatus == GMSRouteStatusTravelModeUnsupported) {
+                   reject(@"travelModeUnsupported",
+                          error.localizedDescription
+                              ?: @"Route tokens support only DRIVING and TWO_WHEELER travel modes.",
+                          error);
+                   return;
+                 }
+                 if (routeDescription == nil) {
+                   reject(kNoRouteStatusErrorCode,
+                          error.localizedDescription ?: kNoRouteStatusErrorMessage, error);
+                   return;
+                 }
+                 resolve([NavModule routeStatusToString:routeDescription.routeStatus]);
+               }];
+  });
+}
+
+- (void)applyTokenRouteDisplayOptionsToViewController:(NavViewController *)viewController {
+  if (_tokenRouteShowDestinationMarkers != nil) {
+    [viewController setShowDestinationMarkersEnabled:[_tokenRouteShowDestinationMarkers boolValue]];
+  }
 }
 
 - (void)applyNavigationUISettingsShowDestinationMarkers:

@@ -43,6 +43,7 @@ interface TestTools {
   navigationController: NavigationController;
   mapViewController: MapViewController | null;
   navigationViewController: NavigationViewController | null;
+  routeToken: string;
   setOnNavigationReady: (listener: (() => void) | null | undefined) => void;
   setOnArrival: (
     listener: ((arrivalEvent: ArrivalEvent) => void) | null | undefined
@@ -184,6 +185,25 @@ const waitForTimeAndDistance = async (
     delayMs
   );
 
+const waitForNoRoute = (navigationController: NavigationController) =>
+  waitForCondition(
+    async () => {
+      try {
+        return (await navigationController.getRouteSegments()).length === 0;
+      } catch (error) {
+        // iOS reports absent route legs as an error; Android returns an empty list.
+        if (
+          Platform.OS === 'ios' &&
+          extractNativeErrorCode(error) === 'route_not_available'
+        ) {
+          return true;
+        }
+        throw error;
+      }
+    },
+    absent => absent
+  );
+
 const disableVoiceGuidanceForTests = (
   navigationController: NavigationController
 ) =>
@@ -238,6 +258,31 @@ const simulateAndWaitForLocation = (
     navigationController.simulator.simulateLocation(target);
   });
 };
+
+const simulateUntilArrival = ({
+  navigationController,
+  setOnArrival,
+}: TestTools): Promise<ArrivalEvent | null> =>
+  new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      setOnArrival(null);
+      resolve(null);
+    }, 60000);
+    setOnArrival(arrival => {
+      clearTimeout(timer);
+      setOnArrival(null);
+      resolve(arrival);
+    });
+    try {
+      navigationController.simulator.simulateLocationsAlongExistingRoute({
+        speedMultiplier: Platform.OS === 'ios' ? 5 : 10,
+      });
+    } catch (error) {
+      clearTimeout(timer);
+      setOnArrival(null);
+      reject(error);
+    }
+  });
 
 export const testNavigationSessionInitialization = async (
   testTools: TestTools
@@ -1560,6 +1605,33 @@ export const testNavigationStateGuards = async (testTools: TestTools) => {
   }
 
   if (
+    !(await expectNavigatorUnavailableError('setDestinationsWithToken', () =>
+      navigationController.setDestinationsWithToken({
+        routeToken: 'invalid-route-token',
+      })
+    ))
+  ) {
+    return;
+  }
+
+  for (const travelMode of [
+    TravelMode.WALKING,
+    TravelMode.CYCLING,
+    TravelMode.TAXI,
+  ]) {
+    if (
+      !(await expectNavigatorUnavailableError('setDestinationsWithToken', () =>
+        navigationController.setDestinationsWithToken({
+          routeToken: 'invalid-route-token',
+          travelMode,
+        })
+      ))
+    ) {
+      return;
+    }
+  }
+
+  if (
     !(await expectNavigatorUnavailableError('startGuidance', () =>
       navigationController.startGuidance()
     ))
@@ -1656,8 +1728,13 @@ export const testStartGuidanceWithoutDestinations = async (
  * These options are mutually exclusive and should not be used together.
  */
 export const testRouteTokenOptionsValidation = async (testTools: TestTools) => {
-  const { navigationController, setOnNavigationReady, passTest, failTest } =
-    testTools;
+  const {
+    navigationController,
+    setOnNavigationReady,
+    setOnLocationChanged,
+    passTest,
+    failTest,
+  } = testTools;
 
   // Accept ToS first
   if (!(await acceptToS(navigationController, failTest))) {
@@ -1665,40 +1742,535 @@ export const testRouteTokenOptionsValidation = async (testTools: TestTools) => {
   }
 
   setOnNavigationReady(async () => {
-    disableVoiceGuidanceForTests(navigationController);
-
+    setOnNavigationReady(null);
+    let failure: string | undefined;
     try {
-      // Attempt to provide both routingOptions and routeTokenOptions
-      await navigationController.setDestinations([DEFAULT_TEST_WAYPOINT], {
+      disableVoiceGuidanceForTests(navigationController);
+      const located = await simulateAndWaitForLocation(
+        navigationController,
+        setOnLocationChanged,
+        { lat: 37.791366, lng: -122.415659 }
+      );
+      if (!located) {
+        throw new Error('Timed out waiting for simulated location');
+      }
+      const status = await navigationController.setDestination(
+        DEFAULT_TEST_WAYPOINT
+      );
+      if (status !== RouteStatus.OK) {
+        throw new Error(`Baseline route returned ${status}`);
+      }
+      const before = await navigationController.getRouteSegments();
+      if (before.length !== 1) {
+        throw new Error('Expected one baseline route segment');
+      }
+
+      const options: SetDestinationsOptions = {
         routingOptions: { travelMode: TravelMode.DRIVING },
         routeTokenOptions: {
-          routeToken: 'some-token',
+          routeToken: 'invalid-route-token',
           travelMode: TravelMode.DRIVING,
         },
-      });
-      failTest(
-        'Expected error when both routingOptions and routeTokenOptions provided'
-      );
-    } catch (error) {
-      // Should throw JS error about mutual exclusivity
-      if (
-        error instanceof Error &&
-        error.message.includes(
-          'Only one of routingOptions or routeTokenOptions'
-        )
-      ) {
+      };
+      const conflictingCalls = [
+        () =>
+          navigationController.setDestination(DEFAULT_TEST_WAYPOINT, options),
+        () =>
+          navigationController.setDestinations(
+            [DEFAULT_TEST_WAYPOINT],
+            options
+          ),
+      ];
+      for (const call of conflictingCalls) {
+        let rejected = false;
         try {
-          await navigationController.cleanup();
-        } catch (cleanupError) {
-          console.error('Cleanup failed', cleanupError);
+          await call();
+        } catch (error) {
+          // Conflicting options must be rejected before a native route request,
+          // independent of the human-readable error message.
+          rejected =
+            error instanceof Error &&
+            extractNativeErrorCode(error) === undefined;
         }
-        passTest();
-      } else {
-        failTest(`Unexpected error: ${error}`);
+        if (!rejected) {
+          throw new Error(
+            'Conflicting routing/token options were not rejected'
+          );
+        }
+        const after = await navigationController.getRouteSegments();
+        if (
+          after.length !== before.length ||
+          distanceBetween(
+            after[0]!.destinationLatLng,
+            before[0]!.destinationLatLng
+          ) > 1
+        ) {
+          throw new Error('Conflicting options changed the existing route');
+        }
       }
+
+      // No Routes API key is needed: unsupported modes must reject before
+      // the native SDK parses this deliberately invalid token.
+      for (const travelMode of [
+        TravelMode.WALKING,
+        TravelMode.CYCLING,
+        TravelMode.TAXI,
+      ]) {
+        let code: string | undefined;
+        try {
+          await navigationController.setDestinationsWithToken({
+            routeToken: 'invalid-route-token',
+            travelMode,
+            displayOptions: { showDestinationMarkers: false },
+          });
+        } catch (error) {
+          code = extractNativeErrorCode(error);
+        }
+        if (code !== 'travelModeUnsupported') {
+          throw new Error(
+            `Token mode ${travelMode} rejected with ${code ?? 'no error'}`
+          );
+        }
+        const after = await navigationController.getRouteSegments();
+        if (
+          after.length !== before.length ||
+          distanceBetween(
+            after[0]!.destinationLatLng,
+            before[0]!.destinationLatLng
+          ) > 1
+        ) {
+          throw new Error('Unsupported token mode changed the existing route');
+        }
+      }
+    } catch (error) {
+      failure = `Route token validation failed: ${error}`;
+    } finally {
+      setOnLocationChanged(null);
+      try {
+        await navigationController.simulator.stopLocationSimulation();
+        await navigationController.cleanup();
+      } catch {
+        failure = failure ?? 'Route token exclusivity cleanup failed';
+      }
+    }
+    if (failure) {
+      failTest(failure);
+    } else {
+      passTest();
     }
   });
   await initializeNavigation(navigationController, failTest);
+};
+
+/**
+ * Uses a fresh Routes API token supplied by Detox, never an API key.
+ * Endpoint/state checks demonstrate a usable route, not exact token replay.
+ */
+export const testTokenRouting = async (testTools: TestTools) => {
+  const {
+    navigationController,
+    routeToken,
+    setOnNavigationReady,
+    setOnLocationChanged,
+    setOnArrival,
+    passTest,
+    failTest,
+  } = testTools;
+  if (!routeToken.trim()) {
+    return failTest(
+      'A fresh Routes API token is required for testTokenRouting'
+    );
+  }
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
+  }
+
+  // Keep these coordinates in sync with e2e/route_token.e2e.js.
+  const origin = { lat: 37.791366, lng: -122.415659 };
+  const destination = DEFAULT_TEST_WAYPOINT;
+  const replacement = {
+    position: { lat: 37.7894, lng: -122.4175 },
+  };
+  const replacementStop = {
+    position: { lat: 37.7906, lng: -122.4195 },
+  };
+
+  const expectRoute = async (
+    calculation: Promise<RouteStatus>,
+    endpoints: LatLng[],
+    label: string
+  ) => {
+    const status = await calculation.catch(error => {
+      throw new Error(
+        `${label} rejected (${extractNativeErrorCode(error) ?? 'unknown'})`
+      );
+    });
+    if (status !== RouteStatus.OK) {
+      throw new Error(`${label} returned ${status}`);
+    }
+    const segments = await waitForCondition(
+      () => navigationController.getRouteSegments(),
+      route =>
+        route.length === endpoints.length &&
+        route.every(
+          (segment, index) =>
+            distanceBetween(segment.destinationLatLng, endpoints[index]!) <=
+            LOCATION_THRESHOLD_METERS
+        )
+    );
+    if (!segments) {
+      throw new Error(`${label} did not replace the SDK route endpoints/count`);
+    }
+    const current = await navigationController.getCurrentRouteSegment();
+    if (
+      !current ||
+      distanceBetween(current.destinationLatLng, endpoints[0]!) >
+        LOCATION_THRESHOLD_METERS
+    ) {
+      throw new Error(`${label} has no matching current SDK route segment`);
+    }
+  };
+
+  const expectNoRoute = async () => {
+    const noRoute = await waitForNoRoute(navigationController);
+    if (!noRoute) {
+      throw new Error('Expected no remaining SDK route segments');
+    }
+    let code: string | undefined;
+    try {
+      await navigationController.startGuidance();
+    } catch (error) {
+      code = extractNativeErrorCode(error);
+    }
+    if (code !== NO_DESTINATIONS_ERROR_CODE) {
+      throw new Error(
+        'Guidance without a route did not reject NO_DESTINATIONS'
+      );
+    }
+  };
+
+  setOnNavigationReady(async () => {
+    setOnNavigationReady(null);
+    let failure: string | undefined;
+    try {
+      disableVoiceGuidanceForTests(navigationController);
+      const located = await simulateAndWaitForLocation(
+        navigationController,
+        setOnLocationChanged,
+        origin
+      );
+      if (!located) {
+        throw new Error('Timed out waiting for the token fixture origin');
+      }
+
+      await navigationController.clearDestinations();
+      try {
+        const status = await navigationController.setDestinationsWithToken({
+          routeToken: 'invalid-route-token',
+        });
+        if (
+          status === RouteStatus.OK ||
+          !Object.values(RouteStatus).includes(status)
+        ) {
+          throw new Error('Malformed token returned an invalid success/status');
+        }
+      } catch (error) {
+        const code = extractNativeErrorCode(error);
+        if (
+          code !== 'setDestinationsWithTokenFailed' &&
+          code !== 'noRouteStatus'
+        ) {
+          throw error;
+        }
+      }
+      await expectNoRoute();
+
+      // iOS preserves the client mode when omitted; Android's token-only SDK
+      // request uses the token mode regardless of the preceding normal route.
+      for (const mode of [TravelMode.WALKING, TravelMode.CYCLING]) {
+        await expectRoute(
+          navigationController.setDestination(replacement, {
+            routingOptions: { travelMode: mode },
+          }),
+          [replacement.position],
+          `Prior travel mode ${mode}`
+        );
+        if (Platform.OS === 'ios') {
+          let code: string | undefined;
+          try {
+            await navigationController.setDestinationsWithToken({ routeToken });
+          } catch (error) {
+            code = extractNativeErrorCode(error);
+          }
+          if (code !== 'travelModeUnsupported') {
+            throw new Error(
+              `Omitted token mode after ${mode} rejected with ${code ?? 'no error'}`
+            );
+          }
+          const unchanged = await navigationController.getRouteSegments();
+          if (
+            unchanged.length !== 1 ||
+            distanceBetween(
+              unchanged[0]!.destinationLatLng,
+              replacement.position
+            ) > LOCATION_THRESHOLD_METERS
+          ) {
+            throw new Error('Rejected token request changed the prior route');
+          }
+        } else {
+          await expectRoute(
+            navigationController.setDestinationsWithToken({ routeToken }),
+            [destination.position],
+            `Token with omitted mode after travel mode ${mode}`
+          );
+        }
+        await expectRoute(
+          navigationController.setDestinationsWithToken({
+            routeToken,
+            travelMode: TravelMode.DRIVING,
+          }),
+          [destination.position],
+          `Token with explicit DRIVING after travel mode ${mode}`
+        );
+      }
+
+      // A supported client mode must not override this DRIVE token's mode.
+      await expectRoute(
+        navigationController.setDestinationsWithToken({
+          routeToken,
+          travelMode: TravelMode.TWO_WHEELER,
+          displayOptions: { showDestinationMarkers: false },
+        }),
+        [destination.position],
+        'Driving token with TWO_WHEELER client mode and hidden markers'
+      );
+
+      await expectRoute(
+        navigationController.setDestinations([replacementStop, replacement], {
+          routingOptions: { travelMode: TravelMode.DRIVING },
+        }),
+        [replacementStop.position, replacement.position],
+        'Normal multi-stop replacement'
+      );
+      await expectRoute(
+        navigationController.setDestinationsWithToken({ routeToken }),
+        [destination.position],
+        'Token replacing normal multi-stop route'
+      );
+      await expectRoute(
+        navigationController.setDestination(replacement),
+        [replacement.position],
+        'Normal route replacing token'
+      );
+
+      // Deprecated singular/plural callers must still accept the same token.
+      const legacyOptions: SetDestinationsOptions = {
+        routeTokenOptions: {
+          routeToken,
+          travelMode: TravelMode.DRIVING,
+        },
+      };
+      await expectRoute(
+        navigationController.setDestination(destination, legacyOptions),
+        [destination.position],
+        'Legacy singular token'
+      );
+      await expectRoute(
+        navigationController.setDestinations([destination], legacyOptions),
+        [destination.position],
+        'Legacy plural token'
+      );
+
+      // Clear must invalidate guidance; a new token must restore it without
+      // caller-maintained waypoints or a subsequent normal route request.
+      await navigationController.clearDestinations();
+      await expectNoRoute();
+      await expectRoute(
+        navigationController.setDestinationsWithToken({
+          routeToken,
+          displayOptions: { showDestinationMarkers: true },
+        }),
+        [destination.position],
+        'Token after clear'
+      );
+      await navigationController.startGuidance();
+      const timeAndDistance =
+        await waitForTimeAndDistance(navigationController);
+      if (!timeAndDistance || timeAndDistance.meters <= 0) {
+        throw new Error('Token guidance has no positive remaining distance');
+      }
+      const arrival = await simulateUntilArrival(testTools);
+      if (!arrival) {
+        throw new Error('Token route simulation did not emit arrival');
+      }
+      if (
+        arrival.isFinalDestination === false ||
+        !arrival.waypoint.position ||
+        distanceBetween(arrival.waypoint.position, destination.position) >
+          LOCATION_THRESHOLD_METERS
+      ) {
+        throw new Error('Token arrival did not identify its final destination');
+      }
+    } catch (error) {
+      failure = `Token routing failed: ${error}`;
+    } finally {
+      setOnArrival(null);
+      setOnLocationChanged(null);
+      try {
+        await navigationController.simulator.stopLocationSimulation();
+        await navigationController.cleanup();
+      } catch {
+        failure = failure ?? 'Token routing cleanup failed';
+      }
+    }
+    if (failure) {
+      failTest(failure);
+    } else {
+      passTest();
+    }
+  });
+  if (!(await initializeNavigation(navigationController, failTest))) {
+    setOnNavigationReady(null);
+  }
+};
+
+export const testMultiStopTokenRouting = async (testTools: TestTools) => {
+  const {
+    navigationController,
+    routeToken,
+    setOnNavigationReady,
+    setOnLocationChanged,
+    setOnArrival,
+    passTest,
+    failTest,
+  } = testTools;
+  if (!routeToken.trim()) {
+    return failTest(
+      'A fresh multi-stop Routes API token is required for testMultiStopTokenRouting'
+    );
+  }
+  if (!(await acceptToS(navigationController, failTest))) {
+    return;
+  }
+
+  // Keep these coordinates in sync with e2e/route_token.e2e.js.
+  const origin = { lat: 37.791366, lng: -122.415659 };
+  const endpoints = [
+    { lat: 37.79165, lng: -122.4141 },
+    DEFAULT_TEST_WAYPOINT.position,
+  ];
+  setOnNavigationReady(async () => {
+    setOnNavigationReady(null);
+    let failure: string | undefined;
+    try {
+      disableVoiceGuidanceForTests(navigationController);
+      const located = await simulateAndWaitForLocation(
+        navigationController,
+        setOnLocationChanged,
+        origin
+      );
+      if (!located) {
+        throw new Error('Timed out waiting for the multi-stop token origin');
+      }
+      const status = await navigationController.setDestinationsWithToken({
+        routeToken,
+        displayOptions: { showDestinationMarkers: true },
+      });
+      if (status !== RouteStatus.OK) {
+        throw new Error(`Multi-stop token returned ${status}`);
+      }
+
+      for (let index = 0; index < endpoints.length; index++) {
+        const remaining = endpoints.slice(index);
+        const segments = await waitForCondition(
+          () => navigationController.getRouteSegments(),
+          route =>
+            route.length === remaining.length &&
+            route.every(
+              (segment, segmentIndex) =>
+                distanceBetween(
+                  segment.destinationLatLng,
+                  remaining[segmentIndex]!
+                ) <= LOCATION_THRESHOLD_METERS
+            )
+        );
+        if (!segments) {
+          throw new Error(`Token leg ${index} has incorrect endpoints/count`);
+        }
+        const current = await navigationController.getCurrentRouteSegment();
+        if (
+          !current ||
+          distanceBetween(current.destinationLatLng, endpoints[index]!) >
+            LOCATION_THRESHOLD_METERS
+        ) {
+          throw new Error(`Token leg ${index} is not the current SDK route`);
+        }
+
+        await navigationController.startGuidance();
+        const arrival = await simulateUntilArrival(testTools);
+        const isFinal = index === endpoints.length - 1;
+        if (
+          !arrival?.waypoint.position ||
+          distanceBetween(arrival.waypoint.position, endpoints[index]!) >
+            LOCATION_THRESHOLD_METERS ||
+          (arrival.isFinalDestination !== undefined &&
+            arrival.isFinalDestination !== isFinal)
+        ) {
+          throw new Error(
+            `Token leg ${index} did not emit its expected arrival`
+          );
+        }
+        navigationController.simulator.pauseLocationSimulation();
+        const continued =
+          await navigationController.continueToNextDestination();
+        if (isFinal) {
+          if (continued.waypoint !== null) {
+            throw new Error('Final token continuation retained a destination');
+          }
+        } else if (
+          !continued.waypoint?.position ||
+          distanceBetween(continued.waypoint.position, endpoints[index + 1]!) >
+            LOCATION_THRESHOLD_METERS ||
+          (Platform.OS === 'ios' && continued.routeStatus !== RouteStatus.OK)
+        ) {
+          throw new Error('Token continuation did not select the next SDK leg');
+        }
+      }
+
+      const cleared = await waitForNoRoute(navigationController);
+      if (!cleared) {
+        throw new Error('Final continuation left an SDK route');
+      }
+      let code: string | undefined;
+      try {
+        await navigationController.startGuidance();
+      } catch (error) {
+        code = extractNativeErrorCode(error);
+      }
+      if (code !== NO_DESTINATIONS_ERROR_CODE) {
+        throw new Error('Final continuation did not invalidate guidance');
+      }
+    } catch (error) {
+      failure = `Multi-stop token routing failed: ${error}`;
+    } finally {
+      setOnArrival(null);
+      setOnLocationChanged(null);
+      try {
+        await navigationController.simulator.stopLocationSimulation();
+        await navigationController.cleanup();
+      } catch {
+        failure = failure ?? 'Multi-stop token routing cleanup failed';
+      }
+    }
+    if (failure) {
+      failTest(failure);
+    } else {
+      passTest();
+    }
+  });
+  if (!(await initializeNavigation(navigationController, failTest))) {
+    setOnNavigationReady(null);
+  }
 };
 
 /**

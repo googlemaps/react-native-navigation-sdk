@@ -17,6 +17,7 @@
     public static *;
 }
 
-# SDK 8's protobuf registry is package-private. Its reflective loader must stay
-# in the same package; R8 repackaging otherwise causes IllegalAccessException.
--keep class com.google.android.libraries.navigation.internal.amv.av { *; }
+# SDK 8.1's protobuf registry (internal.anr.k) is package-private. Its reflective
+# loader must stay in the same package; R8 repackaging otherwise causes
+# IllegalAccessException even when optimizations are disabled.
+-keep class com.google.android.libraries.navigation.internal.anr.av { *; }

@@ -15,7 +15,7 @@
  */
 
 // Minimal Routes API implementation for fetching route tokens.
-// Route tokens are currently only supported for DRIVE travel mode.
+// This example requests DRIVE; route tokens support DRIVE or TWO_WHEELER.
 // See: https://developers.google.com/maps/documentation/routes/route_token
 
 import type { LatLng } from '@googlemaps/react-native-navigation-sdk';
@@ -25,7 +25,7 @@ const COMPUTE_ROUTES_URL =
 
 /**
  * Fetches a route token from the Google Maps Routes API.
- * Route tokens are only supported for DRIVE travel mode.
+ * This example requests DRIVE; route tokens support DRIVE or TWO_WHEELER.
  *
  * @param apiKey - Google Maps API key with Routes API enabled.
  * @param origin - Starting location.

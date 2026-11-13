@@ -44,6 +44,8 @@ import { NavigationSessionStatus } from '../types';
  * Pass the same waypoints that were used to request the route token. On iOS the
  * route token alone defines the destinations, and the waypoints are not sent to
  * the Navigation SDK.
+ *
+ * @deprecated Use {@link NavigationController.setDestinationsWithToken} instead.
  */
 export interface RouteTokenOptions {
   /**
@@ -80,8 +82,44 @@ export interface SetDestinationsOptions {
   /**
    * Options for using a pre-computed route token from the Routes API.
    * Cannot be used with routingOptions.
+   *
+   * @deprecated Use {@link NavigationController.setDestinationsWithToken} instead.
    */
   routeTokenOptions?: RouteTokenOptions;
+}
+
+/**
+ * Options for replacing destinations with a route encoded in a route token.
+ */
+export interface SetDestinationsWithTokenOptions {
+  /**
+   * A route token from the Routes API or Route Optimization API.
+   * Tokens support DRIVE or TWO_WHEELER routes. Destinations and routing
+   * preferences, including travel mode, come from the token and take precedence
+   * over supported client-side travel mode settings.
+   */
+  routeToken: string;
+
+  /**
+   * Optional client-side travel mode. Only TravelMode.DRIVING and
+   * TravelMode.TWO_WHEELER are supported; other values reject with error code
+   * `travelModeUnsupported` before changing the current route.
+   *
+   * On iOS, omitting this preserves the current client travel mode. If that mode
+   * is unsupported (for example, after walking or cycling), the call rejects
+   * with `travelModeUnsupported`; pass an explicit supported mode to switch.
+   * On Android, omitting this uses the token's routing mode.
+   *
+   * A supported client travel mode does not override the mode encoded in the
+   * route token.
+   */
+  travelMode?: TravelMode;
+
+  /**
+   * Route display options. Destination markers are shown by default, including
+   * when displayOptions or showDestinationMarkers is omitted.
+   */
+  displayOptions?: DisplayOptions;
 }
 
 /**
@@ -186,7 +224,8 @@ export interface ContinueToNextDestinationResponse {
  */
 export interface ArrivalEvent {
   /**
-   * Waypoint the device has arrived to. This waypoint was used when setDestinations was called.
+   * The destination reported by the Navigation SDK. For token routes, the
+   * destination comes from the token rather than caller-provided waypoints.
    */
   waypoint: Waypoint;
 
@@ -279,7 +318,8 @@ export interface NavigationCallbacks {
  */
 export interface Simulator {
   /**
-   * Initiates a simulation of the navigation with a specified speed multiplier.
+   * Starts or resumes simulation along the current route with a specified speed multiplier.
+   * Requires a successfully calculated route, including after continueToNextDestination.
    * @param speedMultiplier - Multiplier to speed up the simulation.
    */
   simulateLocationsAlongExistingRoute(options: LocationSimulationOptions): void;
@@ -451,6 +491,29 @@ export interface NavigationController {
   setDestinations(
     waypoints: Waypoint[],
     options?: SetDestinationsOptions
+  ): Promise<RouteStatus>;
+
+  /**
+   * Replaces the current destinations with a route encoded in a route token.
+   * Call after navigation initialization. Destinations and routing preferences,
+   * including travel mode, come from the token; a supported client travel mode
+   * does not override the token's mode.
+   *
+   * @param options - Route token, optional client travel mode, and optional display
+   *                  options. Only TravelMode.DRIVING and TravelMode.TWO_WHEELER
+   *                  are supported. On iOS, an omitted travelMode preserves the
+   *                  current client mode; pass a supported mode explicitly after
+   *                  walking or cycling. On Android, omission uses token routing.
+   *                  Destination markers are shown by default.
+   * @returns The SDK's route calculation status. A successful status does not
+   *          guarantee exact replay when the starting location or road conditions change.
+   *          Rejects if navigation is unavailable, with `travelModeUnsupported`
+   *          before changing routes if an explicit travelMode is unsupported
+   *          (or the inherited iOS client mode is unsupported), with `noRouteStatus`
+   *          if the SDK returns no route status, or when the native call fails.
+   */
+  setDestinationsWithToken(
+    options: SetDestinationsWithTokenOptions
   ): Promise<RouteStatus>;
 
   /**

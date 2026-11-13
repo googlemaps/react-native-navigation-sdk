@@ -76,6 +76,12 @@ type RouteTokenOptionsSpec = Readonly<{
   travelMode?: CodegenTypes.Double;
 }>;
 
+type SetDestinationsWithTokenOptionsSpec = Readonly<{
+  routeToken: string;
+  travelMode?: CodegenTypes.Double;
+  displayOptions: DisplayOptionsSpec;
+}>;
+
 type SpeedAlertOptionsSpec = Readonly<{
   valid?: CodegenTypes.WithDefault<boolean, false>;
   majorSpeedAlertPercentThreshold: CodegenTypes.Float;
@@ -184,6 +190,9 @@ export interface Spec extends TurboModule {
     routingOptions: RoutingOptionsSpec,
     displayOptions: DisplayOptionsSpec,
     routeTokenOptions: RouteTokenOptionsSpec
+  ): Promise<RouteStatusSpec>;
+  setDestinationsWithToken(
+    options: SetDestinationsWithTokenOptionsSpec
   ): Promise<RouteStatusSpec>;
   continueToNextDestination(): Promise<ContinueToNextDestinationResponseSpec>;
   clearDestinations(): Promise<void>;

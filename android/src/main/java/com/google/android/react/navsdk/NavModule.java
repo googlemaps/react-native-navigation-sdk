@@ -673,6 +673,49 @@ public class NavModule extends NativeNavModuleSpec
   }
 
   @Override
+  public void setDestinationsWithToken(ReadableMap options, final Promise promise) {
+    if (!ensureNavigatorAvailable(promise)) {
+      return;
+    }
+
+    try {
+      if (options.hasKey("travelMode") && !options.isNull("travelMode")) {
+        @RoutingOptions.TravelMode
+        int travelMode = EnumTranslationUtil.getTravelModeFromJsValue(options.getInt("travelMode"));
+        if (travelMode != RoutingOptions.TravelMode.DRIVING
+            && travelMode != RoutingOptions.TravelMode.TWO_WHEELER) {
+          promise.reject(
+              "travelModeUnsupported",
+              "Route tokens support only DRIVING and TWO_WHEELER travel modes.");
+          return;
+        }
+      }
+
+      String routeToken = options.getString("routeToken");
+      DisplayOptions parsedDisplayOptions =
+          ObjectTranslationUtil.getDisplayOptionsFromMap(
+              options.getMap("displayOptions").toHashMap());
+
+      mWaypoints.clear();
+
+      // The SDK uses the mode encoded in the token, not the validated client mode.
+      mNavigator.setDestinationsWithToken(
+          routeToken,
+          parsedDisplayOptions,
+          routeDescription -> {
+            if (routeDescription == null) {
+              promise.reject("noRouteStatus", "The Navigation SDK returned no route status.");
+              return;
+            }
+            promise.resolve(
+                EnumTranslationUtil.getRouteStatusStringValue(routeDescription.getRouteStatus()));
+          });
+    } catch (RuntimeException e) {
+      promise.reject("setDestinationsWithTokenFailed", e.getMessage(), e);
+    }
+  }
+
+  @Override
   public void clearDestinations(final Promise promise) {
     if (!ensureNavigatorAvailable(promise)) {
       return;
@@ -702,7 +745,7 @@ public class NavModule extends NativeNavModuleSpec
     if (!ensureNavigatorAvailable(promise)) {
       return;
     }
-    if (mWaypoints.isEmpty()) {
+    if (mNavigator.getCurrentRouteSegment() == null) {
       promise.reject(JsErrors.NO_DESTINATIONS_ERROR_CODE, JsErrors.NO_DESTINATIONS_ERROR_MESSAGE);
       return;
     }
@@ -723,14 +766,16 @@ public class NavModule extends NativeNavModuleSpec
 
   @Override
   public void simulateLocationsAlongExistingRoute(ReadableMap options, final Promise promise) {
+    if (!ensureNavigatorAvailable(promise)) {
+      return;
+    }
+    if (mNavigator.getCurrentRouteSegment() == null) {
+      promise.reject(JsErrors.NO_DESTINATIONS_ERROR_CODE, JsErrors.NO_DESTINATIONS_ERROR_MESSAGE);
+      return;
+    }
+
     float speedMultiplier =
         options.hasKey("speedMultiplier") ? (float) options.getDouble("speedMultiplier") : 1.0f;
-    if (mNavigator == null) {
-      return;
-    }
-    if (mWaypoints.isEmpty()) {
-      return;
-    }
 
     mNavigator
         .getSimulator()

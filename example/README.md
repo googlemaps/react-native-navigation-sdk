@@ -51,3 +51,37 @@ First, make sure you go through the setup from the main [README](../README.md).
 1. On your Emulator, go to App Info for the installed app, then Permissions > Location and allow location for the app.
 
 2. Restart the app, now the Navigation view should be displayed instead of the map.
+
+## Route-token integration tests
+
+The focused route-token suite requests fresh single- and multi-stop tokens from
+the Routes API, then exercises native routing, omitted and supported client modes,
+nested display options, guidance, simulation, arrival, route replacement, and the
+deprecated API on both platforms. Configure the native Navigation SDK keys above
+and follow the [Detox setup](../CONTRIBUTING.md#integration-tests).
+
+Enable Routes API for a test key that permits requests from the test machine.
+An Android- or iOS-app-restricted key may not permit these Node-side requests.
+The key stays in the test process; only the resulting token is entered into
+the app. Do not commit keys or route tokens.
+
+From the repository root:
+
+```sh
+yarn example detox:build:android-release
+yarn example detox:build:ios-release
+
+# Paste the Routes API key, then press Enter; input is not echoed.
+read -r -s ROUTES_API_KEY
+export ROUTES_API_KEY
+
+yarn example detox:test:android-release --testMatch "$PWD/example/e2e/route_token.e2e.js"
+yarn example detox:test:ios-release --testMatch "$PWD/example/e2e/route_token.e2e.js" --headless
+
+unset ROUTES_API_KEY
+```
+
+The default `*.test.js` suite does not require this additional key. Its token
+validation coverage checks unsupported mode rejection and prior-route preservation
+using an invalid token. The focused suite fails explicitly if `ROUTES_API_KEY` is
+missing or cannot obtain a token.

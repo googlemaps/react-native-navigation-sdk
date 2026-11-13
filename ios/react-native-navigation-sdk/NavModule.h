@@ -23,6 +23,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class NavViewController;
+
 @interface NavModule : NativeNavModuleSpecBase <NativeNavModuleSpec,
                                                 GMSNavigatorListener,
                                                 GMSRoadSnappedLocationProviderListener,
@@ -36,6 +38,7 @@ typedef void (^NavigationSessionDisposedCallback)(void);
 - (BOOL)hasSession;
 - (BOOL)isNavigatorAvailable;
 - (GMSNavigationSession *)getSession;
+- (void)applyTokenRouteDisplayOptionsToViewController:(NavViewController *)viewController;
 + (void)unregisterNavigationSessionReadyCallback;
 + (void)registerNavigationSessionReadyCallback:(NavigationSessionReadyCallback)callback;
 + (void)unregisterNavigationSessionDisposedCallback;

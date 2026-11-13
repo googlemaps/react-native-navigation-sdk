@@ -4,10 +4,56 @@ This document covers breaking changes and migration steps between major versions
 
 ## Table of Contents
 
+- [Migrating from 0.19.0 to 0.19.1](#migrating-from-0190-to-0191)
 - [Migrating from 0.18.x to 0.19.x](#migrating-from-018x-to-019x)
 - [Migrating from 0.17.x to 0.18.x](#migrating-from-017x-to-018x)
 - [Migrating from 0.16.x to 0.17.x](#migrating-from-016x-to-017x)
 - [Migrating from 0.13.x to 0.14.x](#migrating-from-013x-to-014x)
+
+---
+
+## Migrating from 0.19.0 to 0.19.1
+
+Version 0.19.1 upgrades the Android Navigation SDK from `8.0.0` to
+`8.1.0`. The iOS Navigation SDK remains at `11.3.0`.
+
+### Migrate route tokens
+
+`SetDestinationsOptions.routeTokenOptions` and `RouteTokenOptions` are
+deprecated and still work. Move token routing to `setDestinationsWithToken`.
+
+Before:
+
+```tsx
+await navigationController.setDestinations(waypoints, {
+  routeTokenOptions: { routeToken, travelMode: TravelMode.DRIVING },
+  displayOptions: { showDestinationMarkers: false },
+});
+```
+
+After:
+
+```tsx
+await navigationController.setDestinationsWithToken({
+  routeToken,
+  travelMode: TravelMode.DRIVING,
+  displayOptions: { showDestinationMarkers: false },
+});
+```
+
+- Drop the waypoints and `routingOptions`: the token supplies the destinations
+  and routing preferences.
+- Pass the travel mode the token was generated with. Modes other than
+  `TravelMode.DRIVING` and `TravelMode.TWO_WHEELER` reject with error code
+  `travelModeUnsupported`.
+- Destination markers are shown when `displayOptions` is omitted.
+
+See [Using Route Tokens](README.md#using-route-tokens) for the full behavior,
+including the platform difference when `travelMode` is omitted.
+
+### Rebuild both platforms
+
+Rebuild Android, then run `pod install` in your iOS directory and rebuild iOS.
 
 ---
 

@@ -28,11 +28,8 @@ import { ExampleAppButton } from '../controls/ExampleAppButton';
 import { CommonStyles, MapStyles } from '../styles/components';
 import {
   NavigationView,
-  TravelMode,
   NavigationSessionStatus,
   type NavigationViewController,
-  type Waypoint,
-  type RouteTokenOptions,
   type LatLng,
   RouteStatus,
   useNavigation,
@@ -119,25 +116,12 @@ const RouteTokenScreen = () => {
         // Simulate user location at origin before setting destination
         navigationController.simulator.simulateLocation(ORIGIN_LOCATION);
 
-        // Set destination with route token using fixed destination
-        const waypoint: Waypoint = {
-          title: 'San Francisco',
-          position: DESTINATION_LOCATION,
-        };
-
-        const routeTokenOptions: RouteTokenOptions = {
-          routeToken: confirmedRouteToken,
-          travelMode: TravelMode.DRIVING, // Route tokens only support driving mode.
-        };
-
         try {
-          const routeStatus = await navigationController.setDestination(
-            waypoint,
-            {
+          const routeStatus =
+            await navigationController.setDestinationsWithToken({
+              routeToken: confirmedRouteToken,
               displayOptions: { showDestinationMarkers: true },
-              routeTokenOptions,
-            }
-          );
+            });
 
           // Handle route status result
           switch (routeStatus) {
@@ -325,7 +309,8 @@ const RouteTokenScreen = () => {
           <View style={CommonStyles.infoContainer}>
             <Text style={CommonStyles.infoTitle}>Note:</Text>
             <Text style={CommonStyles.infoText}>
-              Route tokens only support driving mode.
+              This example requests DRIVE routes. Route tokens support DRIVE or
+              TWO_WHEELER travel modes.
               {'\n\n'}
               The user location will be simulated at the origin when navigation
               starts.

@@ -83,7 +83,7 @@ describe('Navigation tests', () => {
     await expectSuccess();
   });
 
-  it('NT08 - setDestinations with both routingOptions and routeTokenOptions should throw error', async () => {
+  it('NT08 - rejects deprecated routeTokenOptions combined with routingOptions and unsupported token modes without changing route state', async () => {
     await selectTestByName('testRouteTokenOptionsValidation');
     await agreeToTermsAndConditions();
     await waitForTestToFinish();
