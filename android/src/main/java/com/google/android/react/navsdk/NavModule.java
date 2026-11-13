@@ -24,7 +24,6 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -681,30 +680,21 @@ public class NavModule extends NativeNavModuleSpec
 
     try {
       if (options.hasKey("travelMode") && !options.isNull("travelMode")) {
-        double travelMode =
-            options.getType("travelMode") == ReadableType.Number
-                ? options.getDouble("travelMode")
-                : Double.NaN;
-        if (travelMode != 0 && travelMode != 3) {
+        @RoutingOptions.TravelMode
+        int travelMode = EnumTranslationUtil.getTravelModeFromJsValue(options.getInt("travelMode"));
+        if (travelMode != RoutingOptions.TravelMode.DRIVING
+            && travelMode != RoutingOptions.TravelMode.TWO_WHEELER) {
           promise.reject(
               "travelModeUnsupported",
-              "Route tokens only support DRIVING (0) or TWO_WHEELER (3) travel modes.");
+              "Route tokens support only DRIVING and TWO_WHEELER travel modes.");
           return;
         }
       }
 
       String routeToken = options.getString("routeToken");
-      ReadableMap displayOptions =
-          options.hasKey("displayOptions") && !options.isNull("displayOptions")
-              ? options.getMap("displayOptions")
-              : null;
-      boolean showDestinationMarkers =
-          displayOptions == null
-              || !displayOptions.hasKey("showDestinationMarkers")
-              || displayOptions.isNull("showDestinationMarkers")
-              || displayOptions.getBoolean("showDestinationMarkers");
       DisplayOptions parsedDisplayOptions =
-          new DisplayOptions().hideDestinationMarkers(!showDestinationMarkers);
+          ObjectTranslationUtil.getDisplayOptionsFromMap(
+              options.getMap("displayOptions").toHashMap());
 
       mWaypoints.clear();
 

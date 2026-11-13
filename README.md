@@ -344,7 +344,7 @@ After navigation initialization and a valid location update, pass a `SetDestinat
 ```tsx
 const routeStatus = await navigationController.setDestinationsWithToken({
   routeToken,
-  travelMode: TravelMode.DRIVING, // Optional client mode; does not override the token.
+  travelMode: TravelMode.DRIVING, // Use the mode the token was generated with.
   displayOptions: { showDestinationMarkers: true }, // Optional; defaults to true.
 });
 if (routeStatus === RouteStatus.OK) {
@@ -354,13 +354,13 @@ if (routeStatus === RouteStatus.OK) {
 
 The required `routeToken` supplies the destinations and routing preferences; do not pass waypoints or `routingOptions`. The optional nested `displayOptions` defaults to showing destination markers. Guidance, simulation, arrival events, and `continueToNextDestination` work with token routes as they do with waypoint routes. Arrival waypoints are reported by the native SDK, not matched against caller-provided labels.
 
-The optional `travelMode` accepts only `TravelMode.DRIVING` or `TravelMode.TWO_WHEELER`. Explicit unsupported modes (including walking, cycling, and taxi) reject with native error code `travelModeUnsupported` before changing the existing route. On iOS, omitting `travelMode` preserves the current client mode and rejects with the same code if that mode is unsupported; pass an explicit supported mode to switch after walking or cycling. On Android, omission follows the native token-routing behavior and uses the token's mode. A supported client mode never overrides the travel mode encoded in the token.
+The optional `travelMode` accepts only `TravelMode.DRIVING` or `TravelMode.TWO_WHEELER`; pass the mode the token was generated with. Explicit unsupported modes (including walking, cycling, and taxi) reject with native error code `travelModeUnsupported` before changing the existing route. On iOS, omitting `travelMode` preserves the current client mode and rejects with the same code if that mode is unsupported; pass an explicit supported mode to switch after walking or cycling. On Android, omission follows the native token-routing behavior and uses the token's mode. A supported client mode never overrides the travel mode encoded in the token.
 
 For Routes API tokens, use `DRIVE` or `TWO_WHEELER`, a `TRAFFIC_AWARE` or `TRAFFIC_AWARE_OPTIMAL` routing preference, and no `via` waypoints.
 
 `RouteStatus.OK` means the SDK found a route, not that it reproduced the planned route exactly. Starting location, traffic, or road changes can affect the route. This API returns `RouteStatus`, not token execution details.
 
-`SetDestinationsOptions.routeTokenOptions` and `RouteTokenOptions` are deprecated. Existing `setDestination` and `setDestinations` callers can migrate using the [token-routing migration guide](./MIGRATING.md#version-0191-token-only-routing). In the deprecated API, `routingOptions` and `routeTokenOptions` remain mutually exclusive.
+`SetDestinationsOptions.routeTokenOptions` and `RouteTokenOptions` are deprecated. Existing `setDestination` and `setDestinations` callers can migrate using the [token-routing migration guide](./MIGRATING.md#migrating-from-0190-to-0191). In the deprecated API, `routingOptions` and `routeTokenOptions` remain mutually exclusive.
 
 
 #### Adding navigation listeners

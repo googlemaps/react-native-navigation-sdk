@@ -4,7 +4,7 @@ This document covers breaking changes and migration steps between major versions
 
 ## Table of Contents
 
-- [Version 0.19.1: token-only routing](#version-0191-token-only-routing)
+- [Migrating from 0.19.0 to 0.19.1](#migrating-from-0190-to-0191)
 - [Migrating from 0.18.x to 0.19.x](#migrating-from-018x-to-019x)
 - [Migrating from 0.17.x to 0.18.x](#migrating-from-017x-to-018x)
 - [Migrating from 0.16.x to 0.17.x](#migrating-from-016x-to-017x)
@@ -12,7 +12,7 @@ This document covers breaking changes and migration steps between major versions
 
 ---
 
-## Version 0.19.1: token-only routing
+## Migrating from 0.19.0 to 0.19.1
 
 Version 0.19.1 upgrades the Android Navigation SDK from `8.0.0` to
 `8.1.0`. The iOS Navigation SDK remains at `11.3.0`.
