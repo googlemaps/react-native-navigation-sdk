@@ -16,7 +16,7 @@
 
 import NavViewModule from '../../native/NativeNavViewModule';
 import { processColorValue, colorIntToRGBA } from '../../shared';
-import type { Location } from '../../shared/types';
+import type { Location } from '../../shared';
 import type {
   CameraPosition,
   Circle,
@@ -193,6 +193,21 @@ export const getMapViewController = (nativeID: string): MapViewController => {
 
     moveCamera: async (cameraPosition: CameraPosition) => {
       return await NavViewModule.moveCamera(nativeID, cameraPosition);
+    },
+
+    animateCamera: async (
+      cameraPosition: CameraPosition,
+      duration?: number | null
+    ) => {
+      // set default values to transition similar to Google Maps app
+      return await NavViewModule.animateCamera(
+        nativeID,
+        {
+          ...cameraPosition,
+          zoom: cameraPosition.zoom ?? 15,
+        },
+        duration === undefined ? 500 : duration
+      );
     },
 
     setPadding: async _padding => {
